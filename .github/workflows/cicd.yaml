@@ -37,7 +37,8 @@ jobs:
 
       # Install dependencies
       - name: Install dependencies
-        run: poetry install --no-dev
+        run: poetry install --only main
+
 
 #       # Log in to DockerHub
 #       - name: Log in to DockerHub

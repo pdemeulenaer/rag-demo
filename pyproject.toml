@@ -10,7 +10,6 @@ keywords = [
     "rag",
     "retrieval-augmented-generation",
     "streamlit",
-    "faiss",
     "huggingface",
     "pymupdf"
 ]
@@ -37,7 +36,6 @@ dependencies = [
 
 [tool.poetry]
 packages = [{include = "rag_demo", from = "src"}]
-
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
