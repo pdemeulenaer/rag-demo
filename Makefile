@@ -36,8 +36,8 @@ test:
 # quality-ci: lint test
 
 ingest:
-	poetry run python -m src.app_rag_db.ingest_to_qdrant
+	poetry run python -m src.rag_demo.ingest_to_qdrant
 
 serve:
-	poetry run streamlit run src/app_rag_db/app.py	
+	poetry run streamlit run src/rag_demo/app.py	
 
