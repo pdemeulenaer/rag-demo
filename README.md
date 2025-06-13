@@ -28,5 +28,7 @@ The APIs used by this project are mainly (see config.yaml for exact definitions)
 
 * groq.com (for text summarization and for text generation)
 * cohere (for reranking of retrieved chunks)
+* Qdrant Cloud vector database
+* custom embedding model API deployed at https://rag-gbdgccage7bkgwa8.northeurope-01.azurewebsites.net/
 
 The corresponding API keys should be added in .env file (derived from .env.sample)
