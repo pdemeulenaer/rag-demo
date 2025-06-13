@@ -21,3 +21,12 @@ The app is served locally using `make serve`
 * docker image push pdemeulenaer/rag-demo:0.0.1
 
 TODO: indicate to the Docker container what is the address of the Qdrant VS
+
+## Dependencies
+
+The APIs used by this project are mainly (see config.yaml for exact definitions):
+
+* groq.com (for text summarization and for text generation)
+* cohere (for reranking of retrieved chunks)
+
+The corresponding API keys should be added in .env file (derived from .env.sample)

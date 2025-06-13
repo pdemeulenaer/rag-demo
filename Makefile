@@ -16,7 +16,7 @@ install:
 # pre-commit:
 # 	pre-commit install
 
-# setup: env-file conda pre-commit
+setup: env-file install #pre-commit
 
 black:
 	black .
