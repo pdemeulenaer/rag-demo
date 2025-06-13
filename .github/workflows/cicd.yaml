@@ -39,6 +39,14 @@ jobs:
       - name: Install dependencies
         run: poetry install --only main
 
+      # Read version from version.txt
+      - name: Read version from version.txt
+        id: get_version
+        run: |
+          VERSION=$(cat version.txt | tr -d '[:space:]')
+          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+          echo "Version: $VERSION"
+        shell: bash
 
       # Log in to DockerHub
       - name: Log in to DockerHub
@@ -48,15 +56,17 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       # Build and push Docker image
-      # - name: Build and push Docker image
-      #   uses: docker/build-push-action@v6
-      #   with:
-      #     context: .
-      #     push: true
-      #     tags: ${{ secrets.DOCKERHUB_USERNAME }}/rag-demo:${{ github.sha }}
-      #     # Optionally tag with 'latest' for main branch
-      #     additional-tags: |
-      #       ${{ github.ref == 'refs/heads/main' && format('{0}/rag-demo:latest', secrets.DOCKERHUB_USERNAME) || '' }}
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ secrets.DOCKERHUB_USERNAME }}/rag-demo:${{ steps.get_version.outputs.VERSION }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/rag-demo:${{ github.sha }}
+          # Optionally tag with 'latest' for main branch
+          additional-tags: |
+            ${{ github.ref == 'refs/heads/main' && format('{0}/rag-demo:latest', secrets.DOCKERHUB_USERNAME) || '' }}
 
 #   deploy-to-azure:
 #     needs: build-and-push
