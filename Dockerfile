@@ -14,7 +14,7 @@ RUN apt-get update && apt-get install -y \
 WORKDIR /app
 
 # Install Poetry
-RUN pip install poetry
+RUN pip install poetry==2.1.3
 
 # Copy dependency files first for caching
 COPY pyproject.toml poetry.lock* ./
@@ -52,4 +52,5 @@ ENV PATH="/app/.venv/bin:$PATH"
 EXPOSE 8501
 
 # Command to run the Streamlit app
-CMD ["poetry", "run", "streamlit", "run", "src/rag_demo/app.py", "--server.address=0.0.0.0"]
+# CMD ["poetry", "run", "streamlit", "run", "src/rag_demo/app.py", "--server.address=0.0.0.0"]
+CMD ["streamlit", "run", "src/rag_demo/app.py", "--server.address=0.0.0.0"]
