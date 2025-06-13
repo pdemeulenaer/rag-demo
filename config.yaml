@@ -1,0 +1,7 @@
+collection: 'test_collection2'
+
+groq:
+  summarization_model: 'llama-3.3-70b-versatile'
+  summarization_prompt: 'Summarize the following text: {{text}}'
+  temperature: 0.3
+  max_tokens: 256
