@@ -49,6 +49,9 @@ ingest:
 serve:
 	poetry run streamlit run src/rag_demo/app.py	
 
+evaluate:
+	poetry run python src/rag_demo/evaluation_ragas.py		
+
 
 .PHONY: build run
 

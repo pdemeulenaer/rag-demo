@@ -29,7 +29,8 @@ from langchain.chains.llm import LLMChain
 from langchain.schema import BasePromptTemplate
 
 from langchain.retrievers import ContextualCompressionRetriever
-from langchain.retrievers.document_compressors import CohereRerank
+# from langchain.retrievers.document_compressors import CohereRerank
+from langchain_cohere import CohereRerank
 
 
 def load_config(config_path="config.yaml"):

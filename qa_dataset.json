@@ -1,0 +1,202 @@
+[
+    {
+        "question": "What is the main topic of Philippe de Meulenaer's doctoral dissertation?",
+        "ground_truth": "The main topic is 'The Accuracy of Integrated Star Cluster Parameters. The Effects of Stochasticity'."
+    },
+    {
+        "question": "In what year was the doctoral dissertation by Philippe de Meulenaer completed?",
+        "ground_truth": "The doctoral dissertation was completed in 2015."
+    },
+    {
+        "question": "Who was the scientific supervisor for Philippe de Meulenaer's dissertation?",
+        "ground_truth": "The scientific supervisor was Prof. dr. Vladas Vansevičius."
+    },
+    {
+        "question": "What university was the doctoral dissertation prepared at?",
+        "ground_truth": "The dissertation was prepared at Vilnius University."
+    },
+    {
+        "question": "According to the abstract, what are star clusters considered important tools for?",
+        "ground_truth": "Star clusters are important tools to probe the star formation mechanisms and star formation history in their host galaxy."
+    },
+    {
+        "question": "What models are traditionally used to derive physical parameters of star clusters using integrated broad-band photometry?",
+        "ground_truth": "The traditional way to derive the physical parameters of star clusters using integrated broad-band photometry makes use of the Simple Stellar Population models (SSP)."
+    },
+    {
+        "question": "What is the idealized view that SSP models consider regarding how stellar masses are created in star clusters?",
+        "ground_truth": "SSP models consider that stellar masses are created in star clusters by continuously populating the Initial Mass Function (IMF)."
+    },
+    {
+        "question": "How have observations over the last forty years shown the Initial Mass Function should be considered?",
+        "ground_truth": "Observations have shown that the Initial Mass Function should be considered as a probability distribution function, according to which stellar masses are sampled randomly."
+    },
+    {
+        "question": "What is the effect of the IMF being a probability distribution function on star clusters?",
+        "ground_truth": "This has the effect to create different numbers of massive stars in clusters with the same physical parameters, hence dispersing the colors of clusters."
+    },
+    {
+        "question": "What is the main objective of the thesis regarding stellar mass sampling?",
+        "ground_truth": "In this thesis, the main objective is to develop a method of stellar mass sampling which takes into account the stochasticity due to the fact that the IMF is a probability distribution function, allowing reproduction of the dispersion of star cluster integrated colors."
+    },
+    {
+        "question": "What physical parameters are included in the model grid built for star clusters in this thesis?",
+        "ground_truth": "A model grid is built to reproduce all possible choices of physical parameters: age, mass, extinction, and metallicity."
+    },
+    {
+        "question": "How is the method for deriving star cluster parameters tested?",
+        "ground_truth": "The method is tested on artificial models to derive its accuracy."
+    },
+    {
+        "question": "Which photometric systems are privileged for the best determination of parameters like age or metallicity?",
+        "ground_truth": "Photometric systems containing ultraviolet passbands are privileged for a best determination of parameters such as age or metallicity."
+    },
+    {
+        "question": "On which two major Local Group galaxies is the method applied?",
+        "ground_truth": "The method is applied on different star cluster catalogs of the two major Local Group galaxies: M31 and M33."
+    },
+    {
+        "question": "For the M31 star cluster catalog with HST broad-band photometry, what is shown regarding metallicity derivation in bright clusters?",
+        "ground_truth": "For a M31 star cluster catalog with Hubble Space Telescope (HST) broad-band photometry, in the case of bright clusters, the metallicity derivation is consistent with spectroscopic values derived independently in the literature."
+    },
+    {
+        "question": "What kind of data is added to the M33 star cluster sample from deep Two Micron All Sky Survey (2MASS) images?",
+        "ground_truth": "Near-infrared data is added to the M33 star cluster sample, derived from deep Two Micron All Sky Survey (2MASS) images."
+    },
+    {
+        "question": "What general property of the M33 star cluster system is provided in the thesis?",
+        "ground_truth": "General properties of the M33 star cluster system, such as the typical disruption rate of the clusters, are provided."
+    },
+    {
+        "question": "What is the first major problem faced by scientists when attempting to recover the physical parameters of star clusters using integrated broad-band photometry?",
+        "ground_truth": "The first major problem is parameter degeneracy, where clusters with different parameters may have similar integrated colors."
+    },
+    {
+        "question": "What is the second reason preventing accurate derivation of cluster parameters?",
+        "ground_truth": "The second reason is due to the probabilistic (stochastic) sampling of star masses in star clusters."
+    },
+    {
+        "question": "What effect does the stochastic sampling of star masses have on clusters with the same physical parameters?",
+        "ground_truth": "The stochastic sampling of star masses causes the fluctuation of the number of bright stars for clusters with the same age, mass, extinction, and metallicity, resulting in different integrated luminosities and colors."
+    },
+    {
+        "question": "Why are Simple Stellar Population models considered oversimplified?",
+        "ground_truth": "They are oversimplified because they do not take into account the stochastic sampling of star masses happening during the birth of clusters."
+    },
+    {
+        "question": "Why should the derivation of star cluster parameters using SSP models be abandoned?",
+        "ground_truth": "The derivation of star cluster parameters using SSP models should be abandoned in favor of the more realistic modeling of stochastically sampled star clusters, as it allows a better reproduction of integrated color distributions."
+    },
+    {
+        "question": "What is one of the main aims of the study mentioned in the thesis?",
+        "ground_truth": "One of the main aims is to study the influence of stochasticity effects on the accuracy of star cluster parameter derivation (age, mass, extinction, and metallicity)."
+    },
+    {
+        "question": "What is the first main task of the study?",
+        "ground_truth": "The first main task is to build the method of sampling of star cluster stellar masses allowing to mimic the stochasticity of star clusters integrated photometry."
+    },
+    {
+        "question": "What is the second main task of the study?",
+        "ground_truth": "The second main task is to build the method of automatic comparison of integrated photometry of the star cluster models to observed star clusters, to derive their parameters."
+    },
+    {
+        "question": "What is stated as the first result regarding the method of derivation of star cluster parameters?",
+        "ground_truth": "The method of derivation of star cluster parameters, which takes into account the stochastic sampling of star masses, allows a better derivation of the age, mass, extinction, and metallicity, compared to traditional methods based on Simple Stellar Population models."
+    },
+    {
+        "question": "Under what conditions does the method make possible the derivation of star cluster metallicity based on broad-band photometry?",
+        "ground_truth": "The method makes possible the derivation of star cluster metallicity based on broad-band photometry in optical and ultraviolet passbands, in the case of small photometric errors: ≤0.05 mag in optical and ≤0.15 mag in ultraviolet passbands."
+    },
+    {
+        "question": "What has been demonstrated using a sample of star clusters from the M31 galaxy?",
+        "ground_truth": "Using a sample of star clusters of the M31 galaxy, the importance of the metallicity effects when trying to derive the other parameters has been demonstrated."
+    },
+    {
+        "question": "What is the typical disruption time of clusters in the M33 galaxy?",
+        "ground_truth": "The typical disruption time of clusters in the M33 galaxy is ~300 Myr."
+    },
+    {
+        "question": "Who was the first to quantify the distribution of the stellar Initial Mass Function (IMF)?",
+        "ground_truth": "Salpeter (1955) was the first to quantify the distribution of the stellar Initial Mass Function (IMF)."
+    },
+    {
+        "question": "What index did Salpeter (1955) assign to the simple power-law describing the IMF?",
+        "ground_truth": "Salpeter (1955) assigned an index of -2.35 to the simple power-law describing the IMF."
+    },
+    {
+        "question": "What does the function ϕ(m) describe?",
+        "ground_truth": "The function ϕ(m) describes how many stars of a given mass m one expects depending on the mass m of the star."
+    },
+    {
+        "question": "What does the IMF essentially indicate about massive stars compared to low-mass stars?",
+        "ground_truth": "It essentially indicates that massive stars are much less likely than low-mass stars in a stellar population."
+    },
+    {
+        "question": "What are isochrones in the context of this thesis?",
+        "ground_truth": "Isochrones are models computed for stars of the same age t and metallicity [M/H], and for all masses between a lower mass ml and an upper mass mu."
+    },
+    {
+        "question": "What stellar models are the isochrones used in this thesis based on?",
+        "ground_truth": "The isochrones used in this thesis are based on the PADOVA stellar models (Marigo et al. 2008; Girardi et al. 2010)."
+    },
+    {
+        "question": "What is the lower mass limit (ml) and upper mass limit (mu) for stars in the isochrones used?",
+        "ground_truth": "The lower mass limit (ml) is 0.01 M⊙ and the upper mass limit (mu) is 120 M⊙."
+    },
+    {
+        "question": "How are stars of a stellar population following the SSP models characterized?",
+        "ground_truth": "Stars of a stellar population following the SSP models are born at the same time and from the same progenitor giant molecular cloud, giving them the same properties: same age, metallicity, and distance to the observer (hence the same amount of extinction)."
+    },
+    {
+        "question": "What is the traditional photometric method for deriving star cluster physical parameters based on?",
+        "ground_truth": "The traditional photometric method used to derive the star cluster physical parameters is based on the comparison of the predicted integrated magnitudes MA(t, [M/H]) of a set of Simple Stellar Population (SSP) models of different ages and metallicities with the integrated broad-band photometry of the observed clusters."
+    },
+    {
+        "question": "What are the two main problems that bias the traditional photometric method for deriving star cluster physical parameters?",
+        "ground_truth": "The method is strongly biased by degeneracies between parameters and by the stochastic presence of bright stars that dominate the integrated photometry."
+    },
+    {
+        "question": "What is the 'degeneracy problem' in SSP models?",
+        "ground_truth": "The degeneracy problem arises because various degeneracies are present, where rather young star clusters of high metallicity can easily be mixed with older and lower metallicity clusters."
+    },
+    {
+        "question": "How does adding extinction affect the degeneracies in SSP models?",
+        "ground_truth": "If extinction is added, SSP models at a given position can be degenerated with other models, creating an age-extinction degeneracy for models on the same SSP, or an age-extinction-metallicity for models on different SSPs."
+    },
+    {
+        "question": "Why are SSP models considered oversimplified concerning the stochasticity problem?",
+        "ground_truth": "They are oversimplified because they do not take the natural dispersion of integrated colors of star clusters into account, known as the stochasticity problem."
+    },
+    {
+        "question": "What is the implication of stellar masses being stochastically sampled following the stellar IMF?",
+        "ground_truth": "Two clusters with the same physical parameters could host a different number of massive bright stars, resulting in very different integrated colors, especially in the case of young and low-mass clusters."
+    },
+    {
+        "question": "Why are SSP models biased regarding star cluster parameters?",
+        "ground_truth": "SSP models are biased because they do not even match the average of integrated color distributions for star clusters with mass log10(M/M⊙) ≲ 4."
+    },
+    {
+        "question": "What did Barbaro & Bertelli (1977) point out regarding stochastic sampling of star masses?",
+        "ground_truth": "Barbaro & Bertelli (1977) pointed out that different numbers of post main sequence stars may result in very different integrated properties of star clusters than predicted from the SSP models."
+    },
+    {
+        "question": "What did Santos & Frogel (1997) provide regarding stochastic sampling?",
+        "ground_truth": "Santos & Frogel (1997) provided a scheme of the stochastic sampling on which the method of cluster sampling used in this thesis is based."
+    },
+    {
+        "question": "How is the IMF considered when sampling star masses in a star cluster?",
+        "ground_truth": "To sample the star masses in a star cluster, the IMF can be considered as a probability distribution function (PDF) that is sampled randomly between the highest and the lowest star masses."
+    },
+    {
+        "question": "What is the effect of random sampling on the integrated colors of two clusters with the same physical parameters?",
+        "ground_truth": "Due to the random sampling naturally resulting in a different number of bright stars, the integrated colors of two clusters with the same physical parameters (same age, mass, extinction, and metallicity) turn out to be very different, and can also be very different from the SSP prediction."
+    },
+    {
+        "question": "What is the Kroupa (2001) IMF defined as?",
+        "ground_truth": "The Kroupa (2001) IMF is defined as ϕ(m) = k · Ci · m−αi, with different α values for different mass ranges."
+    },
+    {
+        "question": "What are the mass limits for the Kroupa (2001) IMF used in the thesis?",
+        "ground_truth": "The mass limits are m0 = 0.01M⊙, m1 = 0.08M⊙, m2 = 0.5M⊙, m3 = 1M⊙, m4 = 150M⊙."
+    }
+]
