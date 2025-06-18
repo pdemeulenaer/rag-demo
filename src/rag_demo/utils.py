@@ -13,6 +13,7 @@ from huggingface_hub import InferenceClient
 from langchain.embeddings.base import Embeddings
 # from transformers import AutoTokenizer, AutoModelForCausalLM, pipeline
 from langchain_groq import ChatGroq
+# from langchain.chat_models import ChatOllama
 from langchain.memory import ConversationBufferMemory
 from langchain.chains import ConversationalRetrievalChain
 from langchain.schema import Document
@@ -266,6 +267,7 @@ def get_conversation_chain(retriever):
     if not groq_api_key:
         raise ValueError("GROQ_API_KEY not found in .env file")
 
+    # llm = ChatOllama(model="mistral")
     llm = ChatGroq(
         groq_api_key = groq_api_key,
         # model_name="llama3-8b-8192" , #"mixtral-8x7b-32768" is deprecated,  # Example model; check Groq’s docs for available options
@@ -276,7 +278,6 @@ def get_conversation_chain(retriever):
     memory = ConversationBufferMemory(
         memory_key='chat_history', return_messages=True)
  
-
     conversation_chain = ConversationalRetrievalChain.from_llm(
         llm=llm,
         retriever=retriever,
