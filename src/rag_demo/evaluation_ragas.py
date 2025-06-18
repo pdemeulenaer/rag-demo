@@ -55,7 +55,7 @@ for item in qa_dataset:
     generated_answer = response["answer"]
     
     # Get retrieved contexts (assuming retriever returns LangChain-compatible documents)
-    retrieved_docs = retriever.get_relevant_documents(question)
+    retrieved_docs = retriever.invoke(question)
     contexts = [doc.page_content for doc in retrieved_docs]
     
     # Store data for evaluation
