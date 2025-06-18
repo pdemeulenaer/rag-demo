@@ -49,17 +49,17 @@ def get_file_hash(filepath) -> str:
 
 
 # === Chunking ===
-def get_text_chunks_recursive(text) -> List[str]:
+def get_text_chunks_recursive(text, config) -> List[str]:
     splitter = RecursiveCharacterTextSplitter(
-        chunk_size=10000,
-        chunk_overlap=2000,
+        chunk_size=config["chunking"]["chunk_size"],
+        chunk_overlap=config["chunking"]["chunk_overlap"],
         separators=["\n\n", "\n", ".", "!", "?", ",", " ", ""]
     )
     return splitter.split_text(text)
 
 
 # === Chunk Generator with Metadata ===
-def extract_chunks_with_metadata(filepath: str) -> Tuple[List[Tuple[str, int]], Dict[str, str]]:
+def extract_chunks_with_metadata(filepath: str, config) -> Tuple[List[Tuple[str, int]], Dict[str, str]]:
     chunks_with_page = []
     with pymupdf.open(filepath) as doc:
         metadata = doc.metadata or {}
@@ -67,7 +67,7 @@ def extract_chunks_with_metadata(filepath: str) -> Tuple[List[Tuple[str, int]], 
             text = page.get_text()
             if not text.strip():
                 continue
-            page_chunks = get_text_chunks_recursive(text)
+            page_chunks = get_text_chunks_recursive(text, config)
             for chunk in page_chunks:
                 chunks_with_page.append((chunk, page_number))
     return chunks_with_page, {
@@ -99,13 +99,13 @@ def summarize_chunk(text: str, config) -> str:
     }
 
     payload = {
-        "model": config["groq"]["summarization_model"],  # Handles up to 128k tokens
+        "model": config["summarization"]["model"],  # Handles up to 128k tokens
         "messages": [
             {"role": "system", "content": "You are a helpful assistant that summarizes academic documents."},
             {"role": "user", "content": f"Summarize the following chunk:\n\n{text}"}
         ],
-        "temperature": config["groq"]["temperature"],
-        "max_tokens": config["groq"]["max_tokens"]  # output summary size: 256=2-3 sentences, 512~1 paragraph
+        "temperature": config["summarization"]["temperature"],
+        "max_tokens": config["summarization"]["max_tokens"]  # output summary size: 256=2-3 sentences, 512~1 paragraph
     }
 
     try:
@@ -167,7 +167,7 @@ def ingest_folder_to_qdrant(folder_path: str, qdrant_url: str, qdrant_api_key: s
             continue
 
         print(f"→ Processing: {filename}")
-        chunks_with_meta, doc_metadata = extract_chunks_with_metadata(filepath)
+        chunks_with_meta, doc_metadata = extract_chunks_with_metadata(filepath, config)
 
         texts = [chunk for chunk, _ in chunks_with_meta]
         page_numbers = [page for _, page in chunks_with_meta]

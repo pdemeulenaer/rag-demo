@@ -1,7 +1,31 @@
 collection: 'test_collection2'
 
-groq:
-  summarization_model: 'llama-3.3-70b-versatile'
+chunking:
+  chunk_size: 10000 # 512
+  chunk_overlap: 2000 # 128
+# embedding:
+#   model: 'llama-3.3-70b-versatile'
+#   embedding_prompt: 'Generate an embedding for the following text: {{text}}'
+#   temperature: 0.1
+#   max_tokens: 256
+# retrieval:
+#   model: 'llama-3.3-70b-versatile'
+#   retrieval_prompt: 'Retrieve relevant information for the following query: {{query}}'
+#   temperature: 0.2
+#   max_tokens: 256
+# indexing:
+#   model: 'llama-3.3-70b-versatile'
+#   indexing_prompt: 'Index the following text: {{text}}'
+#   temperature: 0.1
+#   max_tokens: 256
+# search:
+#   model: 'llama-3.3-70b-versatile'
+#   search_prompt: 'Search for relevant documents based on the following query: {{query}}'
+#   temperature: 0.2
+#   max_tokens: 256
+
+summarization:
+  model: 'llama-3.3-70b-versatile'
   summarization_prompt: 'Summarize the following text: {{text}}'
   temperature: 0.3
   max_tokens: 256
