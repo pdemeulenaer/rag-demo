@@ -1,0 +1,469 @@
+[
+    {
+        "type": "text",
+        "text": "Deriving physical parameters of unresolved star clusters II. The degeneracies of age, mass, extinction, and metallicity ",
+        "text_level": 1,
+        "page_idx": 0
+    },
+    {
+        "type": "text",
+        "text": "P. de Meulenaer1,2, D. Narbutis2, T. Mineikis1,2, and V. Vansevicius ˇ 1,2 ",
+        "page_idx": 0
+    },
+    {
+        "type": "text",
+        "text": "1 Vilnius University Observatory, Ciurlionio 29, 03100 Vilnius, Lithuania ˇ e-mail: philippe.demeulenaer@ff.stud.vu.lt 2 Center for Physical Sciences and Technology, Savanoriu¸ 231, 02300 Vilnius, Lithuania ",
+        "page_idx": 0
+    },
+    {
+        "type": "text",
+        "text": "Received 14 April 2014 / Accepted 26 June 2014 ",
+        "page_idx": 0
+    },
+    {
+        "type": "text",
+        "text": "ABSTRACT ",
+        "text_level": 1,
+        "page_idx": 0
+    },
+    {
+        "type": "text",
+        "text": "Context. This paper is the second of a series that investigates the stochasticity and degeneracy problems that hinder the derivation of the age, mass, extinction, and metallicity of unresolved star clusters in external galaxies when broad-band photometry is used. ",
+        "page_idx": 0
+    },
+    {
+        "type": "text",
+        "text": "Aims. While Paper I concentrated on deriving age, mass, and extinction of star clusters for one fixed metallicity, we here derive these parameters in case when metallicity is let free to vary. The results were obtained using several different filter systems (UBVRI, UBVRIJHK, GALEX $^ +$ UBVRI), which allowed us to optimally reduce the different degeneracies between the cluster physical parameters. ",
+        "page_idx": 0
+    },
+    {
+        "type": "text",
+        "text": "Methods. The age, mass, and extinction of a sample of artificial star clusters were derived by comparing their broad-band integrated magnitudes with the magnitudes of a large grid of cluster models with various metallicities. ",
+        "page_idx": 0
+    },
+    {
+        "type": "text",
+        "text": "Results. A large collection of artificial clusters was studied to model the different degeneracies in the age, mass, extinction, and metallicity parameter space when stochasticity is taken into account in the cluster models. We show that, without prior knowledge on the metallicity, the optical bands (UBVRI) fail to allow a correct derivation of the age, mass, and extinction because of the strong degeneracies between models of different metallicities. Adding near-infrared information $\\scriptstyle ( U B V R I + J H K )$ slightly helps in improving the parameter derivation, except for the metallicity. Adding ultraviolet data (GALEX $+ U B V R I )$ helps significantly in deriving these parameters and allows constraining the metallicity when the photometric errors have a Gaussian distribution with standard deviations 0.05 mag for UBVRI and $0 . 1 5 \\mathrm { { m a g } }$ for the GALEX bands. ",
+        "page_idx": 0
+    },
+    {
+        "type": "text",
+        "text": "Key words. galaxies: star clusters: general ",
+        "page_idx": 0
+    },
+    {
+        "type": "text",
+        "text": "1. Introduction ",
+        "text_level": 1,
+        "page_idx": 0
+    },
+    {
+        "type": "text",
+        "text": "Star clusters are essential tools for understanding the formation and evolution of their host galaxies. Indeed, it is commonly assumed that a large fraction of stars were born in star clusters or stellar associations (Lada & Lada 2003). Know the physical parameters of the star cluster population (i.e., age, mass, chemical composition, extinction) is essential for determining of star formation history in a galaxy, and can be used as constraints for galaxy evolution models. ",
+        "page_idx": 0
+    },
+    {
+        "type": "text",
+        "text": "The traditional photometric method used to derive the star cluster physical parameters is based on the comparison of the predicted integrated colors of a set of simple stellar population (SSP) models with the integrated broad-band photometry of the observed clusters, as reported Anders et al. (2004) and Bridžius et al. (2008). However, this method is strongly biased by degeneracies between parameters and by the stochastic presence of bright stars that dominate the integrated photometry. The problem of deriving of the age and mass of clusters taking stochasticity into account has been studied in, for instance, by Popescu & Hanson (2009, 2010), when the photometric data were corrected for extinction before the analysis. Simultaneous derivation of age, mass, and extinction has been studied in Fouesneau & Lançon (2010), Fouesneau et al. (2012), de Meulenaer et al. (2013; hereafter Paper I), and in Anders et al. (2013). A recent review of the progress in the field has been compiled by Cerviño (2013). Anders et al. (2013) also studied the derivation of metallicity for narrow ranges of extinction and metallicity search, centered on the input values. The aim of this paper is to extend the study of de Meulenaer et al. (2013) to a wide range of metallicities, from $Z = 0 . 0 3$ to $Z = 0 . 0 0 0 1 3$ . We also present the ability . .of the method to derive the star cluster parameters using different filter sets: UBVRI, UBVRIJHK, and $\\mathrm { G A L E X + } U B V R I$ . ",
+        "page_idx": 0
+    },
+    {
+        "type": "text",
+        "text": "",
+        "page_idx": 0
+    },
+    {
+        "type": "text",
+        "text": "The structure of the paper is the following: in Sect. 2 we describe our grid of star cluster models used to derive the physical parameters of unresolved star clusters. Section 3 presents the method of deriving the cluster physical parameters developed in Paper I, but here with the addition of the metallicity dimension. Section 4 discusses the ability of the method to derive the age, mass, and extinction, using different photometric systems. The input metallicity of the artificial cluster sample is fixed to one value and the parameters are derived using a model grid of one fixed metallicity, which can be different from the input metallicity. This allows inspecting the metallicity effect on the derivation of the age, mass, and extinction. Section 5 explores the derivation of cluster parameters when the model grid contains models of different metallicities, so that we evaluate how accurately we can constrain the metallicity in addition to the age, mass, and extinction for various photometric systems. Conclusions are presented in Sect. 6. ",
+        "page_idx": 0
+    },
+    {
+        "type": "text",
+        "text": "2. Model grid for age, mass, extinction, and metallicity ",
+        "text_level": 1,
+        "page_idx": 0
+    },
+    {
+        "type": "text",
+        "text": "To derive physical parameters of unresolved star clusters, we computed a large grid of discrete cluster models for age, mass, extinction, and metallicity, randomly sampling the stellar mass according to the initial mass function (IMF, Kroupa 2001) ",
+        "page_idx": 0
+    },
+    {
+        "type": "image",
+        "img_path": "images/618db34e4675a3e0b2d1a16a9e559b369fb7f08bc710286a3335dc5ef32d932f.jpg",
+        "img_caption": [
+            "Fig. 1. Results of the test with nine samples of 10 000 artificial clusters using $U B V R I$ photometry with $\\sigma = 0 . 0 5$ mag for the photometric Gaussian σ .errors for each filter. The true metallicity of the models is specified at the extreme right of the figure and the metallicity of the grid used to classify the clusters is specified at the top of panels. Blocks of panels show the derived a) age; b) mass (the total area of each histogram is normalized to one); and c) extinction. In each block, the main diagonal panels are those where the true metallicity and the metallicity of the grid are the same, $Z _ { \\mathrm { t r u e } } = Z _ { \\mathrm { u s e d } }$ . "
+        ],
+        "img_footnote": [],
+        "page_idx": 1
+    },
+    {
+        "type": "text",
+        "text": "following the method described in Deveikis et al. (2008; see also Santos & Frogel 1997). The star luminosities are derived from stellar isochrones of the selected age and metallicity of the cluster models. We used the PADOVA isochrones1 from Marigo et al. (2008) with the corrections of Girardi et al. (2010) for the TP-AGB phases. The grid was built according to the following nodes: from $\\log _ { 1 0 } ( t / \\mathrm { y r } ) = 6 . 6$ to 10.1 in steps of 0.05, from $\\log _ { 1 0 } ( M / M _ { \\odot } ) = 2$ / . to 5 in steps of 0.05, and for 13 metallicities: from $Z = 0 . 0 3$ to $Z = 0 . 0 0 0 1 3$ . This gives a grid of . .71 values of age, 61 values of mass, with 1000 models per node, hence ${ \\sim } 4 \\times 1 0 ^ { 6 }$ models for each metallicity. To limit the number of models that need to be stored in computer memory, the extinction was computed when the observed cluster was compared with the grid of models. It ranges from $E ( B - V ) = 0$ t o 1 in steps of 0.01, therefore 101 values for the extinction. We used the Milky Way standard extinction law from Cardelli et al. (1989). ",
+        "page_idx": 1
+    },
+    {
+        "type": "text",
+        "text": "3. Deriving the cluster parameters ",
+        "text_level": 1,
+        "page_idx": 1
+    },
+    {
+        "type": "text",
+        "text": "The main idea of the method for determining the physical parameters (age, mass, extinction2, and metallicity) of a given observed star cluster with available broad-band photometry is to compare its magnitudes with those of a 4D grid of models for every value of the four physical parameters. Each node of the model grid described in the previous section contains a large series of models of the same age, mass, extinction, and metallicity to represent stochastic variations in photometry. ",
+        "page_idx": 1
+    },
+    {
+        "type": "text",
+        "text": "In a similar way as Fouesneau & Lançon (2010) and Fouesneau et al. (2014), we evaluated the likelihood of each node of the grid to represent the observed magnitudes of the cluster. For each node, we first computed the likelihood of each model from the node by ",
+        "page_idx": 1
+    },
+    {
+        "type": "equation",
+        "img_path": "images/ad183f8e7a210b04cc93743895675e9c674c8b64f28ce29ba642daf2e2ceee9b.jpg",
+        "text": "$$\nL _ { \\mathrm { m o d e l } } = \\prod _ { f = 1 } ^ { F } \\frac { 1 } { \\sqrt { 2 \\pi } \\sigma _ { f } } \\exp \\left[ - \\frac { \\left( \\mathrm { m a g } _ { f , \\mathrm { o b s } } - \\mathrm { m a g } _ { f , \\mathrm { m o d e l } } \\right) ^ { 2 } } { 2 \\sigma _ { f } ^ { 2 } } \\right] ,\n$$",
+        "text_format": "latex",
+        "page_idx": 1
+    },
+    {
+        "type": "text",
+        "text": "where $f$ stands for one particular filter, $\\operatorname* { m a g } _ { f }$ for the observed and model magnitudes in that filter, and $F$ for the total number ",
+        "page_idx": 1
+    },
+    {
+        "type": "text",
+        "text": "of filters, for example 5 for the UBVRI photometric system. Then the likelihood of the node of age $t$ , mass $M$ , extinction $E ( B - V )$ , and metallicity $Z$ is the sum of the likelihoods of its models, ",
+        "page_idx": 1
+    },
+    {
+        "type": "equation",
+        "img_path": "images/bb4b5f335d452fa22e809e1bdcf1acf990ded07f2c9811819a521e239aab4508.jpg",
+        "text": "$$\nL _ { \\mathrm { n o d e } } \\left( t , M , E ( B - V ) , Z \\right) = \\sum _ { n = 1 } ^ { N } { L } _ { \\mathrm { m o d e l } , n } ,\n$$",
+        "text_format": "latex",
+        "page_idx": 1
+    },
+    {
+        "type": "text",
+        "text": "where $N$ is the total number of models contained in the node. The observed star cluster is then classified with the parameters of the node, which maximizes $L _ { \\mathrm { n o d e } }$ among all nodes of the grid. ",
+        "page_idx": 1
+    },
+    {
+        "type": "text",
+        "text": "4. Tests of the method on artificial cluster samples: one–Z vs. one–Z ",
+        "text_level": 1,
+        "page_idx": 1
+    },
+    {
+        "type": "text",
+        "text": "To characterize the accuracy of the method presented in Sect. 3, we built samples of 10 000 stochastic artificial clusters with a flat random distribution in the age range $\\log _ { 1 0 } ( t / \\mathrm { y r } ) = [ 6 . 6 , 1 0 . 1 ]$ /and a flat random distribution in the extinction range $E ( B - V ) =$ [0 1], with the mass fixed to $\\log _ { 1 0 } ( M / M _ { \\odot } ) = 4$ and for 3 metal,licities, $Z = 0 . 0 1 9$ /, 0.005, and 0.00019. These artificial clusters .were built with photometry available in optical (UBVRI), nearinfrared (JHK), and ultraviolet (GALEX) filters. ",
+        "page_idx": 1
+    },
+    {
+        "type": "text",
+        "text": "4.1. Parameter derivation for artificial clusters in UBVRI ",
+        "text_level": 1,
+        "page_idx": 1
+    },
+    {
+        "type": "text",
+        "text": "In this first test, we show the results of deriving age, mass, and extinction using $U B V R I$ filters alone. Photometric errors were included in the UBVRI photometry of artificial clusters by adding Gaussian errors of $\\sigma = 0 . 0 5$ mag to each magnitude. ",
+        "page_idx": 1
+    },
+    {
+        "type": "text",
+        "text": "σ .Figure 1 shows the results, which show that the parameters are derived best when the metallicity used to classify clusters is the same as the true metallicity; see results in the main diagonal panels of the three panel blocks of Fig. 1. In the main diagonal panels of the age parameter (Fig. 1a), the streaks that develop perpendicularly up and down on the one-to-one black dashed line are caused by the age-extinction degeneracy. Old clusters with low intrinsic extinction can be mistakenly classified as younger clusters with higher extinction, and vice versa (see Fouesneau & Lançon 2010, as well as Paper I for more details on the age-extinction degeneracy). ",
+        "page_idx": 1
+    },
+    {
+        "type": "text",
+        "text": "Figure 2 shows the difference of extinction (derived − true) vs. the difference of age (derived − true) for clusters with true metallicity that were analyzed with model grids of the same metallicity, like in the main diagonal panels of Fig. 1. The first row of panels in Fig. 2 shows results obtained with the UBVRI photometric system. The extinction and age derivations are tightly related: an underestimation of the age correlates with an overestimation of the extinction, and an overestimation of the age correlates with an underestimation of the extinction. With decreasing metallicity, we note a slight change of the degeneracy correlation and concentration. ",
+        "page_idx": 1
+    },
+    {
+        "type": "image",
+        "img_path": "images/fd79d1e5617ec7b8c567635405735dfa71a68cce8781472ddb6218463c2a53d0.jpg",
+        "img_caption": [
+            "Fig. 2. Difference of the derived and the true extinction versus the difference of the derived and the true age for the sample of 10 000 artificial clusters. Clusters have been classified according to their true metallicity $( Z _ { \\mathrm { t r u e } } = Z _ { \\mathrm { u s e d } } )$ ), which is indicated at the top of panels, and with different photometric systems, indicated at the right. "
+        ],
+        "img_footnote": [],
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "",
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "The panels above and below the main diagonal panels of Fig. 1 show results where the metallicity of the grid is different from the true one, therefore additional biases appear. For the age parameter we observe a reinforcement of the left part of the ageextinction degeneracy streak when the grid metallicity is lower than the true metallicity (panels above the main diagonal panels) and a reinforcement of the right part of the streak when grid metallicity is higher than true metallicity. ",
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "Essentially when the grid metallicity is higher than the true metallicity, the underestimation of the ages of old clusters can be understood because, for the same age, mass, and extinction, lowmetallicity clusters are generally brighter and bluer than highmetallicity clusters. This is why classifying low-metallicity clusters with a higher-metallicity grid will interpret this brightness as that of younger clusters. Moreover, the degeneracy exists not only between the age and metallicity: the clusters are perceived to be much younger than they are, but also less massive (Fig. 1b). The extinction (Fig. 1c) is also affected, so that the degeneracies are strongly multidimensional. The reverse effects are also true for the upper main diagonal panels, when the grid metallicity is lower than the true one. Out of main diagonal results show the biases introduced when cluster parameters are derived using a model grid with an incorrect metallicity. ",
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "4.2. Addition of near-infrared passbands: UBVRI+JHK ",
+        "text_level": 1,
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "By using simple stellar population models (SSP), Bridžius et al. (2008; see also Anders et al. 2004) showed that adding near-infrared information (JHK photometric bands) to optical ",
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "UBVRI filters could help to significantly decrease the ageextinction degeneracy. We performed the same tests with stochastic clusters with additional $J H K$ filters. In each JHK filter, we added Gaussian photometric errors with $\\sigma = 0 . 1$ mag σ .to mimic the larger photometric uncertainties present in these passbands. We kept $\\sigma = 0 . 0 5$ mag for the Gaussian photometric σ .errors added to the UBVRI filters. ",
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "The results are displayed in Fig. 3. The main diagonal panels of the age and extinction parameter blocks show that the ageextinction degeneracy is reduced significantly. The streaks perpendicular to the one-to-one red line in the age parameter block (Fig. 3a) are much less populated than when only UBVRI filters were used (Fig. 1a). The decrease of intensity of the ageextinction degeneracy is also visible in Fig. 2 (second row), compared with the case without JHK filters (first row). ",
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "However, out of the main diagonal panels of Fig. 3, when the grid metallicity is different from the true metallicity of clusters, the strong additional biases due to metallicity observed in UBVRI-only case are still present, despite some minor differences. ",
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "4.3. Addition of ultraviolet passbands: GALEX $^ +$ UBVRI ",
+        "text_level": 1,
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "It is well-known (e.g., Kaviraj et al. 2007) that the association of far-ultraviolet (FUV, $\\lambda _ { \\mathrm { e f f } } = 1 5 3 9 \\mathrm { \\AA } )$ and near-ultraviolet (NUV, $\\lambda _ { \\mathrm { e f f } } = 2 3 1 6 \\mathrm { \\AA }$ λ passbands with optical UBVRI passbands λhelps in reducing degeneracies in the derivation of parameters. Here we study the 10 000 stochastic artificial star clusters with UBVRI photometry, with $\\sigma \\ : = \\ : 0 . 0 5$ mag for the photometric σ .Gaussian errors, and GALEX photometry with $\\sigma = 0 . 1 5 \\mathrm { \\ m a g }$ for each of the FUV and NUV filters. ",
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "Figure 4 shows the results for this filter combination, sharply constraining the age, mass, and extinction. The age-extinction streaks present in main diagonal panels in previous tests (Figs. 1 and 3) here vanish entirely. This is also clear in the last row of Fig. 2, where the correlation present in UBVRI and UBVRIJHK fades. ",
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "The break of the age-extinction degeneracy brought by ultraviolet data can be understood in Fig. 5. Panel a shows the SSPs of the 13 metallicities in optical passbands alone as well as the distributions of 1000 discrete cluster models of mass $\\log ( M / M _ { \\odot } ) ~ = ~ 4$ , of age $\\log _ { 1 0 } ( t / \\mathrm { y r } ) ~ = ~ 7$ , 7.5, 8, 8.5, 9, 9.5, /and 10, for three metallicities: $Z = 0 . 0 1 9$ , 0.005, and 0.00019. In .that case, for a given SSP of fixed metallicity, the bending of the SSP curve at intermediary ages and the direction of the reddening vector indicate an age-extinction degeneracy between young and old clusters. This is also true in terms of discrete model distributions, because the distributions of a given metallicity follow the SSP line of the corresponding metallicity. Figure 5b shows that this is not anymore the case when ultraviolet data are used, as the reddening vector now strongly deviates from the SSP direction. ",
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "However, as seen in previous tests, offsets are also observed in Fig. 4a when the grid metallicity is different from the true one (out of main diagonal panels), but the scatter is much smaller here. As before, when the metallicity of the grid is higher than the true one (panels below the main diagonal panels), the age is classified as younger and the mass as lower, and the reverse is true when the grid metallicity is lower than the true one (panels above main diagonal panels). ",
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "Note, however, that these results are in practice not useful for clusters older than a few hundred million years, as the FUV and NUV magnitudes strongly fade later on (see, e.g., Bianchi 2011). This means that to estimate the parameters of star clusters of close galaxies such as Andromeda or Triangulum, GALEX data can only be used for young clusters because for older clusters ultraviolet photometry falls below detection limit. ",
+        "page_idx": 2
+    },
+    {
+        "type": "image",
+        "img_path": "images/4df75ba77299d50d980d9581b162be4204d0bf4ef2b81124cc6ee360915c7146.jpg",
+        "img_caption": [],
+        "img_footnote": [],
+        "page_idx": 3
+    },
+    {
+        "type": "image",
+        "img_path": "images/a6cb186d8b08dfd923af6ec8a762250f285abf3fbcb10a28b53e026b9f8da86c.jpg",
+        "img_caption": [
+            "Fig. 3. Same as Fig. 1, but for UBVRIJHK filters with $\\sigma = 0 . 0 5$ mag for the photometric Gaussian errors for each UBVRI filter, and $\\sigma = 0 . 1$ mag for each JHK filter. ",
+            "Fig. 4. Same as Fig. 1, but with GALEX (FUV and NUV) and UBVRI filters with $\\sigma = 0 . 0 5$ mag for the photometric Gaussian errors for each UBVRI filter, and $\\sigma = 0 . 1 5$ σ . mag for each GALEX filter. The shaded areas in the panels of the extinction parameter in block c), which range from 0 to $^ { - 1 }$ σ . indicate that there are no solutions in these cases. "
+        ],
+        "img_footnote": [],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "",
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "5. Tests of the method on artificial cluster samples: one–Z vs. whole metallicity range ",
+        "text_level": 1,
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "In this section, we study the parameter derivation of three artificial clusters samples, each of them with one fixed metallicity $( Z = 0 . 0 1 9$ , 0.005, and 0.00019) using a large grid containing .cluster models of 13 different metallicities (from $Z = 0 . 0 3$ t o $Z \\ = \\ \\ 0 . 0 0 0 1 3$ .), to determine the ability of the method to de.rive the cluster age, mass, and extinction when the metallicity is unknown, with an attempt to also constrain the metallicity itself. First, we apply the method using only UBVRI photometry, then using UBVRIJHK photometry, and finally using $\\mathrm { G A L E X + } U B V R I$ photometry. As previously, the mass of clusters was fixed to $\\log ( M / M _ { \\odot } ) = 4$ , and the models were randomly reddened in the range $E ( B - V ) = [ 0 , 1 ]$ . As before, the photomet,ric errors for UBVRI, JHK and GALEX filters were $\\sigma = 0 . 0 5$ 0.1, and $0 . 1 5 \\mathrm { { m a g } }$ , respectively. ",
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "Figure 6a shows the results obtained for clusters studied using UBVRI photometry. Concerning the age, we still see the age-extinction degeneracy streaks perpendicular to the one-to-one black dashed line, which extends differently depending on the true metallicity of clusters. ",
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "",
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "In Fig. 5a, the age-extinction degeneracy exists for each given SSP with fixed metallicity. When we derive the cluster parameters allowing all metallicities, we see that the age-extinction degeneracy now extends between SSPs (and also between the discrete model distributions) of different metallicities, enlarging the uncertainty in deriving these parameters. ",
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "In addition to the reinforced age-extinction degeneracy, deriving the metallicity is complicated by the fact that in optical filters the SSPs (or the discrete model distributions of corresponding age) are naturally close and overlapping for young and intermediate-age clusters, so that the distance between them in photometric space is small compared with typical photometric uncertainties. These two problems make the UBVRI photometric system unsuitable in deriving the metallicity. ",
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "In Fig. 6, we define regions around the true metallicities (shaded area $\\pm 2$ bins around the vertical line in bottom panels) in which we quantify how many solutions are found in these regions. For example, for clusters with true metallicity $Z = 0 . 0 0 5$ (central case of Fig. 6a), only ${ \\sim } 2 0 \\%$ of clusters are .classified with a metallicity in the region around the true metallicity when only UBVRI is used. The accumulation of solutions at the metallicity range boundaries can be interpreted as that the derived metallicity of these clusters could be located even farther away from the true values, if the range of metallicities were broader. ",
+        "page_idx": 3
+    },
+    {
+        "type": "image",
+        "img_path": "images/465d77f3c4b0010ff296caea45c59260da8f802378748c596fb7bfc6ab9fd028.jpg",
+        "img_caption": [
+            "Fig. 5. Color vs. magnitude diagrams showing the SSP curves of the 13 metallicities used in the model grid, with discrete model distributions of age $\\log _ { 1 0 } ( t / \\mathrm { y r } ) = 7$ , 7.5, 8, 8.5, 9, 9.5, and 10 (young models are top left and old models are bottom right in each panel), for three metallicities: $Z = 0 . 0 1 9$ / (red), 0.005 (orange) and 0.00019 (blue). Each distribution contains 1000 discrete cluster models with mass fixed to $\\log ( M / M _ { \\odot } ) = 4$ , .and the SSPs are scaled to the mass of the clusters. The reddest SSP line indicates highest metallicity $Z = 0 . 0 3$ / and the bluest SSP line indicates lowest metallicity $Z = 0 . 0 0 0 1 3$ . The $_ { 1 - \\sigma }$ (cd:) $\\sigma = 0 . 1 5$ mag for FUV and NUV, and $0 . 0 5 \\mathrm { \\ m a g }$ for $U$ and $B$ .passbands) error bars show the standard . σ σ . .deviations of the photometric accuracy. The black arrows indicate the extinction vector, computed for $A _ { V } = 1$ mag. Panel a) shows the situation in optical bands alone, while in panels $\\mathbf { b }$ ) and c), ultraviolet information is present, and the zoom plots show details at young age. "
+        ],
+        "img_footnote": [],
+        "page_idx": 4
+    },
+    {
+        "type": "image",
+        "img_path": "images/6e30dde6db7239ef06572abd3735f07eb891f7125a699347d65b65dfec5959e8.jpg",
+        "img_caption": [
+            "Fig. 6. Age, mass, extinction, and metallicity derived for samples of 10 000 artificial clusters and with true mass $\\log _ { 1 0 } ( M / M _ { \\odot } ) = 4$ when the /metallicity is unknown. In each case, the true metallicity is indicated at the top of each column, and also by the vertical dashed line in metallicity panels (bottom row of panels). In the block of panels a), only $U B V R I$ photometry has been used with $\\sigma = 0 . 0 5$ mag of photometric errors. In block b) JHK filters have been added to UBVRI, with $\\sigma = 0 . 1$ σ . mag of photometric errors. In block c) GALEX filters have been added to σ .UBVRI, with 0.15 mag of photometric errors. In metallicity panels, regions are defined around the true metallicities (shaded area $\\pm 2$ bins around true metallicities). The percentage of clusters classified according to metallicity in this region is indicated. Mass and metallicity histograms are normalized so that the area below the histogram is 1. "
+        ],
+        "img_footnote": [],
+        "page_idx": 4
+    },
+    {
+        "type": "text",
+        "text": "",
+        "page_idx": 4
+    },
+    {
+        "type": "text",
+        "text": "Figure 6b shows the results of the same clusters, now studied with UBVRIJHK photometry. The change compared with the UBVRI case is the reduction of the dispersion in age and extinction panels. Concerning the metallicity derivation, the clusters are still suffering from metallicity boundary effects, but the effect is reduced, the metallicity is derived slightly better. For example, ${ \\sim } 3 5 \\%$ of clusters with true metallicity $Z = 0 . 0 0 5$ .are classified with a metallicity within the good region. And ${ \\sim } 6 0 \\%$ of clusters with true metallicity $Z = 0 . 0 0 0 1 9$ are classified correctly, much better than in the case with UBVRI alone. In that case, the strong degeneracy with boundary metallicity $Z = 0 . 0 3$ almost vanishes. ",
+        "page_idx": 4
+    },
+    {
+        "type": "text",
+        "text": "",
+        "page_idx": 4
+    },
+    {
+        "type": "image",
+        "img_path": "images/f94d1ce9204a710a574e20ef40a2809b8cf0d5f69293ae3dbd66177e82ade46b.jpg",
+        "img_caption": [
+            "Fig. 7. Same as Fig. 6, but for star cluster models without extinction added to their photometry, $E ( B - V ) = 0$ . "
+        ],
+        "img_footnote": [],
+        "page_idx": 5
+    },
+    {
+        "type": "text",
+        "text": "",
+        "page_idx": 5
+    },
+    {
+        "type": "text",
+        "text": "Figure 6c shows the results of the same clusters, now studied with GALEX $^ +$ UBVRI photometry. Now derived and true parameters agree much better. As in the one– $- Z$ vs. one–Z tests of the previous section, the age panels show that adding ultraviolet information completely discards the streaks perpendicular to the one-to-one black dashed line. Figure 5b shows that young clusters cannot be degenerated with old clusters through age-extinction degeneracy, which facilitates deriving the age and mass. The scatter around the true mass is also more strongly reduced than for UBVRI and UBVRIJHK. The metallicities are now better derived as well, even when the true metallicity is $Z =$ 0 005, the boundary effects are significantly reduced. Moreover, .at least half of the clusters are classified with the correct metallicity when ultraviolet data are added to the optical. In Figs. 5b and c, the SSPs (and also the discrete model distributions) overlap much less than in optical passbands. In Fig. 5c, the combination of far-ultraviolet with optical $U$ passband allows us to distinguish between the different metallicities, as the reddening vector is now nearly parallel to the SSPs (especially at young ages) and that the SSPs are more spaced, compared with the error bars (see the zoom plot). It is also interesting to note that because the reddening vector points in different directions in Figs. 5b and c, it is not possible to degenerate two discrete model distributions of different metallicities by means of extinction. ",
+        "page_idx": 5
+    },
+    {
+        "type": "text",
+        "text": "Figures 5 and 6c are reproduced in the appendix (Figs. A.1 and A.2) for lower-mass star clusters $( \\log _ { 1 0 } ( M / M _ { \\odot } ) = 3 )$ to show /that the method is also applicable for lower-mass clusters. ",
+        "page_idx": 5
+    },
+    {
+        "type": "text",
+        "text": "In Fig. 7 the same tests were performed with artificial clusters without any extinction added to their photometry $\\left( E ( B { - } V ) = \\quad \\right.$ 0), and classified considering the extinction as a known parameter, leaving only the age, mass, and metallicity as free parameters. Now, without degeneracies introduced by extinction, the derivation of the other parameters is much more accurate. For all photometric systems, the effect of the metallicity on the age derivation manifests itself through a slight shift of the ages above or below the one-to-one black dashed line. Concerning the metallicity derivation, one can see that even in this case when there is no extinction, a consistent derivation of the metallicity with only UBVRI filters is not possible, despite a strong decrease of boundary effects on the metallicity, compared with the case where extinction was included (compare Figs. 6 and 7). For example, only ${ \\sim } 3 5 \\%$ of clusters are classified in the region of the correct metallicity when the true metallicity is $Z = 0 . 0 0 5$ . Using .UBVRIJHK, the metallicity of clusters is better derived than in the case with unknown extinction, and the metallicity boundary effects are decreased. In the worst case, at least ${ \\sim } 5 5 \\%$ of clusters are classified with a correct metallicity. Hence, the break of degeneracies with metallicity can be efficiently achieved with UBVRIJHK photometric system only when the extinction is well constrained beforehand. For $\\mathrm { G A L E X + } U B V R I$ , the metallicity prediction only slightly improves when there is no extinction, compared with the case when there is extinction. ",
+        "page_idx": 5
+    },
+    {
+        "type": "text",
+        "text": "",
+        "page_idx": 5
+    },
+    {
+        "type": "text",
+        "text": "6. Conclusions ",
+        "text_level": 1,
+        "page_idx": 5
+    },
+    {
+        "type": "text",
+        "text": "We have completed the task started in Paper I, which aims to derive the main physical parameters of unresolved star clusters using broad-band photometry when the stochastic sampling of stellar mass in clusters is taken into account. The influence of the metallicity was studied in this paper. ",
+        "page_idx": 5
+    },
+    {
+        "type": "text",
+        "text": "We showed the biases induced by metallicity when artificial clusters are classified with a grid of models of a different metallicity. We found that optical (UBVRI) photometric data provide strongly biased results, which can be reduced when near-infrared (JHK) data are added. Adding ultraviolet (GALEX) data allows strongly constraining the age, mass, and extinction parameters. Deviations appear for old clusters, but the fading of ultraviolet photometry below the detection limit after a few hundred million years makes GALEX data unsuitable for old clusters in close galaxies such as Andromeda and Triangulum. ",
+        "page_idx": 5
+    },
+    {
+        "type": "text",
+        "text": "We tested the ability of optical, optica $^ +$ near-infrared, and optical+ultraviolet photometric systems of constraining the metallicity using samples of clusters of fixed true metallicity, and classified with the grids of models with 13 metallicities ranging from $Z = 0 . 0 3$ to $Z = 0 . 0 0 0 1 3$ . We conclude that deriving . .the metallicity using broad-band photometry for unresolved star clusters requires a wide spectral information including ultraviolet passbands with errors as small as $0 . 0 5 \\mathrm { { m a g } }$ in the optical and ",
+        "page_idx": 5
+    },
+    {
+        "type": "image",
+        "img_path": "images/242561f812dea0a3880a2646c0368fe3b72c949a4de9f34e5bfada927ca6fe51.jpg",
+        "img_caption": [
+            "Fig. A.1. Same as Fig. 5, but for star cluster discrete models with mass $\\log _ { 1 0 } ( M / M _ { \\odot } ) = 3$ . The SSPs are scaled to the mass of the clusters. "
+        ],
+        "img_footnote": [],
+        "page_idx": 6
+    },
+    {
+        "type": "image",
+        "img_path": "images/e74a80659293c6971960f1a19876f7c94f6fa7ea62588796d851feacc6050a6f.jpg",
+        "img_caption": [
+            "Fig. A.2. Same as Fig. 6, but for star cluster models with mass $\\log _ { 1 0 } ( M / M _ { \\odot } ) = 3$ for the GALEX $\\dot { \\bf \\Phi } + U B V R I$ photometric system. "
+        ],
+        "img_footnote": [],
+        "page_idx": 6
+    },
+    {
+        "type": "text",
+        "text": "$0 . 1 5 { \\mathrm { ~ m a g } }$ in the ultraviolet. Finally, we also demonstrated that knowing the extinction helps constraining the age of clusters and slightly improves the metallicity prediction. In that case, optical associated with near-infrared data can significantly reduce the biases that affect the metallicity prediction. ",
+        "page_idx": 6
+    },
+    {
+        "type": "text",
+        "text": "Acknowledgements. This research was funded by a grant (No. MIP-074/2013) from the Research Council of Lithuania. We thank the anonymous referee for comments and suggestions that significantly improved the paper. ",
+        "page_idx": 6
+    },
+    {
+        "type": "text",
+        "text": "Appendix A ",
+        "text_level": 1,
+        "page_idx": 6
+    },
+    {
+        "type": "text",
+        "text": "Here we derive the age, mass, extinction, and metallicity of an artificial cluster sample in which the mass of clusters is fixed to $\\log _ { 1 0 } ( M / M _ { \\odot } ) = 3$ , to show that the method of parameter deriva/tion can be applied for low-mass clusters. ",
+        "page_idx": 6
+    },
+    {
+        "type": "text",
+        "text": "For this purpose, Fig. A.1 displays discrete models of age $\\log _ { 1 0 } ( t / \\mathrm { y r } ) = 7$ , 7.5, 8, 8.5, 9, 9.5, and 10 for three /metallicities: $Z = 0 . 0 1 9$ , 0.005 and 0.00019. The SSPs are also .shown for the 13 metallicities used in the paper. While the dispersion for these discrete models is wider than for the case of models $\\log _ { 1 0 } ( M / M _ { \\odot } ) = 4$ (see Fig. 5), the general configuration /of the models remains the same. Hence, while the optical-only color-magnitude diagram (Fig. A.1a) still shows strong ageextinction degeneracy, we see that, as in the case of more massive models, including ultraviolet information allows breaking the age-extinction degeneracy (Fig. A.1b). Although the wings of discrete model distributions are more elongated than in the $\\log _ { 1 0 } ( M / M _ { \\odot } ) = 4$ case, the cores of each distribution are still /rather well separated from distributions of different metallicities (Figs. A.1b and c). In addition, as the reddening vector points in different directions in Figs. A.1b and c, it is not possible to degenerate these distributions by means of extinction. ",
+        "page_idx": 6
+    },
+    {
+        "type": "text",
+        "text": "The results of deriving the parameters of the artificial cluster sample are displayed in Fig. A.2, for $\\mathrm { G A L E X + } U B V R I$ . The break of the age-extinction degeneracy translates into a narrow scatter around the true values of these parameters (Fig. A.2, first and third row for the age and extinction, respectively). The reduced degree of freedom of the extinction also allows a satisfactory derivation of the mass and metallicity (Fig. A.2, second and last rows), although a larger scatter around the true mass is observed in the $\\log _ { 1 0 } ( M / M _ { \\odot } ) = 3$ case than for $\\log _ { 1 0 } ( M / M _ { \\odot } ) = 4$ . ",
+        "page_idx": 6
+    },
+    {
+        "type": "text",
+        "text": "References ",
+        "text_level": 1,
+        "page_idx": 6
+    },
+    {
+        "type": "text",
+        "text": "Anders, P., Bissantz, N., Fritze-v. Alvensleben, U., & de Grijs, R. 2004, MNRAS, 347, 196   \nAnders, P., Kotulla, R., de Grijs, R., & Wicker, J. 2013, ApJ, 778, 138   \nBianchi, L. 2011, Ap&SS, 335, 51   \nBridžius, A., Narbutis, D., Stonkute, R., Deveikis, V., & Vansevi ˙ cius, V. 2008, ˇ Balt. Astron., 17, 337   \nCardelli, J. A., Clayton, G. C., & Mathis, J. S. 1989, ApJ, 345, 245   \nCerviño, M. 2013, New Astron. Rev., 57, 123   \nde Meulenaer, P., Narbutis, D., Mineikis, T., & Vansevicius, V. 2013, A&A, 550, ˇ A20   \nDeveikis, V., Narbutis, D., Stonkute, R., Bridžius, A., & Vansevi ˙ cius, V. 2008, ˇ Balt. Astron., 17, 351   \nFouesneau, M., & Lançon, A. 2010, A&A, 521, A22   \nFouesneau, M., Lançon, A., Chandar, R., & Whitmore, B. C. 2012, ApJ, 750, 60   \nFouesneau, M., Johnson, L. C., Weisz, D. R., et al. 2014, ApJ, 786, 117   \nGirardi, L., Williams, B. F., Gilbert, K. M., et al. 2010, ApJ, 724, 1030   \nKaviraj, S., Rey, S.-C., Rich, R. M., Yoon, S.-J., & Yi, S. K. 2007, MNRAS, 381, L74   \nKroupa, P. 2001, MNRAS, 322, 231   \nLada, C. J., & Lada, E. A. 2003, ARA&A, 41, 57   \nMarigo, P., Girardi, L., Bressan, A., et al. 2008, A&A, 482, 883   \nPopescu, B., & Hanson, M. M. 2009, AJ, 138, 1724   \nPopescu, B., & Hanson, M. M. 2010, ApJ, 724, 296   \nSantos, Jr., J. F. C., & Frogel, J. A. 1997, ApJ, 479, 764 ",
+        "page_idx": 6
+    }
+]

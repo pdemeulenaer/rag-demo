@@ -1,4 +1,4 @@
-collection: 'test_collection2'
+collection: 'test_collection3'
 
 chunking:
   chunk_size: 10000 # 512

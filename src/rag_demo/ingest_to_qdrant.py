@@ -3,13 +3,15 @@ import httpx
 import hashlib
 import uuid
 import pymupdf
+# from mineru.parsers import PDFParser
+from unstructured.partition.pdf import partition_pdf
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from qdrant_client import QdrantClient
 from qdrant_client.http.models import PointStruct, VectorParams, Distance, PayloadSchemaType
 from typing import List, Generator, Tuple, Dict
 import statistics
-from huggingface_hub import InferenceClient
-from langchain.embeddings.base import Embeddings
+# from huggingface_hub import InferenceClient
+# from langchain.embeddings.base import Embeddings
 from dotenv import load_dotenv
 
 from .utils import (
@@ -59,23 +61,87 @@ def get_text_chunks_recursive(text, config) -> List[str]:
     return splitter.split_text(text)
 
 
-# === Chunk Generator with Metadata ===
-def extract_chunks_with_metadata(filepath: str, config) -> Tuple[List[Tuple[str, int]], Dict[str, str]]:
-    chunks_with_page = []
+# # === Chunk Generator with Metadata ===
+# def extract_chunks_with_metadata(filepath: str, config) -> Tuple[List[Tuple[str, int]], Dict[str, str]]:
+#     chunks_with_page = []
+#     with pymupdf.open(filepath) as doc:
+#         metadata = doc.metadata or {}
+#         for page_number, page in enumerate(doc, start=1):
+#             text = page.get_text()
+#             if not text.strip():
+#                 continue
+#             page_chunks = get_text_chunks_recursive(text, config)
+#             for chunk in page_chunks:
+#                 chunks_with_page.append((chunk, page_number))
+#     return chunks_with_page, {
+#         "file_title": metadata.get("title"),
+#         "authors": metadata.get("author"),
+#         "keywords": metadata.get("keywords"),
+#         "creation_date": metadata.get("creationDate")
+#     }
+
+
+def extract_chunks_with_metadata(filepath: str, config) -> Tuple[List[Tuple[str, str]], Dict[str, str]]:
+    """
+    Extract semantically structured chunks from a PDF using unstructured.
+    Each chunk is associated with a section heading.
+    """
+    # Extract elements with unstructured
+    elements = partition_pdf(
+        filename=filepath,
+        strategy="hi_res",  # High-resolution strategy for better accuracy
+        include_page_breaks=True,  # Preserve page boundaries if needed
+    )
+
+    chunks_with_section = []
+    current_heading = "Unknown"
+    current_content = []
+
+    # Group elements into sections based on headings
+    for element in elements:
+        element_type = element.category  # e.g., "Title", "NarrativeText"
+        text = element.text.strip()
+
+        if not text:
+            continue
+
+        if element_type == "Title":
+            # Save previous section (if any)
+            if current_content:
+                full_markdown = f"{current_heading}\n\n{''.join(current_content).strip()}"
+                chunks_with_section.append((full_markdown, current_heading))
+                current_content = []
+            current_heading = text
+        else:
+            # Append text to current section (e.g., NarrativeText, ListItem)
+            current_content.append(text + "\n")
+
+    # Save the last section
+    if current_content:
+        full_markdown = f"{current_heading}\n\n{''.join(current_content).strip()}"
+        chunks_with_section.append((full_markdown, current_heading))
+
+    # Split large sections into smaller chunks using RecursiveCharacterTextSplitter
+    final_chunks = []
+    splitter = RecursiveCharacterTextSplitter(
+        chunk_size=config["chunking"]["chunk_size"],
+        chunk_overlap=config["chunking"]["chunk_overlap"],
+        separators=["\n\n", "\n", ".", "!", "?", ",", " ", ""]
+    )
+    for chunk, heading in chunks_with_section:
+        sub_chunks = splitter.split_text(chunk)
+        for sub_chunk in sub_chunks:
+            final_chunks.append((sub_chunk, heading))
+
+    # Extract metadata using pymupdf (unchanged)
     with pymupdf.open(filepath) as doc:
         metadata = doc.metadata or {}
-        for page_number, page in enumerate(doc, start=1):
-            text = page.get_text()
-            if not text.strip():
-                continue
-            page_chunks = get_text_chunks_recursive(text, config)
-            for chunk in page_chunks:
-                chunks_with_page.append((chunk, page_number))
-    return chunks_with_page, {
-        "file_title": metadata.get("title"),
-        "authors": metadata.get("author"),
-        "keywords": metadata.get("keywords"),
-        "creation_date": metadata.get("creationDate")
+
+    return final_chunks, {
+        "file_title": metadata.get("title", ""),
+        "authors": metadata.get("author", ""),
+        "keywords": metadata.get("keywords", ""),
+        "creation_date": metadata.get("creationDate", "")
     }
 
 
@@ -143,8 +209,18 @@ def ingest_folder_to_qdrant(folder_path: str, qdrant_url: str, qdrant_api_key: s
             vectors_config=VectorParams(size=384, distance=Distance.COSINE)
         )
 
+    metadata_fields = [
+        "file_hash",
+        "file_name",
+        "file_title",
+        "authors",
+        "keywords",
+        "creation_date",
+        "section",  # replacing "page_number" when using MinerU
+    ]
+
     # Create metadata indexes
-    for field in ["file_hash", "file_name", "file_title", "authors", "keywords", "creation_date", "page_number"]:
+    for field in metadata_fields: 
         qdrant_client.create_payload_index(
             collection_name=collection_name,
             field_name=field,
@@ -171,8 +247,13 @@ def ingest_folder_to_qdrant(folder_path: str, qdrant_url: str, qdrant_api_key: s
         print(f"→ Processing: {filename}")
         chunks_with_meta, doc_metadata = extract_chunks_with_metadata(filepath, config)
 
+        # Extract text chunks and page numbers
+        # texts = [chunk for chunk, _ in chunks_with_meta]
+        # page_numbers = [page for _, page in chunks_with_meta]
+
+        # Extract section names and section headings
         texts = [chunk for chunk, _ in chunks_with_meta]
-        page_numbers = [page for _, page in chunks_with_meta]
+        section_names = [section for _, section in chunks_with_meta]        
 
         vectors = embedding_model.embed_documents(texts)
 
@@ -181,7 +262,8 @@ def ingest_folder_to_qdrant(folder_path: str, qdrant_url: str, qdrant_api_key: s
         print(f"→ Min: {min(chunk_lengths)}, Max: {max(chunk_lengths)}, Median: {int(statistics.median(chunk_lengths))}")
 
         points = []
-        for chunk, vec, page_num in zip(texts, vectors, page_numbers):
+        # for chunk, vec, page_num in zip(texts, vectors, page_numbers):
+        for chunk, vec, section_name in zip(texts, vectors, section_names):
             points.append(PointStruct(
                 id=str(uuid.uuid4()),
                 vector=vec,
@@ -192,7 +274,8 @@ def ingest_folder_to_qdrant(folder_path: str, qdrant_url: str, qdrant_api_key: s
                     "authors": doc_metadata.get("authors"),
                     "keywords": doc_metadata.get("keywords"),
                     "creation_date": doc_metadata.get("creation_date"),
-                    "page_number": str(page_num),
+                    # "page_number": str(page_num),
+                    "section": section_name,
                     "text": chunk,
                     "summary": summarize_chunk(chunk, config)
                 }
