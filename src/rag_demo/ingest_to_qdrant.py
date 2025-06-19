@@ -207,7 +207,6 @@ def ingest_folder_to_qdrant(folder_path: str, qdrant_url: str, qdrant_api_key: s
             print(f"Sample payload:\n{pt.payload}")
 
 
-
 # === Run ===
 if __name__ == "__main__":
     ingest_folder_to_qdrant(
