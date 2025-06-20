@@ -6,7 +6,9 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # ---------- Configuration ----------
-PDF_PATH = "/home/philippe/Documents/Github/rag-demo/src/rag_demo/folder/aa20674-12.pdf"
+# PDF_PATH = "/home/philippe/Documents/Github/rag-demo/src/rag_demo/folder/aa20674-12.pdf"
+PDF_PATH = "/home/philippe/Documents/Github/rag-demo/src/rag_demo/folder/Thesis_de_Meulenaer.pdf"
+
 OUTPUT_FILE = "structured_output.md"
 MODEL = "llama-3.1-8b-instant" #"llama-3.3-70b-versatile"
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
@@ -47,17 +49,46 @@ def call_llm_for_structured_chunks(text):
 # --- END PAPER TEXT ---
 # """
 
+#     prompt = f"""
+# You are an intelligent assistant helping to parse scientific papers.
+
+# Here is the **full text** of a scientific paper. Please segment the content into chunks that correspond to **logical sections** (e.g., Abstract, Introduction, Methods, Results, and so on). 
+
+# For each chunk, please return the **entire text of the section**, not just an extract.
+
+# -- BEGIN PAPER TEXT ---
+# {text}
+# --- END PAPER TEXT ---
+# """
+    
+    # Detect sections and sub-sections
     prompt = f"""
 You are an intelligent assistant helping to parse scientific papers.
 
-Here is the **full text** of a scientific paper. Please segment the content into chunks that correspond to **logical sections** (e.g., Abstract, Introduction, Methods, Results, and so on). 
+Here is the **full text** of a scientific paper. Please return a list of **logical sections** from the PDF as a string that could easily be parsed using Python.
 
-For each chunk, please return the **entire text of the section**, not just an extract.
+Please be concise: **just** return the section and sub-sections titles, one per line, without any additional text or formatting, and without adding any comment.
+
+Here follows the scientific paper text:
 
 -- BEGIN PAPER TEXT ---
 {text}
 --- END PAPER TEXT ---
-"""
+"""    
+    
+#     # Capture the abstract
+#     prompt = f"""
+# You are an intelligent assistant helping to parse scientific papers.
+
+# Here is the **full text** of a scientific paper. Please return a the text of the abstract, in markdown format, without any additional text or formatting, and without adding any comment. 
+# Just fix the words when there are cut off. Do not forget any sentences of the abstract.
+
+# Here follows the scientific paper text:
+
+# -- BEGIN PAPER TEXT ---
+# {text}
+# --- END PAPER TEXT ---
+# """        
 
     print("🧠 Calling Groq LLM to segment and annotate...")
     response = client.chat.completions.create(
