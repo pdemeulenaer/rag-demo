@@ -43,6 +43,14 @@ test:
 
 # quality-ci: lint test
 
+grobid_server:
+	@echo "Starting GROBID server..."
+	@docker run -t --rm -p 8070:8070 lfoppiano/grobid:0.8.0
+	@echo "GROBID server is running on http://localhost:8070"
+
+test_grobid:
+	poetry run python -m src.rag_demo.test_grobid_parser
+
 ingest:
 	poetry run python -m src.rag_demo.ingest_to_qdrant
 
