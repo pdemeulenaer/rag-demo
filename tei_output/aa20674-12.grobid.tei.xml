@@ -7,7 +7,7 @@ xsi:schemaLocation="http://www.tei-c.org/ns/1.0 https://raw.githubusercontent.co
 		<fileDesc>
 			<titleStmt>
 				<title level="a" type="main">Deriving physical parameters of unresolved star clusters</title>
-				<funder ref="#_ybvvwVf">
+				<funder ref="#_hq89fYE">
 					<orgName type="full">Research Council of Lithuania</orgName>
 				</funder>
 			</titleStmt>
@@ -118,7 +118,7 @@ xsi:schemaLocation="http://www.tei-c.org/ns/1.0 https://raw.githubusercontent.co
 		</fileDesc>
 		<encodingDesc>
 			<appInfo>
-				<application version="0.8.0" ident="GROBID" when="2025-06-20T14:05+0000">
+				<application version="0.8.0" ident="GROBID" when="2025-06-23T14:49+0000">
 					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
 					<ref target="https://github.com/kermitt2/grobid"/>
 				</application>
@@ -168,7 +168,7 @@ xsi:schemaLocation="http://www.tei-c.org/ns/1.0 https://raw.githubusercontent.co
 <div><p>Acknowledgements. We are grateful to the anonymous referee for fruitful comments, which helped to improve the paper. This research was funded by a grant (No. <rs type="grantNumber">MIP-102/2011</rs>) from the <rs type="funder">Research Council of Lithuania</rs>.</p></div>
 			</div>
 			<listOrg type="funding">
-				<org type="funding" xml:id="_ybvvwVf">
+				<org type="funding" xml:id="_hq89fYE">
 					<idno type="grant-number">MIP-102/2011</idno>
 				</org>
 			</listOrg>
