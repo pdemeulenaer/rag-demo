@@ -3,65 +3,6 @@ import os
 import xml.etree.ElementTree as ET
 
 
-def parse_tei_sections_loose(tei_path):
-    tree = ET.parse(tei_path)
-    root = tree.getroot()
-    ns = {'tei': 'http://www.tei-c.org/ns/1.0'}
-
-    # Find all <div> inside <body>
-    divs = root.findall(".//tei:text/tei:body/tei:div", ns)
-    sections = []
-
-    for div in divs:
-        title_elem = div.find("tei:head", ns)
-        title = title_elem.text.strip() if title_elem is not None else "Untitled"
-
-        paragraphs = [
-            p.text.strip()
-            for p in div.findall("tei:p", ns)
-            if p.text and p.text.strip()
-        ]
-        text = "\n".join(paragraphs)
-
-        if text:
-            sections.append({
-                "title": title,
-                "text": text
-            })
-
-    return sections
-
-
-# def get_full_text(element):
-#     """Recursively extract text from XML element and its children."""
-#     parts = [element.text or ""]
-#     for child in element:
-#         parts.append(get_full_text(child))
-#         parts.append(child.tail or "")
-#     return "".join(parts).strip()
-
-# def parse_tei_to_markdown(tei_path):
-#     tree = ET.parse(tei_path)
-#     root = tree.getroot()
-#     ns = {'tei': 'http://www.tei-c.org/ns/1.0'}
-
-#     md_lines = []
-
-#     divs = root.findall(".//tei:text/tei:body/tei:div", ns)
-#     for div in divs:
-#         head = div.find("tei:head", ns)
-#         title = get_full_text(head) if head is not None else "Untitled"
-#         md_lines.append(f"## {title}\n")
-
-#         for p in div.findall("tei:p", ns):
-#             para = get_full_text(p)
-#             if para:
-#                 md_lines.append(para + "\n")
-
-#     return "\n".join(md_lines)
-
-
-
 ns = {'tei': 'http://www.tei-c.org/ns/1.0'}
 
 def get_full_text(el):
@@ -72,17 +13,75 @@ def get_full_text(el):
         parts.append(child.tail or "")
     return "".join(parts).strip()
 
+# def extract_frontmatter(root):
+#     ns = {"tei": "http://www.tei-c.org/ns/1.0"}
+
+#     # Title
+#     title = get_full_text(root.find(".//tei:titleStmt/tei:title", ns)) or "Untitled"
+
+#     # Authors (from <sourceDesc><analytic><author>)
+#     authors = []
+#     for author in root.findall(".//tei:fileDesc/tei:sourceDesc//tei:analytic/tei:author", ns):
+#         pers = author.find("tei:persName", ns)
+#         forename = " ".join([get_full_text(fn) for fn in pers.findall("tei:forename", ns)]) if pers is not None else ""
+#         surname = get_full_text(pers.find("tei:surname", ns)) if pers is not None else ""
+#         full_name = f"{forename} {surname}".strip()
+
+#         email_el = author.find("tei:email", ns)
+#         email = get_full_text(email_el) if email_el is not None else ""
+
+#         affs = []
+#         for aff in author.findall("tei:affiliation", ns):
+#             org = aff.find("tei:orgName", ns)
+#             if org is not None:
+#                 affs.append(get_full_text(org))
+
+#         authors.append({
+#             "name": full_name,
+#             "email": email,
+#             "affiliations": affs
+#         })
+
+#     # Abstract
+#     abstract = get_full_text(root.find(".//tei:profileDesc/tei:abstract", ns) or ET.Element("abstract"))
+
+#     # Keywords
+#     keywords = [
+#         get_full_text(k) for k in root.findall(".//tei:textClass//tei:term", ns)
+#     ]
+
+#     return {
+#         "title": title,
+#         "authors": authors,
+#         "abstract": abstract,
+#         "keywords": keywords
+#     }
+
+
 def extract_frontmatter(root):
     ns = {"tei": "http://www.tei-c.org/ns/1.0"}
 
-    # Title
-    title = get_full_text(root.find(".//tei:titleStmt/tei:title", ns)) or "Untitled"
+    # === TITLE ===
+    # Try titleStmt/title first
+    title_el = root.find(".//tei:titleStmt/tei:title", ns)
 
-    # Authors (from <sourceDesc><analytic><author>)
+    # Fallback to monogr/title if empty or not found
+    if title_el is None or not get_full_text(title_el).strip():
+        title_el = root.find(".//tei:fileDesc/tei:sourceDesc//tei:monogr/tei:title", ns)
+
+    title = get_full_text(title_el).strip() if title_el is not None else "Untitled"
+
+    # === AUTHORS ===
+    author_nodes = root.findall(".//tei:fileDesc/tei:sourceDesc//tei:analytic/tei:author", ns)
+    if not author_nodes:
+        author_nodes = root.findall(".//tei:fileDesc/tei:sourceDesc//tei:monogr/tei:author", ns)
+
     authors = []
-    for author in root.findall(".//tei:fileDesc/tei:sourceDesc//tei:analytic/tei:author", ns):
+    for author in author_nodes:
         pers = author.find("tei:persName", ns)
-        forename = " ".join([get_full_text(fn) for fn in pers.findall("tei:forename", ns)]) if pers is not None else ""
+        forename = " ".join([
+            get_full_text(fn) for fn in pers.findall("tei:forename", ns)
+        ]) if pers is not None else ""
         surname = get_full_text(pers.find("tei:surname", ns)) if pers is not None else ""
         full_name = f"{forename} {surname}".strip()
 
@@ -101,10 +100,11 @@ def extract_frontmatter(root):
             "affiliations": affs
         })
 
-    # Abstract
-    abstract = get_full_text(root.find(".//tei:profileDesc/tei:abstract", ns) or ET.Element("abstract"))
+    # === ABSTRACT ===
+    abstract_el = root.find(".//tei:profileDesc/tei:abstract", ns)
+    abstract = get_full_text(abstract_el) if abstract_el is not None else ""
 
-    # Keywords
+    # === KEYWORDS ===
     keywords = [
         get_full_text(k) for k in root.findall(".//tei:textClass//tei:term", ns)
     ]
@@ -118,14 +118,16 @@ def extract_frontmatter(root):
 
 
 
-
 def extract_sections(div, level=2):
     """Recursively extract sections and subsections into Markdown."""
     lines = []
 
     head = div.find("tei:head", ns)
-    title = get_full_text(head) if head is not None else "Untitled"
-    number = head.attrib.get("n", "")
+    if head is None:
+        return []  # skip divs without section titles
+
+    title = get_full_text(head)
+    number = head.attrib["n"] if "n" in head.attrib else ""
     heading = f"{'#' * level} {number} {title}".strip()
     lines.append(heading + "\n")
 
@@ -205,14 +207,16 @@ os.makedirs(pdf_folder, exist_ok=True)
 # Copy your PDF into this folder
 # e.g., cp /path/to/paper.pdf ./pdf_input/
 
-# Process all PDFs in the folder
-client.process(
-    "processFulltextDocument",
-    pdf_folder,
-    "./tei_output",
-    consolidate_header=True,
-    consolidate_citations=True
-)
+
+# # Process all PDFs in the folder
+# client.process(
+#     "processFulltextDocument",
+#     pdf_folder,
+#     "./tei_output",
+#     consolidate_header=True,
+#     consolidate_citations=True
+# )
+
 
 
 # sections = parse_tei_sections_loose("./tei_output/aa20674-12.grobid.tei.xml")
@@ -223,10 +227,10 @@ client.process(
 
 
 # Converting TEI to Markdown
-markdown_text = parse_tei_full_markdown("./tei_output/aa20674-12.grobid.tei.xml")
+markdown_text = parse_tei_full_markdown("./tei_output/Thesis_de_Meulenaer.grobid.tei.xml")
 
 # Save to file
-with open("aa20674-12_sections.md", "w", encoding="utf-8") as f:
+with open("vizualize.md", "w", encoding="utf-8") as f:
     f.write(markdown_text)
 
 # Optional: print preview
