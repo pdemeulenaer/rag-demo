@@ -1,9 +1,7 @@
 ## Chunk 1
-**Metadata**:
-- **Hierarchy**: ['ACKNOWLEDGMENTS']
-- **Start Page**: 5
-- **End Page**: 6
+**Metadata**: {'section_hierarchy': ['ACKNOWLEDGMENTS'], 'start_page': 4, 'end_page': 4}
 
+ACKNOWLEDGMENTS 
 I want to express my gratitude to everyone who contributed to this 
 dissertation and supported me along the way.  
 I am deeply thankful to my lab mates, whose collaboration and 
@@ -21,11 +19,9 @@ your belief in me has made it possible.
 ---
 
 ## Chunk 2
-**Metadata**:
-- **Hierarchy**: ['LIST OF INCLUDED PUBLICATIONS']
-- **Start Page**: 6
-- **End Page**: 7
+**Metadata**: {'section_hierarchy': ['LIST OF INCLUDED PUBLICATIONS'], 'start_page': 5, 'end_page': 5}
 
+LIST OF INCLUDED PUBLICATIONS 
 Paper 1 
 V. Liustrovaite, M. Pogorielov, R. Boguzaite, V. Ratautaite, A.
 Ramanaviciene, G. Pilvenyte, V. Holubnycha, V. Korniienko, K. 
@@ -78,11 +74,9 @@ https://doi.org/10.1016/j.scitotenv.2024.177151
 ---
 
 ## Chunk 3
-**Metadata**:
-- **Hierarchy**: ['CONTRIBUTION TO INCLUDED PUBLICATIONS']
-- **Start Page**: 7
-- **End Page**: 8
+**Metadata**: {'section_hierarchy': ['CONTRIBUTION TO INCLUDED PUBLICATIONS'], 'start_page': 6, 'end_page': 6}
 
+CONTRIBUTION TO INCLUDED PUBLICATIONS 
 Paper 1 
 Carried out formal analysis and played a central role in 
 organising the study, including data management. Contributed 
@@ -139,15 +133,46 @@ editing.
 ---
 
 ## Chunk 4
-**Metadata**:
-- **Hierarchy**: ['TABLE OF CONTENTS']
-- **Start Page**: 8
-- **End Page**: 11
+**Metadata**: {'section_hierarchy': ['TABLE OF CONTENTS'], 'start_page': 7, 'end_page': 9}
 
+TABLE OF CONTENTS 
 ACKNOWLEDGMENTS .............................................................................. 5 
 LIST OF INCLUDED PUBLICATIONS ...................................................... 6 
 CONTRIBUTION TO INCLUDED PUBLICATIONS ................................ 7 
-TABLE OF CONTENTS ............................................................................... 8
+TABLE OF CONTENTS ............................................................................... 8 
+LIST OF ABBREVIATIONS ...................................................................... 11 
+INTRODUCTION ........................................................................................ 12 
+1. 
+LITERATURE REVIEW ..................................................................... 15 
+1.1. 
+Conducting polymers ......................................................................... 15 
+1.1.1. The mechanism of polypyrrole synthesis ........................................... 15 
+1.2. 
+The formation and application of molecularly imprinted polymers... 18 
+1.2.1. The formation of polymer underlayer ................................................ 20 
+1.2.2. The formation of a self-assembled monolayer on the gold surface ... 20 
+1.2.3. The formation of MIPs-aptamer ......................................................... 23 
+1.3. 
+The selected analytes ......................................................................... 24 
+1.3.1. Listeria monocytogenes bacteria ........................................................ 24 
+1.3.2. Severe acute respiratory syndrome coronavirus 2 .............................. 25 
+1.3.3. The vascular endothelial growth factor .............................................. 27 
+2. 
+EXPERIMENTAL SECTION .............................................................. 29 
+2.1. 
+The analytical system used in MIP-based biosensors dedicated to 
+bacteria sensing ............................................................................................ 29 
+2.2. 
+The analytical system used for the development of SAM-based 
+biosensor for the detection of antibodies against rS protein ......................... 30 
+2.2.1.The preparation and modification of square gold electrode – Au(s)
+ ...................................................................................................................... 31 
+2.2.2. The preparation and modification of microscope glass slides coated 
+with gold (Au(MS)) ...................................................................................... 32 
+2.2.3. The electrochemical assessment of Au(s) and Au(MS) electrodes .... 32 
+2.3. 
+The analytical system used for the development of SAM-supported 
+MIP biosensor for the detection of rN protein .............................................. 33
 2.3.1. The formation of a SAM .................................................................... 34 
 2.3.2. Electrochemical modification of SAM-modified electrodes by Ppy and 
 formation of MIP-based layer ...................................................................... 34 
@@ -203,11 +228,9 @@ COPIES OF PUBLICATIONS .........................................................
 ---
 
 ## Chunk 5
-**Metadata**:
-- **Hierarchy**: ['LIST OF ABBREVIATIONS']
-- **Start Page**: 11
-- **End Page**: 12
+**Metadata**: {'section_hierarchy': ['LIST OF ABBREVIATIONS'], 'start_page': 10, 'end_page': 10}
 
+LIST OF ABBREVIATIONS 
 11-MUA 
 11-mercaptoundecanoic acid 
 6-MCOH 
@@ -260,11 +283,9 @@ Square wave voltammetry
 ---
 
 ## Chunk 6
-**Metadata**:
-- **Hierarchy**: ['INTRODUCTION']
-- **Start Page**: 12
-- **End Page**: 15
+**Metadata**: {'section_hierarchy': ['INTRODUCTION'], 'start_page': 11, 'end_page': 13}
 
+INTRODUCTION 
 Electrochemical sensor technologies have evolved in recent decades, 
 revolutionising various fields such as food safety and healthcare. As the 
 complexity and scale of these applications increase, so does the demand for 
@@ -384,16 +405,14 @@ development of SARS-CoV-2 nucleocapsid protein sensor.
 4. 
 Conductive polypyrrole matrix with embedded DNA aptamers can be 
 employed for the development of a sensor used to detect VEGF.
-1. LITERATURE REVIEW
 
 ---
 
 ## Chunk 7
-**Metadata**:
-- **Hierarchy**: ['1. LITERATURE REVIEW', '1.1. Conducting polymers']
-- **Start Page**: 15
-- **End Page**: 15
+**Metadata**: {'section_hierarchy': ['1. LITERATURE REVIEW', '1.1. Conducting polymers'], 'start_page': 14, 'end_page': 14}
 
+1. LITERATURE REVIEW 
+1.1. Conducting polymers  
 Conducting polymers have received a lot of attention due to their unique 
 combination of organic polymer properties and semiconductor-like electronic 
 characteristics. The synthesis of these polymers dates back to 1862 when the 
@@ -425,16 +444,54 @@ are
 polyaniline, 
 polypyrrole, 
 polyacetylene, 
-poly(3,4‑ethylenedioxythiophene), and polythiophene.
+poly(3,4‑ethylenedioxythiophene), and polythiophene. 
+1.1.1. The mechanism of polypyrrole synthesis 
+Among the various conducting polymers, polypyrrole (Ppy) is notable 
+for its ease of synthesis, environmental stability, and promising electrical 
+properties. Polypyrrole, derived from the pyrrole monomer, a five-membered 
+heterocyclic ring containing a nitrogen atom, was discovered to be a 
+conducting polymer in 1968. Ppy was initially synthesised chemically [8], but
 
 ---
 
 ## Chunk 8
-**Metadata**:
-- **Hierarchy**: ['1. LITERATURE REVIEW', '1.1.1. The mechanism of polypyrrole synthesis']
-- **Start Page**: 15
-- **End Page**: 18
+**Metadata**: {'section_hierarchy': ['1. LITERATURE REVIEW', '1.1.1. The mechanism of polypyrrole synthesis'], 'start_page': 14, 'end_page': 16}
 
+1. LITERATURE REVIEW 
+1.1. Conducting polymers  
+Conducting polymers have received a lot of attention due to their unique 
+combination of organic polymer properties and semiconductor-like electronic 
+characteristics. The synthesis of these polymers dates back to 1862 when the 
+English chemist H. Letheby performed the first known anodic oxidation of 
+aniline in a dilute sulphuric acid solution and obtained dark blue/black colour, 
+water-insoluble particles [1]. The modern development of conducting polymer 
+research began with the discovery of electrical conductivity by Shirakawa et 
+al. in 1977 [2]. Since then, these materials have been extensively studied for 
+their unique electrical properties. 
+Conducting polymers are π-π conjugated polymers that can conduct 
+electricity by means of doping [3]. π-π conjugated polymers are organic 
+macromolecules with a backbone chain composed of alternating double and 
+single bonds. Spatial π-π conjugation in their chains allows electrons to 
+delocalise throughout the molecule, allowing multiple atoms to share them. 
+Delocalised electrons can move throughout the molecule and become charge 
+carriers, making it conductive. However, because the polymers are covalently 
+bonded, the material must be doped for the continuous electron flow to occur. 
+Doping involves the addition or removal of electrons from a polymer structure 
+[4]. After the doping, π-orbital electrons can freely move through the polymer 
+chain, creating an electrical current. Furthermore, the chemical and physical 
+properties of polymers can be tailored by combining different monomers, 
+changing polymerisation conditions, and creating polymeric composites. 
+Polymers and their composites are increasingly being used in the development 
+of sensing devices.  Because of their distinct electronic, magnetic, and optical 
+properties, conducting polymers are extremely important in scientific and 
+technological applications [5–7]. The most frequently used conducting 
+polymers 
+are 
+polyaniline, 
+polypyrrole, 
+polyacetylene, 
+poly(3,4‑ethylenedioxythiophene), and polythiophene. 
+1.1.1. The mechanism of polypyrrole synthesis 
 Among the various conducting polymers, polypyrrole (Ppy) is notable 
 for its ease of synthesis, environmental stability, and promising electrical 
 properties. Polypyrrole, derived from the pyrrole monomer, a five-membered 
@@ -496,6 +553,12 @@ with permission from [16].
 The unpaired electron and positive charge are delocalized, and quantum 
 mechanical calculations indicate that the electron spin density is highest at the 
 ortho positions. As a result, radical coupling occurs primarily at these
+
+---
+
+## Chunk 9
+**Metadata**: {'section_hierarchy': ['1. LITERATURE REVIEW', '1.2. The formation and application of molecularly imprinted polymers'], 'start_page': 17, 'end_page': 18}
+
 positions [16–18]. When two primary radical cations combine, a positively 
 charged dimer is produced. The presence of two protons in this dimer distorts 
 the conjugation, causing rearomatisation via deprotonation and the formation 
@@ -509,17 +572,9 @@ continues, resulting in the formation of polypyrrole. Although electron spin
 density is highest at the ortho-position, as conjugation length increases, the 
 spin density spreads throughout the conjugated system. This can lead to 
 radicals coupling at different positions, disrupting linearity and causing 
-branching [19].
-
----
-
-## Chunk 9
-**Metadata**:
-- **Hierarchy**: ['1. LITERATURE REVIEW', '1.2. The formation and application of molecularly imprinted polymers']
-- **Start Page**: 18
-- **End Page**: 20
-
-Having discussed the fundamentals of polypyrrole synthesis, the focus 
+branching [19].  
+1.2. The formation and application of molecularly imprinted polymers 
+ Having discussed the fundamentals of polypyrrole synthesis, the focus 
 will shift to molecularly imprinted polymers (MIP). This next chapter will 
 examine how molecular imprinting techniques are applied using polypyrrole 
 to create polymers with specific molecular recognition properties, enhancing 
@@ -574,21 +629,19 @@ approach of considerable interest is the integration of a self-assembled
 monolayer (SAM) as an interfacial layer between the gold substrate and the 
 electrochemically deposited MIP. This SAM underlayer mitigates non-
 specific interactions, thereby enhancing the specificity of the sensor.
+
+---
+
+## Chunk 10
+**Metadata**: {'section_hierarchy': ['1. LITERATURE REVIEW', '1.2.1. The formation of polymer underlayer'], 'start_page': 19, 'end_page': 19}
+
 Additionally, an alternative strategy employs aptamers embedded within the 
 polymer matrix to function as selective recognition elements instead of the 
 MIP itself. These polymers with integrated aptamers are engineered to 
 selectively bind target proteins, thereby illustrating the adaptability and 
 potential of this approach in a wide array of biosensing applications. Further 
-details on these methodologies will be discussed in the following sections.
-
----
-
-## Chunk 10
-**Metadata**:
-- **Hierarchy**: ['1. LITERATURE REVIEW', '1.2.1. The formation of polymer underlayer']
-- **Start Page**: 20
-- **End Page**: 20
-
+details on these methodologies will be discussed in the following sections. 
+1.2.1. The formation of polymer underlayer  
 This approach involves the formation of a thin NIP underlayer, which 
 serves as a foundational layer before the synthesis of the MIP layer is 
 performed. This methodology has been effectively demonstrated for the 
@@ -601,16 +654,49 @@ adhesion of the MIP layer. This approach not only alleviates potential
 interference but also enhances the overall efficacy of the MIP layer formation. 
 In this dissertation, a similar technique was employed, where incorporating an 
 NIP underlayer was crucial in improving the performance and reliability of 
-the MIP layer.
+the MIP layer. 
+1.2.2. The formation of a self-assembled monolayer on the gold surface 
+Another strategy involves using SAM as an interfacial layer in sensor 
+development. It offers a convenient, adaptable, and straightforward method to 
+customise the surface properties of metals, metal oxides, and semiconductors. 
+SAMs are organic layers formed by the absorption of molecular components 
+from either solution or the gas phase onto solid surfaces or in organised arrays 
+on the surface of liquids. These adsorbed molecules spontaneously arrange, 
+sometimes epitaxially, into crystalline or semicrystalline structures [35]. 
+The molecules or ligands constituting SAMs possess a chemical 
+functional group, often called the "headgroup," which exhibits a specific 
+affinity for the substrate. The headgroup usually demonstrates a strong affinity 
+for the surface, displacing previously adsorbed organic materials. Various 
+headgroups selectively bind to metals, metal oxides, and semiconductors. 
+SAM is typically formed on a metal surface, where they establish chemical 
+bonds [36].
 
 ---
 
 ## Chunk 11
-**Metadata**:
-- **Hierarchy**: ['1. LITERATURE REVIEW', '1.2.2. The formation of a self-assembled monolayer on the gold surface']
-- **Start Page**: 20
-- **End Page**: 23
+**Metadata**: {'section_hierarchy': ['1. LITERATURE REVIEW', '1.2.2. The formation of a self-assembled monolayer on the gold surface'], 'start_page': 19, 'end_page': 21}
 
+Additionally, an alternative strategy employs aptamers embedded within the 
+polymer matrix to function as selective recognition elements instead of the 
+MIP itself. These polymers with integrated aptamers are engineered to 
+selectively bind target proteins, thereby illustrating the adaptability and 
+potential of this approach in a wide array of biosensing applications. Further 
+details on these methodologies will be discussed in the following sections. 
+1.2.1. The formation of polymer underlayer  
+This approach involves the formation of a thin NIP underlayer, which 
+serves as a foundational layer before the synthesis of the MIP layer is 
+performed. This methodology has been effectively demonstrated for the 
+detection of flumequine using a surface acoustic wave (SAW) signal 
+transduction system [34]. According to experimental data and density 
+functional theory (DFT) calculations, flumequine molecules tend to interact 
+with the gold surface, thereby obstructing its electrochemical activity. A thin 
+NIP underlayer is deposited to mitigate this interference and improve the 
+adhesion of the MIP layer. This approach not only alleviates potential 
+interference but also enhances the overall efficacy of the MIP layer formation. 
+In this dissertation, a similar technique was employed, where incorporating an 
+NIP underlayer was crucial in improving the performance and reliability of 
+the MIP layer. 
+1.2.2. The formation of a self-assembled monolayer on the gold surface 
 Another strategy involves using SAM as an interfacial layer in sensor 
 development. It offers a convenient, adaptable, and straightforward method to 
 customise the surface properties of metals, metal oxides, and semiconductors. 
@@ -694,6 +780,12 @@ interactions with biomolecules. Grazing incidence infrared spectroscopy
 reveals that alkane thiols with functional groups like NH2 or OH are tightly 
 packed, highly oriented, and well-ordered. The monolayer's orientation 
 remains unaffected when these end groups are small (less than 5 Å). However,
+
+---
+
+## Chunk 12
+**Metadata**: {'section_hierarchy': ['1. LITERATURE REVIEW', '1.2.3. The formation of MIPs-aptamer'], 'start_page': 22, 'end_page': 22}
+
 larger groups like COOH reduce packing density and order [49]. In mixed 
 monolayers of ω-substituted thiols and shorter alkanethiols, the thiols adsorb 
 in the same proportion as in solution without phase separation, indicating 
@@ -713,16 +805,8 @@ a SAM underlayer between the gold and the electrochemically produced MIP
 layer in response to the template molecule's strong interaction with the gold 
 electrode. However, it's noteworthy that the insulating properties of SAM-
 based underlayers can negatively affect the electrodeposition rate of Ppy, 
-necessitating careful consideration during sensor development.
-
----
-
-## Chunk 12
-**Metadata**:
-- **Hierarchy**: ['1. LITERATURE REVIEW', '1.2.3. The formation of MIPs-aptamer']
-- **Start Page**: 23
-- **End Page**: 24
-
+necessitating careful consideration during sensor development.  
+1.2.3. The formation of MIPs-aptamer 
 The use of MIPs as recognition elements has attracted a lot of attention 
 among the different approaches used in biosensor design with specially 
 designed binding sites that can precisely and selectively bind target molecules 
@@ -740,36 +824,26 @@ additional protein biomarkers, thereby presenting a new perspective on MIPs
 and aptamers as alternatives to antibodies in biomarker detection [57]. 
 Another innovative approach to biosensor development involves 
 embedding aptamers in the polymer matrix to act as selective recognition
-elements. These polymers with embedded aptamers are specifically 
-formulated to capture target proteins not by the MIP but rather by the aptamer 
-embedded in the polymer structure, demonstrating the adaptability and 
-versatility of this methodology in diverse biosensing applications. This 
-dissertation also examines such an approach.
 
 ---
 
 ## Chunk 13
-**Metadata**:
-- **Hierarchy**: ['1. LITERATURE REVIEW', '1.3. The selected analytes']
-- **Start Page**: 24
-- **End Page**: 24
+**Metadata**: {'section_hierarchy': ['1. LITERATURE REVIEW', '1.3. The selected analytes'], 'start_page': 23, 'end_page': 23}
 
+elements. These polymers with embedded aptamers are specifically 
+formulated to capture target proteins not by the MIP but rather by the aptamer 
+embedded in the polymer structure, demonstrating the adaptability and 
+versatility of this methodology in diverse biosensing applications. This 
+dissertation also examines such an approach. 
+1.3. The selected analytes 
 The formation of MIPs using Ppy has led to the development of advanced 
 biosensor systems that combine the conductive properties of Ppy with the 
 selective recognition capabilities of MIPs. This enhances biosensor 
 performance, allowing for more sensitive and selective detection of various 
 analytes. The following subsections provide information about the analytes 
 studied in the dissertation. The analyte properties and the electrochemical 
-detection methods are reviewed.
-
----
-
-## Chunk 14
-**Metadata**:
-- **Hierarchy**: ['1. LITERATURE REVIEW', '1.3.1. Listeria monocytogenes bacteria']
-- **Start Page**: 24
-- **End Page**: 25
-
+detection methods are reviewed. 
+1.3.1. Listeria monocytogenes bacteria 
 Listeria monocytogenes is a Gram-positive, rod-shaped bacterium that 
 thrives at an optimum temperature of 37°C [58], and is a leading cause of 
 foodborne illness-related mortality [59]. This bacterium is primarily an 
@@ -792,6 +866,54 @@ individuals (such as those with cancer or AIDS or those who have undergone
 organ transplants) [64]. Pregnant women, for example, have a 17-fold 
 increased risk of contracting invasive listeriosis [65], and the infection 
 accounts for 22% of fatalities among immunocompromised adults [61].
+
+---
+
+## Chunk 14
+**Metadata**: {'section_hierarchy': ['1. LITERATURE REVIEW', '1.3.1. Listeria monocytogenes bacteria'], 'start_page': 23, 'end_page': 23}
+
+elements. These polymers with embedded aptamers are specifically 
+formulated to capture target proteins not by the MIP but rather by the aptamer 
+embedded in the polymer structure, demonstrating the adaptability and 
+versatility of this methodology in diverse biosensing applications. This 
+dissertation also examines such an approach. 
+1.3. The selected analytes 
+The formation of MIPs using Ppy has led to the development of advanced 
+biosensor systems that combine the conductive properties of Ppy with the 
+selective recognition capabilities of MIPs. This enhances biosensor 
+performance, allowing for more sensitive and selective detection of various 
+analytes. The following subsections provide information about the analytes 
+studied in the dissertation. The analyte properties and the electrochemical 
+detection methods are reviewed. 
+1.3.1. Listeria monocytogenes bacteria 
+Listeria monocytogenes is a Gram-positive, rod-shaped bacterium that 
+thrives at an optimum temperature of 37°C [58], and is a leading cause of 
+foodborne illness-related mortality [59]. This bacterium is primarily an 
+environmental contaminant found in soil and can be carried by various 
+animals, including ruminants, birds, marine life, insects, ticks, and 
+crustaceans [60]. Listeria monocytogenes can infiltrate the food supply chain, 
+contaminating a wide range of products, such as meat, raw and unpasteurised 
+milk and cheeses, ice cream, raw or processed vegetables and fruits, 
+undercooked poultry, sausages, hot dogs, deli meats, and raw or smoked fish 
+and seafood [61]. 
+One severe form of illness caused by Listeria monocytogenes can lead to 
+septicaemia and meningitis, with a case-fatality rate of 20–30% [62]. Another 
+form is a non-invasive gastrointestinal illness that typically does not have 
+severe consequences. Despite the relatively low incidence of listeriosis in the 
+general population, it remains a significant and deadly foodborne disease, with 
+a hospitalisation rate exceeding 95% [63]. The primary concern is that Listeria 
+monocytogenes disproportionately affect vulnerable groups, including the 
+elderly, pregnant women, unborn babies, and immunocompromised 
+individuals (such as those with cancer or AIDS or those who have undergone 
+organ transplants) [64]. Pregnant women, for example, have a 17-fold 
+increased risk of contracting invasive listeriosis [65], and the infection 
+accounts for 22% of fatalities among immunocompromised adults [61].
+
+---
+
+## Chunk 15
+**Metadata**: {'section_hierarchy': ['1. LITERATURE REVIEW', '1.3.2. Severe acute respiratory syndrome coronavirus 2'], 'start_page': 24, 'end_page': 25}
+
 Detecting Listeria monocytogenes is critical for healthcare and the food 
 industry [66]. The minimal infectious dose for listeriosis is 100 colony-
 forming units per gram (CFU/g) of food. Most countries enforce a zero-
@@ -817,16 +939,8 @@ immunoassay with CV realised a LOD of 1.07 × 102 CFU/mL and a linear
 range from 102 to 105 CFU/mL [71]. Additionally, an aluminium disc 
 electrode used in an immunoassay with EIS had a 1.3 log CFU/mL LOD and 
 a linear range from 1.3 to 4.3 log CFU/mL [72]. Typically, lysozyme was used 
-as the enzyme for template extraction during MIP-based sensor development.
-
----
-
-## Chunk 15
-**Metadata**:
-- **Hierarchy**: ['1. LITERATURE REVIEW', '1.3.2. Severe acute respiratory syndrome coronavirus 2']
-- **Start Page**: 25
-- **End Page**: 27
-
+as the enzyme for template extraction during MIP-based sensor development. 
+1.3.2. Severe acute respiratory syndrome coronavirus 2  
 The global health crisis caused by severe acute respiratory syndrome 
 coronavirus 2 (SARS-CoV-2) has necessitated an urgent response from public 
 health authorities. The World Health Organization (WHO) officially declared 
@@ -878,22 +992,20 @@ sensors enable the detection of both antibodies against SARS-CoV-2 and the
 nucleocapsid (rN) protein, which plays a crucial role in virus identification. 
 As SARS-CoV-2 began to mutate, the spike (rS) protein underwent significant 
 changes, complicating the detection of antibodies due to variations in protein
+
+---
+
+## Chunk 16
+**Metadata**: {'section_hierarchy': ['1. LITERATURE REVIEW', '1.3.3.  The vascular endothelial growth factor'], 'start_page': 26, 'end_page': 27}
+
 affinity. In response, the focus can shift to the detection of the rN protein, 
 which is more abundantly expressed in host cells and less prone to mutations 
 compared to the rS protein [92,93].  
 Immunosensors, which had already proven vital due to their sensitivity, 
 selectivity, and cost-effectiveness, were adapted to detect the rN protein. This 
 shift enhanced the reliability of viral diagnostics despite the ongoing 
-mutations of SARS-CoV-2.
-
----
-
-## Chunk 16
-**Metadata**:
-- **Hierarchy**: ['1. LITERATURE REVIEW', '1.3.3.  The vascular endothelial growth factor']
-- **Start Page**: 27
-- **End Page**: 29
-
+mutations of SARS-CoV-2. 
+1.3.3.  The vascular endothelial growth factor 
 Vascular endothelial growth factor (VEGF) is a protein activated in 
 response to low oxygen levels (hypoxia). It is critical for blood vessel 
 development during embryogenesis (vasculogenesis) and for the formation of 
@@ -934,6 +1046,12 @@ Accurate detection of VEGF is crucial for understanding its role in disease
 progression and developing targeted therapeutic strategies, offering 
 significant implications for improving clinical outcomes across various 
 conditions, including cancer and chronic inflammatory diseases.
+
+---
+
+## Chunk 17
+**Metadata**: {'section_hierarchy': ['2. EXPERIMENTAL SECTION', '2.1. The analytical system used in MIP-based biosensors dedicated to bacteria sensing'], 'start_page': 28, 'end_page': 28}
+
 2. EXPERIMENTAL SECTION 
 This section details the methodologies employed in developing four 
 distinct biosensors: (i) a MIP-based biosensor for Listeria monocytogenes 
@@ -979,32 +1097,42 @@ Ag/AgCl for 2 s, to assess the MIP and NIP-modified electrodes.
 
 ---
 
-## Chunk 17
-**Metadata**:
-- **Hierarchy**: ['2. EXPERIMENTAL SECTION', '2.1. The analytical system used in MIP-based biosensors dedicated to bacteria sensing']
-- **Start Page**: 29
-- **End Page**: 30
-
-
-
----
-
 ## Chunk 18
-**Metadata**:
-- **Hierarchy**: ['2. EXPERIMENTAL SECTION', '2.2. The analytical system used for the development of SAM-based biosensor for the detection of antibodies against rS protein']
-- **Start Page**: 30
-- **End Page**: 31
+**Metadata**: {'section_hierarchy': ['2. EXPERIMENTAL SECTION', '2.2. The analytical system used for the development of SAM-based biosensor for the detection of antibodies against rS protein'], 'start_page': 29, 'end_page': 29}
 
-
+Figure 4. Schematic representation of electrode modification for MIP-based 
+biosensor. 
+The limit of detection (LOD) and limit of quantification (LOQ) were 
+calculated according to Equations (2) and (3): 
+𝐿𝐿𝐿𝐿𝐿𝐿= 3.3 · 𝑆𝑆𝑆𝑆
+𝑠𝑠𝑠𝑠𝑠𝑠𝑠𝑠𝑠𝑠 
+(2) 
+𝐿𝐿𝐿𝐿𝐿𝐿= 10 · 𝑆𝑆𝑆𝑆
+𝑠𝑠𝑠𝑠𝑠𝑠𝑠𝑠𝑠𝑠 
+(3) 
+where SD is the standard deviation of the linear relationship on the calibration 
+plot. 
+2.2. The analytical system used for the development of SAM-based 
+biosensor for the detection of antibodies against rS protein 
+Developing a SAM-based biosensor for detecting antibodies against the 
+SARS-CoV-2 rS protein necessitates the use of well-prepared electrode 
+surfaces. The two primary types of electrodes used in this study, the square 
+gold electrode (Au(s)) and gold-coated microscope glass slides (Au(MS)), are 
+prepared with specific procedures to ensure their optimal performance for 
+biosensor applications. The following subsections provide detailed 
+methodologies of the preparation, functionalisation, and electrochemical 
+characterisation of these electrodes. This includes the formation of SAMs, the 
+activation of surface groups for protein immobilisation, and the assessment of 
+electrode performance using electrochemical techniques.
 
 ---
 
 ## Chunk 19
-**Metadata**:
-- **Hierarchy**: ['2. EXPERIMENTAL SECTION', '2.2.1. The preparation and modification of square gold electrode – Au(s)']
-- **Start Page**: 31
-- **End Page**: 32
+**Metadata**: {'section_hierarchy': ['2. EXPERIMENTAL SECTION', '2.2.1. The preparation and modification of square gold electrode – Au(s)'], 'start_page': 30, 'end_page': 30}
 
+Figure 5. Schematic representation of experimental stages for the SAM-based 
+biosensor. 
+2.2.1. The preparation and modification of square gold electrode – Au(s) 
 The square gold electrode (Au(s)), made of 99.9% chemically pure gold, 
 had a geometrical area of 2 cm2. To prepare the Au(s) surface, it was first 
 mechanically polished using an alumina suspension. After polishing, the 
@@ -1031,6 +1159,12 @@ the Au(s)/11-MUA/EDC-NHS/rS structure (Figure 5, Step 2). The higher
 volume and concentration of the protein solution used on the Au(s) electrode 
 with 11-MUA were chosen to ensure thorough and effective protein binding 
 to the surface-modified layer.
+
+---
+
+## Chunk 20
+**Metadata**: {'section_hierarchy': ['2. EXPERIMENTAL SECTION', '2.2.2. The preparation and modification of microscope glass slides coated with gold (Au(MS))'], 'start_page': 31, 'end_page': 31}
+
 2.2.2. The preparation and modification of microscope glass slides coated 
 with gold (Au(MS)) 
 The 20 x 30 mm microscope slides were cleaned with 2-propanol and 
@@ -1078,26 +1212,59 @@ Netherlands). All experiments were performed in a three-electrode
 
 ---
 
-## Chunk 20
-**Metadata**:
-- **Hierarchy**: ['2. EXPERIMENTAL SECTION', '2.2.2. The preparation and modification of microscope glass slides coated with gold (Au(MS))']
-- **Start Page**: 32
-- **End Page**: 32
-
-
-
----
-
 ## Chunk 21
-**Metadata**:
-- **Hierarchy**: ['2. EXPERIMENTAL SECTION', '2.2.3. The electrochemical assessment of Au(s) and Au(MS) electrodes']
-- **Start Page**: 32
-- **End Page**: 33
+**Metadata**: {'section_hierarchy': ['2. EXPERIMENTAL SECTION', '2.2.3. The electrochemical assessment of Au(s) and Au(MS) electrodes'], 'start_page': 31, 'end_page': 31}
 
+2.2.2. The preparation and modification of microscope glass slides coated 
+with gold (Au(MS)) 
+The 20 x 30 mm microscope slides were cleaned with 2-propanol and 
+then ultrasonically cleaned using an ultrasonic bath. After ultrasonic cleaning, 
+the slides were submerged in H2SO4 solution for 30 min. Once removed from 
+the acid, the slides were dried with a stream of N2 gas (99.99% purity). The 
+dried slides were placed inside a vacuum magnetron chamber manufactured 
+by VST Services Ltd. (Israel). Film deposition did not commence until a 
+vacuum of at least 7·10-8 Torr was achieved. A thin layer of titanium, 
+approximately 10 nm, was first applied to enhance the adhesion of gold to the 
+glass surface. This was followed by the application of a 100 nm layer of gold 
+(Au(MS)). The working electrode geometric area was 0.179 cm2. 
+Au(MS) electrodes were incubated at 24°C for 4 hours in a 1 mM 
+solution of 6-mercapto-1-hexanol (6-MCOH) and 11-mercaptoundecanoic 
+acid (11-MUA) in ethanol, using a molar ratio of 9:1, respectively, to form a 
+mixed self-assembled monolayer (SAMmix) (Figure 5, Step 3). After 
+incubation, the electrodes were rinsed with ethanol to remove any excess of 
+SAMmix and then dried with a flow of nitrogen gas, forming the 
+Au(MS)/SAMmix layer on the gold-coated slides. The SAMmix layer on 
+Au(MS) was activated using a mixture of 0.004 M EDC and 0.001 M NHS in 
+10 mM PBS solution at room temperature for 15 minutes, resulting in the 
+Au(MS)/SAMmix/EDC-NHS layer. Following the activation step, the 
+electrodes were treated with 70 µL of 100 µg/mL of rS protein in 10 mM PBS 
+solution 
+at 
+room 
+temperature 
+for 
+minutes, 
+forming 
+the 
+Au(MS)/SAMmix/EDC-NHS/rS structure (Figure 5, Step 4). The electrodes 
+were treated with a 0.5% bovine serum albumin (BSA) solution for 30 minutes 
+to deactivate any remaining reactive esters. Following this, 100 µL of an anti-
+rS antibody solution in 10 mM PBS solution was added to the electrode at 
+concentrations ranging from 30 to 150 nM for 45 minutes at room 
+temperature, forming the Au(MS)/SAMmix/EDC-NHS/rS/anti-rS complex 
+(Figure 5, Step 5). After each step of the incubation process, the electrodes 
+were rinsed with 10 mM PBS solution to remove any unbound materials.  
+2.2.3. The electrochemical assessment of Au(s) and Au(MS) electrodes 
 Electrochemical characterisation of the Au(s) and Au(MS) electrodes 
 was conducted using the μAUTOLAB TYPE III potentiostat (Metrohm, 
 Netherlands), controlled by FRA2-EIS software from ECO-Chemie (Utrecht, 
 Netherlands). All experiments were performed in a three-electrode
+
+---
+
+## Chunk 22
+**Metadata**: {'section_hierarchy': ['2. EXPERIMENTAL SECTION', '2.3. The analytical system used for the development of SAM-supported MIP biosensor for the detection of rN protein'], 'start_page': 32, 'end_page': 32}
+
 electrochemical cell. All experiments, before and after each incubation step, 
 were carried out in 10 mM PBS, pH 7.4, with the addition of 2 mM [Fe3(CN)6] 
 and 2 mM [Fe4(CN)6] as a redox probe ([Fe(CN)6]3−/4−). The three-electrode 
@@ -1126,22 +1293,10 @@ electrical equivalent circuits.
 
 ---
 
-## Chunk 22
-**Metadata**:
-- **Hierarchy**: ['2. EXPERIMENTAL SECTION', '2.3. The analytical system used for the development of SAM-supported MIP biosensor for the detection of rN protein']
-- **Start Page**: 33
-- **End Page**: 34
-
-
-
----
-
 ## Chunk 23
-**Metadata**:
-- **Hierarchy**: ['2. EXPERIMENTAL SECTION', '2.3.1. The formation of a SAM']
-- **Start Page**: 34
-- **End Page**: 34
+**Metadata**: {'section_hierarchy': ['2. EXPERIMENTAL SECTION', '2.3.1. The formation of a SAM'], 'start_page': 33, 'end_page': 33}
 
+2.3.1. The formation of a SAM 
 Screen-printed gold electrodes (Au(SPE)) were incubated at 20 °C for 2 
 hours in an ethanolic solution containing 10 mM of PUT to form a SAM 
 (Au(SPE)/SAM) on the working surface. Following incubation, the 
@@ -1193,25 +1348,116 @@ The electrodes were immersed in a pH 7.4 PBS solution containing the rN
 ---
 
 ## Chunk 24
-**Metadata**:
-- **Hierarchy**: ['2. EXPERIMENTAL SECTION', '2.3.2. Electrochemical modification of SAM-modified electrodes by Ppy and formation of MIP-based layer']
-- **Start Page**: 34
-- **End Page**: 34
+**Metadata**: {'section_hierarchy': ['2. EXPERIMENTAL SECTION', '2.3.2. Electrochemical modification of SAM-modified electrodes by Ppy and formation of MIP-based layer'], 'start_page': 33, 'end_page': 33}
 
-
-
----
-
-## Chunk 25
-**Metadata**:
-- **Hierarchy**: ['2. EXPERIMENTAL SECTION', '2.3.3. The evaluation of electrodes covered by MIP layer']
-- **Start Page**: 34
-- **End Page**: 35
-
+2.3.1. The formation of a SAM 
+Screen-printed gold electrodes (Au(SPE)) were incubated at 20 °C for 2 
+hours in an ethanolic solution containing 10 mM of PUT to form a SAM 
+(Au(SPE)/SAM) on the working surface. Following incubation, the 
+Au(SPE)/SAM electrodes were rinsed with deionised water and dried under a 
+nitrogen flow. 
+2.3.2. Electrochemical modification of SAM-modified electrodes by Ppy 
+and formation of MIP-based layer 
+Ppy was electrodeposited onto Au(SPE)/SAM electrodes using a 
+polymerisation solution containing 25 mM pyrrole and 25 µg·mL–1 rN 
+protein, following a sequence of ten potential pulses (at +950 mV for 1 s 
+followed by 0 V for 30 s). As described previously in Chapter 2.1., the MIP-
+based biosensor for bacteria sensing used a higher concentration of Ppy 
+(0.5 M) to account for the larger size of bacteria, while a concentration of 
+25 mM was chosen to accommodate the smaller size of the rN protein. The 
+resulting 
+polymer 
+immediately 
+after 
+deposition 
+is 
+denoted 
+as 
+Au(SPE)/SAM/(Ppy+rN) (Figure 6, Step 1), wherein the rN protein remains 
+embedded within the polypyrrole structure. 
+Subsequently, similar to the procedures used for the detecting bacteria, 
+the Au(SPE)/SAM/(Ppy+rN) electrodes underwent a washing step to remove 
+the rN protein, resulting in the formation of a MIP structure with 
+complementary cavities to the original template (Figure 6, Step 2). The 
+imprinted rN proteins were extracted from the Ppy layer by incubating the 
+electrodes in a 0.1 M H2SO4 extraction solution for 10 minutes. The final MIP 
+structure containing the polymer is marked as Au(SPE)/SAM/MIP. Similarly, 
+a polymer layer was formed on Au(SPE)/SAM electrodes without the addition 
+of rN protein, marked as Au(SPE)/SAM/Ppy (Figure 6, Step 3). After 
+incubation of the SPE/SAM/Ppy electrodes in a 0.1 M H2SO4 extraction 
+solution 
+for 
+minutes, 
+the 
+resulting 
+non-imprinted 
+polymer 
+Au(SPE)/SAM/NIP (Figure 6, Step 4) was used as a control surface. 
+2.3.3. The evaluation of electrodes covered by MIP layer 
 The following experimental protocol was conducted to evaluate the 
 biosensor ability to detect the rN protein: Au(SPE)/SAM/MIP electrodes were 
 exposed to rN protein concentrations ranging from 0 to 35 nM for 5 minutes. 
 The electrodes were immersed in a pH 7.4 PBS solution containing the rN
+
+---
+
+## Chunk 25
+**Metadata**: {'section_hierarchy': ['2. EXPERIMENTAL SECTION', '2.3.3. The evaluation of electrodes covered by MIP layer'], 'start_page': 33, 'end_page': 33}
+
+2.3.1. The formation of a SAM 
+Screen-printed gold electrodes (Au(SPE)) were incubated at 20 °C for 2 
+hours in an ethanolic solution containing 10 mM of PUT to form a SAM 
+(Au(SPE)/SAM) on the working surface. Following incubation, the 
+Au(SPE)/SAM electrodes were rinsed with deionised water and dried under a 
+nitrogen flow. 
+2.3.2. Electrochemical modification of SAM-modified electrodes by Ppy 
+and formation of MIP-based layer 
+Ppy was electrodeposited onto Au(SPE)/SAM electrodes using a 
+polymerisation solution containing 25 mM pyrrole and 25 µg·mL–1 rN 
+protein, following a sequence of ten potential pulses (at +950 mV for 1 s 
+followed by 0 V for 30 s). As described previously in Chapter 2.1., the MIP-
+based biosensor for bacteria sensing used a higher concentration of Ppy 
+(0.5 M) to account for the larger size of bacteria, while a concentration of 
+25 mM was chosen to accommodate the smaller size of the rN protein. The 
+resulting 
+polymer 
+immediately 
+after 
+deposition 
+is 
+denoted 
+as 
+Au(SPE)/SAM/(Ppy+rN) (Figure 6, Step 1), wherein the rN protein remains 
+embedded within the polypyrrole structure. 
+Subsequently, similar to the procedures used for the detecting bacteria, 
+the Au(SPE)/SAM/(Ppy+rN) electrodes underwent a washing step to remove 
+the rN protein, resulting in the formation of a MIP structure with 
+complementary cavities to the original template (Figure 6, Step 2). The 
+imprinted rN proteins were extracted from the Ppy layer by incubating the 
+electrodes in a 0.1 M H2SO4 extraction solution for 10 minutes. The final MIP 
+structure containing the polymer is marked as Au(SPE)/SAM/MIP. Similarly, 
+a polymer layer was formed on Au(SPE)/SAM electrodes without the addition 
+of rN protein, marked as Au(SPE)/SAM/Ppy (Figure 6, Step 3). After 
+incubation of the SPE/SAM/Ppy electrodes in a 0.1 M H2SO4 extraction 
+solution 
+for 
+minutes, 
+the 
+resulting 
+non-imprinted 
+polymer 
+Au(SPE)/SAM/NIP (Figure 6, Step 4) was used as a control surface. 
+2.3.3. The evaluation of electrodes covered by MIP layer 
+The following experimental protocol was conducted to evaluate the 
+biosensor ability to detect the rN protein: Au(SPE)/SAM/MIP electrodes were 
+exposed to rN protein concentrations ranging from 0 to 35 nM for 5 minutes. 
+The electrodes were immersed in a pH 7.4 PBS solution containing the rN
+
+---
+
+## Chunk 26
+**Metadata**: {'section_hierarchy': ['2. EXPERIMENTAL SECTION', '2.4. The analytical system used for the development of an aptamer-based biosensor for the detection of VEGF protein'], 'start_page': 34, 'end_page': 36}
+
 protein and a redox probe throughout this incubation period. For 
 electrochemical measurements, 2.5 mM [Fe(CN)6]3−/4− was added to a 0.1 M 
 PBS solution at pH 7.4. The working electrode underwent electrochemical 
@@ -1251,25 +1497,69 @@ mixing equal volumes of normalised oligonucleotide solutions (combSL2B,
 stalkGTG, and r_stalkGTG) at a concentration of 30 pM/µL in PBS buffer. This 
 mixture is then boiled in a water bath for 5 minutes before being slowly cooled to 
 room temperature.
-
----
-
-## Chunk 26
-**Metadata**:
-- **Hierarchy**: ['2. EXPERIMENTAL SECTION', '2.4. The analytical system used for the development of an aptamer-based biosensor for the detection of VEGF protein']
-- **Start Page**: 35
-- **End Page**: 38
-
-
+Figure 
+7. 
+Self-assembling 
+anti-VEGF 
+aptamer 
+based 
+on 
+three 
+oligonucleotides. Black letters - combSl2B oligonucleotide, blue letters -
+stalkGTG oligonucleotide and green letters - r_stalkGTG oligonucleotide. 
+Table 1. DNA nucleotides. 
+Oligomer 
+Sequence (5’-3’) 
+Modification 
+Ln 
+MW 
+combSl2B 
+CAATTGGGCCCGT
+CCGTATGGTGGGT
+AAGCTTGAATTC 
+ 
+11744 
+stalkGTG 
+GTCGACCTGCGTG/
+[ThiC6] 
+[ThiC6] - 3’ Thiol 
+modifier C6 S-S - 
+on 3’ end 
+r_stalkGTG 
+CACGCAGGTCGAC
+GAATTCAAGCTT 
+ 
+ 
+For the electrochemical modification and measurement, the experiments 
+were conducted using a potentiostat/galvanostat AUTOLAB TYPE III (ECO-
+Chemie/Metrohm, Barendrecht, The Netherlands) controlled by FRA2-EIS 
+software (ECO-Chemie/Metrohm, Utrecht, The Netherlands). Before 
+modification with a polymer layer, the SPCE electrodes underwent 
+electrochemical cleaning through cyclic voltammetry. This involved 
+immersing the electrodes in a 0.5 M sulfuric acid solution and cycling the 
+potential for 20 cycles at a sweep rate of 0.1 V/s within a potential range of –
+0.1 V to +1.2 V vs. Ag/AgCl. The polymer layer was deposited using a two-
+step electrochemical polymerisation procedure (Figure 8). In the first step, a 
+Ppy underlayer was electrochemically deposited from a solution containing 
+0.1 M pyrrole in 10 mM PBS, pH 7.4, by applying a sequence of 5 potential 
+pulses (+0.95 V for 1 s followed by 0 V for 30 s). In the second step, the anti-
+VEGF aptamer was added to the same polymerisation solution, and the 
+sequence of 5 potential pulses was repeated. This process embeds the anti-
+VEGF aptamer within the Ppy structure, enhancing the stability and support 
+of the aptamer molecule. Pulsed Amperometric Detection (PAD) was 
+employed to evaluate the Ppy-modified DNR-aptamer electrodes. The 
+detection sequence consisted of 10 potential pulses of +600 mV vs Ag/AgCl 
+for 2 seconds, followed by 0 V vs Ag/AgCl for 2 seconds. 
+ 
+Figure 8. Schematic representation of two experimental setups applied for 
+assessment of developed aptamer-based sensor.
 
 ---
 
 ## Chunk 27
-**Metadata**:
-- **Hierarchy**: ['3. RESULTS AND DISCUSSION', '3.1. The detection of Listeria Monocytogenes bacteria using MIP-based electrochemical sensor', '3.1.1. The electrodeposition of MIP and extraction of imprinted bacteria']
-- **Start Page**: 39
-- **End Page**: 43
+**Metadata**: {'section_hierarchy': ['3. RESULTS AND DISCUSSION', '3.1. The detection of Listeria Monocytogenes bacteria using MIP-based electrochemical sensor', '3.1.1. The electrodeposition of MIP and extraction of imprinted bacteria'], 'start_page': 38, 'end_page': 41}
 
+3.1.1. The electrodeposition of MIP and extraction of imprinted bacteria 
 The Ppy and Ppy+bacteria layers were electrochemically deposited onto 
 SPCE electrodes using a series of potential pulses (Figure 9). Figures 9 A 
 and D illustrate the potential pulse series profiles for the deposition of the Ppy 
@@ -1352,11 +1642,9 @@ L‑lysine at 37°C for 30 min (G, H).
 ---
 
 ## Chunk 28
-**Metadata**:
-- **Hierarchy**: ['3. RESULTS AND DISCUSSION', '3.1. The detection of Listeria Monocytogenes bacteria using MIP-based electrochemical sensor', '3.1.2. Electrochemical characterisation for bacteria-imprinted MIP layer']
-- **Start Page**: 43
-- **End Page**: 44
+**Metadata**: {'section_hierarchy': ['3. RESULTS AND DISCUSSION', '3.1. The detection of Listeria Monocytogenes bacteria using MIP-based electrochemical sensor', '3.1.2. Electrochemical characterisation for bacteria-imprinted MIP layer'], 'start_page': 42, 'end_page': 42}
 
+3.1.2. Electrochemical characterisation for bacteria-imprinted MIP layer 
 The NIP and MIP sensors were evaluated using pulsed amperometric 
 detection, which measures current density in a series of 10 potential pulses of 
 +600 mV for 2 s and 0 mV for 2 s. Listeria monocytogenes bacteria at 
@@ -1385,6 +1673,12 @@ showed no change in current density. Electrochemical results indicated that
 electrical capacitance varied after removing the imprinted bacteria, with 
 trypsin and acetic acid proving to be the most effective solution for releasing 
 trapped Listeria monocytogenes bacteria and forming the MIP.
+
+---
+
+## Chunk 29
+**Metadata**: {'section_hierarchy': ['3. RESULTS AND DISCUSSION', '3.1. The detection of Listeria Monocytogenes bacteria using MIP-based electrochemical sensor', '3.1.3. Determination of the limit of detection, the limit of quantification and the imprinting factor'], 'start_page': 43, 'end_page': 44}
+
 Figure 11. The current density of electrodes of NIP (solid black lines) and 
 MIP (dashed red lines) was registered using PAD after incubation in solutions 
 containing varying concentrations of Listeria monocytogenes bacteria. The 
@@ -1407,65 +1701,449 @@ concentration of Listeria monocytogenes bacteria (expressed in CFU/mL)
 recorded by the NIP electrode was 0.016 µA/(CFU/mL), with an R2 value of 
 0.98. Conversely, the linear regression slope for the Listeria monocytogenes 
 bacteria-imprinted MIP was 0.063 µA/(CFU/mL), with an R2 value of 0.97.
-
----
-
-## Chunk 29
-**Metadata**:
-- **Hierarchy**: ['3. RESULTS AND DISCUSSION', '3.1. The detection of Listeria Monocytogenes bacteria using MIP-based electrochemical sensor', '3.1.3. Determination of the limit of detection, the limit of quantification and the imprinting factor']
-- **Start Page**: 44
-- **End Page**: 46
-
-
+Figure 12. Calibration curve ΔI registered by MIP (black line) and NIP (red 
+line) vs. Listeria monocytogenes concentration. Error bars are expressed as the 
+standard deviation of the sample. 
+Molecular imprinting is ranked according to the relationship between the 
+MIP and the NIP, which is obtained according to Equation (4) [113,114]: 
+𝐼𝐼𝐼𝐼= 𝐼𝐼𝑀𝑀𝑀𝑀𝑀𝑀
+𝐼𝐼𝑁𝑁𝑁𝑁𝑁𝑁
+ 
+(4) 
+Usually, IF is called an imprinting factor, whereas Ayerdurai et al. [115] 
+argued that an apparent imprinting factor is a more correct term for IF. The 
+results showed that, compared to the NIP electrode, the MIP had an apparent 
+imprinting factor towards the Listeria monocytogenes bacteria that was 
+roughly 3.93. If the value of IF exceeds 1, it indicates a high degree of 
+molecular imprinting and strong specificity for the target analyte [113]. The 
+LOD and the LOQ were calculated according to Equations (2) and (3). It was 
+evaluated that the LOD and LOQ for the MIP were 70 CFU/mL and 
+210 CFU/mL, respectively, in the linear range from 300 to 6700 CFU/mL.
 
 ---
 
 ## Chunk 30
-**Metadata**:
-- **Hierarchy**: ['3. RESULTS AND DISCUSSION', '3.2. Detection of antibodies against SARS-CoV-2 rS using SAM-based detection method', '3.2.1. Electrochemical impedance spectroscopy-based evaluation of SAM and tethered bilayer lipid membranes layers']
-- **Start Page**: 46
-- **End Page**: 49
+**Metadata**: {'section_hierarchy': ['3. RESULTS AND DISCUSSION', '3.2. Detection of antibodies against SARS-CoV-2 rS using SAM-based detection method', '3.2.1. Electrochemical impedance spectroscopy-based evaluation of SAM and tethered bilayer lipid membranes layers'], 'start_page': 45, 'end_page': 47}
 
-
+3.2. Detection of antibodies against SARS-CoV-2 rS using SAM-based 
+detection method  
+This section explores the use of SAM to modify gold electrodes in order 
+to enable the construction of a biosensor used for detecting antibodies against 
+the SARS-CoV-2 rS protein. The study builds on the principles of EIS and CV 
+to evaluate the performance of these SAM-based systems. The approach 
+involves understanding how SAMs, particularly mixed SAMs (SAMmix), 
+influence the surface properties and electron transfer characteristics of 
+electrode surfaces. 
+The section is divided into two main parts. First, subsection 3.2.1 
+discusses the evaluation of SAM layers using EIS, including the use of 
+tethered bilayer lipid membranes (tBLMs) as model systems to assess SAM 
+stability, defect density, and electron transfer properties. This foundational 
+analysis provides insights into how SAM and mixed SAM systems behave in 
+terms of surface modification and electrochemical performance. 
+In subsection 3.2.2, the focus shifts to the direct functionalisation and 
+electrochemical characterisation of modified gold electrode surfaces. Gold 
+electrodes, including square gold electrodes (Au(s)) and gold-coated 
+microscopic slides (Au(MS)), are modified with SAMs and SAMmix systems. 
+The electrochemical behaviour of these modified electrodes is characterised 
+before and after surface treatments, providing detailed insights into their role 
+in enhancing sensor detection capabilities. 
+3.2.1. Electrochemical impedance spectroscopy-based evaluation of SAM 
+and tethered bilayer lipid membranes layers 
+While the formation and characteristics of these monolayers have been 
+widely studied on various substrates, including gold electrodes, the present 
+study also includes the use of SAMmix systems. These SAMmix systems, 
+when evaluated using tBLMs, demonstrate reduced defect density and 
+improved stabilisation of electron transfer. This indicates that such an 
+approach could enhance biosensing performance by ensuring better control 
+over the structural integrity of the modified electrode surface. The detailed 
+electrochemical analysis and impedance behaviour of both SAM and tBLM 
+layers provide a crucial foundation for understanding the surface 
+modifications that will be further explored in the following section for the 
+design of a biosensor. 
+The Au(MS) were incubated for 3 hours in an ethanolic solution 
+containing 0.1 mM β-mercaptoethanol (βME) and 20-tetradecyloxy-
+3,6,9,12,15,18,22-heptaoxahexatricontane-1-thiol (WC14) in a molar ratio of 
+65:35. This incubation allowed the formation of a Au(MS)/SAMmix, 
+composed of βME as a backfiller and synthetic thiolipid WC14 molecules. 
+Figure 13 A illustrates the typical changes in the EIS spectra following 
+the formation of a tBLM on an anchor SAMmix. Specifically, the semicircle 
+of the complex capacitance decreased by approximately tenfold, from 
+8 μF·cm2 before vesicle fusion and membrane formation to 0.6–0.8 μF·cm2 
+after tBLM formation. This decrease is attributed to the creation of a dielectric 
+layer around 3 nm thick [116]. 
+In this study, we examined two lipid compositions of tBLMs capable of 
+incorporating chlorophyll-a. The EIS data enabled verification of tBLM 
+integrity across different lipid ratios. The base composition consisted of 
+DOPC and cholesterol (Chol) in a 6:4 molar ratio. Chl-a was introduced in 
+two stages: first, replacing some DOPC to achieve a 5:4:1 molar composition 
+of DOPC/Chol/Chl-a; then, cholesterol was replaced to create a 6:3:1 molar 
+ratio. Across the various DOPC, Chol, and Chl-a ratios—ranging from 6:4 to 
+5:4:1 and 6:3:1—only slight changes in tBLM capacitance were observed, 
+which were not statistically significant (Figure 13 C). However, if the 
+defectiveness is analysed, the inclusion of Chl-a into DOPC/Chol tBLMs was 
+found to be an important factor in determining the defect densities in tBLMs. 
+The algorithm described in [117], was used to estimate the defect densities in 
+tBLMs with and without Chl-a. The algorithm relates defect density in 
+membranes with the position of the phase minima in the negative of 
+impedance phase vs frequency plots. The Equation 5 was used to calculate 
+approximate densities is: 
+𝑙𝑙𝑙𝑙𝑁𝑁𝑑𝑑𝑑𝑑𝑑𝑑≈ 0.93𝑙𝑙𝑙𝑙𝑓𝑓𝑚𝑚𝑚𝑚𝑚𝑚−𝑙𝑙𝑙𝑙𝑙𝑙−0.2𝑙𝑙𝑙𝑙𝑙𝑙0 −𝑐𝑐𝑐𝑐𝑐𝑐𝑐𝑐𝑐𝑐 
+(5) 
+where Ndef the defect density in μm−2, fmin the frequency of the negative of 
+phase minimum, Hz, k = 1.6·10−6 cm2·s −1, r0 = 1 nm and const = 1.24, one 
+obtains the approximate values of defect densities in tBLMs of different 
+composition. The calculated according to Equation 5 defect densities are 
+0.87 ± 0.09 μm−2 
+for 
+DOPC/Chol 
+(6:4), 
+0.73 ± 0.08 μm−2 
+for 
+DOPC/Chol/Chl-a (6:3:1) and 0.16 ± 0.08 μm−2 for DOPC/Chol/Chl-a 
+tBLMs. 
+As shown in Figure 2D, the introduction of Chl-a significantly reduced 
+defectiveness, particularly in the 5:4:1 DOPC/Chol/Chl-a composition, where 
+defect density was six times lower than that of the base DOPC/Chol (6:4) 
+composition, and lower compared to the 6:3:1 mixture. This sharp reduction 
+in defects for the 5:4:1 composition may be due to the combined destabilising
+effects of cholesterol and Chl-a, as cholesterol’s conical shape destabilises 
+defects in highly curved bilayer fragments like transient pores, while Chl-a’s 
+inverted cone shape likely contributes to further destabilization. Together, 
+these effects enhance bilayer stiffness by forming complementary pairs with 
+cholesterol. 
+Interestingly, the defect density was lower in the DOPC/Chol/Chl-a 
+(6:3:1) mixture, underscoring the importance of the total concentration of 
+Chol and Chl-a in influencing membrane properties. Overall, Chl-a was found 
+to induce a significant decrease in tBLM capacitance, likely due to its lower 
+relative dielectric constant compared to the dioleoyl fragment in DOPC. 
+However, substituting cholesterol with Chl-a did not result in a similar 
+magnitude of decrease, suggesting that Chl-a and Chol have comparable 
+dielectric properties. Another key effect of Chl-a incorporation was a 
+significant reduction in membrane defectiveness, especially when the total 
+content of Chol and Chl-a reached 50% of the membrane lipid composition. 
+ 
+Figure 13. Cole-Cole plot of EIS spectra (A), (B) of (▪) a Au(MS)/SAMmix 
+and tBLM structure formed at different molar % ratios of various components: 
+(•) – DOPC, Chol and Chl-a at molar % ratio of 5:4:1, respectively, (▲) – 
+DOPC, Chol and Chl-a at molar % ratio of 6:3:1, respectively, (▼) – DOPC 
+and Chol at molar % ratio of 6:4, respectively. Bode coordinates (C) – 
+frequency dependence on complex phase shift (frequency was applied until 
+phase minimum was reached), complex capacitance, and defect density of
 
 ---
 
 ## Chunk 31
-**Metadata**:
-- **Hierarchy**: ['3. RESULTS AND DISCUSSION', '3.2. Detection of antibodies against SARS-CoV-2 rS using SAM-based detection method', '3.2.2. The electrochemical characterisation of a modified gold electrode surface']
-- **Start Page**: 49
-- **End Page**: 52
+**Metadata**: {'section_hierarchy': ['3. RESULTS AND DISCUSSION', '3.2. Detection of antibodies against SARS-CoV-2 rS using SAM-based detection method', '3.2.2. The electrochemical characterisation of a modified gold electrode surface'], 'start_page': 48, 'end_page': 50}
 
-
+various components tBLM structures (D). Bias potential 0 V vs 
+Ag/AgCl/NaClsat. 
+However, in the subsequent stages of this study, the focus shifts away from 
+the use of tBLMs as the investigation moves towards the application of 
+different SAM systems for direct functionalisation of gold electrodes. These 
+SAMs, particularly the SAMmix on Au(MS), will be evaluated independently 
+using electrochemical techniques, allowing for a more focused examination 
+of their role in enhancing detection capabilities in biosensing platforms. The 
+detailed characterisation of these SAM layers is key to understanding the 
+modifications and their direct impact on electrode performance, as presented 
+in the next section. 
+3.2.2. The electrochemical characterisation of a modified gold electrode 
+surface 
+Building upon these insights, the following study employs similar SAM-
+based approaches, applying them to gold electrodes enabling the creation of 
+immunosensor used for the detection of antibodies against the SARS-CoV-2 
+rS protein. Electrochemical techniques, including CV and EIS, were used to 
+probe the modifications and their impact on the electrode surfaces. Both 
+square gold electrodes (Au(s)) and gold-coated microscopic slides (Au(MS)) 
+were characterised before and after surface treatments. 
+Initially, the Au(s) electrode was modified with an 11-MUA, forming a 
+SAM. The [Fe(CN)6]3−/4− redox couple was used to probe the influence of 
+these modifications on electrode conductivity through changes in oxidation 
+and reduction peaks in the cyclic voltammogram. The formation of the 
+11‑MUA SAM resulted in a stable and well-organised monolayer, acting as 
+an ionic insulator on the gold electrode. This SAM, characterised by a low 
+defect rate and high fractional coverage, obstructed the electron transfer 
+pathway, leading to a substantial reduction in the current response, as shown 
+in Figure 14 A.
+Figure 14. Cyclic voltammograms of the Au(s) electrode (A) and Au(MS) 
+electrode (B). Potential scans range from 0 to +0.4 V (A) and from −0.2 to 
++0.6 V (B) at 50 mV·s−1 vs Ag/AgCl(KClsat).  
+For the Au(MS) electrode, a mixed SAM (SAMmix) consisting of 
+6‑MCOH and 11-MUA was applied. The SAMmix was designed to maintain 
+stability while allowing redox mediator access to the electrode surface, 
+reducing pinholes and structural defects. The cyclic voltammogram for the 
+unmodified Au (MS) electrode (Figure 14 B) showed typical redox behaviour 
+with a peak current density of 712.4 ± 5.9 μA·cm−2. After the formation of the 
+SAMmix, the peak current density decreased to 504.6 ± 19.3 μA·cm−2, 
+indicating restricted electron transfer due to the mixed SAM layer. EDC-NHS 
+activation of the terminal carboxyl groups caused a slight increase in current 
+density to 513.1 ± 6.6 μA·cm−2, suggesting enhanced electron transfer. 
+However, the subsequent immobilisation of rS protein led to a further decrease 
+in current density to 459.6 ± 9.3 μA·cm−2, attributed to the additional barrier 
+formed by the protein layer. 
+EIS measurements provided detailed insight into the changes in charge 
+transfer resistance (Rct) associated with each modification step. As depicted in 
+Figure 15 A, the Rct of the Au(s) electrode increased significantly with the 
+formation of the 11-MUA SAM, reaching 10.6 ± 0.2 kΩ·cm2. This increase is 
+attributed to the insulating nature of the SAM, which obstructs the movement 
+of [Fe(CN)6]3-/4- ions and hinders electron transfer at the electrode interface. 
+Activating the 11-MUA carboxyl groups with EDC and NHS resulted in a 
+reduced Rct of 5.67 ± 0.09 kΩ·cm2, likely due to the formation of an 
+electrochemically active ester, facilitating electron transfer. The subsequent 
+immobilisation of rS protein increased Rct to 12.3 ± 0.27 kΩ·cm2, as the 
+protein layer adds another barrier to electron transfer.  
+In contrast, the modifications of Au(MS) electrode showed a different 
+pattern of Rct changes, as illustrated in Figure 15B. The Rct for the unmodified
+Au(MS) electrode was 98.2 ± 1.2 Ω·cm2, which increased to 803 ± 10 Ω·cm2 
+with the formation of the SAMmix. This increase, although significant, is 
+lower than the Rct for the Au(s) with the 11-MUA SAM, likely due to the 
+different composition and properties of the SAMmix, which allows some 
+electron transfer while still providing a barrier. Following activation with 
+EDC and NHS, the Rct decreased, likely due to the formation of an 
+electrochemically active ester that facilitated electron transfer. However, the 
+subsequent immobilisation of the rS protein caused the Rct to rise again to 
+1202 ± 23 Ω·cm², as the protein layer added another barrier to electron 
+transfer (Table 2). 
+It was observed that the Rct of the NHS and EDC-activated either 
+Au(s)/11-MUA or Au(MS)/SAMmix electrodes substantially decreased 
+compared to its value before activation. The activation process involving EDC 
+and NHS results in the formation of an intermediate electrochemically active 
+ester due to the interaction between the terminal carboxyl (-COOH) groups 
+and EDS and NHS. The increase in Rct following the binding of rS is attributed 
+to the poor electrical conductivity of most proteins at low frequencies, which 
+impedes charge transfer at the electrode-solution interface. These EIS data are 
+consistent with previous studies, which used Total Internal Reflection 
+Ellipsometry to evaluate the interactions between SARS-CoV-2 proteins and 
+their specific antibodies. Those studies demonstrated significant increases in 
+protein layer thickness and changes in dielectric properties occurring at the 
+electrode-solution interface [118].  
+The observed differences in Rct between the Au(s) and Au(MS) systems 
+are primarily due to the nature of the surface modifications and the specific 
+characteristics of the SAM layers. The 11-MUA SAM on the Au (s) electrode 
+forms a highly insulating layer with minimal defects, leading to a significant 
+increase in Rct. In contrast, the SAMmix on the Au (MS) electrode, while still 
+increasing Rct, allows for electron transfer due to its composition and structure. 
+ 
+Figure 15. Nyquist plots of differently modified electrodes: Au (s) electrode 
+(A) and Au (MS) electrode (B). A – Au (s) electrode (□), electrode after 11-
+MUA formation (▲), EDC-NHS electrode after activation of 11-MUA (▼),
 
 ---
 
 ## Chunk 32
-**Metadata**:
-- **Hierarchy**: ['3. RESULTS AND DISCUSSION', '3.2. Detection of antibodies against SARS-CoV-2 rS using SAM-based detection method', '3.2.3. The analytical characterisation of immunosensor dedicated for anti-rS detection']
-- **Start Page**: 52
-- **End Page**: 54
+**Metadata**: {'section_hierarchy': ['3. RESULTS AND DISCUSSION', '3.2. Detection of antibodies against SARS-CoV-2 rS using SAM-based detection method', '3.2.3. The analytical characterisation of immunosensor dedicated for anti-rS detection'], 'start_page': 51, 'end_page': 52}
 
-
+and rS electrode after immobilisation of SARS-CoV-2 rS protein (♦). (B) – 
+Au (MS) electrode (■), electrode after SAMmix formation (▲), EDC-NHS 
+electrode after activation of SAMmix (▼), and rS electrode after 
+immobilisation of SARS-CoV-2 rS protein (♦). EIS measurements were 
+performed in the PBS, pH 7.4, in the presence of 2 mM of [Fe(CN)6]3−/4− at 
+0.2 V vs Ag/AgCl(KClsat), signal normalised to the area of the electrode, 
+A = 2 cm2 for Au(s) electrode (A) and A = 0.179 cm2 for Au(MS) 
+electrode (B). 
+Table 2. Analytical parameters obtained from CV and EIS. Error bars are 
+expressed as the standard deviation of the sample. 
+ 
+jpa, µA·cm-2 
+Rs, Ω·cm2 
+Rct, Ω·cm2 
+Cdl, µF 
+n 
+Au(s) 
+410.4 ± 9.6 
+14.45±0.07 
+96.2±1.2 
+80.1±0.4 
+0.92 
+11-MUA 
+- 
+9.8±0.3 
+10600±200 
+9.7±0.1 
+0.92 
+EDC-NHS 
+- 
+9.8±0.2 
+5670±90 
+11.1±0.1 
+0.91 
+rS 
+- 
+10.7±0.2 
+12300±270 
+11.4±0.1 
+0.92 
+Au (MS) 
+712.4 ± 5.9 
+32.1±0.3 
+98.8±1.2 
+84.1±0.3 
+0.83 
+SAMmix 
+504.6 ± 19.3 
+41.2±0.5 
+803±10 
+9.1±0.5 
+0.97 
+EDC-NHS 
+513.1 ± 6.6 
+48.4±0.7 
+239±21 
+10.2±0.5 
+0.96 
+rS 
+459.6 ± 9.3 
+41.2±0.6 
+1202±23 
+8.4±0.5 
+0.97 
+ 
+These findings demonstrate the stepwise impact of surface modifications 
+on the electrochemical properties of gold electrodes. The initial 11-MUA 
+SAM provided a stable and insulating layer, while the SAMmix, EDC-NHS 
+activation, and protein immobilisation introduced progressive changes in 
+electron transfer characteristics. This comprehensive characterisation 
+underscores the importance of each modification stage in tailoring the surface 
+properties of gold electrodes for specific electrochemical applications. In later 
+experiments targeting antibody detection against the rS protein, the 11-MUA 
+SAM was not used due to its high Rct and insulating properties, which hindered 
+electron transfer. Instead, the SAMmix system was adopted for its balanced 
+stability and efficient electron transmission, significantly enhancing the 
+sensitivity and effectiveness of the antibody detection process. 
+3.2.3. The analytical characterisation of immunosensor dedicated for anti-rS 
+detection 
+The affinity interaction between anti-rS antibodies and immobilised rS 
+proteins was studied by sequentially incubating the working electrode surface 
+with varying concentrations of anti-rS in a 10 mM PBS solution, starting at
+30 nM and increasing up to 150 nM through successive dilutions of a stock 
+solution (Figure 16). EIS measurements were performed in PBS, 7.4, 
+containing 2 mM [Fe(CN)6]3−/4−, using previously detailed parameters. As 
+anti-rS interacts with immobilised rS, an immune complex forms, 
+progressively insulating the electrode surface. This reduces the flow of 
+[Fe(CN)6]3−/4− to the electrode, leading to a stepwise decrease in the redox 
+current. Notably, at lower anti-rS concentrations (0−90 nM), the current 
+densities decrease more rapidly, whereas at higher concentrations 
+(90−150 nM), the process approaches saturation. This is reflected in the 
+Nyquist plots, where the semicircle radius increases with anti-rS 
+concentration, indicating increased Rct. EIS data shows a significant increase 
+in the semicircle radius at lower concentrations (0−90 nM), which slows down 
+at higher concentrations (90−150 nM). As the concentration of anti-rS 
+increases, the number of unoccupied rS sites decreases, resulting in a plateau 
+effect in Rct values at higher concentrations. Table 3 summarises the signal 
+values obtained from EIS, showing the increase in Rct levels off at higher anti-
+rS concentrations. 
+Table 3. Analytical parameters obtained from EIS. Error bars are expressed 
+as the standard deviation of the sample. 
+Anti-rS 
+concentration 
+Rs, Ω·cm2 
+Rct, Ω·cm2 
+Cdl, µF 
+n 
+0 nM 
+41.4±2.7 
+1300±105 
+8.35±0.4 
+0.976 
+30 nM 
+37.9±2.5 
+1840±165 
+8.6±0.6 
+0.973 
+60 nM 
+44.1±2.4 
+2600±212 
+9.1±0.6 
+0.972 
+90 nM 
+40.5±2.1 
+3360±286 
+9.45±0.7 
+0.975 
+120 nM 
+43.4±2.2 
+3570±259 
+9.51±0.8 
+0.973 
+150 nM 
+39.4±2.3 
+3750±319 
+9.652±0.7 
+0.975 
+ 
+ 
+Figure 16. Nyquist plots of the modified Au(MS)/SAMmix/rS electrode (A) 
+after affinity interaction with anti-rS of different concentrations (0–150 nM). 
+Calibration curves for Rct obtained from EIS are shown in relation to anti-rS
 
 ---
 
 ## Chunk 33
-**Metadata**:
-- **Hierarchy**: ['3. RESULTS AND DISCUSSION', '3.3. The detection of the SARS-CoV-2 nucleoprotein using the SAM-supported MIP detection method', '3.3.1. Electrochemical characterisation of Au(SPE) surface modified by SAMs']
-- **Start Page**: 54
-- **End Page**: 55
+**Metadata**: {'section_hierarchy': ['3. RESULTS AND DISCUSSION', '3.3. The detection of the SARS-CoV-2 nucleoprotein using the SAM-supported MIP detection method', '3.3.1. Electrochemical characterisation of Au(SPE) surface modified by SAMs'], 'start_page': 53, 'end_page': 53}
 
-
+concentration (B). Error bars are expressed as the standard deviation of the 
+sample. EIS measurements were performed from 100 kHz to 0.1 Hz, at 10 mV 
+amplitude and applied potential 0.2 V vs Ag/AgCl(KClsat) in PBS, pH 7.4, while 
+adding 2 mM of [Fe(CN)6]3−/4−, signal normalised to the area of the electrode, 
+A = 0.179 cm2. 
+To evaluate the analytical characteristics of the electrochemical 
+immunosensor, LOD and LOQ for sensing anti-rS were calculated from data 
+gathered using EIS measurements (Equations 2 and 3). As a signal, the Rct 
+value was obtained from fitting EIS data using Randles equivalent circuit. As 
+a result, the immunosensor for anti-rS detection using EIS based on the Rct 
+value had a LOD of 2.78 nM and LOQ of 9.17 nM. 
+3.3. The detection of the SARS-CoV-2 nucleoprotein using the SAM-
+supported MIP detection method 
+In the case of of Listeria monocytogenes sensor, a Ppy-based underlayer 
+was electrodeposited to minimise the direct interaction of electrode surface 
+with the bacteria (Chapter 3.1.). This thin Ppy underlayer facilitated the 
+subsequent formation of the MIP sensing layer. However, for this study the 
+SAM was adopted as an underlayer because it offers enhanced performance 
+and a more controlled surface for the sensor development. SAMs provide a 
+robust interface between the Au(SPE) surface and the polymer layers, which 
+is crucial for biosensor applications [119]. Particularly in biosensors, the 
+stability of the conducting polymer layer on the electrode is critical for long-
+term performance. To improve the stability and interaction between the 
+Au(SPE) surface and the Ppy layer, pyrrolyl-terminated alkanethiol (PUT) 
+was introduced to form the SAM. Acting as a bridge, this SAM creates a 
+transition system between the SAM and the Ppy film. Previous studies have 
+shown that strong dipole-dipole interactions between the pyrrolyl end groups 
+contribute to the formation of the PUT SAM [55]. The polymerisation reaction 
+between the pyrrolyl-terminated alkanethiol in the SAM and the pyrrole 
+molecules in the polymerisation solution was expected to enhance the stability 
+of the Ppy film formed on the gold electrode. 
+3.3.1. Electrochemical characterisation of Au(SPE) surface modified by 
+SAMs 
+The SWV and EIS methods were used to characterise the Au(SPE) and 
+Au(SPE)/SAM electrodes using a [Fe(CN)6]3−/4− couple as a redox probe. The
 
 ---
 
 ## Chunk 34
-**Metadata**:
-- **Hierarchy**: ['3. RESULTS AND DISCUSSION', '3.3. The detection of the SARS-CoV-2 nucleoprotein using the SAM-supported MIP detection method', '3.3.2. Electrodeposition of MIP- and NIP-based layers']
-- **Start Page**: 55
-- **End Page**: 58
+**Metadata**: {'section_hierarchy': ['3. RESULTS AND DISCUSSION', '3.3. The detection of the SARS-CoV-2 nucleoprotein using the SAM-supported MIP detection method', '3.3.2. Electrodeposition of MIP- and NIP-based layers'], 'start_page': 54, 'end_page': 56}
 
+analysis of oxidation peaks in square wave voltammograms (Figure 17 A) led 
+to research into the impact of surface modifications on the electrical 
+conductivity of the working electrode. The Au(SPE)/SAM electrode had a 
+significant decrease in peak current density from 2.63 ± 0.21 to 
+1.06 ± 0.09 mA·cm−2 compared to the bare Au(SPE) electrode. Furthermore, 
+the Nyquist plots were an efficient tool for monitoring impedimetric 
+characteristics and conducting theoretical analysis of impedance properties 
+(Figure 17 B). Using an analogous circuit provided insights into chemical 
+transformations and processes on the conductive electrode surface. 
+Figure 17 B shows the redox probe's response regarding imaginary impedance 
+(−Zim) and real impedance (Zre). The Randles equivalent circuit was used to 
+evaluate EIS data (Figure 17 B). The studied frequency range was 100 kHz to 
+0.1 Hz. The development of the Au(SPE)/SAM resulted in a charge transfer 
+resistance (Rct) increase almost tenfold from 5.48 ± 0.07 to 47.5 ± 0.9 Ω·cm2. 
+ 
+Figure 17. Square wave voltammograms (A) and Nyquist plot (B) of Au(SPE) 
+and Au(SPE)/SAM electrodes. SWV and EIS measurements were performed 
+in 10 mM PBS, pH 7.4, with 2.5 mM of [Fe(CN)6]3−/4−. SWV: step size of 
+4 mV, frequency of 20 Hz, and a pulse height of 50 mV vs. Ag/AgCl in the 
+potential range from –0.2 V to +0.6 V. EIS was registered at open circuit 
+potential (OCP) in the frequency range from 100 kHz to 0.1 Hz, with an 
+amplitude of 10 mV. 
+3.3.2. Electrodeposition of MIP- and NIP-based layers 
 SWV 
 was 
 used 
@@ -1545,6 +2223,12 @@ minimum was reached). EIS was registered at open circuit potential (OCP) in
 the frequency range from 100 kHz to 0.1 Hz, with an amplitude of 10 mV. 
 Measurements were performed in 10 mM PBS, pH 7.4, with 2.5 mM of 
 [Fe(CN)6]3−/4−.
+
+---
+
+## Chunk 35
+**Metadata**: {'section_hierarchy': ['3. RESULTS AND DISCUSSION', '3.3. The detection of the SARS-CoV-2 nucleoprotein using the SAM-supported MIP detection method', '3.3.3. Electrochemical characterisation and detection of the rN protein'], 'start_page': 57, 'end_page': 58}
+
 Furthermore, 
 comparing 
 Au(SPE)/SAM/Ppy 
@@ -1572,16 +2256,8 @@ indicating the successful creation of MIP and contributing to a unique and
 tailored topography. 
  
 Figure 20. SEM micrographs of Au(SPE) electrode (A), Au(SPE)/SAM/NIP 
-(B) and Au(SPE)/SAM/MIP (C) electrode surface.
-
----
-
-## Chunk 35
-**Metadata**:
-- **Hierarchy**: ['3. RESULTS AND DISCUSSION', '3.3. The detection of the SARS-CoV-2 nucleoprotein using the SAM-supported MIP detection method', '3.3.3. Electrochemical characterisation and detection of the rN protein']
-- **Start Page**: 58
-- **End Page**: 60
-
+(B) and Au(SPE)/SAM/MIP (C) electrode surface. 
+3.3.3. Electrochemical characterisation and detection of the rN protein 
 The ability of the biosensor to detect the rN protein was tested using a 
 series of electrochemical experiments. Au(SPE)/SAM/MIP electrodes were 
 incubated for 5 minutes with rN protein concentrations ranging from 0 to 
@@ -1622,6 +2298,12 @@ the data presented in Figure 21 suggest that the EIS-based method provided
 more reliable results. For the EIS-based method, the LOD and LOQ were 
 determined to be 0.2 nM and 0.66 nM, respectively. These findings highlight 
 the high sensitivity and promising potential of the MIP-modified
+
+---
+
+## Chunk 36
+**Metadata**: {'section_hierarchy': ['3. RESULTS AND DISCUSSION', '3.3. The detection of the SARS-CoV-2 nucleoprotein using the SAM-supported MIP detection method', '3.3.4. Specificity test'], 'start_page': 59, 'end_page': 59}
+
 Au(SPE)/SAM electrodes in designing biosensors for rN protein detection. 
 The formation of a SAM underlayer plays a crucial role in this design by 
 providing a well-organised, stable, and functional surface that enhances the 
@@ -1629,16 +2311,8 @@ electrode's sensitivity. The SAM underlayer facilitates the effective formation
 of the MIP layer, ensuring a uniform and controlled distribution of specific 
 binding sites. This not only improves the selective recognition of the rN 
 protein but also minimises nonspecific interactions, thereby contributing to 
-the overall performance and reliability of the biosensor.
-
----
-
-## Chunk 36
-**Metadata**:
-- **Hierarchy**: ['3. RESULTS AND DISCUSSION', '3.3. The detection of the SARS-CoV-2 nucleoprotein using the SAM-supported MIP detection method', '3.3.4. Specificity test']
-- **Start Page**: 60
-- **End Page**: 61
-
+the overall performance and reliability of the biosensor. 
+3.3.4. Specificity test  
 The investigation of nonspecific binding on Au(SPE)/SAM/MIP 
 involved comparing the electrochemical signal responses, as shown in 
 Figure 22. These comparisons were based on the initial electrochemical signal 
@@ -1653,6 +2327,12 @@ shows good specificity for rN protein.
 Figure 22. Comparison of the relative responses of 35 nM rS and 35 nM BSA, 
 for Δj obtained from SWV (blue) and Rct obtained from EIS (green). Error 
 bars are expressed as the standard deviation of the sample.
+
+---
+
+## Chunk 37
+**Metadata**: {'section_hierarchy': ['3. RESULTS AND DISCUSSION', '3.4. The determination of the VEGF protein using a self-assembling aptamer-based electrochemical sensor', '3.4.1. The electrodeposition of polypyrrole-based VEGF aptamer'], 'start_page': 60, 'end_page': 60}
+
 3.4. The determination of the VEGF protein using a self-assembling 
 aptamer-based electrochemical sensor  
 As mentioned in previous sections, this research employed a thin Ppy 
@@ -1663,16 +2343,8 @@ improving the performance of the Ppy/anti-VEGF sensing layer. Moreover,
 the thin Ppy-based underlayer played a crucial role in minimising direct 
 interaction between the anti-VEGF and the electrode surface during the 
 formation of the sensing layer, facilitating the effective creation of the 
-Ppy/anti-VEGF-based sensing layer.
-
----
-
-## Chunk 37
-**Metadata**:
-- **Hierarchy**: ['3. RESULTS AND DISCUSSION', '3.4. The determination of the VEGF protein using a self-assembling aptamer-based electrochemical sensor', '3.4.1. The electrodeposition of polypyrrole-based VEGF aptamer']
-- **Start Page**: 61
-- **End Page**: 62
-
+Ppy/anti-VEGF-based sensing layer.  
+3.4.1. The electrodeposition of polypyrrole-based VEGF aptamer 
 Using a series of potential pulses, polymer-based layers were 
 electrochemically deposited on the surface of SPCE. The profile of the 
 potential pulses during the application of the polypyrrole-based layer to SPCE 
@@ -1694,6 +2366,12 @@ enhancing the stability and support of the aptamer while also shielding the
 electrode surface. This strategy is analogous to methods used in MIPs and 
 SAM systems. Overall, this two-step process is essential for optimising the 
 adhesion and functional performance of the sensing layer.
+
+---
+
+## Chunk 38
+**Metadata**: {'section_hierarchy': ['3. RESULTS AND DISCUSSION', '3.4. The determination of the VEGF protein using a self-assembling aptamer-based electrochemical sensor', '3.4.2. Electrochemical characterisation of polypyrrole-based aptamer layer and VEGF detection'], 'start_page': 61, 'end_page': 62}
+
 3.4.2. Electrochemical characterisation of polypyrrole-based aptamer layer 
 and VEGF detection 
 Duration selection in the PAD method is essential for obtaining precise 
@@ -1706,25 +2384,42 @@ at +0.65 V vs Ag/AgCl (3 M KCl), unsubstituted Ppy starts to overoxidise [122].
  
 Figure 23. Electrochemical deposition of Ppy layers: (A) on SPCE electrodes, 
 showing the profile of the current registered during the formation of the Ppy
-
----
-
-## Chunk 38
-**Metadata**:
-- **Hierarchy**: ['3. RESULTS AND DISCUSSION', '3.4. The determination of the VEGF protein using a self-assembling aptamer-based electrochemical sensor', '3.4.2. Electrochemical characterisation of polypyrrole-based aptamer layer and VEGF detection']
-- **Start Page**: 62
-- **End Page**: 64
-
-
+layer from polymerisation solution without anti-VEGF. Ppy underlayers on 
+SPCE electrodes (B) and of the Ppy layers with anti-VEGF entrapped as a 
+sensing element of the system (C). Inset (D-F): Potential pulse sequence for 
+the signal analysis. Measurements were performed in 10 mM PBS solution, 
+pH 7.4. 
+During the evaluation of current variations induced by potential pulses, 
+careful analysis was conducted to monitor the current drop at specific points 
+or intervals within the pulses of +0.6 V and 0 V. These key intervals included 
+0.1 s, 0.2 s, 0.4 s, 0.6 s, 0.8 s, and 2.0 s (Figure 24 B). Examining current 
+changes at precise moments within the potential pulses enables the 
+characterisation of distinct electrochemical processes, allowing for the 
+identification of different redox reactions or species that exhibit varying 
+kinetics or affinities for the electrode surface. This method provides a detailed 
+understanding of the electrochemical system. 
+Figure 24 A shows a graphical representation of the PAD method, with 
+time on the x-axis and current on the y-axis. Figure 24 B shows the two pulses 
+applied to the electrode, one at +0.6 V and the other at 0 V. Specific time 
+points, marked on the x-axis at the aforementioned time points, indicate the 
+extracted current values for both potentials. These values were labelled as ΔI 
+0.1 s for 0.6 V and 0 V. Similarly, data points were collected at intervals of 
+0.1 s, 0.2 s, 0.4 s, 0.6 s, and 0.8 s, labelled as ΔI 0.1 s, ΔI 0.2 s, ΔI 0.4 s, 
+ΔI 0.6 s, and ΔI 0.8 s, respectively. These time points correspond to different 
+moments within the pulse duration and were used for further analysis, as 
+detailed in the following discussion (Figure 25). 
+ 
+Figure 24. Pulsed amperometry-based evaluation of Ppy/anti-VEGF modified 
+electrodes performed by the potential pulse sequence (0.6 V and 0 V 
+potentials vs Ag/AgCl) (A). Inset (B): Potential pulse sequence for the signal 
+analysis. Measurements were performed in 10 mM PBS solution, pH 7.4.
 
 ---
 
 ## Chunk 39
-**Metadata**:
-- **Hierarchy**: ['3. RESULTS AND DISCUSSION', '3.4. The determination of the VEGF protein using a self-assembling aptamer-based electrochemical sensor', '3.4.3. The evaluation of analytical parameters. Adapted Langmuir isotherm']
-- **Start Page**: 64
-- **End Page**: 67
+**Metadata**: {'section_hierarchy': ['3. RESULTS AND DISCUSSION', '3.4. The determination of the VEGF protein using a self-assembling aptamer-based electrochemical sensor', '3.4.3. The evaluation of analytical parameters. Adapted Langmuir isotherm'], 'start_page': 63, 'end_page': 65}
 
+3.4.3. The evaluation of analytical parameters. Adapted Langmuir isotherm 
 Figure 24 illustrates the current response observed during various 
 intervals, emphasising the significance of pulse length in the PAD method. To 
 measure VEGF across concentrations ranging from 0 to 24 nM, potential pulse 
@@ -1845,21 +2540,19 @@ sensor are maintained. Additionally, careful calibration and testing during
 these intervals may further enhance the accuracy and sensitivity of the sensor. 
 It is also worth noting that the K values for the Ppy layer remain relatively 
 consistent, indicating stable performance across different conditions.
+
+---
+
+## Chunk 40
+**Metadata**: {'section_hierarchy': ['3. RESULTS AND DISCUSSION', '3.4. The determination of the VEGF protein using a self-assembling aptamer-based electrochemical sensor', '3.4.4. Adaptation of integrated Cottrell equation'], 'start_page': 66, 'end_page': 68}
+
 Consequently, ΔImax values for the Ppy/anti-VEGF layer are consistently 
 lower than those for the Ppy layer with longer specific moments in the 
 potential pulse. This suggests that fine-tuning the pulse duration could be a 
 crucial factor in balancing the sensitivity and stability of the sensor, as longer 
 intervals may allow for more controlled interactions but at the expense of peak 
-signal intensity.
-
----
-
-## Chunk 40
-**Metadata**:
-- **Hierarchy**: ['3. RESULTS AND DISCUSSION', '3.4. The determination of the VEGF protein using a self-assembling aptamer-based electrochemical sensor', '3.4.4. Adaptation of integrated Cottrell equation']
-- **Start Page**: 67
-- **End Page**: 70
-
+signal intensity. 
+3.4.4. Adaptation of integrated Cottrell equation 
 The integrated Cottrell equation (Anson plot) was employed to analyse 
 the results further and discuss them. The relation of the cumulative charge 
 passed and time in Ppy-based electrochemical sensors obeys the integrated 
@@ -1995,6 +2688,12 @@ chronocoulometric behaviour is generally unaffected by the adsorbed reactant.
 Consequently, the plots of Q vs. t1/2 will have intercepts exceeding Q by an 
 amount equivalent to Qdl, with the slope remaining unchanged by the presence 
 of the adsorbed reactant. The values of Qads provide direct measures of the
+
+---
+
+## Chunk 41
+**Metadata**: {'section_hierarchy': ['3. RESULTS AND DISCUSSION', '3.4. The determination of the VEGF protein using a self-assembling aptamer-based electrochemical sensor', '3.4.5. The determination of the limit of detection'], 'start_page': 69, 'end_page': 69}
+
 quantity of adsorbed reactant according to Faraday's Law (Equation 10), 
 where Γ represents the quantity of adsorbed reactant in moles. Figure 26 D 
 shows intercept values corresponding to VEGF protein concentration (nM), 
@@ -2003,16 +2702,8 @@ in a chronocoulometric plot of Q vs. t1/2, it is essential to measure or estimat
 Qdl . This measurement is straightforward if the adsorption of the reactant does 
 not significantly alter the interfacial capacitance, allowing the Qdl value from 
 a blank experiment (0 nM VEGF) to be applied to measurements in the 
-presence of the adsorbing analyte [127].
-
----
-
-## Chunk 41
-**Metadata**:
-- **Hierarchy**: ['3. RESULTS AND DISCUSSION', '3.4. The determination of the VEGF protein using a self-assembling aptamer-based electrochemical sensor', '3.4.5. The determination of the limit of detection']
-- **Start Page**: 70
-- **End Page**: 71
-
+presence of the adsorbing analyte [127]. 
+3.4.5. The determination of the limit of detection 
 PAD-based electrochemical measurements were performed to determine 
 the LOD. Intercept values, representing Qads + Qdl, were obtained from 
 Table 5. To evaluate Qads, blank experiments were conducted with 0 nM of 
@@ -2032,11 +2723,9 @@ percentage of the standard deviation (n=4).
 ---
 
 ## Chunk 42
-**Metadata**:
-- **Hierarchy**: ['CONCLUSIONS']
-- **Start Page**: 71
-- **End Page**: 72
+**Metadata**: {'section_hierarchy': ['CONCLUSIONS'], 'start_page': 70, 'end_page': 70}
 
+CONCLUSIONS 
 1. 
 Through the application of the pulsed amperometric deposition 
 technique, a polypyrrole-based underlayer was developed and integrated 
@@ -2077,11 +2766,9 @@ by eliminating the application of redox mediators.
 ---
 
 ## Chunk 43
-**Metadata**:
-- **Hierarchy**: ['FUTURE OUTLOOK']
-- **Start Page**: 72
-- **End Page**: 73
+**Metadata**: {'section_hierarchy': ['FUTURE OUTLOOK'], 'start_page': 71, 'end_page': 71}
 
+FUTURE OUTLOOK 
 This dissertation opens several pathways for advancing electrochemical 
 sensor technologies. An immediate step involves transitioning from controlled 
 laboratory conditions to testing in more realistic settings, beginning with 
@@ -2103,11 +2790,9 @@ modern analytical technologies.
 ---
 
 ## Chunk 44
-**Metadata**:
-- **Hierarchy**: ['REFERENCES']
-- **Start Page**: 73
-- **End Page**: 86
+**Metadata**: {'section_hierarchy': ['REFERENCES'], 'start_page': 72, 'end_page': 84}
 
+REFERENCES 
 1.  
 Letheby, H. XXIX.—On the Production of a Blue Substance by the 
 Electrolysis of Sulphate of Aniline. J. Chem. Soc. 1862, 15, 161–163, 
@@ -2843,11 +3528,9 @@ Adsorbed Reactants. J Chem Educ 1983, 60, doi:10.1021/ed060p293.
 ---
 
 ## Chunk 45
-**Metadata**:
-- **Hierarchy**: ['SANTRAUKA']
-- **Start Page**: 86
-- **End Page**: 105
+**Metadata**: {'section_hierarchy': ['SANTRAUKA'], 'start_page': 85, 'end_page': 103}
 
+SANTRAUKA 
 SANTRUMPOS 
 11-MUA 
 11-merkaptoundekano rūgštis 
@@ -3642,11 +4325,9 @@ nereikia naudoti redoks tarpininkų.
 ---
 
 ## Chunk 46
-**Metadata**:
-- **Hierarchy**: ['CURRICULUM VITAE']
-- **Start Page**: 105
-- **End Page**: 106
+**Metadata**: {'section_hierarchy': ['CURRICULUM VITAE'], 'start_page': 104, 'end_page': 104}
 
+CURRICULUM VITAE 
 PERSONAL INFORMATION 
 Name, Surname 
 Email 
@@ -3691,11 +4372,9 @@ Scientific mentor: Dr. Raimonds Meija
 ---
 
 ## Chunk 47
-**Metadata**:
-- **Hierarchy**: ['PARTICIPATION IN CONFERENCES']
-- **Start Page**: 106
-- **End Page**: 107
+**Metadata**: {'section_hierarchy': ['PARTICIPATION IN CONFERENCES'], 'start_page': 105, 'end_page': 105}
 
+PARTICIPATION IN CONFERENCES 
 1. 
 V. Liustrovaite, A. Valiuniene, G. Valincius, A. Ramanavicius. 
 Phospholipid bilayer formation and characterization immobilizing 
@@ -3756,11 +4435,9 @@ abstract book. Kaunas University of Technology, 2024. p. 98.
 ---
 
 ## Chunk 48
-**Metadata**:
-- **Hierarchy**: ['CO-AUTHORED SCIENTIFIC PUBLICATIONS']
-- **Start Page**: 107
-- **End Page**: 109
+**Metadata**: {'section_hierarchy': ['CO-AUTHORED SCIENTIFIC PUBLICATIONS'], 'start_page': 106, 'end_page': 107}
 
+CO-AUTHORED SCIENTIFIC PUBLICATIONS 
 The list of co-authored scientific publications, which are not part of the 
 dissertation: 
 1. 
@@ -3830,11 +4507,13 @@ Environment 939, p. 173333, 2024
 ---
 
 ## Chunk 49
-**Metadata**:
-- **Hierarchy**: ['COPIES OF PUBLICATIONS']
-- **Start Page**: 109
-- **End Page**: 164
+**Metadata**: {'section_hierarchy': ['COPIES OF PUBLICATIONS'], 'start_page': 108, 'end_page': 163}
 
+COPIES OF PUBLICATIONS 
+ 
+ 
+ 
+ 
 Paper 1 
  
 Towards electrochemical sensor based on molecularly 
