@@ -1,103 +1,10 @@
 import pymupdf
 import re
 
-
 # PDF_PATH = "/home/philippe/Documents/Github/rag-demo/src/rag_demo/folder/Thesis_de_Meulenaer.pdf"
 # PDF_PATH = "/home/philippe/Documents/Github/rag-demo/src/rag_demo/folder/aa20674-12.pdf"
 PDF_PATH = "/home/philippe/Documents/vu_disertacijos/VU_disertacija_V. Liustrovaite.pdf"
-
 OUTPUT_FILE = "structured_output.md"
-
-
-# def estimate_page_offset(doc):
-#     """
-#     Estimate offset between TOC logical page numbers and PyMuPDF page indices.
-#     Returns an integer offset (e.g., if TOC page 1 == doc page 12, offset is +11).
-#     """
-#     for i in range(min(20, doc.page_count)):
-#         text = doc.load_page(i).get_text("text")
-#         if re.search(r"\b1\s+", text) and "introduction" in text.lower():
-#             return i - 1  # assume TOC page 1 maps to this index
-#     return 0  # fallback to no offset
-
-# def extract_sections_with_hierarchy(doc):
-#     toc = doc.get_toc()
-#     if not toc:
-#         raise ValueError("No Table of Contents found in the PDF.")
-
-#     # Parse the TOC into a hierarchy
-#     stack = []  # Stack to keep track of section hierarchy
-#     sections = []
-
-#     for i, (level, title, page_num, *_) in enumerate(toc):
-#         section = {
-#             "level": level,
-#             "title": title,
-#             "start_page": page_num - 1,
-#             "end_page": doc.page_count - 1,
-#             "children": [],
-#         }
-
-#         # # Determine end page using the next TOC entry
-#         # if i + 1 < len(toc):
-#         #     next_page = toc[i + 1][2] - 2  # end at the page before next section
-#         #     section["end_page"] = max(section["start_page"], next_page)
-
-#         # Determine end page using the next sibling or ancestor's next sibling
-#         for j in range(i + 1, len(toc)):
-#             next_level, _, next_page, *_ = toc[j]
-#             if next_level <= level:
-#                 section["end_page"] = max(section["start_page"], next_page - 2)
-#                 break
-
-
-#         while stack and level <= stack[-1]["level"]:
-#             stack.pop()
-
-#         if stack:
-#             stack[-1]["children"].append(section)
-#         else:
-#             sections.append(section)
-
-#         stack.append(section)
-
-#     return sections
-
-# def extract_sections_with_hierarchy(doc):
-#     toc = doc.get_toc()
-#     if not toc:
-#         raise ValueError("No Table of Contents found in the PDF.")
-
-#     stack = []  # Stack to keep track of section hierarchy
-#     sections = []
-
-#     for i, (level, title, page_num, *_) in enumerate(toc):
-#         section = {
-#             "level": level,
-#             "title": title,
-#             "start_page": page_num,  # Keep 1-based page numbers for metadata
-#             "end_page": doc.page_count,  # Default to last page
-#             "children": [],
-#         }
-
-#         # Determine end page using the next sibling or ancestor's start page
-#         for j in range(i + 1, len(toc)):
-#             next_level, _, next_page, *_ = toc[j]
-#             if next_level <= level:
-#                 section["end_page"] = next_page - 1  # End at the page before next section
-#                 break
-
-#         while stack and level <= stack[-1]["level"]:
-#             stack.pop()
-
-#         if stack:
-#             stack[-1]["children"].append(section)
-#         else:
-#             sections.append(section)
-
-#         stack.append(section)
-
-#     return sections
 
 
 def extract_sections_with_hierarchy(doc):
@@ -105,82 +12,110 @@ def extract_sections_with_hierarchy(doc):
     if not toc:
         raise ValueError("No Table of Contents found in the PDF.")
 
-    # Debug: Print TOC to verify structure
-    print("TOC:", toc)
-
     stack = []
     sections = []
-    last_level = 0  # Track the last processed level to detect gaps
 
     for i, (level, title, page_num, *_) in enumerate(toc):
-        # Validate title and page_num
         if not title or not isinstance(page_num, int) or page_num < 1:
-            print(f"Warning: Invalid TOC entry at index {i}: level={level}, title={title}, page_num={page_num}")
             continue
 
-        # Clean title
         title = title.strip()
-
         section = {
             "level": level,
             "title": title,
-            "start_page": page_num,  # 1-based page numbers
-            "end_page": page_num,  # Default to start_page
+            "start_page": page_num,
+            "end_page": doc.page_count,
             "children": [],
         }
 
-        # Determine end page using the next sibling or ancestor's start page
         for j in range(i + 1, len(toc)):
-            next_level, next_title, next_page, *_ = toc[j]
-            if next_level <= level:
-                section["end_page"] = next_page  # End at the page where next section starts
+            next_level, _, next_page, *_ = toc[j]
+            if next_page > page_num:
+                section["end_page"] = next_page
                 break
-        else:
-            section["end_page"] = doc.page_count
 
-        # Handle level gaps by adjusting the stack
-        while stack and level <= stack[-1]["level"]:
+        while stack and stack[-1]["level"] >= level:
             stack.pop()
 
-        # If level is more than one greater than the last level, warn about potential gap
-        if level > last_level + 1:
-            print(f"Warning: Level gap detected at title '{title}' (level {level}, expected <= {last_level + 1})")
-
-        # Debug: Print hierarchy being built
-        parent_titles = [s["title"] for s in stack]
-        print(f"Processing section: {title}, level: {level}, parent_titles: {parent_titles}")
-
-        # Attach section to the correct parent
         if stack:
             stack[-1]["children"].append(section)
         else:
             sections.append(section)
 
         stack.append(section)
-        last_level = level
 
     return sections
 
 
 
-def flatten_sections(sections, parent_hierarchy=None):
+
+def _synthesize_title(sections, prefix):
+    import re
+    candidates = []
+
+    def search(subsections):
+        for s in subsections:
+            match = re.match(rf"^{re.escape(prefix)}(\.\d+)?\s+(.*)", s["title"])
+            if match:
+                candidates.append(s["title"])
+            if s.get("children"):
+                search(s["children"])
+
+    search(sections)
+
+    if not candidates:
+        return prefix  # fallback to number only
+
+    # Return longest matching prefix (assumes proper title structure)
+    return _longest_common_prefix(candidates).strip()
+
+
+
+def flatten_sections(sections, parent_hierarchy=None, seen=None):
+    import re
     if parent_hierarchy is None:
         parent_hierarchy = []
+    if seen is None:
+        seen = set()
 
     flat = []
+
     for section in sections:
-        current_hierarchy = parent_hierarchy + [section["title"]]
+        title = section["title"]
+        current_hierarchy = parent_hierarchy + [title]
+
+        # Check if title has a numbered prefix like "1.2.1."
+        match = re.match(r"^(\d+(?:\.\d+)+)\s+.*", title)
+        if match:
+            parts = match.group(1).split(".")
+            for i in range(1, len(parts)):
+                ancestor_number = ".".join(parts[:i])
+                # Skip if already seen
+                if ancestor_number in seen:
+                    continue
+                # Try to synthesize a title from child section titles
+                inferred_title = _synthesize_title(sections, ancestor_number)
+                if inferred_title:
+                    injected_hierarchy = parent_hierarchy + [inferred_title]
+                    flat.append({
+                        "hierarchy": injected_hierarchy,
+                        "start_page": section["start_page"],
+                        "end_page": section["end_page"]
+                    })
+                    seen.add(ancestor_number)
+
+        flat.append({
+            "hierarchy": current_hierarchy,
+            "start_page": section["start_page"],
+            "end_page": section["end_page"]
+        })
+
         if section["children"]:
-            flat.extend(flatten_sections(section["children"], current_hierarchy))
-        else:
-            # Debug: Print hierarchy for leaf sections
-            print(f"Leaf section hierarchy: {current_hierarchy}")
-            flat.append({
-                "hierarchy": current_hierarchy,
-                "start_page": section["start_page"],
-                "end_page": section["end_page"]
-            })
+            flat.extend(flatten_sections(section["children"], current_hierarchy, seen))
+
     return flat
+
+
 
 
 # def extract_text_by_page_range(doc, start_page, end_page):
@@ -293,18 +228,23 @@ def main():
                 next_section_title=next_title
             )
 
-            # Format metadata with hierarchy as a list
+            if not chunk_text.strip():
+                print(f"Skipping empty chunk: {section['hierarchy']}")
+                continue  # Skip empty chunks
+
             metadata = {
                 "section_hierarchy": section["hierarchy"],
                 "start_page": section["start_page"],
                 "end_page": section["end_page"]
             }
+
             f.write(f"## Chunk {i + 1}\n")
             f.write("**Metadata**:\n")
             f.write(f"- **Hierarchy**: {section['hierarchy']}\n")
             f.write(f"- **Start Page**: {section['start_page']}\n")
             f.write(f"- **End Page**: {section['end_page']}\n\n")
             f.write(f"{chunk_text}\n\n---\n\n")
+
 
     doc.close()
     print(f"Extracted {len(lowest_sections)} chunks to {OUTPUT_FILE}")
