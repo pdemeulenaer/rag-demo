@@ -1,9 +1,10 @@
-[project]
+[tool.poetry]
 name = "rag-demo"
-# dynamic = ["version"]
 version = "0.1.0"
 description = "A demo RAG for LangChain and Groq"
-readme-content-type = "text/markdown"
+authors = ["pdemeulenaer <pdemeulenaer@gmail.com>"]
+license = "MIT"
+readme = "README.md"
 keywords = [
     "langchain",
     "groq",
@@ -13,48 +14,90 @@ keywords = [
     "huggingface",
     "pymupdf"
 ]
-license = {text = "MIT"}
-# homepage = "
-authors = [
-    {name = "pdemeulenaer",email = "pdemeulenaer@gmail.com"}
-]
-readme = "README.md"
-requires-python = ">=3.11,<3.14"
-dependencies = [
-    "python-dotenv (>=1.0.1,<2.0.0)",
-    "langchain (>=0.3.20,<0.4.0)",
-    "langchain-community (>=0.3.19,<0.4.0)",
-    "langchain-groq (>=0.2.4,<0.3.0)",
-    "streamlit (>=1.43.2,<2.0.0)",
-    "huggingface-hub (>=0.30.2,<0.33.0)",
-    "pymupdf (>=1.24.9,<1.25.0)", # (>=1.25.5,<2.0.0)
-    "qdrant-client (<1.13.3)",
-    "httpx (>=0.23.0,<0.29.0)",
-    "pyyaml (>=6.0.2,<7.0.0)",
-    # "deepeval (>=3.1.3,<4.0.0)",
-    # "langchain-cohere (>=0.4.4,<0.5.0)",
-    "datasets (>=3.6.0,<4.0.0)",
-    "ragas (>=0.2.15,<0.3.0)",
-    # "mineru (>=2.0.5,<3.0.0)",
-    # "magic-pdf[full] (>=1.3.12,<2.0.0)",      
-    "unstructured[pdf] (>=0.17.2,<0.18.0)",
-    "opencv-python (>=4.10.0,<5.0.0)",
-    "opencv-python-headless (>=4.10.0,<5.0.0)",
-    "groq (>=0.28.0,<0.29.0)",
-    # "papermage[dev,predictors,visualizers] (>=0.20.0,<1.0.0)",
-    # "papermage @ git+https://github.com/allenai/papermage.git",
-    # "papermage (>=0.20.0,<1.0.0)",
-    # "smashed (>=0.21.5,<0.22.0)",
-    # "layoutparser (>=0.3.4,<0.4.0)",
-    # "pysbd (>=0.3.4,<0.4.0)",
-    # "vila (>=0.5.0,<0.6.0)",
-    # "grobid-client (>=0.8.8,<0.9.0)",
-    "grobid-client-python @ git+https://github.com/kermitt2/grobid-client-python.git"
-]
-
-[tool.poetry]
 packages = [{include = "rag_demo", from = "src"}]
+
+[tool.poetry.dependencies]
+python = ">=3.11,<3.14"
+python-dotenv = ">=1.0.1,<2.0.0"
+langchain = ">=0.3.20,<0.4.0"
+langchain-community = ">=0.3.19,<0.4.0"
+langchain-groq = ">=0.2.4,<0.3.0"
+streamlit = ">=1.43.2,<2.0.0"
+huggingface-hub = ">=0.30.2,<0.33.0"
+pymupdf = ">=1.24.9,<1.25.0"
+qdrant-client = "<1.13.3"
+httpx = ">=0.23.0,<0.29.0"
+pyyaml = ">=6.0.2,<7.0.0"
+datasets = ">=3.6.0,<4.0.0"
+ragas = ">=0.2.15,<0.3.0"
+unstructured = {version = ">=0.17.2,<0.18.0", extras = ["pdf"]}
+opencv-python = ">=4.10.0,<5.0.0"
+opencv-python-headless = ">=4.10.0,<5.0.0"
+groq = ">=0.28.0,<0.29.0"
+grobid-client-python = {git = "https://github.com/kermitt2/grobid-client-python.git"}
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
 build-backend = "poetry.core.masonry.api"
+
+
+# [project]
+# name = "rag-demo"
+# # dynamic = ["version"]
+# version = "0.1.0"
+# description = "A demo RAG for LangChain and Groq"
+# readme-content-type = "text/markdown"
+# keywords = [
+#     "langchain",
+#     "groq",
+#     "rag",
+#     "retrieval-augmented-generation",
+#     "streamlit",
+#     "huggingface",
+#     "pymupdf"
+# ]
+# license = {text = "MIT"}
+# # homepage = "
+# authors = [
+#     {name = "pdemeulenaer",email = "pdemeulenaer@gmail.com"}
+# ]
+# readme = "README.md"
+# requires-python = ">=3.11,<3.14"
+# dependencies = [
+#     "python-dotenv (>=1.0.1,<2.0.0)",
+#     "langchain (>=0.3.20,<0.4.0)",
+#     "langchain-community (>=0.3.19,<0.4.0)",
+#     "langchain-groq (>=0.2.4,<0.3.0)",
+#     "streamlit (>=1.43.2,<2.0.0)",
+#     "huggingface-hub (>=0.30.2,<0.33.0)",
+#     "pymupdf (>=1.24.9,<1.25.0)", # (>=1.25.5,<2.0.0)
+#     "qdrant-client (<1.13.3)",
+#     "httpx (>=0.23.0,<0.29.0)",
+#     "pyyaml (>=6.0.2,<7.0.0)",
+#     # "deepeval (>=3.1.3,<4.0.0)",
+#     # "langchain-cohere (>=0.4.4,<0.5.0)",
+#     "datasets (>=3.6.0,<4.0.0)",
+#     "ragas (>=0.2.15,<0.3.0)",
+#     # "mineru (>=2.0.5,<3.0.0)",
+#     # "magic-pdf[full] (>=1.3.12,<2.0.0)",      
+#     "unstructured[pdf] (>=0.17.2,<0.18.0)",
+#     "opencv-python (>=4.10.0,<5.0.0)",
+#     "opencv-python-headless (>=4.10.0,<5.0.0)",
+#     "groq (>=0.28.0,<0.29.0)",
+#     # "papermage[dev,predictors,visualizers] (>=0.20.0,<1.0.0)",
+#     # "papermage @ git+https://github.com/allenai/papermage.git",
+#     # "papermage (>=0.20.0,<1.0.0)",
+#     # "smashed (>=0.21.5,<0.22.0)",
+#     # "layoutparser (>=0.3.4,<0.4.0)",
+#     # "pysbd (>=0.3.4,<0.4.0)",
+#     # "vila (>=0.5.0,<0.6.0)",
+#     # "grobid-client (>=0.8.8,<0.9.0)",
+#     "grobid-client-python @ git+https://github.com/kermitt2/grobid-client-python.git"
+# ]
+# 
+# [tool.poetry]
+# packages = [{include = "rag_demo", from = "src"}]
+# 
+# [build-system]
+# requires = ["poetry-core>=2.0.0,<3.0.0"]
+# build-backend = "poetry.core.masonry.api"
