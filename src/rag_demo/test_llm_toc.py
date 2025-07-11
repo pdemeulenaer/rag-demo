@@ -56,6 +56,7 @@ def extract_pdf_text(pdf_path, max_pages_toc=15):
         return "", "" # Return empty strings on error
     return first_page_text, toc_text
 
+
 def call_llm_for_title_and_author(first_page_text):
     """
     Calls a Large Language Model (LLM) to extract the main document title and author
@@ -294,7 +295,95 @@ Example of desired JSON output format (This is a generic example to show the str
         print(f"❌ Error calling Groq LLM: {e}")
         return f"Error: {e}"
 
-# The calculate_end_pages function is removed as per your request to revert.
+
+
+
+def _extract_text_from_page_range(pdf_path, start_page_1_indexed=None, end_page_1_indexed=None, total_doc_pages=0):
+    """
+    NEW FUNCTION: Extracts text from a given PDF file within a specified 1-indexed page range.
+    If start_page_1_indexed is None, extracts from page 1.
+    If end_page_1_indexed is None or "DOCUMENT_END", extracts to the last page.
+    This is a new, generic utility function for extracting text content for sections.
+
+    Args:
+        pdf_path (str): The file path to the PDF document.
+        start_page_1_indexed (int, optional): The 1-indexed starting page number. Defaults to None (page 1).
+        end_page_1_indexed (int or str, optional): The 1-indexed ending page number or "DOCUMENT_END". Defaults to None (last page).
+        total_doc_pages (int): The total number of pages in the document. Required for "DOCUMENT_END".
+
+    Returns:
+        str: The concatenated text content from the specified page range.
+    """
+    extracted_text = ""
+    try:
+        with pymupdf.open(pdf_path) as doc:
+            if total_doc_pages == 0:
+                total_doc_pages = doc.page_count # Fallback: get total pages if not provided
+
+            # Adjust to 0-indexed for PyMuPDF
+            start_idx = (start_page_1_indexed - 1) if start_page_1_indexed is not None else 0
+            
+            if end_page_1_indexed == "DOCUMENT_END":
+                end_idx = total_doc_pages - 1
+            else:
+                end_idx = (end_page_1_indexed - 1) if end_page_1_indexed is not None else (total_doc_pages - 1)
+
+            # Ensure valid range
+            start_idx = max(0, start_idx)
+            end_idx = min(total_doc_pages - 1, end_idx)
+
+            if start_idx > end_idx:
+                return "" # Return empty string if range is invalid (e.g., start > end)
+
+            for i in range(start_idx, end_idx + 1):
+                page = doc.load_page(i)
+                extracted_text += page.get_text()
+    except Exception as e:
+        print(f"❌ Error extracting text from PDF pages {start_page_1_indexed}-{end_page_1_indexed}: {e}")
+        return ""
+    return extracted_text
+
+
+
+def add_text_to_toc_entries(toc_list, pdf_path, total_doc_pages):
+    """
+    Reads the text content for each section in the provided TOC list
+    and adds it to the corresponding JSON object with a keyword "text".
+    """
+    print("📝 Retrieving full text for each section...")
+    for section in toc_list:
+        start_p = section.get('start_page') # Retrieve start_page from the section dictionary
+        end_p = section.get('end_page')   # Retrieve end_page from the section dictionary
+
+        # Debugging print: Show the section being processed and its page range
+        print(f"  Processing section: '{section.get('section_title', 'N/A')}', Start: {start_p}, End: {end_p}")
+
+        section_text = "" # NEW: Initialize section_text to an empty string for safety
+
+        # Proceed with text extraction only if both start_p and end_p are available
+        if start_p is not None and end_p is not None:
+            try:
+                # Use the utility function to extract text for the specific page range
+                section_text = get_section_text_from_pdf(pdf_path, start_page_1_indexed=start_p,
+                                                        end_page_1_indexed=end_p,
+                                                        total_doc_pages=total_doc_pages)
+            except Exception as e:
+                # NEW: Log any errors during text extraction but don't stop the process
+                print(f"  ❌ Error during text extraction for section '{section.get('section_title', 'N/A')}': {e}")
+        else:
+            # NEW: Log if page numbers are missing for a section
+            print(f"  ⚠️ Skipping text extraction for section due to missing page numbers: {section.get('section_title', 'N/A')}")
+        
+        section['text'] = section_text # Assign the extracted text (or empty string) to the 'text' key
+        print(f"  Text added (first 100 chars): '{section['text'][:100]}...'") # Debugging print
+
+    print("✅ All section texts retrieved and added.")
+    return toc_list
+
+
+
+
+
 
 # ---------- Run Pipeline ----------
 if __name__ == "__main__":
@@ -305,6 +394,24 @@ if __name__ == "__main__":
         print(f"📄 Extracting text from: {PDF_PATH} (first page for title/author, first 15 pages for TOC)")
         # Call extract_pdf_text to get first page text and TOC-relevant text
         first_page_text, raw_toc_text = extract_pdf_text(PDF_PATH, max_pages_toc=15)
+
+        # NEW: Get total pages for full text extraction, explicitly outside any prior functions
+        total_pdf_pages = 0
+        try:
+            with pymupdf.open(PDF_PATH) as doc:
+                total_pdf_pages = doc.page_count
+        except Exception as e:
+            print(f"❌ Error getting total page count from {PDF_PATH}: {e}")
+            # Do not exit, but set to a safe value to prevent errors later.
+            # This might cause "DOCUMENT_END" to resolve incorrectly.
+            total_pdf_pages = 1000000 # A very large number to simulate "DOCUMENT_END" working if count fails
+                                    # Or, handle more gracefully, e.g., by skipping text extraction
+                                    # if total_pdf_pages remains 0.
+        # Ensure total_pdf_pages is at least 1 if document exists
+        if total_pdf_pages == 0 and os.path.exists(PDF_PATH):
+             print("⚠️  Warning: Total page count could not be determined, setting to 1.")
+             total_pdf_pages = 1
+
 
         # Initialize parsed_title_author to ensure it's always a dictionary
         parsed_title_author = {}
@@ -326,12 +433,10 @@ if __name__ == "__main__":
             print("⚠️ No text extracted from the first page. Cannot extract title/author.")
 
         # Extract Abstract Summary and Keywords
-        # Assuming the abstract is within the first few pages covered by raw_toc_text
         if raw_toc_text:
             abstract_keywords_output = call_llm_for_abstract_summary_and_keywords(raw_toc_text)
             try:
                 parsed_abstract_keywords = json.loads(abstract_keywords_output)
-                # Merge into parsed_title_author
                 parsed_title_author.update(parsed_abstract_keywords)
                 print("\n--- Abstract Summary and Keywords ---")
                 print(f"Summary: {parsed_abstract_keywords.get('abstract_summary', 'N/A')}")
@@ -346,6 +451,7 @@ if __name__ == "__main__":
 
 
         # Extract Table of Contents
+        final_toc_output = [] # Initialize outside the if block
         if raw_toc_text:
             print("🚀 Sending TOC text to Groq for processing...")
             llm_full_toc_json = call_llm_for_structured_chunks(raw_toc_text)
@@ -355,19 +461,28 @@ if __name__ == "__main__":
                 f.write(raw_toc_text)
             print(f"📝 Raw extracted text (first 15 pages for TOC) written to: {RAW_TEXT_OUTPUT_FILE}")
 
-            # Write the LLM's structured TOC output directly to a file
-            with open(OUTPUT_FILE, "w", encoding="utf-8") as f:
-                f.write(llm_full_toc_json)
-            print(f"✅ LLM TOC output written to: {OUTPUT_FILE}")
-
-            # Optional: Pretty print the JSON output if it's valid JSON
+            # Process the LLM output and add text
             try:
-                parsed_output = json.loads(llm_full_toc_json)
-                print("\n--- Parsed LLM TOC Output (Pretty Printed) ---")
-                print(json.dumps(parsed_output, indent=2))
+                parsed_toc_entries = json.loads(llm_full_toc_json)
+                
+                # NEW: Call the new function to add section text (using LLM-provided start/end pages)
+                # No programmatic calculate_end_pages here, as LLM is expected to provide end_page directly
+                final_toc_output = add_text_to_toc_entries(parsed_toc_entries, PDF_PATH, total_pdf_pages)
+
+                # Convert the final list of dictionaries back to a pretty-printed JSON string
+                markdown_output = json.dumps(final_toc_output, indent=2)
+
+                # Write the final structured TOC output (with text) to a file
+                with open(OUTPUT_FILE, "w", encoding="utf-8") as f:
+                    f.write(markdown_output)
+                print(f"✅ Final structured TOC output (with text) written to: {OUTPUT_FILE}")
+
+                print("\n--- Final Parsed TOC Output (Pretty Printed) ---")
+                print(markdown_output)
                 print("------------------------------------------")
+
             except json.JSONDecodeError:
-                print("\n--- LLM TOC Output (Not valid JSON, raw output below) ---")
+                print("\n--- LLM TOC Output (Not valid JSON for parsing, raw output below) ---")
                 print(llm_full_toc_json)
                 print("------------------------------------------")
             except Exception as e:
@@ -383,3 +498,95 @@ if __name__ == "__main__":
             print("\n--- Final Combined Document Metadata ---")
             print(json.dumps(parsed_title_author, indent=2))
             print("------------------------------------------")
+
+
+
+# # The calculate_end_pages function is removed as per your request to revert.
+
+# # ---------- Run Pipeline ----------
+# if __name__ == "__main__":
+#     # Ensure the PDF file exists before proceeding
+#     if not os.path.exists(PDF_PATH):
+#         print(f"❌ Error: PDF file not found at {PDF_PATH}")
+#     else:
+#         print(f"📄 Extracting text from: {PDF_PATH} (first page for title/author, first 15 pages for TOC)")
+#         # Call extract_pdf_text to get first page text and TOC-relevant text
+#         first_page_text, raw_toc_text = extract_pdf_text(PDF_PATH, max_pages_toc=15)
+
+#         # Initialize parsed_title_author to ensure it's always a dictionary
+#         parsed_title_author = {}
+
+#         # Extract Title and Author
+#         if first_page_text:
+#             title_author_output = call_llm_for_title_and_author(first_page_text)
+#             try:
+#                 parsed_title_author = json.loads(title_author_output)
+#                 print("\n--- Document Title and Author ---")
+#                 print(f"Title: {parsed_title_author.get('document_title', 'N/A')}")
+#                 print(f"Author: {parsed_title_author.get('author', 'N/A')}")
+#                 print("---------------------------------")
+#             except json.JSONDecodeError:
+#                 print("\n--- Error parsing Title/Author LLM output ---")
+#                 print(title_author_output)
+#                 print("------------------------------------------")
+#         else:
+#             print("⚠️ No text extracted from the first page. Cannot extract title/author.")
+
+#         # Extract Abstract Summary and Keywords
+#         # Assuming the abstract is within the first few pages covered by raw_toc_text
+#         if raw_toc_text:
+#             abstract_keywords_output = call_llm_for_abstract_summary_and_keywords(raw_toc_text)
+#             try:
+#                 parsed_abstract_keywords = json.loads(abstract_keywords_output)
+#                 # Merge into parsed_title_author
+#                 parsed_title_author.update(parsed_abstract_keywords)
+#                 print("\n--- Abstract Summary and Keywords ---")
+#                 print(f"Summary: {parsed_abstract_keywords.get('abstract_summary', 'N/A')}")
+#                 print(f"Keywords: {', '.join(parsed_abstract_keywords.get('keywords', []))}")
+#                 print("---------------------------------")
+#             except json.JSONDecodeError:
+#                 print("\n--- Error parsing Abstract/Keywords LLM output ---")
+#                 print(abstract_keywords_output)
+#                 print("------------------------------------------")
+#         else:
+#             print("⚠️ No raw text for abstract. Skipping abstract summary and keyword extraction.")
+
+
+#         # Extract Table of Contents
+#         if raw_toc_text:
+#             print("🚀 Sending TOC text to Groq for processing...")
+#             llm_full_toc_json = call_llm_for_structured_chunks(raw_toc_text)
+
+#             # Write the raw extracted text (for TOC) to a file for debugging/review
+#             with open(RAW_TEXT_OUTPUT_FILE, "w", encoding="utf-8") as f:
+#                 f.write(raw_toc_text)
+#             print(f"📝 Raw extracted text (first 15 pages for TOC) written to: {RAW_TEXT_OUTPUT_FILE}")
+
+#             # Write the LLM's structured TOC output directly to a file
+#             with open(OUTPUT_FILE, "w", encoding="utf-8") as f:
+#                 f.write(llm_full_toc_json)
+#             print(f"✅ LLM TOC output written to: {OUTPUT_FILE}")
+
+#             # Optional: Pretty print the JSON output if it's valid JSON
+#             try:
+#                 parsed_output = json.loads(llm_full_toc_json)
+#                 print("\n--- Parsed LLM TOC Output (Pretty Printed) ---")
+#                 print(json.dumps(parsed_output, indent=2))
+#                 print("------------------------------------------")
+#             except json.JSONDecodeError:
+#                 print("\n--- LLM TOC Output (Not valid JSON, raw output below) ---")
+#                 print(llm_full_toc_json)
+#                 print("------------------------------------------")
+#             except Exception as e:
+#                 print(f"❌ An unexpected error occurred during TOC processing: {e}")
+#                 print("\n--- Raw LLM Output (for debugging) ---")
+#                 print(llm_full_toc_json)
+#                 print("------------------------------------------")
+#         else:
+#             print("⚠️ No relevant text for TOC extracted from the PDF. Skipping TOC LLM call.")
+
+#         # Print the final combined metadata (title, author, abstract summary, keywords)
+#         if parsed_title_author:
+#             print("\n--- Final Combined Document Metadata ---")
+#             print(json.dumps(parsed_title_author, indent=2))
+#             print("------------------------------------------")
