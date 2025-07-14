@@ -59,7 +59,8 @@ jobs:
       # If you have dev dependencies in a group (e.g., [dependency-groups.dev]),
       # you can exclude them using --no-group dev.
       - name: Install dependencies
-        run: uv sync --no-group dev # Adjust 'dev' to your actual development dependency group name if different
+        # run: uv sync --no-group dev # Adjust 'dev' to your actual development dependency group name if different
+        run: uv sync
 
 
       # Read version from version.txt
