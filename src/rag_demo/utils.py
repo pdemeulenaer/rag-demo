@@ -7,7 +7,6 @@ from langchain.text_splitter import CharacterTextSplitter, RecursiveCharacterTex
 # from langchain.vectorstores import FAISS
 from langchain_community.vectorstores import FAISS
 from langchain_community.vectorstores import Qdrant
-from huggingface_hub import InferenceClient
 from typing import List
 from huggingface_hub import InferenceClient
 from langchain.embeddings.base import Embeddings
@@ -88,15 +87,15 @@ def get_text_chunks_recursive(text):
 
 
 # Custom multimodal embedding wrapper
-class HFCLIPTextEmbedding(Embeddings):
-    def __init__(self, model_name: str, api_token: str):
-        self.client = InferenceClient(model=model_name, token=api_token)
+# class HFCLIPTextEmbedding(Embeddings):
+#     def __init__(self, model_name: str, api_token: str):
+#         self.client = InferenceClient(model=model_name, token=api_token)
     
-    def embed_query(self, text: str) -> List[float]:
-        return self.client.feature_extraction(text)
+#     def embed_query(self, text: str) -> List[float]:
+#         return self.client.feature_extraction(text)
     
-    def embed_documents(self, texts: List[str]) -> List[List[float]]:
-        return [self.embed_query(t) for t in texts]
+#     def embed_documents(self, texts: List[str]) -> List[List[float]]:
+#         return [self.embed_query(t) for t in texts]
 
 
 # def get_vectorstore(text_chunks):
@@ -107,56 +106,56 @@ class HFCLIPTextEmbedding(Embeddings):
 #     return vectorstore
 
 
-def get_vectorstore(text_chunks):
-    """
-    Create a vector store using Hugging Face Inference API embeddings with fallback.
+# def get_vectorstore(text_chunks):
+#     """
+#     Create a vector store using Hugging Face Inference API embeddings with fallback.
     
-    Args:
-        text_chunks (list): List of text chunks to embed
+#     Args:
+#         text_chunks (list): List of text chunks to embed
     
-    Returns:
-        FAISS: A FAISS vector store with embedded text chunks
-    """
-    # Ensure Hugging Face API token is set
-    if 'HUGGINGFACE_API_TOKEN' not in os.environ:
-        raise ValueError("Please set the HUGGINGFACE_API_TOKEN environment variable")
+#     Returns:
+#         FAISS: A FAISS vector store with embedded text chunks
+#     """
+#     # Ensure Hugging Face API token is set
+#     if 'HUGGINGFACE_API_TOKEN' not in os.environ:
+#         raise ValueError("Please set the HUGGINGFACE_API_TOKEN environment variable")
     
-    # List of models to try in order
-    models_to_try = [
-        # "intfloat/e5-base-v2",
-        "sentence-transformers/clip-ViT-B-32",  # Primary model HF API NOT WORKING AS OF NOW
-        "laion/CLIP-ViT-B-32-laion2B-s34B-b79K", # Fallback model HF API NOT WORKING AS OF NOW
-        "openai/clip-vit-base-patch32", # Another fallback HF API NOT WORKING AS OF NOW
-        "Salesforce/blip-image-captioning-base", # Another fallback HF API NOT WORKING AS OF NOW
-        "sentence-transformers/all-MiniLM-L6-v2" # embedding model for TEXT ONLY        
-    ]
+#     # List of models to try in order
+#     models_to_try = [
+#         # "intfloat/e5-base-v2",
+#         "sentence-transformers/clip-ViT-B-32",  # Primary model HF API NOT WORKING AS OF NOW
+#         "laion/CLIP-ViT-B-32-laion2B-s34B-b79K", # Fallback model HF API NOT WORKING AS OF NOW
+#         "openai/clip-vit-base-patch32", # Another fallback HF API NOT WORKING AS OF NOW
+#         "Salesforce/blip-image-captioning-base", # Another fallback HF API NOT WORKING AS OF NOW
+#         "sentence-transformers/all-MiniLM-L6-v2" # embedding model for TEXT ONLY        
+#     ]
     
-    # Try each model until one works
-    for model_name in models_to_try:
-        try:
-            # # Use LangChain's built-in Hugging Face Inference API Embeddings
-            # embeddings = HuggingFaceInferenceAPIEmbeddings(
-            #     api_key=os.environ['HUGGINGFACE_API_TOKEN'],
-            #     model_name=model_name
-            # )
+#     # Try each model until one works
+#     for model_name in models_to_try:
+#         try:
+#             # # Use LangChain's built-in Hugging Face Inference API Embeddings
+#             # embeddings = HuggingFaceInferenceAPIEmbeddings(
+#             #     api_key=os.environ['HUGGINGFACE_API_TOKEN'],
+#             #     model_name=model_name
+#             # )
 
-            # Use HuggingFaceHub directly
-            embeddings = HFCLIPTextEmbedding(
-                model_name=model_name,
-                api_token=os.environ['HUGGINGFACE_API_TOKEN']
-            )        
+#             # Use HuggingFaceHub directly
+#             embeddings = HFCLIPTextEmbedding(
+#                 model_name=model_name,
+#                 api_token=os.environ['HUGGINGFACE_API_TOKEN']
+#             )        
             
-            # Create and return FAISS vector store
-            vectorstore = FAISS.from_texts(texts=text_chunks, embedding=embeddings)
-            print(f"Successfully used model: {model_name}")
-            return vectorstore
+#             # Create and return FAISS vector store
+#             vectorstore = FAISS.from_texts(texts=text_chunks, embedding=embeddings)
+#             print(f"Successfully used model: {model_name}")
+#             return vectorstore
         
-        except Exception as e:
-            print(f"Failed to use model {model_name}: {e}")
-            continue
+#         except Exception as e:
+#             print(f"Failed to use model {model_name}: {e}")
+#             continue
     
-    # If all models fail
-    raise ValueError("Could not create embeddings with any of the specified models")
+#     # If all models fail
+#     raise ValueError("Could not create embeddings with any of the specified models")
 
 
 def build_context_and_references(documents):

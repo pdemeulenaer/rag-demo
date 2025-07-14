@@ -44,13 +44,13 @@ test:
 # quality-ci: lint test
 
 ingest:
-	poetry run python -m src.rag_demo.ingest_to_qdrant
+	uv run python -m src.rag_demo.ingest_to_qdrant
 
 serve:
-	poetry run streamlit run src/rag_demo/app.py	
+	uv run streamlit run src/rag_demo/app.py	
 
 evaluate:
-	poetry run python src/rag_demo/evaluation_ragas.py		
+	uv run python src/rag_demo/evaluation_ragas.py		
 
 
 .PHONY: build run
