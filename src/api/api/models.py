@@ -4,7 +4,6 @@ from typing import List, Any, Optional
 
 class RAGRequest(BaseModel):
     query: str = Field(..., description="The query to be used in the RAG pipeline")
-    thread_id: str = Field(..., description="The thread ID")
 
 
 class RAGUsedImage(BaseModel):

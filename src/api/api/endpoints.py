@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Request
 import logging
 
-from api.rag.graph import run_agent_wrapper
+from api.rag.retrieval import rag_pipeline_wrapper
 
 from api.api.models import RAGRequest, RAGResponse, RAGUsedImage
 
@@ -17,7 +17,7 @@ async def rag(
     payload: RAGRequest
 ) -> RAGResponse:
 
-    result = run_agent_wrapper(payload.query, payload.thread_id)
+    result = rag_pipeline_wrapper(payload.query)
     used_image_urls = [RAGUsedImage(image_url=image["image_url"], price=image["price"], description=image["description"]) for image in result["retrieved_images"]]
 
     return RAGResponse(
