@@ -12,7 +12,6 @@ keywords = [
     "rag",
     "retrieval-augmented-generation",
     "streamlit",
-    "huggingface",
     "pymupdf",
 ]
 dependencies = [
@@ -29,6 +28,8 @@ dependencies = [
     "cohere >=5.12.0,<6.0.0",
     # "langchain-cohere (==0.4.4)", # causing errors
     "ragas (>=0.2.15,<0.3.0)",
+    "uvicorn>=0.35.0",
+    "fastapi>=0.116.1",
 ]
 
 [dependency-groups]
