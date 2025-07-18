@@ -23,31 +23,19 @@ def connect_to_knowledge_base():
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-# @app.post("/ask")
-# def ask_question(request: QuestionRequest):
-#     global conversation
-#     if conversation is None:
-#         raise HTTPException(status_code=400, detail="Knowledge base not connected.")
-    
-#     try:
-#         result = conversation({"question": request.question})
-#         return {
-#             "answer": result["chat_history"][-1].content,
-#             "chat_history": [
-#                 {"role": msg.type, "content": msg.content}
-#                 for msg in result["chat_history"]
-#             ]
-#         }
-#     except Exception as e:
-#         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/ask")
 def ask_question(request: QuestionRequest):
     global conversation
+        
     if conversation is None:
-        raise HTTPException(status_code=400, detail="Knowledge base not connected.")
+        try:
+            connect_to_knowledge_base()
+        except Exception as e:
+            raise HTTPException(status_code=400, detail="Knowledge base not connected.")  
     
     try:
+        
         result = conversation({"question": request.question})
         return {
             "answer": result["chat_history"][-1].content,

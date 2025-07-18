@@ -37,17 +37,17 @@ def main():
         st.subheader("📚 Knowledge Base")
 
         if not st.session_state.connected:
-            if st.button("🔌 Connect to Knowledge Base", type="primary"):
-                if connect_to_backend():
-                    st.session_state.connected = True
-                    st.success("✅ Connected to backend")
-                    st.rerun()
+            # if st.button("🔌 Connect to Knowledge Base", type="primary"):
+            if connect_to_backend():
+                st.session_state.connected = True
+                st.success("✅ Connected to backend")
+                st.rerun()
         else:
-            st.success("🟢 Already connected to Knowledge Base")
+            st.success("🟢 Connected to Knowledge Base")
 
     question = st.text_input(
         "💬 Ask a question:",
-        placeholder="e.g. What are the main contributions of chapter 3?",
+        placeholder="e.g. How to derive the parameters of star clusters using broad-band photometry?",
         disabled=not st.session_state.connected
     )
 
