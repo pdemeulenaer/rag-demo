@@ -46,8 +46,12 @@ test:
 ingest:
 	uv run python -m src.rag_demo.ingest_to_qdrant
 
+run-api:
+	uv run uvicorn src.api_test.app:app --reload --port 8000
+
 serve:
-	uv run streamlit run src/rag_demo/app.py	
+# 	uv run streamlit run src/rag_demo/app.py
+	uv run streamlit run src/chatbot_ui_test/main.py	
 
 evaluate:
 	uv run python src/rag_demo/evaluation_ragas.py		
