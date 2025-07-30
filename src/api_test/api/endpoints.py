@@ -28,13 +28,16 @@ async def connect_to_knowledge_base():
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+
 @rag_router.post("/rag")
 async def ask_question(request: QuestionRequest):
     global conversation
         
     if conversation is None:
         try:
-            connect_to_knowledge_base()
+            # connect_to_knowledge_base()
+            retriever = get_reranked_qdrant_retriever()
+            conversation = get_conversation_chain(retriever)            
         except Exception as e:
             raise HTTPException(status_code=400, detail="Knowledge base not connected.")  
     
