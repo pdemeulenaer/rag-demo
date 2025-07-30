@@ -19,7 +19,7 @@ class QuestionRequest(BaseModel):
     question: str
 
 @rag_router.post("/connect")
-def connect_to_knowledge_base():
+async def connect_to_knowledge_base():
     global conversation
     try:
         retriever = get_reranked_qdrant_retriever()
@@ -29,7 +29,7 @@ def connect_to_knowledge_base():
         raise HTTPException(status_code=500, detail=str(e))
 
 @rag_router.post("/rag")
-def ask_question(request: QuestionRequest):
+async def ask_question(request: QuestionRequest):
     global conversation
         
     if conversation is None:
@@ -55,4 +55,4 @@ def ask_question(request: QuestionRequest):
 
 
 api_router = APIRouter()
-api_router.include_router(rag_router, tags=["connect", "rag"])
+api_router.include_router(rag_router, tags=["rag"])
