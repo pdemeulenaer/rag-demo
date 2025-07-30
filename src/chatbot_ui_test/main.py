@@ -15,7 +15,7 @@ def connect_to_backend():
 
 def ask_question_to_backend(question):
     try:
-        response = requests.post(f"{API_URL}/ask", json={"question": question})
+        response = requests.post(f"{API_URL}/rag", json={"question": question})
         response.raise_for_status()
         return response.json()
     except Exception as e:

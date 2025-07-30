@@ -1,11 +1,16 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import APIRouter, Request, HTTPException
+import logging
+
 from pydantic import BaseModel
 from dotenv import load_dotenv
 from src.api_test.utils import get_conversation_chain, get_reranked_qdrant_retriever
 
 load_dotenv()
 
-app = FastAPI()
+logger = logging.getLogger(__name__)
+
+rag_router = APIRouter()
+
 
 # Global conversation object (simple stateful example)
 conversation = None
@@ -13,7 +18,7 @@ conversation = None
 class QuestionRequest(BaseModel):
     question: str
 
-@app.post("/connect")
+@rag_router.post("/connect")
 def connect_to_knowledge_base():
     global conversation
     try:
@@ -23,8 +28,7 @@ def connect_to_knowledge_base():
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-
-@app.post("/ask")
+@rag_router.post("/rag")
 def ask_question(request: QuestionRequest):
     global conversation
         
@@ -49,3 +53,6 @@ def ask_question(request: QuestionRequest):
         traceback.print_exc()  # Print full stack trace
         raise HTTPException(status_code=500, detail=f"Answering failed: {str(e)}")
 
+
+api_router = APIRouter()
+api_router.include_router(rag_router, tags=["connect", "rag"])
