@@ -5,6 +5,9 @@ from pydantic import BaseModel
 from dotenv import load_dotenv
 from src.api_test.utils import get_conversation_chain, get_reranked_qdrant_retriever
 
+from src.api_test.rag.retrieval import rag_pipeline_wrapper
+from src.api_test.api.models import RAGRequest, RAGResponse, RAGUsedImage
+
 load_dotenv()
 
 logger = logging.getLogger(__name__)
@@ -55,6 +58,22 @@ async def ask_question(request: QuestionRequest):
         import traceback
         traceback.print_exc()  # Print full stack trace
         raise HTTPException(status_code=500, detail=f"Answering failed: {str(e)}")
+
+
+@rag_router.post("/rag2")
+async def rag(
+    request: Request,
+    payload: RAGRequest
+) -> RAGResponse:
+
+    result = rag_pipeline_wrapper(payload.query)
+    # used_image_urls = [RAGUsedImage(image_url=image["image_url"], price=image["price"], description=image["description"]) for image in result["retrieved_images"]]
+
+    return RAGResponse(
+        request_id=request.state.request_id,
+        answer=result["answer"],
+        # used_image_urls=used_image_urls
+    )
 
 
 api_router = APIRouter()
