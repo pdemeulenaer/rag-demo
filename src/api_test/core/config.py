@@ -6,14 +6,14 @@ class Config(BaseSettings):
     # GOOGLE_API_KEY: str
     QDRANT_URL: str
     # QDRANT_COLLECTION_NAME: str 
-    # EMBEDDING_MODEL: str
-    # EMBEDDING_MODEL_PROVIDER: str
-    # GENERATION_MODEL: str
-    # GENERATION_MODEL_PROVIDER: str
-    # LANGSMITH_TRACING: bool
-    # LANGSMITH_ENDPOINT: str
-    # LANGSMITH_API_KEY: str
-    # LANGSMITH_PROJECT: str
+    EMBEDDING_MODEL: str
+    EMBEDDING_MODEL_PROVIDER: str
+    GENERATION_MODEL: str
+    GENERATION_MODEL_PROVIDER: str
+    LANGSMITH_TRACING: bool
+    LANGSMITH_ENDPOINT: str
+    LANGSMITH_API_KEY: str
+    LANGSMITH_PROJECT: str
     RAG_PROMPT_TEMPLATE_PATH: str = "src/api/rag/prompts/rag_generation.yaml"
     EMBEDDING_API_URL: str
     COHERE_API_KEY: str
