@@ -127,8 +127,8 @@ def build_prompt(context, question):
 
     processed_context = process_context(context)
 
-    # prompt_template = prompt_template_config(config.RAG_PROMPT_TEMPLATE_PATH, "rag_generation")
-    prompt_template = prompt_template_registry("rag-prompt")
+    prompt_template = prompt_template_config(config.RAG_PROMPT_TEMPLATE_PATH, "rag_generation")
+    # prompt_template = prompt_template_registry("rag-prompt") # Prompt registry in LangSmith
 
     prompt = prompt_template.render(processed_context=processed_context, question=question, output_json_schema=json.dumps(OUTPUT_SCHEMA, indent=2))
 
