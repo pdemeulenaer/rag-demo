@@ -198,18 +198,18 @@ def rag_pipeline_wrapper(question, top_k=5):
 
     result = rag_pipeline(question, qdrant_client, top_k)
 
-    image_url_list = []
+    # image_url_list = []
     for id in result["answer"].retrieved_context_ids:
         payload = qdrant_client.retrieve(
             collection_name=config.QDRANT_COLLECTION_NAME,
             ids=[id.id]
         )[0].payload
-        image_url = payload.get("first_large_image")
-        price = payload.get("price")
-        if image_url:
-            image_url_list.append({"image_url": image_url, "price": price, "description": id.description})
+        # image_url = payload.get("first_large_image")
+        # price = payload.get("price")
+        # if image_url:
+        #     image_url_list.append({"image_url": image_url, "price": price, "description": id.description})
 
     return {
         "answer": result["answer"].answer,
-        "retrieved_images": image_url_list
+        # "retrieved_images": image_url_list
     }
