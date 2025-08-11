@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 from src.api_test.utils import get_conversation_chain, get_reranked_qdrant_retriever
 
 from src.api_test.rag.retrieval import rag_pipeline_wrapper
-from src.api_test.api.models import RAGRequest, RAGResponse, RAGUsedImage
+from src.api_test.api.models import RAGRequest, RAGResponse #, RAGUsedImage
 
 load_dotenv()
 
