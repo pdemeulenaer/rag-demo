@@ -5,7 +5,7 @@ class Config(BaseSettings):
     GROQ_API_KEY: str
     # GOOGLE_API_KEY: str
     QDRANT_URL: str
-    # QDRANT_COLLECTION_NAME: str 
+    QDRANT_COLLECTION_NAME: str 
     EMBEDDING_MODEL: str
     EMBEDDING_MODEL_PROVIDER: str
     GENERATION_MODEL: str
