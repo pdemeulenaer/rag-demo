@@ -40,28 +40,36 @@ def get_embedding(text, model=config.EMBEDDING_MODEL):
 def retrieve_context(query, qdrant_client, top_k=5):
     query_embedding = get_embedding(query)
 
+    # SIMPLE SEARCH
     results = qdrant_client.query_points(
         collection_name=config.QDRANT_COLLECTION_NAME,
-        prefetch=[
-            Prefetch(
-                query=query_embedding,
-                limit=20
-            ),
-            Prefetch(
-                filter=Filter(
-                    must=[
-                        FieldCondition(
-                            key="text",
-                            match=MatchText(text=query)
-                        )
-                    ]
-                ),
-                limit=20
-            )
-        ],
-        query=FusionQuery(fusion="rrf"),
-        limit=top_k
-    )
+        query=query_embedding,
+        limit=5,
+    )    
+
+    # HYBRID SEARCH
+    # results = qdrant_client.query_points(
+    #     collection_name=config.QDRANT_COLLECTION_NAME,
+    #     prefetch=[
+    #         Prefetch(
+    #             query=query_embedding,
+    #             limit=20
+    #         ),
+    #         Prefetch(
+    #             filter=Filter(
+    #                 must=[
+    #                     FieldCondition(
+    #                         key="text",
+    #                         match=MatchText(text=query)
+    #                     )
+    #                 ]
+    #             ),
+    #             limit=20
+    #         )
+    #     ],
+    #     query=FusionQuery(fusion="rrf"),
+    #     limit=top_k
+    # )
 
     retrieved_context_ids = []
     retrieved_context = []
@@ -191,23 +199,30 @@ def rag_pipeline(question, qdrant_client, top_k=5):
 
     return final_result
 
-
 def rag_pipeline_wrapper(question, top_k=5):
-
-    qdrant_client = QdrantClient(url=config.QDRANT_URL)
+    # Ensure QDRANT_API_KEY is loaded from your config
+    qdrant_client = QdrantClient(
+        url=config.QDRANT_URL,
+        api_key=config.QDRANT_API_KEY  # Add this line
+    )
 
     result = rag_pipeline(question, qdrant_client, top_k)
+# def rag_pipeline_wrapper(question, top_k=5):
+
+#     qdrant_client = QdrantClient(url=config.QDRANT_URL)
+
+#     result = rag_pipeline(question, qdrant_client, top_k)
 
     # image_url_list = []
-    for id in result["answer"].retrieved_context_ids:
-        payload = qdrant_client.retrieve(
-            collection_name=config.QDRANT_COLLECTION_NAME,
-            ids=[id.id]
-        )[0].payload
-        # image_url = payload.get("first_large_image")
-        # price = payload.get("price")
-        # if image_url:
-        #     image_url_list.append({"image_url": image_url, "price": price, "description": id.description})
+    # for id in result["answer"].retrieved_context_ids:
+    #     payload = qdrant_client.retrieve(
+    #         collection_name=config.QDRANT_COLLECTION_NAME,
+    #         ids=[id.id]
+    #     )[0].payload
+    #     # image_url = payload.get("first_large_image")
+    #     # price = payload.get("price")
+    #     # if image_url:
+    #     #     image_url_list.append({"image_url": image_url, "price": price, "description": id.description})
 
     return {
         "answer": result["answer"].answer,
