@@ -40,6 +40,11 @@ class ConversationMemory:
 
 #     return response.strip()
 
+
+@traceable(
+    name="summarize_messages",
+    run_type="prompt",
+)
 def summarize_messages(messages, summarizer_llm):
     """
     Summarizes the conversation history using the given LLM client (Groq in this case).
@@ -70,11 +75,19 @@ def summarize_messages(messages, summarizer_llm):
     return response.summary.strip()
 
 
+@traceable(
+    name="get_memory",
+    # run_type="prompt",
+)
 def get_memory(session_id: str) -> ConversationMemory:
     if session_id not in conversation_memory:
         conversation_memory[session_id] = ConversationMemory()
     return conversation_memory[session_id]
 
+@traceable(
+    name="add_message",
+    # run_type="prompt",
+)
 def add_message(session_id: str, role: str, content: str, summarizer_llm):
     memory = get_memory(session_id)
     memory.recent_messages.append({"role": role, "content": content})
