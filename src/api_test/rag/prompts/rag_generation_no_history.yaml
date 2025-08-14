@@ -24,9 +24,6 @@ prompts:
         Context:
         {{ processed_context }}
 
-        Chat history:
-        {{ chat_history }}
-
         Question:
         {{ question }}
 

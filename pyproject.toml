@@ -30,10 +30,11 @@ dependencies = [
     "ragas (>=0.2.15,<0.3.0)",
     "uvicorn>=0.35.0",
     "fastapi>=0.116.1",
-    "langsmith>=0.4.5",
+    "langsmith>=0.4.14",
     "openai>=1.95.1",
     "instructor>=1.10.0",
     "groq>=0.30.0",
+    "google-genai",    
 ]
 
 [dependency-groups]

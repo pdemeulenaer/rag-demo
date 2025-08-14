@@ -1,3 +1,4 @@
+import os
 import openai
 import instructor
 from openai import OpenAI
@@ -12,6 +13,80 @@ from langsmith import traceable, get_current_run_tree
 
 from src.api_test.core.config import config
 from src.api_test.rag.utils.utils import prompt_template_config, prompt_template_registry
+
+
+
+
+# Initialize the conversation memory
+conversation_memory = {}
+
+class ConversationMemory:
+    def __init__(self, window_size=5):
+        self.recent_messages = []
+        self.summary = ""
+        self.window_size = window_size
+
+# def summarize_messages(messages, summarizer_llm):
+#     """Summarize older messages into a concise running summary."""
+#     text = "\n".join([f"{msg['role'].capitalize()}: {msg['content']}" for msg in messages])
+#     prompt = f"Summarize the following conversation history concisely:\n\n{text}\n\nSummary:"
+
+#     response, raw_response = summarizer_llm.chat.completions.create_with_completion(
+#         model="llama-3.3-70b-versatile",
+#         response_model=str,  # Expect plain text
+#         messages=[{"role": "user", "content": prompt}],
+#         temperature=0.5
+#     )
+
+#     return response.strip()
+
+def summarize_messages(messages, summarizer_llm):
+    """
+    Summarizes the conversation history using the given LLM client (Groq in this case).
+    This version works without Instructor's create_with_completion.
+    """
+    # Convert messages list to a readable string
+    formatted_messages = "\n".join(
+        [f"{m['role'].capitalize()}: {m['content']}" for m in messages]
+    )
+
+    prompt = f"""
+    Please summarize the following conversation briefly, preserving key facts, names, and context
+    so that future turns can be understood without losing important details.
+    
+    Conversation:
+    {formatted_messages}
+    """
+
+    response = summarizer_llm.chat.completions.create(
+        model="llama-3.3-70b-versatile",
+        messages=[{"role": "user", "content": prompt}],
+        temperature=0.5,
+        max_tokens=500
+    )
+
+    return response.choices[0].message.content.strip()
+
+
+def get_memory(session_id: str) -> ConversationMemory:
+    if session_id not in conversation_memory:
+        conversation_memory[session_id] = ConversationMemory()
+    return conversation_memory[session_id]
+
+def add_message(session_id: str, role: str, content: str, summarizer_llm):
+    memory = get_memory(session_id)
+    memory.recent_messages.append({"role": role, "content": content})
+
+    # Summarize older messages if buffer exceeded
+    if len(memory.recent_messages) > memory.window_size:
+        old_messages = memory.recent_messages[:-memory.window_size]
+        summary_update = summarize_messages(old_messages, summarizer_llm)
+        memory.summary += " " + summary_update
+        memory.recent_messages = memory.recent_messages[-memory.window_size:]
+
+
+
+
 
 @traceable(
     name="embed_query",
@@ -132,16 +207,38 @@ OUTPUT_SCHEMA = {
     name="render_prompt",
     run_type="prompt"
 )
-def build_prompt(context, question):
+# def build_prompt(context, question):
+
+#     processed_context = process_context(context)
+
+#     prompt_template = prompt_template_config(config.RAG_PROMPT_TEMPLATE_PATH, "rag_generation")
+#     # prompt_template = prompt_template_registry("rag-prompt") # Prompt registry in LangSmith
+
+#     prompt = prompt_template.render(processed_context=processed_context, question=question, output_json_schema=json.dumps(OUTPUT_SCHEMA, indent=2))
+
+#     return prompt
+def build_prompt(context, question, session_id):
+    memory = get_memory(session_id)
+
+    formatted_recent = "\n".join(
+        [f"{msg['role'].capitalize()}: {msg['content']}" for msg in memory.recent_messages]
+    )
+
+    full_history = f"Conversation Summary:\n{memory.summary}\n\nRecent Messages:\n{formatted_recent}"
 
     processed_context = process_context(context)
-
+    # prompt_template = prompt_template_registry("rag-prompt")
     prompt_template = prompt_template_config(config.RAG_PROMPT_TEMPLATE_PATH, "rag_generation")
-    # prompt_template = prompt_template_registry("rag-prompt") # Prompt registry in LangSmith
 
-    prompt = prompt_template.render(processed_context=processed_context, question=question, output_json_schema=json.dumps(OUTPUT_SCHEMA, indent=2))
+    prompt = prompt_template.render(
+        conversation_history=full_history,
+        processed_context=processed_context,
+        question=question,
+        output_json_schema=json.dumps(OUTPUT_SCHEMA, indent=2)
+    )
 
     return prompt
+
 
 
 class RAGUsedContext(BaseModel):
@@ -216,15 +313,29 @@ def generate_answer_groq(prompt):
 @traceable(
     name="rag_pipeline",
 )
-def rag_pipeline(question, qdrant_client, top_k=5):
+# def rag_pipeline(question, qdrant_client, top_k=5):
 
-    retrieved_context = retrieve_context(question, qdrant_client, top_k)
-    prompt = build_prompt(retrieved_context, question)
-    # answer = generate_answer(prompt)
-    answer = generate_answer_groq(prompt)
+#     retrieved_context = retrieve_context(question, qdrant_client, top_k)
+#     prompt = build_prompt(retrieved_context, question)
+#     # answer = generate_answer(prompt)
+#     answer = generate_answer_groq(prompt)
     
 
-    final_result = {
+#     final_result = {
+#         "answer": answer,
+#         "question": question,
+#         "retrieved_context_ids": retrieved_context["retrieved_context_ids"],
+#         "retrieved_context": retrieved_context["retrieved_context"],
+#         "similarity_scores": retrieved_context["similarity_scores"]
+#     }
+
+#     return final_result
+def rag_pipeline(question, qdrant_client, session_id, top_k=5):
+    retrieved_context = retrieve_context(question, qdrant_client, top_k)
+    prompt = build_prompt(retrieved_context, question, session_id)
+    answer = generate_answer_groq(prompt)
+
+    return {
         "answer": answer,
         "question": question,
         "retrieved_context_ids": retrieved_context["retrieved_context_ids"],
@@ -232,21 +343,21 @@ def rag_pipeline(question, qdrant_client, top_k=5):
         "similarity_scores": retrieved_context["similarity_scores"]
     }
 
-    return final_result
 
-def rag_pipeline_wrapper(question, top_k=5):
-    # Ensure QDRANT_API_KEY is loaded from your config
+
+def rag_pipeline_wrapper(question, session_id, summarizer_llm, top_k=5):
+# def rag_pipeline_wrapper(question, session_id, top_k=5):
+    # qdrant_client = QdrantClient(url=config.QDRANT_URL)
     qdrant_client = QdrantClient(
         url=config.QDRANT_URL,
         api_key=config.QDRANT_API_KEY  # Add this line
     )
+        
+    result = rag_pipeline(question, qdrant_client, session_id, top_k)
 
-    result = rag_pipeline(question, qdrant_client, top_k)
-# def rag_pipeline_wrapper(question, top_k=5):
-
-#     qdrant_client = QdrantClient(url=config.QDRANT_URL)
-
-#     result = rag_pipeline(question, qdrant_client, top_k)
+    # Update memory with summarization
+    add_message(session_id, "user", question, summarizer_llm)
+    add_message(session_id, "assistant", result["answer"].answer, summarizer_llm)
 
     # image_url_list = []
     # for id in result["answer"].retrieved_context_ids:
@@ -254,12 +365,43 @@ def rag_pipeline_wrapper(question, top_k=5):
     #         collection_name=config.QDRANT_COLLECTION_NAME,
     #         ids=[id.id]
     #     )[0].payload
-    #     # image_url = payload.get("first_large_image")
-    #     # price = payload.get("price")
-    #     # if image_url:
-    #     #     image_url_list.append({"image_url": image_url, "price": price, "description": id.description})
+    #     image_url = payload.get("first_large_image")
+    #     price = payload.get("price")
+    #     if image_url:
+    #         image_url_list.append({"image_url": image_url, "price": price, "description": id.description})
 
     return {
         "answer": result["answer"].answer,
         # "retrieved_images": image_url_list
     }
+
+
+# def rag_pipeline_wrapper(question, top_k=5):
+#     # Ensure QDRANT_API_KEY is loaded from your config
+#     qdrant_client = QdrantClient(
+#         url=config.QDRANT_URL,
+#         api_key=config.QDRANT_API_KEY  # Add this line
+#     )
+
+#     result = rag_pipeline(question, qdrant_client, top_k)
+# # def rag_pipeline_wrapper(question, top_k=5):
+
+# #     qdrant_client = QdrantClient(url=config.QDRANT_URL)
+
+# #     result = rag_pipeline(question, qdrant_client, top_k)
+
+#     # image_url_list = []
+#     # for id in result["answer"].retrieved_context_ids:
+#     #     payload = qdrant_client.retrieve(
+#     #         collection_name=config.QDRANT_COLLECTION_NAME,
+#     #         ids=[id.id]
+#     #     )[0].payload
+#     #     # image_url = payload.get("first_large_image")
+#     #     # price = payload.get("price")
+#     #     # if image_url:
+#     #     #     image_url_list.append({"image_url": image_url, "price": price, "description": id.description})
+
+#     return {
+#         "answer": result["answer"].answer,
+#         # "retrieved_images": image_url_list
+#     }

@@ -8,6 +8,18 @@ from contextlib import asynccontextmanager
 from src.api_test.core.config import settings
 from src.api_test.api.middleware import RequestIDMiddleware
 from src.api_test.api.endpoints import api_router
+# from dotenv import load_dotenv
+
+# load_dotenv()
+
+import os
+from src.api_test.core.config import config
+
+# This must be the first thing your app does!
+os.environ["LANGCHAIN_TRACING_V2"] = "true" if config.LANGSMITH_TRACING else "false"
+os.environ["LANGCHAIN_ENDPOINT"] = config.LANGSMITH_ENDPOINT
+os.environ["LANGCHAIN_API_KEY"] = config.LANGSMITH_API_KEY
+os.environ["LANGCHAIN_PROJECT"] = config.LANGSMITH_PROJECT
 
 
 logging.basicConfig(
