@@ -1,6 +1,7 @@
 import openai
 import instructor
 from openai import OpenAI
+from groq import Groq
 from pydantic import BaseModel
 from typing import List
 import json
@@ -40,36 +41,36 @@ def get_embedding(text, model=config.EMBEDDING_MODEL):
 def retrieve_context(query, qdrant_client, top_k=5):
     query_embedding = get_embedding(query)
 
-    # SIMPLE SEARCH
-    results = qdrant_client.query_points(
-        collection_name=config.QDRANT_COLLECTION_NAME,
-        query=query_embedding,
-        limit=5,
-    )    
-
-    # HYBRID SEARCH
+    # # SIMPLE SEARCH
     # results = qdrant_client.query_points(
     #     collection_name=config.QDRANT_COLLECTION_NAME,
-    #     prefetch=[
-    #         Prefetch(
-    #             query=query_embedding,
-    #             limit=20
-    #         ),
-    #         Prefetch(
-    #             filter=Filter(
-    #                 must=[
-    #                     FieldCondition(
-    #                         key="text",
-    #                         match=MatchText(text=query)
-    #                     )
-    #                 ]
-    #             ),
-    #             limit=20
-    #         )
-    #     ],
-    #     query=FusionQuery(fusion="rrf"),
-    #     limit=top_k
-    # )
+    #     query=query_embedding,
+    #     limit=5,
+    # )    
+
+    # HYBRID SEARCH
+    results = qdrant_client.query_points(
+        collection_name=config.QDRANT_COLLECTION_NAME,
+        prefetch=[
+            Prefetch(
+                query=query_embedding,
+                limit=20
+            ),
+            Prefetch(
+                filter=Filter(
+                    must=[
+                        FieldCondition(
+                            key="text",
+                            match=MatchText(text=query)
+                        )
+                    ]
+                ),
+                limit=20
+            )
+        ],
+        query=FusionQuery(fusion="rrf"),
+        limit=top_k
+    )
 
     retrieved_context_ids = []
     retrieved_context = []
@@ -144,7 +145,7 @@ def build_prompt(context, question):
 
 
 class RAGUsedContext(BaseModel):
-    id: int
+    id: str #int # changed from Aurimas' code since here we use uuid as strings
     description: str
 
 
@@ -181,13 +182,47 @@ def generate_answer(prompt):
 
 
 @traceable(
+    name="generate_answer",
+    run_type="llm",
+    metadata={"ls_provider": "Groq", "ls_model_name": "llama-3.3-70b-versatile"}
+)
+def generate_answer_groq(prompt):    
+
+    # Initialize the Groq client
+    groq_client = Groq(api_key=config.GROQ_API_KEY)
+
+    # Patch the Groq client with instructor
+    client = instructor.from_groq(groq_client)
+
+    # Use the instructor-patched Groq client for chat completions
+    response, raw_response = client.chat.completions.create_with_completion(
+        model="llama-3.3-70b-versatile",
+        response_model=RAGGenerationResponse,
+        messages=[{"role": "user", "content": prompt}],
+        temperature=0.5,
+    )
+
+    current_run = get_current_run_tree()
+    if current_run:
+        current_run.metadata["usage_metadata"] = {
+            "input_tokens": raw_response.usage.prompt_tokens,
+            "output_tokens": raw_response.usage.completion_tokens,
+            "total_tokens": raw_response.usage.total_tokens,
+        }
+
+    return response
+
+
+@traceable(
     name="rag_pipeline",
 )
 def rag_pipeline(question, qdrant_client, top_k=5):
 
     retrieved_context = retrieve_context(question, qdrant_client, top_k)
     prompt = build_prompt(retrieved_context, question)
-    answer = generate_answer(prompt)
+    # answer = generate_answer(prompt)
+    answer = generate_answer_groq(prompt)
+    
 
     final_result = {
         "answer": answer,
