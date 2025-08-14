@@ -21,7 +21,7 @@ from src.api_test.rag.utils.utils import prompt_template_config, prompt_template
 conversation_memory = {}
 
 class ConversationMemory:
-    def __init__(self, window_size=5):
+    def __init__(self, window_size=2):
         self.recent_messages = []
         self.summary = ""
         self.window_size = window_size
@@ -62,10 +62,12 @@ def summarize_messages(messages, summarizer_llm):
         model="llama-3.3-70b-versatile",
         messages=[{"role": "user", "content": prompt}],
         temperature=0.5,
+        response_model=RAGSummarizationResponse,
         max_tokens=500
     )
 
-    return response.choices[0].message.content.strip()
+    # return response.choices[0].message.content.strip()
+    return response.summary.strip()
 
 
 def get_memory(session_id: str) -> ConversationMemory:
@@ -249,6 +251,9 @@ class RAGUsedContext(BaseModel):
 class RAGGenerationResponse(BaseModel):
     answer: str
     retrieved_context_ids: List[RAGUsedContext]
+
+class RAGSummarizationResponse(BaseModel):
+    summary: str    
 
 
 
