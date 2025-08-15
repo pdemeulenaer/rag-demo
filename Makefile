@@ -43,11 +43,12 @@ test:
 
 # quality-ci: lint test
 
-ingest:
-	uv run python -m src.rag_demo.ingest_to_qdrant
+# ingest:
+# 	uv run python -m src.rag_demo.ingest_to_qdrant
 
 run-api:
-	uv run uvicorn src.api_test.main:app --reload --port 8000
+# 	uv run uvicorn src.api_test.main:app --reload --port 8000
+	uv run python run_with_env.py
 
 serve:
 # 	uv run streamlit run src/rag_demo/app.py
