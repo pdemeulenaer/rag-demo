@@ -21,7 +21,7 @@ from src.api_test.rag.utils.utils import prompt_template_config, prompt_template
 conversation_memory = {}
 
 class ConversationMemory:
-    def __init__(self, window_size=2):
+    def __init__(self, window_size=10):
         self.recent_messages = []
         self.summary = ""
         self.window_size = window_size

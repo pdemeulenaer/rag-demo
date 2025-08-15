@@ -17,9 +17,13 @@ env-file:
 	@echo "Created .env file from .env.sample"
 
 install:
-	poetry install
-	poetry lock
-	@echo "Installed dependencies with Poetry"
+# 	uv install
+# 	poetry lock
+# 	@echo "Installed dependencies with Poetry"
+	uv init
+	uv sync
+	uv lock
+	@echo "Installed dependencies with uv"
 
 # pre-commit:
 # 	pre-commit install

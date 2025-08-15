@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Request, HTTPException, Response
 import logging
 import uuid
+import json
 
 from pydantic import BaseModel
 # from dotenv import load_dotenv
@@ -11,8 +12,8 @@ from src.api_test.utils import get_conversation_chain, get_reranked_qdrant_retri
 import openai
 import instructor
 
-from src.api_test.rag.retrieval import rag_pipeline_wrapper
-from src.api_test.api.models import RAGRequest, RAGResponse #, RAGUsedImage
+from src.api_test.rag.retrieval import rag_pipeline_wrapper, get_memory
+from src.api_test.api.models import RAGRequest, RAGResponse, ChatMessage #, RAGUsedImage
 # import os
 # from src.api_test.core.config import config
 
@@ -126,11 +127,31 @@ async def rag(
     # Run the RAG pipeline with session-based memory
     result = rag_pipeline_wrapper(payload.query, session_id, summarizer_llm)
 
-    # Build and return the RAGResponse
+    # # Build and return the RAGResponse
+    # return RAGResponse(
+    #     request_id=request.state.request_id,
+    #     answer=result["answer"],
+    # )
+
+    # Retrieve the full conversation memory
+    memory = get_memory(session_id)
+    
+    # Create the chat history by combining the summary and recent messages
+    # This is a good way to represent the full history in a serializable format
+    full_history = []
+    if memory.summary:
+        full_history.append({"role": "system", "content": memory.summary})
+        
+    for msg in memory.recent_messages:
+        full_history.append({"role": msg["role"], "content": msg["content"]})
+
+
+    # Build and return the RAGResponse, including the chat_history
     return RAGResponse(
         request_id=request.state.request_id,
         answer=result["answer"],
-    )
+        chat_history=full_history # <-- This is the key addition
+    )    
 
 
 
