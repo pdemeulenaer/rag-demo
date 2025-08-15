@@ -43,7 +43,7 @@ test:
 
 # quality-ci: lint test
 
-# ingest:
+# ingest: # TODO: take from other repo
 # 	uv run python -m src.rag_demo.ingest_to_qdrant
 
 run-api:
@@ -54,8 +54,8 @@ serve:
 # 	uv run streamlit run src/rag_demo/app.py
 	uv run streamlit run src/chatbot_ui_test/main.py	
 
-evaluate:
-	uv run python src/rag_demo/evaluation_ragas.py		
+# evaluate: # TODO: take from other repo
+# 	uv run python src/rag_demo/evaluation_ragas.py		
 
 
 .PHONY: build run
