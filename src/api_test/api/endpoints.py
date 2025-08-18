@@ -150,12 +150,8 @@ async def rag(
     return RAGResponse(
         request_id=request.state.request_id,
         answer=result["answer"],
-        chat_history=full_history # <-- This is the key addition
+        chat_history=full_history
     )    
-
-
-
-
 
 
 

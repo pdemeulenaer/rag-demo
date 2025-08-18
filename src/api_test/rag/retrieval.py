@@ -21,7 +21,7 @@ from src.api_test.rag.utils.utils import prompt_template_config, prompt_template
 conversation_memory = {}
 
 class ConversationMemory:
-    def __init__(self, window_size=10):
+    def __init__(self, window_size=10): # 10 messages, i.e. 5 question-answer turns
         self.recent_messages = []
         self.summary = ""
         self.window_size = window_size
@@ -98,9 +98,6 @@ def add_message(session_id: str, role: str, content: str, summarizer_llm):
         summary_update = summarize_messages(old_messages, summarizer_llm)
         memory.summary += " " + summary_update
         memory.recent_messages = memory.recent_messages[-memory.window_size:]
-
-
-
 
 
 @traceable(
