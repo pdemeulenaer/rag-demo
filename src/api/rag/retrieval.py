@@ -10,12 +10,15 @@ import json
 from qdrant_client import QdrantClient
 from qdrant_client.models import Prefetch, Filter, FieldCondition, MatchText, FusionQuery
 from langsmith import traceable, get_current_run_tree
+import logging
+
 
 from src.api.core.config import config
 from src.api.rag.utils.utils import prompt_template_config, prompt_template_registry
+from src.api.api.models import Source
 
 
-
+logger = logging.getLogger(__name__)
 
 # Initialize the conversation memory
 conversation_memory = {}
@@ -159,20 +162,37 @@ def retrieve_context(query, qdrant_client, top_k=5):
         limit=top_k
     )
 
-    retrieved_context_ids = []
+    # retrieved_context_ids = []
+    # retrieved_context = []
+    # similarity_scores = []
+
+    # for result in results.points:
+    #     retrieved_context_ids.append(result.id)
+    #     retrieved_context.append(result.payload['text'])
+    #     similarity_scores.append(result.score)
+
+    # return {
+    #     "retrieved_context_ids": retrieved_context_ids,
+    #     "retrieved_context": retrieved_context,
+    #     "similarity_scores": similarity_scores
+    # }
+
     retrieved_context = []
-    similarity_scores = []
-
     for result in results.points:
-        retrieved_context_ids.append(result.id)
-        retrieved_context.append(result.payload['text'])
-        similarity_scores.append(result.score)
+        # print("Qdrant payload keys:", result.payload.keys())
+        # print("Qdrant payload sample:", result.payload)
+        logger.info("Qdrant payload keys: %s", result.payload.keys())
+        logger.info("Qdrant payload sample: %s", result.payload)     
+        retrieved_context.append({
+            "id": result.id,
+            "text": result.payload["text"],
+            "title": result.payload.get("file_title"),
+            "authors": result.payload.get("authors"),
+            "year": result.payload.get("year"),
+            "score": result.score
+        })
 
-    return {
-        "retrieved_context_ids": retrieved_context_ids,
-        "retrieved_context": retrieved_context,
-        "similarity_scores": similarity_scores
-    }
+    return retrieved_context    
 
 
 @traceable(
@@ -345,49 +365,76 @@ def generate_answer_groq(prompt):
 #     }
 
 #     return final_result
+# def rag_pipeline(question, qdrant_client, session_id, top_k=5):
+#     retrieved_context = retrieve_context(question, qdrant_client, top_k)
+#     prompt = build_prompt(retrieved_context, question, session_id)
+#     answer = generate_answer_groq(prompt)
+
+#     return {
+#         "answer": answer,
+#         "question": question,
+#         "retrieved_context_ids": retrieved_context["retrieved_context_ids"],
+#         "retrieved_context": retrieved_context["retrieved_context"],
+#         "similarity_scores": retrieved_context["similarity_scores"]
+#     }
 def rag_pipeline(question, qdrant_client, session_id, top_k=5):
     retrieved_context = retrieve_context(question, qdrant_client, top_k)
-    prompt = build_prompt(retrieved_context, question, session_id)
+    prompt = build_prompt(
+        {
+            "retrieved_context_ids": [c["id"] for c in retrieved_context],
+            "retrieved_context": [c["text"] for c in retrieved_context]
+        },
+        question,
+        session_id
+    )
     answer = generate_answer_groq(prompt)
 
+    # Collect only the sources that were actually used
+    used_ids = {ctx.id for ctx in answer.retrieved_context_ids}
+    # used_sources = [
+    #     {
+    #         "id": c["id"],
+    #         "title": c["title"],
+    #         "authors": c["authors"],
+    #         "year": c["year"]
+    #     }
+    #     for c in retrieved_context if str(c["id"]) in used_ids
+    # ]
+    used_sources = [
+        Source(
+            id=str(c["id"]),
+            title=c.get("title"),
+            authors=c.get("authors"),
+            year=c.get("year")
+        )
+        for c in retrieved_context if str(c["id"]) in used_ids
+    ]    
+
     return {
-        "answer": answer,
+        "answer": answer.answer,
+        "sources": used_sources,
         "question": question,
-        "retrieved_context_ids": retrieved_context["retrieved_context_ids"],
-        "retrieved_context": retrieved_context["retrieved_context"],
-        "similarity_scores": retrieved_context["similarity_scores"]
     }
 
 
 
 def rag_pipeline_wrapper(question, session_id, summarizer_llm, top_k=5):
 # def rag_pipeline_wrapper(question, session_id, top_k=5):
-    # qdrant_client = QdrantClient(url=config.QDRANT_URL)
+    
     qdrant_client = QdrantClient(
         url=config.QDRANT_URL,
-        api_key=config.QDRANT_API_KEY  # Add this line
+        api_key=config.QDRANT_API_KEY  # For Qdrant Cloud only
     )
         
     result = rag_pipeline(question, qdrant_client, session_id, top_k)
 
     # Update memory with summarization
     add_message(session_id, "user", question, summarizer_llm)
-    add_message(session_id, "assistant", result["answer"].answer, summarizer_llm)
-
-    # image_url_list = []
-    # for id in result["answer"].retrieved_context_ids:
-    #     payload = qdrant_client.retrieve(
-    #         collection_name=config.QDRANT_COLLECTION_NAME,
-    #         ids=[id.id]
-    #     )[0].payload
-    #     image_url = payload.get("first_large_image")
-    #     price = payload.get("price")
-    #     if image_url:
-    #         image_url_list.append({"image_url": image_url, "price": price, "description": id.description})
+    add_message(session_id, "assistant", result["answer"], summarizer_llm)
 
     return {
-        "answer": result["answer"].answer,
-        # "retrieved_images": image_url_list
+        "answer": result["answer"],
+        "sources": result.get("sources", []),
     }
 
 

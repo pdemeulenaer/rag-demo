@@ -150,7 +150,8 @@ async def rag(
     return RAGResponse(
         request_id=request.state.request_id,
         answer=result["answer"],
-        chat_history=full_history
+        chat_history=full_history,
+        sources=result.get("sources", [])
     )    
 
 

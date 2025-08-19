@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-from typing import List, Any, Optional
+from typing import List, Any, Optional, Dict
 
 
 class ChatMessage(BaseModel):
@@ -15,9 +15,15 @@ class RAGRequest(BaseModel):
 #     price: Optional[float] = Field(..., description="The price of the item")
 #     description: str = Field(..., description="The description of the item")
 
+class Source(BaseModel):
+    id: str
+    title: Optional[str] = None
+    authors: Optional[str] = None   # keep as str, since your payload shows it’s not always a list
+    year: Optional[int] = None
 
 class RAGResponse(BaseModel):
     request_id: str = Field(..., description="The request ID")
     answer: str = Field(..., description="The content of the RAG response")
     chat_history: List[ChatMessage] = Field(..., description="The full conversation history")
     # used_image_urls: List[RAGUsedImage]
+    sources: List[Source] = Field(..., description="The sources used in the RAG response")

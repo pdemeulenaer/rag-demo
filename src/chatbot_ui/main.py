@@ -87,7 +87,7 @@ def main():
         if result:
             # Update frontend full conversation (append user + assistant)
             st.session_state.full_conversation.append({"role": "user", "content": question})
-            st.session_state.full_conversation.append({"role": "assistant", "content": result["answer"]})
+            st.session_state.full_conversation.append({"role": "assistant", "content": result["answer"], "sources": result.get("sources", [])})
 
             # Store backend's truncated/summarized memory separately
             if "chat_history" in result:
@@ -111,6 +111,25 @@ def main():
                     st.write(user_template.replace("{{MSG}}", msg["content"]), unsafe_allow_html=True)
                 elif msg["role"] == "assistant":
                     st.write(bot_template.replace("{{MSG}}", msg["content"]), unsafe_allow_html=True)
+
+                    # if "sources" in msg and msg["sources"]:
+                    #     st.markdown("**Sources:**")
+                    #     for src in msg["sources"]:
+                    #         authors = ", ".join(src.get("authors", []))
+                    #         st.markdown(f"- {authors} ({src.get('year')}). *{src.get('title')}*")
+
+                    if "sources" in msg and msg["sources"]:
+                        st.markdown("**Sources:**")
+                        for src in msg["sources"]:
+                            authors = src.get("authors") or "Unknown author"
+                            if isinstance(authors, list):
+                                authors = ", ".join(authors)
+                            year = src.get("year") or "n.d."
+                            title = src.get("title") or "Untitled"
+                            st.markdown(f"- {authors} ({year}). *{title}*")
+
+
+
 
     # # Optional: show backend’s truncated memory view
     # if st.session_state.backend_memory:
