@@ -6,16 +6,16 @@ import json
 from pydantic import BaseModel
 # from dotenv import load_dotenv
 
-from src.api_test.core.config import config
-from src.api_test.utils import get_conversation_chain, get_reranked_qdrant_retriever
+from src.api.core.config import config
+from src.api.utils import get_conversation_chain, get_reranked_qdrant_retriever
 
 import openai
 import instructor
 
-from src.api_test.rag.retrieval import rag_pipeline_wrapper, get_memory
-from src.api_test.api.models import RAGRequest, RAGResponse, ChatMessage #, RAGUsedImage
+from src.api.rag.retrieval import rag_pipeline_wrapper, get_memory
+from src.api.api.models import RAGRequest, RAGResponse, ChatMessage #, RAGUsedImage
 # import os
-# from src.api_test.core.config import config
+# from src.api.core.config import config
 
 # load_dotenv()
 

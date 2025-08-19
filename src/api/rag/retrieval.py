@@ -11,8 +11,8 @@ from qdrant_client import QdrantClient
 from qdrant_client.models import Prefetch, Filter, FieldCondition, MatchText, FusionQuery
 from langsmith import traceable, get_current_run_tree
 
-from src.api_test.core.config import config
-from src.api_test.rag.utils.utils import prompt_template_config, prompt_template_registry
+from src.api.core.config import config
+from src.api.rag.utils.utils import prompt_template_config, prompt_template_registry
 
 
 

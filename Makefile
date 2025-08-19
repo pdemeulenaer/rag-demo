@@ -51,12 +51,12 @@ test:
 # 	uv run python -m src.rag_demo.ingest_to_qdrant
 
 run-api:
-# 	uv run uvicorn src.api_test.main:app --reload --port 8000
+# 	uv run uvicorn src.api.main:app --reload --port 8000
 	uv run python run_with_env.py
 
 serve:
 # 	uv run streamlit run src/rag_demo/app.py
-	uv run streamlit run src/chatbot_ui_test/main.py	
+	uv run streamlit run src/chatbot_ui/main.py	
 
 # evaluate: # TODO: take from other repo
 # 	uv run python src/rag_demo/evaluation_ragas.py		

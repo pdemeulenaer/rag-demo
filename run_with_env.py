@@ -11,4 +11,4 @@ load_dotenv()
 if __name__ == '__main__':
     # Now run uvicorn as a program.
     # This ensures the new environment variables are available to the uvicorn process.
-    uvicorn.run("src.api_test.main:app", host="0.0.0.0", port=8000, reload=True)
+    uvicorn.run("src.api.main:app", host="0.0.0.0", port=8000, reload=True)
