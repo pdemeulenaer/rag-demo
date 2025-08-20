@@ -110,23 +110,22 @@ def main():
                 if msg["role"] == "user":
                     st.write(user_template.replace("{{MSG}}", msg["content"]), unsafe_allow_html=True)
                 elif msg["role"] == "assistant":
-                    st.write(bot_template.replace("{{MSG}}", msg["content"]), unsafe_allow_html=True)
-
-                    # if "sources" in msg and msg["sources"]:
-                    #     st.markdown("**Sources:**")
-                    #     for src in msg["sources"]:
-                    #         authors = ", ".join(src.get("authors", []))
-                    #         st.markdown(f"- {authors} ({src.get('year')}). *{src.get('title')}*")
-
+                    # Combine the answer and sources into a single markdown string
+                    full_content = msg["content"]
                     if "sources" in msg and msg["sources"]:
-                        st.markdown("**Sources:**")
+                        sources_list = []
                         for src in msg["sources"]:
                             authors = src.get("authors") or "Unknown author"
                             if isinstance(authors, list):
                                 authors = ", ".join(authors)
                             year = src.get("year") or "n.d."
                             title = src.get("title") or "Untitled"
-                            st.markdown(f"- {authors} ({year}). *{title}*")
+                            sources_list.append(f"- {authors} ({year}). *{title}*")
+                        
+                        sources_md = "\n\n---\n**Sources:**\n" + "\n".join(sources_list)
+                        full_content += sources_md
+                    
+                    st.write(bot_template.replace("{{MSG}}", full_content), unsafe_allow_html=True)
 
 
 
