@@ -18,8 +18,10 @@ class RAGRequest(BaseModel):
 class Source(BaseModel):
     id: str
     title: Optional[str] = None
-    authors: Optional[str] = None   # keep as str, since your payload shows it’s not always a list
+    authors: list[str] = []
     year: Optional[int] = None
+    page: int | list[int] | None
+
 
 class RAGResponse(BaseModel):
     request_id: str = Field(..., description="The request ID")

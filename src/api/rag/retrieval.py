@@ -162,21 +162,6 @@ def retrieve_context(query, qdrant_client, top_k=5):
         limit=top_k
     )
 
-    # retrieved_context_ids = []
-    # retrieved_context = []
-    # similarity_scores = []
-
-    # for result in results.points:
-    #     retrieved_context_ids.append(result.id)
-    #     retrieved_context.append(result.payload['text'])
-    #     similarity_scores.append(result.score)
-
-    # return {
-    #     "retrieved_context_ids": retrieved_context_ids,
-    #     "retrieved_context": retrieved_context,
-    #     "similarity_scores": similarity_scores
-    # }
-
     retrieved_context = []
     for result in results.points:
         # print("Qdrant payload keys:", result.payload.keys())
@@ -189,7 +174,8 @@ def retrieve_context(query, qdrant_client, top_k=5):
             "title": result.payload.get("file_title"),
             "authors": result.payload.get("authors"),
             "year": result.payload.get("year"),
-            "score": result.score
+            "page": result.payload.get("page_number"),
+            "score": result.score            
         })
 
     return retrieved_context    
@@ -377,6 +363,72 @@ def generate_answer_groq(prompt):
 #         "retrieved_context": retrieved_context["retrieved_context"],
 #         "similarity_scores": retrieved_context["similarity_scores"]
 #     }
+# def rag_pipeline(question, qdrant_client, session_id, top_k=5):
+#     retrieved_context = retrieve_context(question, qdrant_client, top_k)
+#     prompt = build_prompt(
+#         {
+#             "retrieved_context_ids": [c["id"] for c in retrieved_context],
+#             "retrieved_context": [c["text"] for c in retrieved_context]
+#         },
+#         question,
+#         session_id
+#     )
+#     answer = generate_answer_groq(prompt)
+
+#     # Collect only the sources that were actually used
+#     # seen = set()
+#     # unique_sources = []
+
+#     # for c in retrieved_context:
+#     #     s = Source(
+#     #         id=str(c["id"]),
+#     #         title=c.get("title"),
+#     #         authors=c.get("authors", []),  # keep as list
+#     #         year=c.get("year"),
+#     #         page=c.get("page_number", [])
+
+#     #     )
+
+#     #     # Use tuple of authors for deduplication key
+#     #     key = (tuple(s.authors), s.title, s.year)
+#     #     if key not in seen:
+#     #         seen.add(key)
+#     #         # unique_sources.append(s)
+#     #         unique_sources.append({
+#     #             "id": s.id,
+#     #             "title": s.title,
+#     #             "authors": s.authors,
+#     #             "year": s.year,
+#     #             "page": s.page  # THIS ensures Streamlit can access it via src.get("page")
+#     #         })            
+
+#     seen = {}
+#     unique_sources = []
+
+#     for c in retrieved_context:
+#         key = (tuple(c.get("authors", [])), c.get("title"), c.get("year"))
+#         page_num = c.get("page_number")
+        
+#         if key not in seen:
+#             s = Source(
+#                 id=str(c["id"]),
+#                 title=c.get("title"),
+#                 authors=c.get("authors", []),
+#                 year=c.get("year"),
+#                 page=[page_num] if page_num is not None else []
+#             )
+#             seen[key] = s
+#             unique_sources.append(s)
+#         else:
+#             if page_num is not None and page_num not in seen[key].page:
+#                 seen[key].page.append(page_num)
+
+
+#     return {
+#         "answer": answer.answer,
+#         "sources": unique_sources,
+#         "question": question,
+#     }
 def rag_pipeline(question, qdrant_client, session_id, top_k=5):
     retrieved_context = retrieve_context(question, qdrant_client, top_k)
     prompt = build_prompt(
@@ -389,30 +441,45 @@ def rag_pipeline(question, qdrant_client, session_id, top_k=5):
     )
     answer = generate_answer_groq(prompt)
 
-    # Collect only the sources that were actually used
-    used_ids = {ctx.id for ctx in answer.retrieved_context_ids}
-    # used_sources = [
-    #     {
-    #         "id": c["id"],
-    #         "title": c["title"],
-    #         "authors": c["authors"],
-    #         "year": c["year"]
-    #     }
-    #     for c in retrieved_context if str(c["id"]) in used_ids
-    # ]
-    used_sources = [
-        Source(
-            id=str(c["id"]),
-            title=c.get("title"),
-            authors=c.get("authors"),
-            year=c.get("year")
-        )
-        for c in retrieved_context if str(c["id"]) in used_ids
-    ]    
+    # Deduplicate sources and aggregate page numbers
+    seen = {}
+    unique_sources = []
+
+    for c in retrieved_context:
+        key = (tuple(c.get("authors", [])), c.get("title"), c.get("year"))
+        page_num = c.get("page")
+
+        # Ensure page_num is always an integer if present
+        if page_num is not None:
+            if isinstance(page_num, list):
+                page_num = [int(p) for p in page_num]
+            else:
+                page_num = [int(page_num)]
+        else:
+            page_num = []
+
+        if key not in seen:
+            s = Source(
+                id=str(c["id"]),
+                title=c.get("title"),
+                authors=c.get("authors", []),
+                year=c.get("year"),
+                page=page_num
+            )
+            seen[key] = s
+            unique_sources.append(s)
+        else:
+            # Aggregate page numbers for duplicate sources
+            # if page_num is not None and page_num not in seen[key].page:
+            #     seen[key].page.append(page_num)
+            # Aggregate page numbers for duplicate sources
+            existing_pages = set(seen[key].page)
+            existing_pages.update(page_num)
+            seen[key].page = sorted(existing_pages)            
 
     return {
         "answer": answer.answer,
-        "sources": used_sources,
+        "sources": unique_sources,
         "question": question,
     }
 

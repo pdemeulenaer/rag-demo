@@ -120,11 +120,47 @@ def main():
                                 authors = ", ".join(authors)
                             year = src.get("year") or "n.d."
                             title = src.get("title") or "Untitled"
-                            sources_list.append(f"- {authors} ({year}). *{title}*")
+                            # sources_list.append(f"- {authors} ({year}). *{title}*")
+                            pages = src.get("page")  # this is a list of ints
+                            pages_str = f" pp. {', '.join(map(str, pages))}" if pages else ""
+                            sources_list.append(f"- {authors} ({year}). *{title}*{pages_str}")
+
                         
                         sources_md = "\n\n---\n**Sources:**\n" + "\n".join(sources_list)
                         full_content += sources_md
                     
+                    # if "sources" in msg and msg["sources"]:
+                    #     # Aggregate sources by (authors, title, year)
+                    #     aggregated = {}
+                    #     for src in msg["sources"]:
+                    #         authors = src.get("authors") or ["Unknown author"]
+                    #         title = src.get("title") or "Untitled"
+                    #         year = src.get("year") or "n.d."
+                    #         pages = src.get("page")  # could be int or list
+                            
+                    #         key = (tuple(authors), title, year)
+                    #         if key not in aggregated:
+                    #             aggregated[key] = set()
+                            
+                    #         if pages:
+                    #             if isinstance(pages, list):
+                    #                 aggregated[key].update(pages)
+                    #             else:
+                    #                 aggregated[key].add(pages)
+                        
+                    #     # Build markdown list
+                    #     sources_list = []
+                    #     for (authors_tuple, title, year), pages_set in aggregated.items():
+                    #         authors_str = ", ".join(authors_tuple)
+                    #         pages_str = ", ".join(str(p) for p in sorted(pages_set))
+                    #         if pages_str:
+                    #             sources_list.append(f"- {authors_str} ({year}). *{title}* — pages: {pages_str}")
+                    #         else:
+                    #             sources_list.append(f"- {authors_str} ({year}). *{title}*")
+                        
+                    #     sources_md = "\n\n---\n**Sources:**\n" + "\n".join(sources_list)
+                    #     full_content += sources_md
+
                     st.write(bot_template.replace("{{MSG}}", full_content), unsafe_allow_html=True)
 
 
