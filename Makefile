@@ -3,7 +3,8 @@
 SHELL := $(shell which bash)
 
 # Image name
-IMAGE_NAME := rag-demo
+FRONTEND_IMAGE_NAME := rag-demo
+BACKEND_IMAGE_NAME := rag-backend
 
 # Read version from version.txt
 VERSION := $(shell cat version.txt)
@@ -64,24 +65,48 @@ serve:
 
 .PHONY: build run
 
-build:
+# Frontend
+build-ui:
 	@echo "Building image version: $(VERSION)"
-	@docker build -t $(IMAGE_NAME):$(VERSION) .
-	@echo "Built image: $(IMAGE_NAME):$(VERSION)"
+	@docker build -t $(FRONTEND_IMAGE_NAME):$(VERSION) .
+	@echo "Built image: $(FRONTEND_IMAGE_NAME):$(VERSION)"
 
-run:
+run-ui:
 	@echo "Running image version: $(VERSION)"
-	@docker run -d -p 8501:8501 --env-file .env --name $(IMAGE_NAME) $(IMAGE_NAME):$(VERSION)
-	@echo "Running image: $(IMAGE_NAME):$(VERSION)"
+	@docker run -d -p 8501:8501 --env-file .env --name $(FRONTEND_IMAGE_NAME) $(FRONTEND_IMAGE_NAME):$(VERSION)
+	@echo "Running image: $(FRONTEND_IMAGE_NAME):$(VERSION)"
 	@echo "Access the app at http://localhost:8501"
 
-tag:
+tag-ui:
 	@echo "Tag image version: $(VERSION)"
-	@docker tag $(IMAGE_NAME):$(VERSION) $(DOCKER_FOLDER)/$(IMAGE_NAME):$(VERSION)
-	@echo "Tagged image: $(DOCKER_FOLDER)/$(IMAGE_NAME):$(VERSION)"
+	@docker tag $(FRONTEND_IMAGE_NAME):$(VERSION) $(DOCKER_FOLDER)/$(FRONTEND_IMAGE_NAME):$(VERSION)
+	@echo "Tagged image: $(DOCKER_FOLDER)/$(FRONTEND_IMAGE_NAME):$(VERSION)"
 
-push:
+push-ui:
 	@echo "Pushing image version: $(VERSION)"
-	@docker push $(DOCKER_FOLDER)/$(IMAGE_NAME):$(VERSION)
-	@echo "Pushed image: $(DOCKER_FOLDER)/$(IMAGE_NAME):$(VERSION)"		
+	@docker push $(DOCKER_FOLDER)/$(FRONTEND_IMAGE_NAME):$(VERSION)
+	@echo "Pushed image: $(DOCKER_FOLDER)/$(FRONTEND_IMAGE_NAME):$(VERSION)"		
+
+
+# Backend
+build-backend:
+	@echo "Building image version: $(VERSION)"
+	@docker build -t $(BACKEND_IMAGE_NAME):$(VERSION) -f Dockerfile-backend .
+	@echo "Built image: $(BACKEND_IMAGE_NAME):$(VERSION)"
+
+run-backend:
+	@echo "Running image version: $(VERSION)"
+	@docker run -d -p 8000:8000 --env-file .env --name $(BACKEND_IMAGE_NAME) $(BACKEND_IMAGE_NAME):$(VERSION)
+	@echo "Running image: $(BACKEND_IMAGE_NAME):$(VERSION)"
+	@echo "Access the app at http://localhost:8000"
+
+tag-backend:
+	@echo "Tag image version: $(VERSION)"
+	@docker tag $(BACKEND_IMAGE_NAME):$(VERSION) $(DOCKER_FOLDER)/$(BACKEND_IMAGE_NAME):$(VERSION)
+	@echo "Tagged image: $(DOCKER_FOLDER)/$(BACKEND_IMAGE_NAME):$(VERSION)"
+
+push-backend:
+	@echo "Pushing image version: $(VERSION)"
+	@docker push $(DOCKER_FOLDER)/$(BACKEND_IMAGE_NAME):$(VERSION)
+	@echo "Pushed image: $(DOCKER_FOLDER)/$(BACKEND_IMAGE_NAME):$(VERSION)"			
 

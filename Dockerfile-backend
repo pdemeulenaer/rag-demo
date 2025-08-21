@@ -7,6 +7,7 @@ FROM ghcr.io/astral-sh/uv:python3.12-bookworm-slim AS builder
 WORKDIR /app
 
 # Enable bytecode compilation and Python optimization
+ENV PYTHONPATH=/app
 ENV UV_COMPILE_BYTECODE=1
 ENV PYTHONOPTIMIZE=1
 ENV UV_LINK_MODE=copy
@@ -42,6 +43,7 @@ FROM python:3.12-slim
 
 # Set working directory
 WORKDIR /app
+ENV PYTHONPATH=/app
 
 # # Install only required system dependencies
 RUN apt-get update && apt-get install -y \
@@ -62,14 +64,14 @@ ENV PYTHONOPTIMIZE=1
 ENV UV_LINK_MODE=copy
 ENV PATH="/app/.venv/bin:$PATH"
 
-# Set Streamlit config directory and disable telemetry
-ENV STREAMLIT_CONFIG_DIR=/app/.streamlit
-ENV STREAMLIT_BROWSER_GATHER_USAGE_STATS=false
-ENV STREAMLIT_SERVER_HEADLESS=true
+# # Set Streamlit config directory and disable telemetry
+# ENV STREAMLIT_CONFIG_DIR=/app/.streamlit
+# ENV STREAMLIT_BROWSER_GATHER_USAGE_STATS=false
+# ENV STREAMLIT_SERVER_HEADLESS=true
 
-# Create Streamlit config directory and set permissions
-RUN mkdir -p /app/.streamlit && \
-    chown -R app:app /app/.streamlit
+# # Create Streamlit config directory and set permissions
+# RUN mkdir -p /app/.streamlit && \
+#     chown -R app:app /app/.streamlit
 
 # Set Python path to include the src directory for imports
 # ENV PYTHONPATH="/app/src:$PYTHONPATH"
@@ -82,6 +84,7 @@ COPY --from=builder /app/.venv /app/.venv
 # COPY . .
 COPY src/ ./src/
 COPY config.yaml ./config.yaml
+COPY run_with_env.py ./run_with_env.py
 
 # Pre-compile Python files to bytecode for startup performance
 RUN python -m compileall ./src
@@ -97,8 +100,10 @@ RUN chown -R app:app /app
 USER app
 
 # Expose port for Streamlit
-EXPOSE 8501
+EXPOSE 8000
 
 # Command to run the Streamlit app
 # CMD ["poetry", "run", "streamlit", "run", "src/rag_demo/app.py", "--server.address=0.0.0.0"]
-CMD ["/app/.venv/bin/streamlit", "run", "src/chatbot_ui/main.py", "--server.address=0.0.0.0"]
+# CMD ["/app/.venv/bin/python", "run_with_env.py"]
+CMD ["/app/.venv/bin/uvicorn", "src.api.main:app", "--host", "0.0.0.0", "--port", "8000"]
+
