@@ -108,5 +108,11 @@ tag-fastapi:
 push-fastapi:
 	@echo "Pushing image version: $(VERSION)"
 	@docker push $(DOCKER_FOLDER)/$(BACKEND_IMAGE_NAME):$(VERSION)
-	@echo "Pushed image: $(DOCKER_FOLDER)/$(BACKEND_IMAGE_NAME):$(VERSION)"			
+	@echo "Pushed image: $(DOCKER_FOLDER)/$(BACKEND_IMAGE_NAME):$(VERSION)"		
+
+
+compose:
+	@echo "Running docker-compose up"
+	@docker-compose up -d --build
+	@echo "Docker Compose is running. Access the frontend at http://localhost:8501 and backend at http://localhost:8000"
 
