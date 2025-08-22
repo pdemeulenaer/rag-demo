@@ -4,7 +4,7 @@ SHELL := $(shell which bash)
 
 # Image name
 FRONTEND_IMAGE_NAME := rag-demo
-BACKEND_IMAGE_NAME := rag-backend
+BACKEND_IMAGE_NAME := rag-fastapi
 
 # Read version from version.txt
 VERSION := $(shell cat version.txt)
@@ -68,7 +68,7 @@ serve:
 # Frontend
 build-ui:
 	@echo "Building image version: $(VERSION)"
-	@docker build -t $(FRONTEND_IMAGE_NAME):$(VERSION) .
+	@docker build -t $(FRONTEND_IMAGE_NAME):$(VERSION)  -f Dockerfile.streamlit .
 	@echo "Built image: $(FRONTEND_IMAGE_NAME):$(VERSION)"
 
 run-ui:
@@ -89,23 +89,23 @@ push-ui:
 
 
 # Backend
-build-backend:
+build-fastapi:
 	@echo "Building image version: $(VERSION)"
-	@docker build -t $(BACKEND_IMAGE_NAME):$(VERSION) -f Dockerfile-backend .
+	@docker build -t $(BACKEND_IMAGE_NAME):$(VERSION) -f Dockerfile.fastapi .
 	@echo "Built image: $(BACKEND_IMAGE_NAME):$(VERSION)"
 
-run-backend:
+run-fastapi:
 	@echo "Running image version: $(VERSION)"
 	@docker run -d -p 8000:8000 --env-file .env --name $(BACKEND_IMAGE_NAME) $(BACKEND_IMAGE_NAME):$(VERSION)
 	@echo "Running image: $(BACKEND_IMAGE_NAME):$(VERSION)"
 	@echo "Access the app at http://localhost:8000"
 
-tag-backend:
+tag-fastapi:
 	@echo "Tag image version: $(VERSION)"
 	@docker tag $(BACKEND_IMAGE_NAME):$(VERSION) $(DOCKER_FOLDER)/$(BACKEND_IMAGE_NAME):$(VERSION)
 	@echo "Tagged image: $(DOCKER_FOLDER)/$(BACKEND_IMAGE_NAME):$(VERSION)"
 
-push-backend:
+push-fastapi:
 	@echo "Pushing image version: $(VERSION)"
 	@docker push $(DOCKER_FOLDER)/$(BACKEND_IMAGE_NAME):$(VERSION)
 	@echo "Pushed image: $(DOCKER_FOLDER)/$(BACKEND_IMAGE_NAME):$(VERSION)"			

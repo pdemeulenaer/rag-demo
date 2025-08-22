@@ -1,8 +1,11 @@
+
+import os
 import streamlit as st
 import requests
 from htmlTemplates import css, bot_template, user_template
 
-API_URL = "http://localhost:8000"  # Update for production (e.g., hosted backend)
+# API_URL = "http://localhost:8000"  # Update for production (e.g., hosted backend)
+API_URL = os.getenv("API_URL", "http://localhost:8000")
 
 
 def get_session_id_from_response(response):
