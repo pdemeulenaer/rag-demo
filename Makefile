@@ -113,6 +113,6 @@ push-fastapi:
 
 compose:
 	@echo "Running docker-compose up"
-	@docker-compose up -d --build
+	@docker compose up -d --build
 	@echo "Docker Compose is running. Access the frontend at http://localhost:8501 and backend at http://localhost:8000"
 
