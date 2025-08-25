@@ -1,3 +1,4 @@
+
 services:
   streamlit-app:
     build:
@@ -12,6 +13,8 @@ services:
     restart: unless-stopped
     volumes:
       - ./src/chatbot_ui:/app/src/chatbot_ui   
+    depends_on:
+      - api      
 
   # qdrant:
   #   image: qdrant/qdrant
@@ -33,6 +36,8 @@ services:
     restart: unless-stopped
     volumes:
       - ./src/api:/app/src/api
+    environment:
+      - ALLOW_ORIGINS=*      
 
   # postgres:
   #   image: postgres:16-alpine

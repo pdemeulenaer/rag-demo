@@ -144,6 +144,21 @@ jobs:
             echo "Staging slot already exists, skipping creation."
           fi
 
+      - name: Get staging URL
+        id: get_staging_url
+        run: |
+          STAGING_URL=$(az webapp show \
+            --resource-group ${{ secrets.AZURE_RG }} \
+            --name ${{ secrets.AZURE_WEBAPP }} \
+            --slot staging \
+            --query defaultHostName -o tsv)
+          echo "STAGING_URL=$STAGING_URL" >> $GITHUB_ENV          
+
+      - name: Update docker-compose with staging URL
+          run: |
+            sed -i "s|STAGING_API_URL|https://${STAGING_URL}/rag2|g" docker-compose.prod.yml
+
+
       - name: Deploy docker-compose to staging slot
         run: |
           az webapp config container set \

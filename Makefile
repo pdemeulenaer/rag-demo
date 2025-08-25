@@ -3,8 +3,8 @@
 SHELL := $(shell which bash)
 
 # Image name
-FRONTEND_IMAGE_NAME := rag-demo
-BACKEND_IMAGE_NAME := rag-fastapi
+FRONTEND_IMAGE_NAME := rag-backend
+BACKEND_IMAGE_NAME := rag-frontend
 
 # Read version from version.txt
 VERSION := $(shell cat version.txt)

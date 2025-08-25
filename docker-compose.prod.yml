@@ -3,16 +3,12 @@ version: "3.8"
 services:
   streamlit-app:
     image: pdemeulenaer/rag-frontend:latest
-    ports:
-      - "80:8501"   # Expose Streamlit on port 80 (default for Azure Web App)
+    # environment:
+    #   - API_URL=https://rag-demo-pdemeulenaer-g6fmh2fjhthea2b5-staging.northeurope-01.azurewebsites.net/rag2
     environment:
-      - API_URL=http://api:8000   # Streamlit will call backend internally
+      - API_URL=STAGING_API_URL    
     restart: always
 
   api:
     image: pdemeulenaer/rag-backend:latest
-    expose:
-      - "8000"      # Only exposed to other containers, not outside
-    environment:
-      - ALLOW_ORIGINS=*           # Adjust if you want CORS restrictions
     restart: always

@@ -101,4 +101,7 @@ EXPOSE 8501
 
 # Command to run the Streamlit app
 # CMD ["poetry", "run", "streamlit", "run", "src/rag_demo/app.py", "--server.address=0.0.0.0"]
-CMD ["/app/.venv/bin/streamlit", "run", "src/chatbot_ui/main.py", "--server.address=0.0.0.0"]
+# CMD ["/app/.venv/bin/streamlit", "run", "src/chatbot_ui/main.py", "--server.address=0.0.0.0"]
+# CMD ["/app/.venv/bin/streamlit", "run", "src/chatbot_ui/app.py", "--server.port", "${PORT:-8501}", "--server.address", "0.0.0.0"]
+CMD /app/.venv/bin/streamlit run src/chatbot_ui/main.py --server.port ${PORT:-8501} --server.address 0.0.0.0
+
