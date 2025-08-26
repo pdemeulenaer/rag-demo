@@ -4,7 +4,6 @@ import uuid
 import json
 
 from pydantic import BaseModel
-# from dotenv import load_dotenv
 
 from src.api.core.config import config
 from src.api.utils import get_conversation_chain, get_reranked_qdrant_retriever
@@ -14,15 +13,7 @@ import instructor
 
 from src.api.rag.retrieval import rag_pipeline_wrapper, get_memory
 from src.api.api.models import RAGRequest, RAGResponse, ChatMessage #, RAGUsedImage
-# import os
-# from src.api.core.config import config
 
-# load_dotenv()
-
-# os.environ["LANGCHAIN_TRACING_V2"] = "true" if config.LANGSMITH_TRACING else "false"
-# os.environ["LANGCHAIN_ENDPOINT"] = config.LANGSMITH_ENDPOINT
-# os.environ["LANGCHAIN_API_KEY"] = config.LANGSMITH_API_KEY
-# os.environ["LANGCHAIN_PROJECT"] = config.LANGSMITH_PROJECT
 
 # Initialize the summarizer LLM using instructor with Groq
 summarizer_llm = instructor.from_openai(
