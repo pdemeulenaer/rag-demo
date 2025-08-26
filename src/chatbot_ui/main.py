@@ -77,6 +77,7 @@ def main():
     #             st.rerun()
     #     else:
     #         st.success("🟢 Connected to Knowledge Base")
+    st.session_state.connected = True
 
     question = st.text_input(
         "💬 Ask a question:",
