@@ -67,17 +67,17 @@ def main():
 
     st.header("🤖 RAG Chat with PDF Knowledge Base")
 
-    # with st.sidebar:
-    #     st.subheader("📚 Knowledge Base")
+    with st.sidebar:
+        st.subheader("📚 Knowledge Base")
 
-    #     if not st.session_state.connected:
-    #         if connect_to_backend():
-    #             st.session_state.connected = True
-    #             st.success("✅ Connected to backend")
-    #             st.rerun()
-    #     else:
-    #         st.success("🟢 Connected to Knowledge Base")
-    st.session_state.connected = True
+        if not st.session_state.connected:
+            if connect_to_backend():
+                st.session_state.connected = True
+                st.success("✅ Connected to backend")
+                st.rerun()
+        else:
+            st.success("🟢 Connected to Knowledge Base")
+    # st.session_state.connected = True
 
     question = st.text_input(
         "💬 Ask a question:",
