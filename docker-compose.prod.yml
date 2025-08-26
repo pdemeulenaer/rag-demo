@@ -2,11 +2,13 @@ version: "3.8"
 
 services:
   streamlit-app:
-    image: pdemeulenaer/rag-frontend:latest
+    # image: pdemeulenaer/rag-frontend:latest
+    image: pdemeulenaer/rag-frontend:${GITHUB_SHA}
     environment:
       - API_URL=STAGING_API_URL    
     restart: always
 
   api:
-    image: pdemeulenaer/rag-backend:latest
+    # image: pdemeulenaer/rag-backend:latest
+    image: pdemeulenaer/rag-backend:${GITHUB_SHA}
     restart: always

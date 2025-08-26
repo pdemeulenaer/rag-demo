@@ -90,6 +90,7 @@ jobs:
             ${{ secrets.DOCKERHUB_USERNAME }}/rag-frontend:${{ steps.get_version.outputs.VERSION }}
             ${{ secrets.DOCKERHUB_USERNAME }}/rag-frontend:${{ github.sha }}
             ${{ secrets.DOCKERHUB_USERNAME }}/rag-frontend:latest
+            
 
       # # Build and push Docker image
       # - name: Build and push Docker image
@@ -145,6 +146,12 @@ jobs:
         run: |
           sed -i "s|STAGING_API_URL|https://${STAGING_URL}/rag2|g" docker-compose.prod.yml
 
+      - name: Prepare docker-compose for staging
+        run: |
+          cp docker-compose.prod.yml docker-compose.staging.yml
+          sed -i "s|BACKEND_IMAGE|pdemeulenaer/rag-backend:${{ github.sha }}|g" docker-compose.staging.yml
+          sed -i "s|FRONTEND_IMAGE|pdemeulenaer/rag-frontend:${{ github.sha }}|g" docker-compose.staging.yml
+          sed -i "s|STAGING_API_URL|https://${STAGING_URL}/rag2|g" docker-compose.staging.yml
 
       - name: Deploy docker-compose to staging slot
         run: |
@@ -153,7 +160,7 @@ jobs:
             --name ${{ secrets.AZURE_WEBAPP }} \
             --slot staging \
             --multicontainer-config-type compose \
-            --multicontainer-config-file docker-compose.prod.yml
+            --multicontainer-config-file docker-compose.staging.yml
 
   swap-to-production:
     runs-on: ubuntu-latest
