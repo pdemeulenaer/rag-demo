@@ -6,6 +6,7 @@ from groq import Groq
 from pydantic import BaseModel
 from typing import List
 import json
+import cohere
 
 from qdrant_client import QdrantClient
 from qdrant_client.models import Prefetch, Filter, FieldCondition, MatchText, FusionQuery
@@ -19,6 +20,7 @@ from src.api.api.models import Source
 
 
 logger = logging.getLogger(__name__)
+cohere_client = cohere.Client(config.COHERE_API_KEY)
 
 # Initialize the conversation memory
 conversation_memory = {}
@@ -71,7 +73,7 @@ def summarize_messages(messages, summarizer_llm):
         messages=[{"role": "user", "content": prompt}],
         temperature=0.5,
         response_model=RAGSummarizationResponse,
-        max_tokens=500
+        max_tokens=1000
     )
 
     # return response.choices[0].message.content.strip()
@@ -179,6 +181,40 @@ def retrieve_context(query, qdrant_client, top_k=5):
         })
 
     return retrieved_context    
+
+
+@traceable(
+    name="rerank_context",
+    run_type="reranker",
+    metadata={"ls_provider": "Cohere", "ls_model_name": "rerank-english-v3.0"}
+)
+def rerank_context(query: str, retrieved_context: list, top_n: int = 5):
+    """
+    Reranks the retrieved context chunks using Cohere's reranker.
+    """
+
+    docs = [c["text"] for c in retrieved_context]
+
+    response = cohere_client.rerank(
+        model="rerank-english-v3.0",
+        query=query,
+        documents=docs,
+        top_n=top_n
+    )
+
+    # Map reranked results back to original retrieved_context items
+    reranked = []
+    for r in response.results:
+        doc_idx = r.index
+        doc_score = r.relevance_score
+        chunk = retrieved_context[doc_idx]
+        reranked.append({
+            **chunk,
+            "rerank_score": doc_score
+        })
+
+    return reranked
+
 
 
 @traceable(
@@ -317,7 +353,8 @@ def generate_answer_groq(prompt):
         model="llama-3.3-70b-versatile",
         response_model=RAGGenerationResponse,
         messages=[{"role": "user", "content": prompt}],
-        temperature=0.5,
+        temperature=0.7,
+        max_tokens=1000,
     )
 
     current_run = get_current_run_tree()
@@ -430,7 +467,15 @@ def generate_answer_groq(prompt):
 #         "question": question,
 #     }
 def rag_pipeline(question, qdrant_client, session_id, top_k=5):
-    retrieved_context = retrieve_context(question, qdrant_client, top_k)
+
+
+    # Initial Hybrid retrieval from Qdrant
+    # retrieved_context = retrieve_context(question, qdrant_client, top_k)
+    retrieved_context = retrieve_context(question, qdrant_client, top_k=20)  # fetch more initially, because we will rerank
+    
+    # Rerank with Cohere
+    retrieved_context = rerank_context(question, retrieved_context, top_n=top_k)
+
     prompt = build_prompt(
         {
             "retrieved_context_ids": [c["id"] for c in retrieved_context],
