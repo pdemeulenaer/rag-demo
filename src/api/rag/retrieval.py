@@ -257,20 +257,10 @@ OUTPUT_SCHEMA = {
     },
 }
 
-@traceable(
-    name="render_prompt",
-    run_type="prompt"
-)
-# def build_prompt(context, question):
-
-#     processed_context = process_context(context)
-
-#     prompt_template = prompt_template_config(config.RAG_PROMPT_TEMPLATE_PATH, "rag_generation")
-#     # prompt_template = prompt_template_registry("rag-prompt") # Prompt registry in LangSmith
-
-#     prompt = prompt_template.render(processed_context=processed_context, question=question, output_json_schema=json.dumps(OUTPUT_SCHEMA, indent=2))
-
-#     return prompt
+# @traceable(
+#     name="render_prompt",
+#     run_type="prompt"
+# )
 def build_prompt(context, question, session_id):
     memory = get_memory(session_id)
 
@@ -281,17 +271,48 @@ def build_prompt(context, question, session_id):
     full_history = f"Conversation Summary:\n{memory.summary}\n\nRecent Messages:\n{formatted_recent}"
 
     processed_context = process_context(context)
+
+    # Extract the prompt template
     # prompt_template = prompt_template_registry("rag-prompt")
     prompt_template = prompt_template_config(config.RAG_PROMPT_TEMPLATE_PATH, "rag_generation")
 
-    prompt = prompt_template.render(
+    system_prompt = prompt_template["system"].render(
         conversation_history=full_history,
         processed_context=processed_context,
         question=question,
         output_json_schema=json.dumps(OUTPUT_SCHEMA, indent=2)
     )
 
-    return prompt
+    user_prompt = prompt_template["user"].render(
+        conversation_history=full_history,
+        processed_context=processed_context,
+        question=question,
+        output_json_schema=json.dumps(OUTPUT_SCHEMA, indent=2)
+    )
+
+    # For LLM call
+    messages = [
+        {"role": "system", "content": system_prompt},
+        {"role": "user", "content": user_prompt}
+    ]
+
+    # For LangSmith trace: return a string instead of the messages list
+    traced_prompt = f"[SYSTEM]\n{system_prompt}\n\n[USER]\n{user_prompt}"
+
+    # # Instructor trace can log the string
+    # from langsmith import traceable
+
+    @traceable(name="render_prompt", run_type="prompt")
+    def traced():
+        return traced_prompt
+
+    traced()  # just logs the prompt
+
+    # Return messages for actual LLM call
+    return messages
+
+
+
 
 
 
@@ -352,8 +373,8 @@ def generate_answer_groq(prompt):
     response, raw_response = client.chat.completions.create_with_completion(
         model="llama-3.3-70b-versatile",
         response_model=RAGGenerationResponse,
-        messages=[{"role": "user", "content": prompt}],
-        temperature=0.7,
+        messages=prompt, #[{"role": "user", "content": prompt}],
+        temperature=0.5,
         max_tokens=1000,
     )
 

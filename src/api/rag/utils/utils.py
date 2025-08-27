@@ -5,16 +5,36 @@ from langsmith import Client
 ls_client = Client()
 
 
-def prompt_template_config(yaml_file, prompt_key):
+# def prompt_template_config(yaml_file, prompt_key):
 
-    with open(yaml_file, "r") as f:
+#     with open(yaml_file, "r") as f:
+#         config = yaml.safe_load(f)
+
+#     template_content = config["prompts"][prompt_key]
+
+#     template = Template(template_content)
+
+#     return template
+def prompt_template_config(path, template_name):
+    with open(path, "r") as f:
         config = yaml.safe_load(f)
 
-    template_content = config["prompts"][prompt_key]
+    prompts = config.get("prompts", {})
+    template_content = prompts.get(template_name)
 
-    template = Template(template_content)
+    if isinstance(template_content, str):
+        # old style → single string template
+        return Template(template_content)
 
-    return template
+    elif isinstance(template_content, dict):
+        # new style → dict with system/user
+        return {
+            key: Template(val) for key, val in template_content.items()
+        }
+
+    else:
+        raise ValueError(f"Unexpected template type for {template_name}: {type(template_content)}")
+
 
 
 def prompt_template_registry(prompt_name):
