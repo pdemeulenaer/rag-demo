@@ -70,31 +70,6 @@ async def ask_question(request: QuestionRequest):
         raise HTTPException(status_code=500, detail=f"Answering failed: {str(e)}")
 
 
-# @rag_router.post("/rag2")
-# async def rag(
-#     request: Request,
-#     payload: RAGRequest,
-# ) -> RAGResponse:
-
-    
-
-#     session_id = request.cookies.get("session_id")
-#     if not session_id:
-#         session_id = str(uuid.uuid4())
-#         response.set_cookie(key="session_id", value=session_id)
-
-#     result = rag_pipeline_wrapper(payload.query, session_id, summarizer_llm)
-
-#     # result = rag_pipeline_wrapper(payload.query)
-#     # used_image_urls = [RAGUsedImage(image_url=image["image_url"], price=image["price"], description=image["description"]) for image in result["retrieved_images"]]
-
-#     return RAGResponse(
-#         request_id=request.state.request_id,
-#         answer=result["answer"],
-#         # used_image_urls=used_image_urls
-#     )
-
-
 
 @rag_router.post("/rag2")
 async def rag(
