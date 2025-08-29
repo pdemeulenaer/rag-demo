@@ -6,6 +6,7 @@ from groq import Groq
 from pydantic import BaseModel
 from typing import List
 import json
+import cohere
 
 from qdrant_client import QdrantClient
 from qdrant_client.models import Prefetch, Filter, FieldCondition, MatchText, FusionQuery
@@ -19,6 +20,7 @@ from src.api.api.models import Source
 
 
 logger = logging.getLogger(__name__)
+cohere_client = cohere.Client(config.COHERE_API_KEY)
 
 # Initialize the conversation memory
 conversation_memory = {}
@@ -71,7 +73,7 @@ def summarize_messages(messages, summarizer_llm):
         messages=[{"role": "user", "content": prompt}],
         temperature=0.5,
         response_model=RAGSummarizationResponse,
-        max_tokens=500
+        max_tokens=1000
     )
 
     # return response.choices[0].message.content.strip()
@@ -182,6 +184,40 @@ def retrieve_context(query, qdrant_client, top_k=5):
 
 
 @traceable(
+    name="rerank_context",
+    run_type="reranker",
+    metadata={"ls_provider": "Cohere", "ls_model_name": "rerank-english-v3.0"}
+)
+def rerank_context(query: str, retrieved_context: list, top_n: int = 5):
+    """
+    Reranks the retrieved context chunks using Cohere's reranker.
+    """
+
+    docs = [c["text"] for c in retrieved_context]
+
+    response = cohere_client.rerank(
+        model="rerank-english-v3.0",
+        query=query,
+        documents=docs,
+        top_n=top_n
+    )
+
+    # Map reranked results back to original retrieved_context items
+    reranked = []
+    for r in response.results:
+        doc_idx = r.index
+        doc_score = r.relevance_score
+        chunk = retrieved_context[doc_idx]
+        reranked.append({
+            **chunk,
+            "rerank_score": doc_score
+        })
+
+    return reranked
+
+
+
+@traceable(
     name="format_retrieved_context",
     run_type="prompt"
 )
@@ -221,20 +257,10 @@ OUTPUT_SCHEMA = {
     },
 }
 
-@traceable(
-    name="render_prompt",
-    run_type="prompt"
-)
-# def build_prompt(context, question):
-
-#     processed_context = process_context(context)
-
-#     prompt_template = prompt_template_config(config.RAG_PROMPT_TEMPLATE_PATH, "rag_generation")
-#     # prompt_template = prompt_template_registry("rag-prompt") # Prompt registry in LangSmith
-
-#     prompt = prompt_template.render(processed_context=processed_context, question=question, output_json_schema=json.dumps(OUTPUT_SCHEMA, indent=2))
-
-#     return prompt
+# @traceable(
+#     name="render_prompt",
+#     run_type="prompt"
+# )
 def build_prompt(context, question, session_id):
     memory = get_memory(session_id)
 
@@ -245,17 +271,48 @@ def build_prompt(context, question, session_id):
     full_history = f"Conversation Summary:\n{memory.summary}\n\nRecent Messages:\n{formatted_recent}"
 
     processed_context = process_context(context)
+
+    # Extract the prompt template
     # prompt_template = prompt_template_registry("rag-prompt")
     prompt_template = prompt_template_config(config.RAG_PROMPT_TEMPLATE_PATH, "rag_generation")
 
-    prompt = prompt_template.render(
+    system_prompt = prompt_template["system"].render(
         conversation_history=full_history,
         processed_context=processed_context,
         question=question,
         output_json_schema=json.dumps(OUTPUT_SCHEMA, indent=2)
     )
 
-    return prompt
+    user_prompt = prompt_template["user"].render(
+        conversation_history=full_history,
+        processed_context=processed_context,
+        question=question,
+        output_json_schema=json.dumps(OUTPUT_SCHEMA, indent=2)
+    )
+
+    # For LLM call
+    messages = [
+        {"role": "system", "content": system_prompt},
+        {"role": "user", "content": user_prompt}
+    ]
+
+    # For LangSmith trace: return a string instead of the messages list
+    traced_prompt = f"[SYSTEM]\n{system_prompt}\n\n[USER]\n{user_prompt}"
+
+    # # Instructor trace can log the string
+    # from langsmith import traceable
+
+    @traceable(name="render_prompt", run_type="prompt")
+    def traced():
+        return traced_prompt
+
+    traced()  # just logs the prompt
+
+    # Return messages for actual LLM call
+    return messages
+
+
+
 
 
 
@@ -316,8 +373,9 @@ def generate_answer_groq(prompt):
     response, raw_response = client.chat.completions.create_with_completion(
         model="llama-3.3-70b-versatile",
         response_model=RAGGenerationResponse,
-        messages=[{"role": "user", "content": prompt}],
+        messages=prompt, #[{"role": "user", "content": prompt}],
         temperature=0.5,
+        max_tokens=1000,
     )
 
     current_run = get_current_run_tree()
@@ -430,7 +488,15 @@ def generate_answer_groq(prompt):
 #         "question": question,
 #     }
 def rag_pipeline(question, qdrant_client, session_id, top_k=5):
-    retrieved_context = retrieve_context(question, qdrant_client, top_k)
+
+
+    # Initial Hybrid retrieval from Qdrant
+    # retrieved_context = retrieve_context(question, qdrant_client, top_k)
+    retrieved_context = retrieve_context(question, qdrant_client, top_k=20)  # fetch more initially, because we will rerank
+    
+    # Rerank with Cohere
+    retrieved_context = rerank_context(question, retrieved_context, top_n=top_k)
+
     prompt = build_prompt(
         {
             "retrieved_context_ids": [c["id"] for c in retrieved_context],

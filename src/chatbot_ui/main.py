@@ -55,6 +55,11 @@ def main():
     st.set_page_config(page_title="RAG Chat", page_icon="🤖", layout="wide")
     st.write(css, unsafe_allow_html=True)
 
+    # Always clear session state on hard refresh
+    if st.session_state.get("init_done") is None:
+        st.session_state.clear()
+        st.session_state.init_done = True
+
     # Initialize session state
     if "connected" not in st.session_state:
         st.session_state.connected = False
@@ -170,13 +175,13 @@ def main():
 
 
 
-    # # Optional: show backend’s truncated memory view
-    # if st.session_state.backend_memory:
-    #     st.markdown("---")
-    #     st.subheader("🧠 Backend Memory View (summarized + truncated)")
+    # Optional: show backend’s truncated memory view
+    if st.session_state.backend_memory:
+        st.markdown("---")
+        st.subheader("🧠 Backend Memory View (summarized + truncated)")
 
-    #     for msg in st.session_state.backend_memory:
-    #         st.markdown(f"**{msg['role'].capitalize()}:** {msg['content']}")
+        for msg in st.session_state.backend_memory:
+            st.markdown(f"**{msg['role'].capitalize()}:** {msg['content']}")
 
 
 if __name__ == "__main__":
