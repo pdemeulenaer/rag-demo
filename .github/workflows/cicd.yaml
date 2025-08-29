@@ -38,9 +38,6 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-uv-        
 
-      # # Install dependencies
-      # - name: Install dependencies
-      #   run: poetry install --only main
 
       # Install dependencies using uv
       # uv sync installs dependencies based on pyproject.toml and uv.lock.
@@ -155,13 +152,6 @@ jobs:
           sed -i "s|STAGING_API_URL|https://${STAGING_URL}/rag2|g" docker-compose.prod.yml
           sed -i "s|VERSION|${{ steps.get_version.outputs.VERSION }}|g" docker-compose.prod.yml
 
-      # - name: Prepare docker-compose for staging
-      #   run: |
-      #     cp docker-compose.prod.yml docker-compose.staging.yml
-      #     sed -i "s|BACKEND_IMAGE|pdemeulenaer/rag-backend:${{ github.sha }}|g" docker-compose.staging.yml
-      #     sed -i "s|FRONTEND_IMAGE|pdemeulenaer/rag-frontend:${{ github.sha }}|g" docker-compose.staging.yml
-      #     sed -i "s|STAGING_API_URL|https://${STAGING_URL}/rag2|g" docker-compose.staging.yml
-
       - name: Deploy docker-compose to staging slot
         run: |
           az webapp config container set \
@@ -171,17 +161,20 @@ jobs:
             --multicontainer-config-type compose \
             --multicontainer-config-file docker-compose.prod.yml
 
+# if: github.ref == 'refs/heads/main'            
   swap-to-production:
     runs-on: ubuntu-latest
     needs: deploy-to-staging
-    if: github.ref == 'refs/heads/main'
+    environment:
+      name: production
+
     steps:
       - name: Azure Login
         uses: azure/login@v2
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      - name: Swap staging to production
+      - name: Swap staging slot to production
         run: |
           az webapp deployment slot swap \
             --resource-group ${{ secrets.AZURE_RG }} \
@@ -191,26 +184,24 @@ jobs:
 
 
 
+  # swap-to-production:
+  #   runs-on: ubuntu-latest
+  #   needs: deploy-to-staging
+  #   if: github.ref == 'refs/heads/main'
+  #   steps:
+  #     - name: Azure Login
+  #       uses: azure/login@v2
+  #       with:
+  #         creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+  #     - name: Swap staging to production
+  #       run: |
+  #         az webapp deployment slot swap \
+  #           --resource-group ${{ secrets.AZURE_RG }} \
+  #           --name ${{ secrets.AZURE_WEBAPP }} \
+  #           --slot staging \
+  #           --target-slot production
 
 
-#   deploy-to-azure:
-#     needs: build-and-push
-#     runs-on: ubuntu-latest
-#     if: github.ref == 'refs/heads/main'  # Only deploy on main branch push
-#     steps:
-#       # Checkout code (optional, for consistency)
-#       - name: Checkout code
-#         uses: actions/checkout@v4
 
-#       # Log in to Azure
-#       - name: Log in to Azure
-#         uses: azure/login@v2
-#         with:
-#           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-#       # Deploy to Azure Web App
-#       - name: Deploy to Azure Web App
-#         uses: azure/webapps-deploy@v3
-#         with:
-#           app-name: ${{ secrets.AZURE_WEBAPP_NAME }}
-#           images: ${{ secrets.DOCKERHUB_USERNAME }}/my-app:${{ github.sha }}

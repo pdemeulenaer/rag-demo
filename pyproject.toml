@@ -7,11 +7,16 @@ requires-python = ">=3.12"
 readme = "README.md"
 license = { text = "MIT" }
 keywords = [
-    "langchain",
     "groq",
     "rag",
     "retrieval-augmented-generation",
     "streamlit",
+    "fastapi",
+    "langsmith",
+    "openai",
+    "cohere",
+    "qdrant",
+    "redis",
     "pymupdf",
 ]
 dependencies = [
@@ -34,7 +39,8 @@ dependencies = [
     "openai>=1.95.1",
     "instructor>=1.10.0",
     "groq>=0.30.0",
-    "google-genai",    
+    "google-genai",
+    "redis>=6.4.0",
 ]
 
 [dependency-groups]
