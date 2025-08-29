@@ -110,7 +110,8 @@ def add_message(session_id: str, role: str, content: str, summarizer_llm):
         memory.recent_messages = memory.recent_messages[-memory.window_size:]
 
     # After updating memory, save it back to Redis
-    redis_client.setex(session_id, 3600, pickle.dumps(memory))        
+    session_time_to_live = 3600  # 1 hour
+    redis_client.setex(session_id, session_time_to_live, pickle.dumps(memory))        
 
 
 @traceable(

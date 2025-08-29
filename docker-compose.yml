@@ -54,7 +54,7 @@ services:
       - redis_data:/data # Use a named volume for persistent data
 
 volumes:
-  redis_data:      
+  redis_data: {}  
          
 
   # postgres:
