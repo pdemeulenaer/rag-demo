@@ -167,7 +167,7 @@ jobs:
     needs: deploy-to-staging
     environment:
       name: production
-
+    if: github.ref == 'refs/heads/main' 
     steps:
       - name: Azure Login
         uses: azure/login@v2
