@@ -39,7 +39,23 @@ services:
     volumes:
       - ./src/api:/app/src/api
     environment:
-      - ALLOW_ORIGINS=*      
+      - ALLOW_ORIGINS=*  
+      - REDIS_HOST=redis  # Use the service name for Redis
+      - REDIS_PORT=6379        
+    depends_on:
+      - redis
+
+  # Redis database service
+  redis:
+    image: redis:7.0-alpine # Using a lightweight Redis image
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data # Use a named volume for persistent data
+
+volumes:
+  redis_data:      
+         
 
   # postgres:
   #   image: postgres:16-alpine
