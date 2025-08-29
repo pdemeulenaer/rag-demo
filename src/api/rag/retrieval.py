@@ -33,6 +33,7 @@ redis_client = redis.Redis(host='redis', port=6379, db=0)
 class ConversationMemory:
     def __init__(self, window_size=10): # 10 messages, i.e. 5 question-answer turns
         self.recent_messages = []
+        self.full_history = [] 
         self.summary = ""
         self.window_size = window_size
 
@@ -100,13 +101,19 @@ def get_memory(session_id: str) -> ConversationMemory:
 )
 def add_message(session_id: str, role: str, content: str, summarizer_llm):
     memory = get_memory(session_id)
+
+    # Add message to both lists
     memory.recent_messages.append({"role": role, "content": content})
+    memory.full_history.append({"role": role, "content": content})
+
 
     # Summarize older messages if buffer exceeded
     if len(memory.recent_messages) > memory.window_size:
+        # Get messages to summarize (all but the most recent)
         old_messages = memory.recent_messages[:-memory.window_size]
         summary_update = summarize_messages(old_messages, summarizer_llm)
         memory.summary += " " + summary_update
+        # Keep only the most recent messages in the buffer
         memory.recent_messages = memory.recent_messages[-memory.window_size:]
 
     # After updating memory, save it back to Redis
