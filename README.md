@@ -70,8 +70,10 @@ The application is composed of several key components:
     - `LANGSMITH_API_KEY`: LangSmith API key
     - `LANGSMITH_PROJECT`: LangSmith project name (e.g., `rag
 
+
 4. **Install Dependencies**
-   - Recommended: use a virtual environment
+   - Recommended: use a Python virtual environment together with `uv` package manager:
+
      ```bash
      python -m venv .venv
      source .venv/bin/activate
@@ -101,101 +103,6 @@ The application is composed of several key components:
    - Access UI: [http://localhost:8501](http://localhost:8501)
    - Access API: [http://localhost:8000/docs](http://localhost:8000/docs)
    - Both frontend and backend logs can be investigated in the Docker Desktop containers
-
-
-
-# 📚 RAG Demo – Streamlit + FastAPI + Qdrant
-
-**Objective**: Demonstrate a lightweight Retrieval-Augmented Generation (RAG) pipeline where users can query a collection of PDF documents pre-loaded into a **Qdrant Vector Store**.
-
-The project consists of two Dockerized services:
-
-* **Backend**: FastAPI service that handles embeddings, retrieval, and communication with external APIs.
-* **Frontend**: Streamlit app that provides a simple chat-style interface to query the knowledge base.
-
----
-
-## 🚀 Features
-
-* Ingest a folder of PDFs into **Qdrant Cloud** with one command.
-* Query documents using **RAG pipeline** with Groq (LLMs), Cohere (reranker), and a custom embedding model API.
-* **Streamlit UI** for interactive exploration.
-* **Dockerized** for local development and **multi-container deployment** to Azure Web App.
-
----
-
-## 🛠️ Prerequisites
-
-* Docker & Docker Compose
-* Python ≥ 3.10 (if running outside Docker)
-* Azure CLI (for deployment)
-
----
-
-## ⚙️ Environment Setup
-
-1. Copy the sample env file:
-
-   ```bash
-   cp .env.sample .env
-   ```
-
-2. Fill in your API keys inside `.env`:
-
-   * `GROQ_API_KEY` → for text generation/summarization
-   * `COHERE_API_KEY` → for reranking retrieved chunks
-   * `QDRANT_API_KEY` → for Qdrant Cloud access
-   * `QDRANT_URL` → your Qdrant cluster endpoint
-   * `EMBEDDING_API_URL` → custom embedding model endpoint
-
----
-
-## 📥 Step 1 – Ingest PDFs into Qdrant
-
-Upload all your PDFs into Qdrant with:
-
-```bash
-make ingest
-```
-
-This processes and indexes the documents in your Qdrant collection.
-
----
-
-## 💻 Step 2 – Run Locally
-
-To serve the Streamlit UI and FastAPI backend locally:
-
-```bash
-make serve
-```
-
-Or directly with Docker Compose:
-
-```bash
-docker-compose up --build
-```
-
-* Streamlit app → [http://localhost:8501](http://localhost:8501)
-* FastAPI backend → [http://localhost:8000/docs](http://localhost:8000/docs)
-
----
-
-## 🐳 Docker Images
-
-Build and run locally:
-
-```bash
-docker build -t rag-demo:0.0.1 .
-docker run -p 8501:8501 --env-file .env rag-demo:0.0.1
-```
-
-Push to Docker Hub:
-
-```bash
-docker tag rag-demo:0.0.1 pdemeulenaer/rag-demo:0.0.1
-docker push pdemeulenaer/rag-demo:0.0.1
-```
 
 ---
 
