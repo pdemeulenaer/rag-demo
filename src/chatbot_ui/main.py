@@ -20,21 +20,22 @@ def get_session_id_from_response(response):
     return None
 
 
-def connect_to_backend():
-    try:
-        response = requests.post(f"{API_URL}/connect")
-        response.raise_for_status()
-        return True
-    except Exception as e:
-        st.error(f"❌ Backend connection failed: {e}")
-        return False
+# def connect_to_backend():
+#     try:
+#         response = requests.post(f"{API_URL}/connect")
+#         response.raise_for_status()
+#         return True
+#     except Exception as e:
+#         st.error(f"❌ Backend connection failed: {e}")
+#         return False
          
 
 def ask_question_to_backend(question):
     try:
         headers = {"Content-Type": "application/json"}
         # Include the session_id cookie if it exists in the session state
-        if "session_id" in st.session_state:
+        # if "session_id" in st.session_state:
+        if st.session_state.session_id:
             headers["Cookie"] = f"session_id={st.session_state.session_id}"
         
         response = requests.post(f"{API_URL}/rag2", json={"query": question}, headers=headers)
@@ -61,33 +62,36 @@ def main():
         st.session_state.init_done = True
 
     # Initialize session state
-    if "connected" not in st.session_state:
-        st.session_state.connected = False
+    # if "connected" not in st.session_state:
+    #     st.session_state.connected = False
     if "full_conversation" not in st.session_state:
         st.session_state.full_conversation = []   # all turns for display
     if "backend_memory" not in st.session_state:
         st.session_state.backend_memory = []      # summarized memory view
     if "session_id" not in st.session_state:
-        st.session_state.session_id = None        
+        # st.session_state.session_id = None     
+        st.session_state.session_id = "" # Use an empty string instead of None   
 
     st.header("🤖 RAG Chat with PDF Knowledge Base")
 
     with st.sidebar:
         st.subheader("📚 Knowledge Base")
 
-        if not st.session_state.connected:
-            if connect_to_backend():
-                st.session_state.connected = True
-                st.success("✅ Connected to backend")
-                st.rerun()
-        else:
-            st.success("🟢 Connected to Knowledge Base")
+        # if not st.session_state.connected:
+        #     if connect_to_backend():
+        #         st.session_state.connected = True
+        #         st.success("✅ Connected to backend")
+        #         st.rerun()
+        # else:
+        #     st.success("🟢 Connected to Knowledge Base")
     # st.session_state.connected = True
+        st.success("🟢 Connected to Knowledge Base")
+        st.info("The knowledge base is pre-loaded from a set of astronomy papers in PDF format.")
 
     question = st.text_input(
         "💬 Ask a question:",
         placeholder="e.g. How to derive the parameters of star clusters using broad-band photometry?",
-        disabled=not st.session_state.connected,
+        # disabled=not st.session_state.connected,
         key="user_question"
     )
 
