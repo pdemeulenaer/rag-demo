@@ -1,25 +1,31 @@
-# RAG demo
+# 📚 RAG Demo – Streamlit + FastAPI + Qdrant
 
-This project is a demonstration of a sophisticated Retrieval-Augmented Generation (RAG) system. It provides a web-based chat interface allowing users to ask questions against a knowledge base of PDF documents. The system is designed to be modular and leverages several state-of-the-art APIs and technologies for efficient and accurate information retrieval and generation.
+This project demonstrates a modular Retrieval-Augmented Generation (RAG) system for querying large collections of PDF documents via a web-based chat interface.  The system is designed to be modular and leverages several state-of-the-art APIs and technologies for efficient and accurate information retrieval and generation.
 
-## Architecture Overview
+---
+
+## 🏗️ Architecture Overview
 
 The application is composed of several key components:
 
-*   **Frontend**: A user-friendly chat interface built with **Streamlit**. It communicates with the backend API to provide a seamless conversational experience.
-*   **Backend API**: A **FastAPI** server that exposes endpoints for the RAG pipeline. It handles user queries, manages conversation history, and orchestrates the different services.
-*   **Vector Database**: **Qdrant Cloud** is used as the vector store for storing document embeddings and metadata, enabling efficient semantic search.
-*   **Embedding Model**: A custom embedding model served via its own API endpoint. This is responsible for converting text chunks and user queries into vector representations.
-*   **LLM for Generation**: **Groq** provides the fast Large Language Model (`llama-3.3-70b-versatile`) for generating answers based on the retrieved context.
-*   **Reranker**: **Cohere's Rerank API** is used to improve the relevance of retrieved document chunks before they are passed to the LLM, enhancing the quality of the generated answers.
+- **Frontend**: A **Streamlit** chat interface communicating with the backend API.
+- **Backend API**: A **FastAPI** server orchestrating the RAG pipeline, handling queries, conversation history, and service integration.
+- **Embedding Model**: OpenAI's text-embedding-3-small.- 
+- **Vector Database**: A **Qdrant Cloud** vector database stores document embeddings and metadata for hybrid (semantic + exact keyword matching) search.
+- **Reranker**: **Cohere's Rerank API** improves relevance of retrieved chunks before LLM generation.- 
+- **LLM for Generation**: Groq (`llama-3.3-70b-versatile`) generates answers based on retrieved context.
+
+---
+
+
 
 ## Key Features
 
 *   **Conversational Chat**: Engages in a multi-turn dialogue, maintaining context through a conversation memory system.
 *   **PDF Knowledge Base**: Ingests and processes a large collection of PDF documents.
-*   **Hybrid Search**: Combines semantic (vector) search with traditional keyword search for more robust retrieval.
+*   **Hybrid Search**: Combines semantic (vector) search with traditional keyword search for more robust retrieval. Re-ranking is performed on top of this.
 *   **Advanced RAG Pipeline**:
-    *   Retrieves relevant text chunks from Qdrant.
+    *   Retrieves relevant text chunks from Qdrant (hybrid search)
     *   Reranks the retrieved chunks using Cohere for better context.
     *   Constructs a detailed prompt including the query, chat history, and relevant context.
     *   Generates a comprehensive answer using Groq's LLM.
@@ -31,79 +37,70 @@ The application is composed of several key components:
 1.  **Prerequisites**:
     *   Python 3.12+
     *   Docker & Docker Compose
+    *   Docker Desktop >=v4.44.0 (optional)
     *   `make`
 
 2.  **Clone the Repository**:
     ```bash
-    git clone <repository-url>
+    git clone https://github.com/pdemeulenaer/rag-demo.git
     cd rag-demo
     ```
 
 3.  **Environment Variables**:
-    Create a `.env` file from the sample and fill in the required API keys and URLs.
-    ```bash
-    cp .env.sample .env
-    ```
-    You will need to populate the following variables in your `.env` file:
-    *   `API_URL`: The URL for the backend API (e.g., `http://localhost:8000`).
-    *   `EMBEDDING_API_URL`: The URL for your custom embedding model API.
-    *   `QDRANT_URL`: The URL for your Qdrant Cloud instance.
-    *   `QDRANT_API_KEY`: Your API key for Qdrant Cloud.
-    *   `COLLECTION_NAME`: The name of the collection in Qdrant (e.g., `rag-demo-collection`).
-    *   `GROQ_API_KEY`: Your API key for Groq.
-    *   `COHERE_API_KEY`: Your API key for Cohere.
-    *   `LANGCHAIN_API_KEY`: (Optional) For tracing with LangSmith.
+    Copy the sample and fill in required keys/URLs:
+     ```bash
+     cp .env.sample .env
+     ```
 
-4.  **Install Dependencies**:
-    It is recommended to use a virtual environment.
-    ```bash
-    python -m venv .venv
-    source .venv/bin/activate
-    pip install -r requirements.txt
-    ```
+    You will need to populate the following variables in your `.env` file:
+
+    - `GROQ_API_KEY`: API key for Groq (LLM generation)
+    - `QDRANT_API_KEY`: API key for Qdrant Cloud
+    - `QDRANT_URL`: URL for your Qdrant Cloud instance
+    - `QDRANT_COLLECTION_NAME`: Name of your Qdrant collection
+    - `EMBEDDING_API_URL`: URL for your embedding model API
+    - `COHERE_API_KEY`: API key for Cohere (reranking)
+    - `OPENAI_API_KEY`: API key for OpenAI (if using OpenAI models)
+    - `EMBEDDING_MODEL`: Embedding model name (e.g., `text-embedding-3-small`)
+    - `EMBEDDING_MODEL_PROVIDER`: Embedding model provider (e.g., `openai`)
+    - `GENERATION_MODEL`: Generation model name (e.g., `gpt-4.1`)
+    - `GENERATION_MODEL_PROVIDER`: Generation model provider (e.g., `openai`)
+    - `LANGSMITH_TRACING`: Enable LangSmith tracing (`true` or `false`)
+    - `LANGSMITH_ENDPOINT`: LangSmith API endpoint
+    - `LANGSMITH_API_KEY`: LangSmith API key
+    - `LANGSMITH_PROJECT`: LangSmith project name (e.g., `rag
+
+4. **Install Dependencies**
+   - Recommended: use a virtual environment
+     ```bash
+     python -m venv .venv
+     source .venv/bin/activate
+     uv init
+     uv sync
+     ```
 
 ## Usage
 
-1.  **Ingest Documents**:
-    Place your PDF files into a designated folder (e.g., `data/`). Then, run the ingestion process to process the documents and populate the Qdrant vector database.
-    ```bash
-    make ingest
-    ```
-    This command will parse the PDFs, chunk the text, generate embeddings, and upload them to your Qdrant collection.
+## 📥 Usage
 
-2.  **Run the Application**:
-    To start the backend API and the Streamlit frontend, use the `serve` command.
-    ```bash
-    make serve
-    ```
-    This will typically use `docker-compose` to launch all the necessary services. You can then access the chatbot UI at `http://localhost:8501`.
+1. **Ingest Documents** [TODO]
+   <!-- - Place PDFs in a folder (e.g., `data/`)
+   - Run ingestion:
+     ```bash
+     make ingest
+     ```
+   - Parses PDFs, chunks text, generates embeddings, uploads to Qdrant. -->
 
-## Docker
+2. **Run the Application**
+   - Start backend API and Streamlit frontend with Docker Compose:
+  
+     ```bash
+     docker-compose up --build
+     ```
 
-The application is designed to be run with Docker.
-
-*   **Build the Docker image**:
-    ```bash
-    docker build -t rag-demo:0.0.1 .
-    ```
-
-*   **Run the Docker container**:
-    Make sure your `.env` file is present in the root directory.
-    ```bash
-    docker run -p 8501:8501 --env-file .env rag-demo:0.0.1
-    ```
-    *Note*: The Docker container needs to know the address of the Qdrant database and other services. Using `--env-file` passes the necessary environment variables. If your Qdrant instance is running on your host machine from the container's perspective, you might need to use `host.docker.internal` instead of `localhost` in your `QDRANT_URL`.
-
-*   **Push to a Registry (Optional)**:
-    To share your image, you can tag it and push it to a container registry like Docker Hub.
-    ```bash
-    docker image tag rag-demo:0.0.1 your-dockerhub-username/rag-demo:0.0.1
-    docker login
-    docker image push your-dockerhub-username/rag-demo:0.0.1
-    ```
-
-
-
+   - Access UI: [http://localhost:8501](http://localhost:8501)
+   - Access API: [http://localhost:8000/docs](http://localhost:8000/docs)
+   - Both frontend and backend logs can be investigated in the Docker Desktop containers
 
 
 
@@ -242,4 +239,8 @@ This project uses **`docker-compose.prod.yml`** for deployment. The CI/CD pipeli
 
 * [ ] Add monitoring/logging in Azure deployment.
 * [ ] Improve error handling when backend cannot connect to Qdrant.
-* [ ] Add support for authentication in Streamlit UI.    
+* [ ] Add support for authentication in Streamlit UI.
+
+## License
+
+MIT
