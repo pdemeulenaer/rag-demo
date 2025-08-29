@@ -1,4 +1,4 @@
-collection: 'test_collection2'
+collection: 'test_collection_oai_test'
 
 groq:
   summarization_model: 'llama-3.3-70b-versatile'

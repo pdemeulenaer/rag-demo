@@ -1,0 +1,72 @@
+
+services:
+  streamlit-app:
+    build:
+      context: .
+      dockerfile: Dockerfile.streamlit
+    image: pdemeulenaer/rag-frontend:0.2.1
+    ports:
+      - 8501:8501
+    env_file:
+      - .env
+    environment:
+      - API_URL=http://api:8000         
+    restart: unless-stopped
+    volumes:
+      - ./src/chatbot_ui:/app/src/chatbot_ui   
+    depends_on:
+      - api      
+
+  # qdrant:
+  #   image: qdrant/qdrant
+  #   ports:
+  #     - 6333:6333
+  #     - 6334:6334
+  #   volumes:
+  #     - ./qdrant_storage:/qdrant/storage:z
+  #   restart: unless-stopped
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.fastapi
+    image: pdemeulenaer/rag-backend:0.2.1
+    ports:
+      - 8000:8000
+    env_file:
+      - .env
+    restart: unless-stopped
+    volumes:
+      - ./src/api:/app/src/api
+    environment:
+      - ALLOW_ORIGINS=*  
+      - REDIS_HOST=redis  # Use the service name for Redis
+      - REDIS_PORT=6379        
+    depends_on:
+      - redis
+
+  # Redis database service
+  redis:
+    image: redis:7.0-alpine # Using a lightweight Redis image
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data # Use a named volume for persistent data
+
+volumes:
+  redis_data:      
+         
+
+  # postgres:
+  #   image: postgres:16-alpine
+  #   ports:
+  #     - 5433:5432
+  #   environment:
+  #     POSTGRES_DB: langgraph_db
+  #     POSTGRES_USER: langgraph_user
+  #     POSTGRES_PASSWORD: langgraph_password
+  #     PGDATA: /var/lib/postgresql/data/pgdata
+  #   restart: unless-stopped
+  #   volumes:
+  #     - ./postgres_data:/var/lib/postgresql/data
+  #     - ./init-db.sh:/docker-entrypoint-initdb.d/init-db.sh

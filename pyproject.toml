@@ -1,18 +1,22 @@
 [project]
 name = "rag-demo"
-version = "0.1.0"
+version = "0.2.0"
 description = "A demo RAG for LangChain and Groq"
 authors = [{ name = "pdemeulenaer", email = "pdemeulenaer@gmail.com" }]
 requires-python = ">=3.12"
 readme = "README.md"
 license = { text = "MIT" }
 keywords = [
-    "langchain",
     "groq",
     "rag",
     "retrieval-augmented-generation",
     "streamlit",
-    "huggingface",
+    "fastapi",
+    "langsmith",
+    "openai",
+    "cohere",
+    "qdrant",
+    "redis",
     "pymupdf",
 ]
 dependencies = [
@@ -21,28 +25,25 @@ dependencies = [
     "langchain-community (>=0.3.19,<0.4.0)",
     "langchain-groq (>=0.2.4,<0.3.0)",
     "streamlit (>=1.43.2,<2.0.0)",
-    # "huggingface-hub (>=0.30.2,<0.31.0)",
     "pymupdf (>=1.25.5,<2.0.0)",
     "qdrant-client (<1.13.3)",
     "httpx (>=0.28.1,<0.29.0)",
     "pyyaml (>=6.0.2,<7.0.0)",
-    # "datasets (>=3.6.0,<4.0.0)",
     "ragas (>=0.2.15,<0.3.0)",
     "cohere >=5.12.0,<6.0.0",
     # "langchain-cohere (==0.4.4)", # causing errors
-    "ragas (>=0.2.15,<0.3.0)",      
+    "ragas (>=0.2.15,<0.3.0)",
+    "uvicorn>=0.35.0",
+    "fastapi>=0.116.1",
+    "langsmith>=0.4.14",
+    "openai>=1.95.1",
+    "instructor>=1.10.0",
+    "groq>=0.30.0",
+    "google-genai",
+    "redis>=6.4.0",
 ]
-# readme-content-type = "text/markdown"
 
-# [tool.hatch.build.targets.sdist]
-# include = ["src/rag_demo"]
-
-# [tool.hatch.build.targets.wheel]
-# include = ["src/rag_demo"]
-
-# [tool.hatch.build.targets.wheel.sources]
-# "src/rag_demo" = "rag_demo"
-
-# [build-system]
-# requires = ["hatchling"]
-# build-backend = "hatchling.build"
+[dependency-groups]
+dev = [
+    "ipykernel>=6.29.5",
+]
