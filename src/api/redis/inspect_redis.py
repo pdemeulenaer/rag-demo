@@ -42,6 +42,10 @@ try:
         print("\n--- Recent Messages ---")
         for message in conversation_memory.recent_messages:
             print(f"{message['role'].capitalize()}: {message['content']}")
+
+        print("\n--- Full Conversation History ---")
+        for message in conversation_memory.full_history:
+            print(f"{message['role'].capitalize()}: {message['content']}")            
         
     else:
         print(f"No data found for session ID: {session_id_to_inspect}")

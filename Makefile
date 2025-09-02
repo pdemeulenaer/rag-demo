@@ -60,7 +60,11 @@ serve:
 	uv run streamlit run src/chatbot_ui/main.py	
 
 # evaluate: # TODO: take from other repo
-# 	uv run python src/rag_demo/evaluation_ragas.py		
+# 	uv run python src/rag_demo/evaluation_ragas.py	
+
+# inspect redis chat history # input parameter: chat id, like 80c35ffb-8d19-4b3c-b9d4-b2da0731e620
+redis-chat:
+	uv run python src/api/redis/inspect_redis.py 
 
 
 .PHONY: build run
