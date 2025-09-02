@@ -12,7 +12,8 @@ from qdrant_client import QdrantClient
 from qdrant_client.models import Prefetch, Filter, FieldCondition, MatchText, FusionQuery
 from langsmith import traceable, get_current_run_tree
 import logging
-
+import redis
+import pickle
 
 from src.api.core.config import config
 from src.api.rag.utils.utils import prompt_template_config, prompt_template_registry
@@ -23,27 +24,18 @@ logger = logging.getLogger(__name__)
 cohere_client = cohere.Client(config.COHERE_API_KEY)
 
 # Initialize the conversation memory
-conversation_memory = {}
+# conversation_memory = {} # global memory dictionary, deprecated in favor of Redis
+redis_client = redis.Redis(host='redis', port=6379, db=0)
+
+
+
 
 class ConversationMemory:
     def __init__(self, window_size=10): # 10 messages, i.e. 5 question-answer turns
         self.recent_messages = []
+        self.full_history = [] 
         self.summary = ""
         self.window_size = window_size
-
-# def summarize_messages(messages, summarizer_llm):
-#     """Summarize older messages into a concise running summary."""
-#     text = "\n".join([f"{msg['role'].capitalize()}: {msg['content']}" for msg in messages])
-#     prompt = f"Summarize the following conversation history concisely:\n\n{text}\n\nSummary:"
-
-#     response, raw_response = summarizer_llm.chat.completions.create_with_completion(
-#         model="llama-3.3-70b-versatile",
-#         response_model=str,  # Expect plain text
-#         messages=[{"role": "user", "content": prompt}],
-#         temperature=0.5
-#     )
-
-#     return response.strip()
 
 
 @traceable(
@@ -84,10 +76,24 @@ def summarize_messages(messages, summarizer_llm):
     name="get_memory",
     # run_type="prompt",
 )
+# def get_memory(session_id: str) -> ConversationMemory:
+#     # global conversation_memory, based on session_id
+#     if session_id not in conversation_memory:
+#         conversation_memory[session_id] = ConversationMemory()
+#     return conversation_memory[session_id]
 def get_memory(session_id: str) -> ConversationMemory:
-    if session_id not in conversation_memory:
-        conversation_memory[session_id] = ConversationMemory()
-    return conversation_memory[session_id]
+    # Try to get the memory object from Redis
+    pickled_memory = redis_client.get(session_id)
+    if pickled_memory:
+        # If it exists, deserialize and return it
+        return pickle.loads(pickled_memory)
+    else:
+        # If not, create a new one, store it, and return it
+        new_memory = ConversationMemory()
+        # Set a timeout for the session (e.g., 1 hour = 3600 seconds)
+        redis_client.setex(session_id, 3600, pickle.dumps(new_memory))
+        return new_memory
+
 
 @traceable(
     name="add_message",
@@ -95,14 +101,24 @@ def get_memory(session_id: str) -> ConversationMemory:
 )
 def add_message(session_id: str, role: str, content: str, summarizer_llm):
     memory = get_memory(session_id)
+
+    # Add message to both lists
     memory.recent_messages.append({"role": role, "content": content})
+    memory.full_history.append({"role": role, "content": content})
+
 
     # Summarize older messages if buffer exceeded
     if len(memory.recent_messages) > memory.window_size:
+        # Get messages to summarize (all but the most recent)
         old_messages = memory.recent_messages[:-memory.window_size]
         summary_update = summarize_messages(old_messages, summarizer_llm)
         memory.summary += " " + summary_update
+        # Keep only the most recent messages in the buffer
         memory.recent_messages = memory.recent_messages[-memory.window_size:]
+
+    # After updating memory, save it back to Redis
+    session_time_to_live = 3600  # 1 hour
+    redis_client.setex(session_id, session_time_to_live, pickle.dumps(memory))        
 
 
 @traceable(

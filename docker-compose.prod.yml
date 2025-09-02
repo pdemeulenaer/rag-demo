@@ -2,15 +2,28 @@ version: "3.8"
 
 services:
   streamlit-app:
-    # image: pdemeulenaer/rag-frontend:latest
-    # image: pdemeulenaer/rag-frontend:${GITHUB_SHA}
     image: pdemeulenaer/rag-frontend:VERSION
     environment:
       - API_URL=http://api:8000/    
     restart: always
+    depends_on:
+      - api    
 
   api:
-    # image: pdemeulenaer/rag-backend:latest
-    # image: pdemeulenaer/rag-backend:${GITHUB_SHA}
     image: pdemeulenaer/rag-backend:VERSION
+    environment:
+      - ALLOW_ORIGINS=*
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379    
     restart: always
+    depends_on:
+      - redis    
+
+  redis:
+    image: redis:7.0-alpine
+    restart: always
+    volumes:
+      - redis_data:/data
+
+volumes:
+  redis_data: {}      
