@@ -1,7 +1,7 @@
 import os
 
-from chatbot_ui.core.config import config
-from chatbot_ui.retrieval import rag_pipeline
+from src.api.core.config import config
+from src.api.rag.retrieval import rag_pipeline
 
 from langsmith import Client
 from qdrant_client import QdrantClient
