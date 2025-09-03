@@ -48,8 +48,8 @@ test:
 
 # quality-ci: lint test
 
-# ingest: # TODO: take from other repo
-# 	uv run python -m src.rag_demo.ingest_to_qdrant
+ingest:
+	uv run python -m ingestion.ingest_to_qdrant_oai
 
 run-api:
 # 	uv run uvicorn src.api.main:app --reload --port 8000

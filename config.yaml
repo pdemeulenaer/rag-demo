@@ -5,3 +5,4 @@ groq:
   summarization_prompt: 'Summarize the following text: {{text}}'
   temperature: 0.3
   max_tokens: 256
+  metadata_model: 'llama-3.3-70b-versatile'  
