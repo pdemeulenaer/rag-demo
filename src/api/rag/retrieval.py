@@ -82,6 +82,11 @@ def summarize_messages(messages, summarizer_llm):
 #         conversation_memory[session_id] = ConversationMemory()
 #     return conversation_memory[session_id]
 def get_memory(session_id: str) -> ConversationMemory:
+
+    # If in evaluation mode, return a fresh memory each time
+    if os.getenv("EVALUATION_MODE") == "true":
+        return ConversationMemory()
+
     # Try to get the memory object from Redis
     pickled_memory = redis_client.get(session_id)
     if pickled_memory:
@@ -407,6 +412,7 @@ def generate_answer_groq(prompt):
 
 @traceable(
     name="rag_pipeline",
+    run_type="chain"
 )
 # def rag_pipeline(question, qdrant_client, top_k=5):
 
@@ -505,13 +511,19 @@ def generate_answer_groq(prompt):
 #     }
 def rag_pipeline(question, qdrant_client, session_id, top_k=5):
 
+    # If in evaluation mode, return a fresh memory each time
+    if os.getenv("EVALUATION_MODE") == "true":
+        
+        # just use hybrid retrieval without reranking
+        retrieved_context = retrieve_context(question, qdrant_client, top_k=5)
 
-    # Initial Hybrid retrieval from Qdrant
-    # retrieved_context = retrieve_context(question, qdrant_client, top_k)
-    retrieved_context = retrieve_context(question, qdrant_client, top_k=20)  # fetch more initially, because we will rerank
-    
-    # Rerank with Cohere
-    retrieved_context = rerank_context(question, retrieved_context, top_n=top_k)
+    else: # normal mode: with larger hybrid retrieval + reranking
+        # Initial Hybrid retrieval from Qdrant
+        # retrieved_context = retrieve_context(question, qdrant_client, top_k)
+        retrieved_context = retrieve_context(question, qdrant_client, top_k=20)  # fetch more initially, because we will rerank
+        
+        # Rerank with Cohere
+        retrieved_context = rerank_context(question, retrieved_context, top_n=top_k)
 
     prompt = build_prompt(
         {
