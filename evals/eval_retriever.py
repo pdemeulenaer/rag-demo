@@ -13,8 +13,12 @@ from ragas.embeddings import LangchainEmbeddingsWrapper
 
 
 ls_client = Client(api_key=config.LANGSMITH_API_KEY)
+# qdrant_client = QdrantClient(
+#     url=f"http://localhost:6333"
+# )
 qdrant_client = QdrantClient(
-    url=f"http://localhost:6333"
+    url=config.QDRANT_URL,
+    api_key=config.QDRANT_API_KEY  # For Qdrant Cloud only
 )
 
 from ragas.dataset_schema import SingleTurnSample 
@@ -25,7 +29,7 @@ ragas_embeddings = LangchainEmbeddingsWrapper(OpenAIEmbeddings(model="text-embed
 
 
 async def ragas_faithfulness(run, example):
-
+    # https://docs.ragas.io/en/stable/concepts/metrics/available_metrics/faithfulness/
     sample = SingleTurnSample(
             user_input=run.outputs["question"],
             response=run.outputs["answer"],
@@ -37,7 +41,7 @@ async def ragas_faithfulness(run, example):
 
 
 async def ragas_responce_relevancy(run, example):
-
+    # https://docs.ragas.io/en/stable/concepts/metrics/available_metrics/answer_relevance/
     sample = SingleTurnSample(
             user_input=run.outputs["question"],
             response=run.outputs["answer"],
@@ -49,7 +53,7 @@ async def ragas_responce_relevancy(run, example):
 
 
 async def ragas_context_precision(run, example):
-
+    # https://docs.ragas.io/en/stable/concepts/metrics/available_metrics/context_precision/
     sample = SingleTurnSample(
             user_input=run.outputs["question"],
             response=run.outputs["answer"],
@@ -61,7 +65,7 @@ async def ragas_context_precision(run, example):
 
 
 async def ragas_context_recall_llm_based(run, example):
-
+    # https://docs.ragas.io/en/stable/concepts/metrics/available_metrics/context_recall/
     sample = SingleTurnSample(
             user_input=run.outputs["question"],
             response=run.outputs["answer"],
@@ -74,7 +78,7 @@ async def ragas_context_recall_llm_based(run, example):
 
 
 async def ragas_context_recall_non_llm(run, example):
-
+    # https://docs.ragas.io/en/stable/concepts/metrics/available_metrics/context_recall/
     sample = SingleTurnSample(
             retrieved_contexts=run.outputs["retrieved_context"],
             reference_contexts=example.outputs["contexts"]

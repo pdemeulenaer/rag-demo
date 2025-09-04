@@ -66,6 +66,9 @@ serve:
 redis-chat:
 	uv run python src/api/redis/inspect_redis.py 
 
+run-evals:
+	uv run python evals/eval_retriever.py	
+
 
 .PHONY: build run
 
