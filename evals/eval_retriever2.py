@@ -16,6 +16,7 @@ import asyncio
 from langsmith import Client
 from qdrant_client import QdrantClient
 from langchain_openai import ChatOpenAI
+from langchain_groq import ChatGroq
 from langchain_openai import OpenAIEmbeddings
 
 from ragas.llms import LangchainLLMWrapper
@@ -26,6 +27,12 @@ from ragas.metrics import Faithfulness, ResponseRelevancy, LLMContextPrecisionWi
 
 
 os.environ["EVALUATION_MODE"] = "true"
+os.environ["LANGCHAIN_TRACING_V2"] = "false"  # 💡 Add this line to disable LangSmith tracing
+os.environ["GROQ_API_KEY"] = config.GROQ_API_KEY
+os.environ["OPENAI_API_KEY"] = config.OPENAI_API_KEY
+os.environ["LANGSMITH_API_KEY"] = config.LANGSMITH_API_KEY
+os.environ["QDRANT_API_KEY"] = config.QDRANT_API_KEY  # For Qdrant Cloud only
+os.environ["QDRANT_URL"] = config.QDRANT_URL
 debug_mode = False
 
 # Initialize LangSmith & Qdrant clients
@@ -40,9 +47,12 @@ qdrant_client = QdrantClient(
     api_key=config.QDRANT_API_KEY  # For Qdrant Cloud only
 )
 
-os.environ["OPENAI_API_KEY"] = config.OPENAI_API_KEY
-ragas_llm = LangchainLLMWrapper(ChatOpenAI(model="gpt-4.1", openai_api_key=config.OPENAI_API_KEY))
+# Initialize the Groq model for Ragas evaluation
+ragas_llm = LangchainLLMWrapper(ChatGroq(model="llama-3.3-70b-versatile", groq_api_key=config.GROQ_API_KEY))
+# ragas_llm = LangchainLLMWrapper(ChatOpenAI(model="gpt-4.1-mini", openai_api_key=config.OPENAI_API_KEY))
 ragas_embeddings = LangchainEmbeddingsWrapper(OpenAIEmbeddings(model="text-embedding-3-small", openai_api_key=config.OPENAI_API_KEY))
+
+
 
 async def ragas_faithfulness(run, example):
     # https://docs.ragas.io/en/stable/concepts/metrics/available_metrics/faithfulness/
@@ -121,37 +131,46 @@ async def ragas_context_recall_non_llm(run, example):
     return await scorer.single_turn_ascore(sample)
 
 
-def rag_pipeline_for_eval(inputs):
+# def rag_pipeline_for_eval(inputs):
+#     result = rag_pipeline(inputs["question"], qdrant_client, session_id=0)
+#     return {
+#         "answer": result["answer"],
+#         "question": inputs["question"],
+#         "retrieved_context": result["retrieved_context"],
+#         "sources": result["sources"],
+#     }
+
+def rag_pipeline_for_eval(inputs): 
     result = rag_pipeline(inputs["question"], qdrant_client, session_id=0)
     return {
         "answer": result["answer"],
         "question": inputs["question"],
         "retrieved_context": result["retrieved_context"],
-        "sources": result["sources"],
-    }
+        "sources": result["sources"], 
+        }
+
+# results = ls_client.evaluate(
+#     rag_pipeline_for_eval,
+#     data="rag-evaluation-dataset",
+#     evaluators=[
+#         ragas_faithfulness,
+#         ragas_response_relevancy,
+#         ragas_context_precision,
+#         ragas_context_recall_llm_based,
+#         ragas_context_recall_non_llm,
+#     ],
+#     experiment_prefix="rag-evaluation-dataset"
+# )
 
 results = ls_client.evaluate(
-    rag_pipeline_for_eval,
+    lambda x: rag_pipeline(x["question"], qdrant_client, session_id=0),
     data="rag-evaluation-dataset",
     evaluators=[
         ragas_faithfulness,
         ragas_response_relevancy,
         ragas_context_precision,
         ragas_context_recall_llm_based,
-        ragas_context_recall_non_llm,
+        ragas_context_recall_non_llm
     ],
     experiment_prefix="rag-evaluation-dataset"
 )
-
-# results = ls_client.evaluate(
-#     lambda x: rag_pipeline(x["question"], qdrant_client, session_id=0),
-#     data="rag-evaluation-dataset",
-#     evaluators=[
-#         ragas_faithfulness,
-#         # ragas_response_relevancy,
-#         # ragas_context_precision,
-#         # ragas_context_recall_llm_based,
-#         # ragas_context_recall_non_llm
-#     ],
-#     experiment_prefix="rag-evaluation-dataset"
-# )
