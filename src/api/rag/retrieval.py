@@ -519,7 +519,6 @@ def rag_pipeline(question, qdrant_client, session_id, top_k=5):
 
     else: # normal mode: with larger hybrid retrieval + reranking
         # Initial Hybrid retrieval from Qdrant
-        # retrieved_context = retrieve_context(question, qdrant_client, top_k)
         retrieved_context = retrieve_context(question, qdrant_client, top_k=20)  # fetch more initially, because we will rerank
         
         # Rerank with Cohere
@@ -571,10 +570,14 @@ def rag_pipeline(question, qdrant_client, session_id, top_k=5):
             existing_pages.update(page_num)
             seen[key].page = sorted(existing_pages)            
 
+    # Extract just the text content from the retrieved_context objects
+    retrieved_context_texts = [c["text"] for c in retrieved_context]
+
     return {
         "answer": answer.answer,
-        "sources": unique_sources,
+        "sources": unique_sources, # [s.__dict__ for s in unique_sources], # make sources JSON serializable #
         "question": question,
+        "retrieved_context": retrieved_context_texts,
     }
 
 
@@ -592,6 +595,9 @@ def rag_pipeline_wrapper(question, session_id, summarizer_llm, top_k=5):
     # Update memory with summarization
     add_message(session_id, "user", question, summarizer_llm)
     add_message(session_id, "assistant", result["answer"], summarizer_llm)
+
+    # sources = [Source(**s) for s in result.get("sources", [])]
+
 
     return {
         "answer": result["answer"],

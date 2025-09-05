@@ -26,6 +26,7 @@ from ragas.metrics import Faithfulness, ResponseRelevancy, LLMContextPrecisionWi
 
 
 os.environ["EVALUATION_MODE"] = "true"
+debug_mode = False
 
 # Initialize LangSmith & Qdrant clients
 
@@ -39,14 +40,31 @@ qdrant_client = QdrantClient(
     api_key=config.QDRANT_API_KEY  # For Qdrant Cloud only
 )
 
-
+os.environ["OPENAI_API_KEY"] = config.OPENAI_API_KEY
 ragas_llm = LangchainLLMWrapper(ChatOpenAI(model="gpt-4.1", openai_api_key=config.OPENAI_API_KEY))
 ragas_embeddings = LangchainEmbeddingsWrapper(OpenAIEmbeddings(model="text-embedding-3-small", openai_api_key=config.OPENAI_API_KEY))
 
 async def ragas_faithfulness(run, example):
     # https://docs.ragas.io/en/stable/concepts/metrics/available_metrics/faithfulness/
+
+    # # Fail-fast checks
+    if debug_mode:
+        print("🛠️ Debug mode is ON")
+        print("📝 example.inputs =", example.inputs)
+        # print("📝 example.outputs =", example.outputs)
+        print("🔍 run.outputs =", run.outputs)
+
+    if not run.outputs:
+        raise KeyError("run.outputs is missing in ragas_faithfulness")
+
+    required = ["question", "answer", "retrieved_context"]
+    missing = [k for k in required if k not in run.outputs]
+    if missing:
+        raise KeyError(f"Missing keys in run.outputs: {missing}. Available keys: {list(run.outputs.keys())}")
+
+
     sample = SingleTurnSample(
-            user_input=run.outputs["question"],
+            user_input=example.inputs.get("question"), #run.outputs["question"],
             response=run.outputs["answer"],
             retrieved_contexts=run.outputs["retrieved_context"]
         )
@@ -103,15 +121,37 @@ async def ragas_context_recall_non_llm(run, example):
     return await scorer.single_turn_ascore(sample)
 
 
+def rag_pipeline_for_eval(inputs):
+    result = rag_pipeline(inputs["question"], qdrant_client, session_id=0)
+    return {
+        "answer": result["answer"],
+        "question": inputs["question"],
+        "retrieved_context": result["retrieved_context"],
+        "sources": result["sources"],
+    }
+
 results = ls_client.evaluate(
-    lambda x: rag_pipeline(x["question"], qdrant_client, session_id=0),
+    rag_pipeline_for_eval,
     data="rag-evaluation-dataset",
     evaluators=[
         ragas_faithfulness,
         ragas_response_relevancy,
         ragas_context_precision,
         ragas_context_recall_llm_based,
-        ragas_context_recall_non_llm
+        ragas_context_recall_non_llm,
     ],
     experiment_prefix="rag-evaluation-dataset"
 )
+
+# results = ls_client.evaluate(
+#     lambda x: rag_pipeline(x["question"], qdrant_client, session_id=0),
+#     data="rag-evaluation-dataset",
+#     evaluators=[
+#         ragas_faithfulness,
+#         # ragas_response_relevancy,
+#         # ragas_context_precision,
+#         # ragas_context_recall_llm_based,
+#         # ragas_context_recall_non_llm
+#     ],
+#     experiment_prefix="rag-evaluation-dataset"
+# )
