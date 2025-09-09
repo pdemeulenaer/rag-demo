@@ -17,14 +17,14 @@ services:
     depends_on:
       - api      
 
-  # qdrant:
-  #   image: qdrant/qdrant
-  #   ports:
-  #     - 6333:6333
-  #     - 6334:6334
-  #   volumes:
-  #     - ./qdrant_storage:/qdrant/storage:z
-  #   restart: unless-stopped
+  qdrant:
+    image: qdrant/qdrant
+    ports:
+      - 6333:6333
+      - 6334:6334
+    volumes:
+      - ./qdrant_storage:/qdrant/storage:z
+    restart: unless-stopped
 
   api:
     build:
@@ -41,9 +41,11 @@ services:
     environment:
       - ALLOW_ORIGINS=*  
       - REDIS_HOST=redis  # Use the service name for Redis
-      - REDIS_PORT=6379        
+      - REDIS_PORT=6379     
+      - QDRANT_URL=http://qdrant:6333   
     depends_on:
       - redis
+      - qdrant
 
   # Redis database service
   redis:
