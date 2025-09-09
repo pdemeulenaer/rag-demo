@@ -5,6 +5,7 @@ class Config(BaseSettings):
     GROQ_API_KEY: str
     # GOOGLE_API_KEY: str
     QDRANT_URL: str
+    # QDRANT_API_KEY: str    
     QDRANT_COLLECTION_NAME: str 
     EMBEDDING_MODEL: str
     EMBEDDING_MODEL_PROVIDER: str
@@ -17,7 +18,6 @@ class Config(BaseSettings):
     RAG_PROMPT_TEMPLATE_PATH: str = "src/api/rag/prompts/rag_generation.yaml"
     EMBEDDING_API_URL: str
     COHERE_API_KEY: str
-    QDRANT_API_KEY: str
 
     model_config = SettingsConfigDict(env_file=".env")
 
