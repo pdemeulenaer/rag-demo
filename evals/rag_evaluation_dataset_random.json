@@ -1,0 +1,269 @@
+[
+  {
+    "question": "What is the Reduced Random Sampling (RRS) method and which parameter controls the continuous transition between Optimal Sampling and Random Sampling?",
+    "chunk_ids": [
+      "4b0a400d-5a4b-4c89-adc9-433c8b452483",
+      "6c052d81-5878-4a50-a09a-713bc6a8823e",
+      "0edc8ba2-6481-4f66-be0e-0f629e784fcc"
+    ],
+    "answer_example": "The Reduced Random Sampling (RRS) is a sampling method that produces stellar masses for cluster models by first performing Optimal Sampling (OS), defining mass bins around each OS star, then resampling stellar masses inside those bins. The method allows a continuous transition between OS and Random Sampling (RS) by adjusting an expansion factor P that expands or shrinks the bin widths; P controls the extent of stochasticity (P \u2192 0 \u2192 OS; large P \u2192 RS).",
+    "reasoning": "Chunk 20 introduces RRS and outlines the four steps (generate OS masses, define bins, expand/shrink bins by factor P, resample). Chunk 47 further explains the role of the expansion factor P and shows how P tunes stochasticity. Chunk 2 contains figures and text illustrating the transition effects on cluster properties, supporting the description."
+  },
+  {
+    "question": "What calibrated value of the RRS expansion factor P (and any listed correction parameter) was used to match the observed m_max vs M relation (Weidner et al. 2013)?",
+    "chunk_ids": [
+      "45c4195a-083d-4ed4-b5d0-d4a0e5e3b046"
+    ],
+    "answer_example": "The calibrated mass-bin expansion factor P = 6 was used, together with a correction parameter d = 0.2.",
+    "reasoning": "The caption of Fig. 1.7 in chunk 31 explicitly states the artificial clusters were built with the Reduced Random Sampling method using calibrated P = 6 and correction parameter d = 0.2 to match Weidner et al. (2013)."
+  },
+  {
+    "question": "Which photometric system(s) do the authors find most effective for deriving metallicity (and reducing degeneracies) in cluster parameter inference?",
+    "chunk_ids": [
+      "2d655183-bd2d-49f4-acea-eb7590d7b156",
+      "eb01d0fb-935d-44d1-a58d-082806019f43",
+      "576761ed-7451-4a97-88c9-2dd68a5b96f4"
+    ],
+    "answer_example": "The WFC3+ACS HST photometric system (i.e., the PHAT WFC3+ACS set) \u2014 especially when ultraviolet data (GALEX or UV filters) are included \u2014 is identified as most effective for deriving metallicity and reducing degeneracies.",
+    "reasoning": "Chunk 7 and chunk 41 discuss the importance and application of the WFC3+ACS photometric system to derive metallicity. Chunk 34 explains that adding ultraviolet passbands (GALEX) sharply constrains age, mass, and extinction and aids metallicity determination, supporting the claim that UV+WFC3+ACS is especially effective."
+  },
+  {
+    "question": "What is the age\u2013extinction degeneracy, and how does restricting the allowed extinction range in the model grid affect this degeneracy?",
+    "chunk_ids": [
+      "57126ded-32f3-43af-9ed3-2080b49931f6",
+      "d03d6699-8d64-4cc2-a393-2dafd34af1de",
+      "1b952315-7bb7-4967-bc21-bb54708340b5"
+    ],
+    "answer_example": "The age\u2013extinction degeneracy is the effect where an old cluster with low extinction can have similar integrated colors to a younger cluster with higher extinction (and vice versa). Restricting the allowed extinction range in the model grid reduces the strength of the degeneracy (notably the lower degeneracy streak) \u2014 e.g., narrowing E(B\u2212V) from [0,1] to [0,0.5] decreased the number of clusters in the lower degeneracy region by more than a factor of four.",
+    "reasoning": "Chunk 4 and chunk 10 describe the age\u2013extinction degeneracy and present tests showing how a narrower allowed extinction range modifies the degeneracy streaks. Chunk 18 explicitly quantifies the reduction (\u223c480 \u2192 \u223c110 clusters in the square region) demonstrating the effect."
+  },
+  {
+    "question": "How is the likelihood of a model node (L_node) computed when deriving cluster parameters from photometry? Provide the formula or its description used in the paper.",
+    "chunk_ids": [
+      "da1c91df-d557-4d96-97f1-89dabc7c68c4",
+      "eb01d0fb-935d-44d1-a58d-082806019f43"
+    ],
+    "answer_example": "For each model, L_model = \u03a0_f [1/(\u221a(2\u03c0) \u03c3_f) exp(\u2212(mag_f,obs \u2212 mag_f,model)^2/(2 \u03c3_f^2))] over filters f. The node likelihood L_node(t,M,E(B\u2212V),[M/H]) is the sum of L_model over all models in that node: L_node = \u03a3_n L_model,n. The best-fit node maximizes L_node.",
+    "reasoning": "Chunk 39 (Eq. 2.1 and 2.2) gives the per-model Gaussian likelihood across filters and the node likelihood as the sum of model likelihoods. Chunk 41 likewise contains the same formalism and explains selecting the node that maximizes L_node."
+  },
+  {
+    "question": "When testing parameter recovery with only UBVRI photometry, what photometric error value (\u03c3) was commonly added in the simulations?",
+    "chunk_ids": [
+      "eb5b6d5e-5c5b-4f44-81d7-885bad43d330",
+      "e76f6a2f-ee29-457f-9731-32c3f84ed987"
+    ],
+    "answer_example": "A Gaussian photometric error of \u03c3 = 0.05 mag was commonly added to each UBVRI magnitude in the UBVRI-only tests.",
+    "reasoning": "Chunk 44 (Fig. 1 description) and chunk 3 note UBVRI tests performed with Gaussian errors of 0.05 mag, which is the commonly used value for those simulations."
+  },
+  {
+    "question": "How many stochastic models per node did the authors store in the grid used for parameter inference?",
+    "chunk_ids": [
+      "eb01d0fb-935d-44d1-a58d-082806019f43"
+    ],
+    "answer_example": "They used 1000 discrete stochastic models per node.",
+    "reasoning": "Chunk 41 states that the grid was built with 1000 models per node (yielding ~4\u00d710^6 models for each metallicity when combined over ages and masses), explicitly providing the per-node model count."
+  },
+  {
+    "question": "In many artificial-cluster tests reported here, what fixed cluster mass (log10 M/M\u2299) was used for the population used to probe degeneracies and distributions?",
+    "chunk_ids": [
+      "e76f6a2f-ee29-457f-9731-32c3f84ed987",
+      "3550f988-994f-4279-923a-cc60cf7254ea",
+      "576761ed-7451-4a97-88c9-2dd68a5b96f4"
+    ],
+    "answer_example": "A fixed mass of log10(M/M\u2299) = 4 was often used for artificial-cluster tests.",
+    "reasoning": "Multiple chunks (3, 36, 34) describe artificial samples where the cluster mass was fixed to log10(M/M\u2299)=4 for the experiments designed to probe age, extinction and metallicity effects."
+  },
+  {
+    "question": "Which extinction law did the authors adopt for their modeling and parameter inference?",
+    "chunk_ids": [
+      "57126ded-32f3-43af-9ed3-2080b49931f6",
+      "eb01d0fb-935d-44d1-a58d-082806019f43"
+    ],
+    "answer_example": "They adopted the Milky Way standard extinction law from Cardelli et al. (1989).",
+    "reasoning": "Chunk 4 describes using the Milky Way standard extinction law (Cardelli et al. 1989) in the analysis, and chunk 41 also references this choice when building grids and comparing models to data."
+  },
+  {
+    "question": "What physical upper limit for stellar mass did the authors use in their cluster modeling?",
+    "chunk_ids": [
+      "0edc8ba2-6481-4f66-be0e-0f629e784fcc",
+      "45c4195a-083d-4ed4-b5d0-d4a0e5e3b046"
+    ],
+    "answer_example": "They used a physical upper limit of 150 M\u2299 for the mass of a single star.",
+    "reasoning": "Chunk 2 (Fig. 1 caption) and chunk 31 (Fig. 1.7 caption) both note the horizontal dashed line at 150 M\u2299 as the physical upper limit for massive stars in their figures and modeling context."
+  },
+  {
+    "question": "How does the FitClust program model observed cluster frames to account for resolved stars and background?",
+    "chunk_ids": [
+      "c5643a8a-f14e-4a4b-bfa4-a77e2fad22c4",
+      "46ed95dc-3882-4aad-bc8d-56bae80e64cf"
+    ],
+    "answer_example": "FitClust models observed frames as the sum of: (1) the cluster surface-brightness distribution convolved with the PSF; (2) individual resolved stars, each represented by the PSF; and (3) a smoothly variable sky background. It fits these components with Levenberg\u2013Marquardt and Markov chain Monte Carlo algorithms to derive structural parameters and individual star fluxes.",
+    "reasoning": "Chunk 27 (FitClust description) explains the model components and the fitting algorithms; chunk 6 gives additional context on fitting approach and tests with convolved PSF models plus stars, supporting the description."
+  },
+  {
+    "question": "What parameter limits for structural fitting (rc, re, rt/rc, n) were set in the FitClust model fitting routine?",
+    "chunk_ids": [
+      "46ed95dc-3882-4aad-bc8d-56bae80e64cf"
+    ],
+    "answer_example": "They set rc = re = [0.01, 15] pixels, rt/rc = [2, 500] for King models, and n = [1.01, 5] for EFF models.",
+    "reasoning": "Chunk 6 explicitly lists the limits used in the model fitting routine for rc, re, rt/rc, and n."
+  },
+  {
+    "question": "How many cluster-variable stars were confirmed (after the DI pipeline and source detection) in the PHAT survey analysis presented?",
+    "chunk_ids": [
+      "feae59eb-539f-4502-9cfe-0a04ef721972",
+      "7f72f878-eb55-4f06-a081-722459f424ba"
+    ],
+    "answer_example": "They confirmed 89 cluster-variable stars in 50 host clusters.",
+    "reasoning": "Chunk 23 reports that after applying the difference-imaging pipeline and source detection, 89 cluster-variable stars were confirmed in 50 host clusters. The abstract in chunk 30 also states a catalog of 86 luminous variables was compiled, but chunk 23 gives the 89 confirmed figure from the DI pipeline."
+  },
+  {
+    "question": "What three-tier quality classification (Gold/Silver/Bronze) did the authors use for their cluster-variable stars and on what criteria are these categories based?",
+    "chunk_ids": [
+      "69596cdd-49c0-4030-9039-ab513d3a5a2a"
+    ],
+    "answer_example": "They used a three-tier classification: Gold = Good DI detection and least-likely blended; Silver = Good DI detection but likely blended; Bronze = Ambiguous DI detection and highly likely blended. The categorization combines DI detection quality and the posterior blending probability.",
+    "reasoning": "Chunk 48 explains how blending probability and DI detection (Good/Ambiguous) are combined to form Gold, Silver, and Bronze classes, and gives the definitions explicitly."
+  },
+  {
+    "question": "How did the authors estimate the a posteriori blending probability for each cluster-variable star?",
+    "chunk_ids": [
+      "69596cdd-49c0-4030-9039-ab513d3a5a2a"
+    ],
+    "answer_example": "They constructed KDEs (kernel density estimates) of blended and unblended star samples in the space of (D_cluster, crowding), evaluated the KDE likelihoods at each star's (D_cluster, crowding), and computed the posterior blending probability using a Bayes-like ratio: P(B|x,y) = P((x,y)|B) / [P((x,y)|B) + P((x,y)|U)].",
+    "reasoning": "Chunk 48 details selection of blended/unblended samples, KDE computation, and the posterior formula used to compute P(B|(x,y))."
+  },
+  {
+    "question": "What distance modulus was adopted for M31 when transforming model magnitudes to apparent magnitudes in isochrone generation and related analyses?",
+    "chunk_ids": [
+      "0ef0b6c1-4a59-4285-87a4-d3515307a2ec",
+      "89305875-cedd-483a-9dc6-46533c785135"
+    ],
+    "answer_example": "They adopted a distance modulus of (m \u2212 M)0 = 24.47 for M31.",
+    "reasoning": "Chunk 17 explicitly states that they adopt a distance modulus of 24.47 for M31; chunk 32 also mentions converting absolute magnitudes to apparent using M31 distance modulus 24.47."
+  },
+  {
+    "question": "What initial mass range (approximate) did the catalog of 86 cluster-variable stars span in initial mass according to the PHAT study?",
+    "chunk_ids": [
+      "7f72f878-eb55-4f06-a081-722459f424ba"
+    ],
+    "answer_example": "The 86 cluster-variable stars have initial masses between about 0.8 and 67 M\u2299.",
+    "reasoning": "Chunk 30 (abstract) states the 86 cluster-variable stars have initial masses between 0.8 and 67 M\u2299."
+  },
+  {
+    "question": "What typical disruption timescale (lifetime before disruption) did the authors find for clusters in M33?",
+    "chunk_ids": [
+      "458aa716-6e18-4ad4-9557-2fcc587ab7a4"
+    ],
+    "answer_example": "They found a typical lifetime before disruption of about 300 Myr for star clusters in M33.",
+    "reasoning": "Chunk 19 (Conclusions) states the typical lifetime before disruption for M33 clusters is \u223c300 Myr, comparable to M31."
+  },
+  {
+    "question": "What Schechter-function parameters (power-law index \u03b2 and characteristic mass M*) did the authors adopt/found when fitting the cluster mass distribution?",
+    "chunk_ids": [
+      "458aa716-6e18-4ad4-9557-2fcc587ab7a4"
+    ],
+    "answer_example": "They found the differential mass distribution consistent with a Schechter function with \u03b2 = 2 and M* = 2 \u00d7 10^5 M\u2299.",
+    "reasoning": "Chunk 19 describes fitting the differential mass distribution and reports \u03b2 = 2 and M* = 2\u00d710^5 M\u2299."
+  },
+  {
+    "question": "Why do ultraviolet passbands (e.g., GALEX FUV/NUV or HST UV) help to break the age\u2013extinction degeneracy in cluster photometry?",
+    "chunk_ids": [
+      "576761ed-7451-4a97-88c9-2dd68a5b96f4",
+      "e76f6a2f-ee29-457f-9731-32c3f84ed987"
+    ],
+    "answer_example": "Ultraviolet passbands change the orientation of the reddening vector relative to SSP/model tracks in color\u2013color space such that the reddening vector no longer follows the SSP direction; this reduces the overlap between young reddened and older unreddened populations and hence breaks the age\u2013extinction degeneracy.",
+    "reasoning": "Chunk 34 explains that with UV data the reddening vector strongly deviates from the SSP direction (Fig. 5 in chunk 34), removing earlier degeneracy seen in optical-only tests. Chunk 3 also discusses the strong constraining power of the ultraviolet filter(s)."
+  },
+  {
+    "question": "What practical recommendation do the authors give for reducing age\u2013extinction degeneracy when a galaxy's intrinsic extinction range is wide?",
+    "chunk_ids": [
+      "57126ded-32f3-43af-9ed3-2080b49931f6",
+      "d03d6699-8d64-4cc2-a393-2dafd34af1de"
+    ],
+    "answer_example": "They recommend constraining the allowed extinction range in the model grid to a reasonable narrower interval (based on external information) and/or using independent extinction tracers (e.g., Spitzer emission maps) to reduce degeneracy.",
+    "reasoning": "Chunk 4 discusses that narrow allowed extinction ranges reduce degeneracy streaks and cites Vansevi\u010dius et al. (2009) using Spitzer to trace dust lanes; chunk 10 also quantifies the effect of reducing E(B\u2212V) range from [0,1] to [0,0.5]."
+  },
+  {
+    "question": "Which photometric system combinations were explicitly compared in the tests on artificial clusters?",
+    "chunk_ids": [
+      "576761ed-7451-4a97-88c9-2dd68a5b96f4",
+      "eb5b6d5e-5c5b-4f44-81d7-885bad43d330",
+      "e76f6a2f-ee29-457f-9731-32c3f84ed987"
+    ],
+    "answer_example": "They compared optical UBVRI alone, UBVRI + JHK (optical + near-IR), and GALEX + UBVRI (ultraviolet + optical). They also tested WFC3+ACS (PHAT) filter sets.",
+    "reasoning": "Chunk 34 and chunk 3 describe tests performed for UBVRI, UBVRI+JHK and GALEX+UBVRI combinations. Chunk 44 also shows UBVRI tests and mentions multiple photometric systems in test contexts."
+  },
+  {
+    "question": "How does increasing photometric errors affect the accuracy of metallicity derivation in their simulations? Give an example trend from the tests.",
+    "chunk_ids": [
+      "2d655183-bd2d-49f4-acea-eb7590d7b156",
+      "e76f6a2f-ee29-457f-9731-32c3f84ed987"
+    ],
+    "answer_example": "Increasing photometric errors strongly reduces metallicity recovery accuracy. For example, for clusters with true [M/H]=0, the fraction with metallicity derived within the correct region falls from \u224880% at \u03c3=0.03 mag to \u224875% at \u03c3=0.05 mag and to \u224865% at \u03c3=0.10 mag (marginalized likelihoods), with larger drops for intermediate metallicities.",
+    "reasoning": "Chunk 7 reports specific likelihood percentages for \u03c3 = 0.03, 0.05, and 0.1 mag and shows the decline in correct metallicity derivation as photometric errors increase; chunk 3 provides the test setup and supports the broader statement."
+  },
+  {
+    "question": "Which initial mass function (IMF) do the authors use for stochastic sampling in their cluster models?",
+    "chunk_ids": [
+      "45c4195a-083d-4ed4-b5d0-d4a0e5e3b046",
+      "4b0a400d-5a4b-4c89-adc9-433c8b452483",
+      "576761ed-7451-4a97-88c9-2dd68a5b96f4"
+    ],
+    "answer_example": "They use the Kroupa IMF (Kroupa 2001 / Kroupa et al. 2013) for stochastic sampling.",
+    "reasoning": "Chunks 20 and 31 describe using OS from Kroupa et al. and reference Kroupa IMF; chunk 34 also references Kroupa IMF in the context of sampling and methods."
+  },
+  {
+    "question": "What selection criterion is used to select model cluster realizations that are considered matches to an observation when computing derived parameters (i.e., how close must model magnitudes be)?",
+    "chunk_ids": [
+      "4e778618-52ba-467a-b1c4-b3ea4df10624",
+      "eb01d0fb-935d-44d1-a58d-082806019f43"
+    ],
+    "answer_example": "Models whose magnitudes are all located within 3 observational errors (i.e., within 3\u03c3) of the observed cluster magnitudes are selected for computing the derived age, mass, and extinction.",
+    "reasoning": "Chunk 5 (Paper I abstract/method) states that models with magnitudes within 3 observational errors from observed magnitudes are selected. Chunk 41 reiterates the general method of selecting models within observational uncertainties for parameter inference."
+  },
+  {
+    "question": "What photometric uncertainty values were adopted in multi-system tests for UBVRI, JHK and GALEX bands?",
+    "chunk_ids": [
+      "576761ed-7451-4a97-88c9-2dd68a5b96f4",
+      "e76f6a2f-ee29-457f-9731-32c3f84ed987"
+    ],
+    "answer_example": "They used \u03c3 = 0.05 mag for each UBVRI band, \u03c3 = 0.10 mag for each JHK band, and \u03c3 = 0.15 mag for each GALEX band.",
+    "reasoning": "Chunk 34 outlines the chosen photometric-error values for the tests (UBVRI 0.05, JHK 0.1, GALEX 0.15). Chunk 3 similarly notes the photometric error setups for the WFC3+ACS tests."
+  },
+  {
+    "question": "In FitClust experiments fitting a cluster together with resolved stars, how many iterations on average were required to obtain a consistent solution for stars and the cluster?",
+    "chunk_ids": [
+      "46ed95dc-3882-4aad-bc8d-56bae80e64cf"
+    ],
+    "answer_example": "On average about six iterations were required to obtain a consistent solution for stars and the cluster.",
+    "reasoning": "Chunk 6 reports that automatic detection and fitting of stars along with the cluster takes six iterations on average to converge to a consistent solution."
+  },
+  {
+    "question": "Name three software packages (libraries or tools) listed as used in the Smith et al. (2024) variable-star / PHAT analysis.",
+    "chunk_ids": [
+      "2510aecf-2f8f-47bc-9978-9279c7d4c3ce",
+      "7f72f878-eb55-4f06-a081-722459f424ba"
+    ],
+    "answer_example": "Examples include Astro Data Lab, pandas, and NumPy. The paper also lists ARTES, PICASO, IPython/Jupyter, matplotlib, astroalign, astropy, scikit-learn, and others.",
+    "reasoning": "Chunk 1 (Acknowledgments / Software) lists many software packages (Astro Data Lab, ARTES, PICASO, pandas, NumPy, IPython, Jupyter, matplotlib, astroalign, astropy, scikit-learn). Chunk 30 (abstract) provides context for the PHAT analysis but chunk 1 explicitly enumerates the software."
+  },
+  {
+    "question": "Unanswerable: What is the pulsation period (in days) of the classical Cepheid identified among the PHAT cluster-variable stars in the catalog?",
+    "chunk_ids": [
+      "34a04dc7-90ac-4245-bf76-caab92021199",
+      "69596cdd-49c0-4030-9039-ab513d3a5a2a"
+    ],
+    "answer_example": "Unanswerable with the provided chunks: no pulsation period for that classical Cepheid is reported in the supplied text.",
+    "reasoning": "Chunk 40 describes a Cepheid classification among cluster-variable stars, and chunk 48 lists catalog entries and properties, but none of the provided chunks report measured pulsation periods for that object, so the period cannot be determined from these chunks."
+  },
+  {
+    "question": "Unanswerable: What is the precise posterior blending probability P(B|x,y) value computed for the catalog source PHAT_11.1262019 in Table 3?",
+    "chunk_ids": [
+      "69596cdd-49c0-4030-9039-ab513d3a5a2a",
+      "feae59eb-539f-4502-9cfe-0a04ef721972"
+    ],
+    "answer_example": "Unanswerable with the provided chunks: Table 3 lists many properties but the exact posterior blending-probability numeric values per object are not given in the supplied text.",
+    "reasoning": "Chunk 48 shows that blending probabilities were categorized and Table 3 lists object properties, but the supplied excerpts do not include the numeric P(B|x,y) for individual PHAT entries (only categorical labels), so the exact posterior value cannot be read from these chunks."
+  }
+]
