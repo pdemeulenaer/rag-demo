@@ -27,10 +27,10 @@ from ragas.metrics import Faithfulness, ResponseRelevancy, LLMContextPrecisionWi
 
 
 os.environ["EVALUATION_MODE"] = "true"
-os.environ["LANGCHAIN_TRACING_V2"] = "false"  # 💡 Add this line to disable LangSmith tracing
 os.environ["GROQ_API_KEY"] = config.GROQ_API_KEY
 os.environ["OPENAI_API_KEY"] = config.OPENAI_API_KEY
 os.environ["LANGSMITH_API_KEY"] = config.LANGSMITH_API_KEY
+os.environ["LANGCHAIN_TRACING_V2"] = "false"  # 💡 Add this line to disable LangSmith tracing
 os.environ["QDRANT_API_KEY"] = config.QDRANT_API_KEY  # For Qdrant Cloud only
 os.environ["QDRANT_URL"] = config.QDRANT_URL
 debug_mode = False

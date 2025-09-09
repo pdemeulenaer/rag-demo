@@ -66,6 +66,9 @@ serve:
 redis-chat:
 	uv run python src/api/redis/inspect_redis.py 
 
+create-eval-dataset:
+	uv run python evals/eval_dataset_creation.py
+
 run-evals:
 	uv run python evals/eval_retriever2.py	
 
