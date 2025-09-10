@@ -31,7 +31,7 @@ load_dotenv()
 # === Config ===
 QDRANT_URL = os.getenv("QDRANT_URL")
 QDRANT_API_KEY = os.getenv("QDRANT_API_KEY")
-COLLECTION_NAME = "test_collection_oai_test2"
+COLLECTION_NAME = "test_collection_oai_local"
 # PDF_FOLDER = os.path.join(os.path.dirname(__file__), "/../data/folder")
 PDF_FOLDER = os.path.abspath(os.path.join(os.path.dirname(__file__), "../data/folder"))
 EMBEDDING_API_URL = os.getenv("EMBEDDING_API_URL")

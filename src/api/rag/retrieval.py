@@ -492,7 +492,7 @@ def rag_pipeline_wrapper(question, session_id, summarizer_llm, top_k=5):
     
     qdrant_client = QdrantClient(
         url=config.QDRANT_URL, # QDRANT_URL=http://qdrant:6333 when local, or web URL for Qdrant Cloud
-        # api_key=config.QDRANT_API_KEY  # For Qdrant Cloud only
+        api_key=config.QDRANT_API_KEY  # For Qdrant Cloud only, empty otherwise
     )
         
     result = rag_pipeline(question, qdrant_client, session_id, top_k)

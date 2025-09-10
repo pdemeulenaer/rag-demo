@@ -14,10 +14,19 @@ services:
     environment:
       - ALLOW_ORIGINS=*
       - REDIS_HOST=redis
-      - REDIS_PORT=6379    
+      - REDIS_PORT=6379
+      - QDRANT_URL=http://qdrant:6333 
     restart: always
     depends_on:
-      - redis    
+      - redis
+      - qdrant
+
+  qdrant:
+    image: qdrant/qdrant
+    restart: always
+    volumes:
+      - qdrant_data:/qdrant/storage
+
 
   redis:
     image: redis:7.0-alpine
@@ -27,3 +36,4 @@ services:
 
 volumes:
   redis_data: {}      
+  qdrant_data: {}  
