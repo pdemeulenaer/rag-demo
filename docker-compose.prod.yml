@@ -15,17 +15,17 @@ services:
       - ALLOW_ORIGINS=*
       - REDIS_HOST=redis
       - REDIS_PORT=6379
-      - QDRANT_URL=http://qdrant:6333 
+      # - QDRANT_URL=http://qdrant:6333 
     restart: always
     depends_on:
       - redis
-      - qdrant
+      # - qdrant
 
-  qdrant:
-    image: qdrant/qdrant
-    restart: always
-    volumes:
-      - qdrant_data:/qdrant/storage
+  # qdrant:
+  #   image: qdrant/qdrant
+  #   restart: always
+  #   volumes:
+  #     - qdrant_data:/qdrant/storage
 
 
   redis:
@@ -36,4 +36,4 @@ services:
 
 volumes:
   redis_data: {}      
-  qdrant_data: {}  
+  # qdrant_data: {}  
