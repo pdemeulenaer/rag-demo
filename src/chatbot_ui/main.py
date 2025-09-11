@@ -61,37 +61,58 @@ def main():
         st.session_state.clear()
         st.session_state.init_done = True
 
-    # Initialize session state
-    # if "connected" not in st.session_state:
-    #     st.session_state.connected = False
+    # Initialize session state variables
     if "full_conversation" not in st.session_state:
         st.session_state.full_conversation = []   # all turns for display
     if "backend_memory" not in st.session_state:
         st.session_state.backend_memory = []      # summarized memory view
-    if "session_id" not in st.session_state:
-        # st.session_state.session_id = None     
+    if "session_id" not in st.session_state:  
         st.session_state.session_id = "" # Use an empty string instead of None   
 
     st.header("🤖 RAG Chat with PDF Knowledge Base")
 
     with st.sidebar:
         st.subheader("📚 Knowledge Base")
-
-        # if not st.session_state.connected:
-        #     if connect_to_backend():
-        #         st.session_state.connected = True
-        #         st.success("✅ Connected to backend")
-        #         st.rerun()
-        # else:
-        #     st.success("🟢 Connected to Knowledge Base")
-    # st.session_state.connected = True
-        st.success("🟢 Connected to Knowledge Base")
+        st.success("🟢 Connected to Knowledge Base") # TODO: make a connection test for this
         st.info("The knowledge base is pre-loaded from a set of astronomy papers in PDF format.")
+
+
+        st.markdown("---")
+        st.subheader("➕ Ingest Your Own PDFs")
+
+        uploaded_files = st.file_uploader(
+            "Upload one or more PDF documents",
+            type="pdf",
+            accept_multiple_files=True
+        )
+
+        # Ingestion button and logic
+        ingest_button = st.button("Ingest Files", use_container_width=True)
+        if ingest_button and uploaded_files:
+            # Display a progress message
+            with st.spinner("Ingesting documents... This may take a few minutes."):
+                files_to_send = [
+                    ("files", (uploaded_file.name, uploaded_file, "application/pdf"))
+                    for uploaded_file in uploaded_files
+                ]
+                
+                try:
+                    response = requests.post(
+                        f"{API_URL}/ingest",
+                        files=files_to_send,
+                        timeout=300 # Set a higher timeout for large files
+                    )
+                    response.raise_for_status()
+                    st.success("✅ Documents ingested successfully!")
+                except requests.exceptions.RequestException as e:
+                    st.error(f"❌ Failed to ingest documents: {e}")
+
+
+
 
     question = st.text_input(
         "💬 Ask a question:",
         placeholder="e.g. How to derive the parameters of star clusters using broad-band photometry?",
-        # disabled=not st.session_state.connected,
         key="user_question"
     )
 
