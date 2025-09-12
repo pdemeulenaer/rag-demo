@@ -392,11 +392,11 @@ def generate_answer_groq(prompt):
 
     # Use the instructor-patched Groq client for chat completions
     response, raw_response = client.chat.completions.create_with_completion(
-        model="llama-3.3-70b-versatile",
+        model=config.GENERATION_MODEL, # "llama-3.3-70b-versatile",
         response_model=RAGGenerationResponse,
         messages=prompt, #[{"role": "user", "content": prompt}],
-        temperature=0.5,
-        max_tokens=1000,
+        temperature=config.GENERATION_MODEL_TEMPERATURE, #0.5,
+        max_tokens=config.GENERATION_MODEL_MAX_TOKENS #1024
     )
 
     current_run = get_current_run_tree()
