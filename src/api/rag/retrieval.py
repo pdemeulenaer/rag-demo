@@ -61,11 +61,11 @@ def summarize_messages(messages, summarizer_llm):
     """
 
     response = summarizer_llm.chat.completions.create(
-        model="llama-3.3-70b-versatile",
+        model=config.SUMMARIZATION_MODEL, # "llama-3.3-70b-versatile",
         messages=[{"role": "user", "content": prompt}],
-        temperature=0.5,
+        temperature=config.SUMMARIZATION_MODEL_TEMPERATURE, # 0.5,
         response_model=RAGSummarizationResponse,
-        max_tokens=1000
+        max_tokens=config.SUMMARIZATION_MODEL_MAX_TOKENS # 1000
     )
 
     # return response.choices[0].message.content.strip()
@@ -311,6 +311,8 @@ def build_prompt(context, question, session_id):
         output_json_schema=json.dumps(OUTPUT_SCHEMA, indent=2)
     )
 
+    logger.info(f"Prompt length: {len(system_prompt) + len(user_prompt)}")
+
     # For LLM call
     messages = [
         {"role": "system", "content": system_prompt},
@@ -333,14 +335,9 @@ def build_prompt(context, question, session_id):
     return messages
 
 
-
-
-
-
 class RAGUsedContext(BaseModel):
     id: str #int # changed from Aurimas' code since here we use uuid as strings
     description: str
-
 
 class RAGGenerationResponse(BaseModel):
     answer: str
@@ -348,7 +345,6 @@ class RAGGenerationResponse(BaseModel):
 
 class RAGSummarizationResponse(BaseModel):
     summary: str    
-
 
 
 @traceable(
@@ -360,7 +356,7 @@ def generate_answer(prompt):
 
     client = instructor.from_openai(OpenAI(api_key=config.OPENAI_API_KEY))
     response, raw_response = client.chat.completions.create_with_completion(
-        model="gpt-4.1",
+        model="gpt-4.1", #"gpt-5-mini", # "gpt-4.1", #
         response_model=RAGGenerationResponse,
         messages=[{"role": "user", "content": prompt}],
         temperature=0.5,
@@ -380,7 +376,7 @@ def generate_answer(prompt):
 @traceable(
     name="generate_answer",
     run_type="llm",
-    metadata={"ls_provider": "Groq", "ls_model_name": "llama-3.3-70b-versatile"}
+    metadata={"ls_provider": config.GENERATION_MODEL_PROVIDER, "ls_model_name": config.GENERATION_MODEL}
 )
 def generate_answer_groq(prompt):    
 
@@ -396,7 +392,8 @@ def generate_answer_groq(prompt):
         response_model=RAGGenerationResponse,
         messages=prompt, #[{"role": "user", "content": prompt}],
         temperature=config.GENERATION_MODEL_TEMPERATURE, #0.5,
-        max_tokens=config.GENERATION_MODEL_MAX_TOKENS #1024
+        max_tokens=config.GENERATION_MODEL_MAX_TOKENS, #1024
+        max_retries=5  # Set the number of retries here
     )
 
     current_run = get_current_run_tree()
@@ -437,6 +434,7 @@ def rag_pipeline(question, qdrant_client, session_id, top_k=5):
         question,
         session_id
     )
+    # answer = generate_answer(prompt) # openai's one
     answer = generate_answer_groq(prompt)
 
     # Deduplicate sources and aggregate page numbers
