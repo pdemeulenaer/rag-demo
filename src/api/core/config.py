@@ -14,10 +14,43 @@ class Config(BaseSettings):
     LANGSMITH_TRACING: bool
     LANGSMITH_ENDPOINT: str
     LANGSMITH_API_KEY: str
-    LANGSMITH_PROJECT: str
-    RAG_PROMPT_TEMPLATE_PATH: str = "src/api/rag/prompts/rag_generation.yaml"
+    LANGSMITH_PROJECT: str    
     EMBEDDING_API_URL: str
     COHERE_API_KEY: str
+
+    # Static settings (not from env)
+    # ==============================
+
+    # Embedding model settings
+    EMBEDDING_MODEL='text-embedding-3-small'
+    EMBEDDING_MODEL_PROVIDER='openai'
+
+    # Generation model settings
+    GENERATION_MODEL= 'openai/gpt-oss-120b' # 'llama-3.3-70b-versatile' 'gpt-4.1'
+    GENERATION_MODEL_PROVIDER='groq' # 'openai'
+    GENERATION_MODEL_TEMPERATURE: float = 0.5
+    GENERATION_MODEL_MAX_TOKENS: int = 1024
+    RAG_PROMPT_TEMPLATE_PATH: str = "src/api/rag/prompts/rag_generation.yaml"    
+
+    # Langsmith settings
+    LANGSMITH_TRACING=False #false for testing, true in production
+    LANGSMITH_ENDPOINT='https://api.smith.langchain.com'
+    LANGSMITH_PROJECT='rag-tracing'
+
+    # Ingestion settings
+    QDRANT_COLLECTION_NAME: str = 'test_collection_oai_local'
+
+    SUMMARIZATION_MODEL: str = 'llama-3.1-8b-instant' # 'llama-3.3-70b-versatile'
+    SUMMARIZATION_PROMPT: str = 'Summarize the following text: {{text}}'
+    SUMMARIZATION_MODEL_TEMPERATURE: float = 0.3
+    SUMMARIZATION_MODEL_MAX_TOKENS: int = 256
+    # SUMMARIZATION_PROMPT_TEMPLATE_PATH: str =
+
+    METADATA_MODEL: str = 'llama-3.3-70b-versatile'    
+    METADATA_MODEL_TEMPERATURE: float = 0
+    METADATA_MODEL_MAX_TOKENS: int = 500
+    # METADATA_PROMPT_TEMPLATE_PATH: str =
+    
 
     model_config = SettingsConfigDict(env_file=".env")
 

@@ -7,7 +7,10 @@ from httpx import AsyncClient
 from contextlib import asynccontextmanager
 from src.api.core.config import settings
 from src.api.api.middleware import RequestIDMiddleware
-from src.api.api.endpoints import api_router
+# from src.api.api.endpoints import api_router
+# Import both routers directly from their respective files
+from src.api.api.rag_router import rag_router
+from src.api.api.ingestion_router import ingestion_router
 # from dotenv import load_dotenv
 
 # load_dotenv()
@@ -44,7 +47,6 @@ async def lifespan(app: FastAPI):
 app = FastAPI(lifespan=lifespan)
 
 app.add_middleware(RequestIDMiddleware)
-
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -53,7 +55,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(api_router)
+# app.include_router(api_router)
+# Include both routers in the main application instance
+# app.include_router(api_router, tags=["rag"])
+app.include_router(rag_router, tags=["rag"])
+app.include_router(ingestion_router, tags=["ingestion"])
 
 
 @app.get("/")

@@ -1,17 +1,15 @@
-from fastapi import APIRouter, Request, HTTPException, Response
+from fastapi import APIRouter, Request, Response
 import logging
 import uuid
-import json
+import openai
+import instructor
 
 from pydantic import BaseModel
 
 from src.api.core.config import config
 from src.api.utils import get_conversation_chain, get_reranked_qdrant_retriever
-from src.api.api.ingestion_router import ingestion_router # Import the new router
+# from src.api.api.ingestion_router import ingestion_router # Import the new router
 
-
-import openai
-import instructor
 
 from src.api.rag.retrieval import rag_pipeline_wrapper, get_memory
 from src.api.api.models import RAGRequest, RAGResponse, ChatMessage #, RAGUsedImage
@@ -25,6 +23,7 @@ summarizer_llm = instructor.from_openai(
 logger = logging.getLogger(__name__)
 
 rag_router = APIRouter()
+
 
 
 # Global conversation object (simple stateful example)
@@ -95,6 +94,6 @@ async def rag(
 
 
 
-api_router = APIRouter()
-api_router.include_router(rag_router, tags=["rag"])
-api_router.include_router(ingestion_router, tags=["ingestion"]) # Include the new router
+# api_router = APIRouter()
+# api_router.include_router(rag_router, tags=["rag"])
+# api_router.include_router(ingestion_router, tags=["ingestion"]) # Include the new router
