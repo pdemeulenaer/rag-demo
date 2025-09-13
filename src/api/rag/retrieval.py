@@ -242,41 +242,65 @@ def rerank_context(query: str, retrieved_context: list, top_n: int = 5):
     name="format_retrieved_context",
     run_type="prompt"
 )
+# def process_context(context):
+
+#     formatted_context = ""
+
+#     for id, chunk in zip(context["retrieved_context_ids"], context["retrieved_context"]):
+#         formatted_context += f"- {id}: {chunk}\n"
+
+#     return formatted_context
 def process_context(context):
-
-    formatted_context = ""
-
+    lines = []
     for id, chunk in zip(context["retrieved_context_ids"], context["retrieved_context"]):
-        formatted_context += f"- {id}: {chunk}\n"
+        lines.append(f"\n\n DOC ID: {id}; DOC TEXT: {chunk}\n\n---")
+    return "\n".join(lines)
 
-    return formatted_context
 
+# OUTPUT_SCHEMA = {
+#     "type": "object",
+#     "properties": {
+#         "answer": {
+#             "type": "string",
+#             "description": "The answer to the question based on the provided context.",
+#         },
+#         "retrieved_context_ids": {
+#             "type": "array",
+#             "items": {
+#                 "type": "object",
+#                 "properties": {
+#                     "id": {
+#                         "type": "string", #"integer",
+#                         "description": "The uuid index of the chunk that was used to answer the question.",
+#                     },
+#                     "description": {
+#                         "type": "string",
+#                         "description": "Short description of the item based on the context together with the id.",
+#                     },
+#                 },
+#             },
+#         },
+#     },
+# }
 
 OUTPUT_SCHEMA = {
     "type": "object",
     "properties": {
         "answer": {
             "type": "string",
-            "description": "The answer to the question based on the provided context.",
+            "description": "The answer to the question based on the provided documentation."
         },
         "retrieved_context_ids": {
             "type": "array",
             "items": {
-                "type": "object",
-                "properties": {
-                    "id": {
-                        "type": "string", #"integer",
-                        "description": "The index of the chunk that was used to answer the question.",
-                    },
-                    "description": {
-                        "type": "string",
-                        "description": "Short description of the item based on the context together with the id.",
-                    },
-                },
-            },
+                "type": "string",
+                "description": "UUID of a document chunk that was used to answer the question."
+            }
         },
     },
+    "required": ["answer", "retrieved_context_ids"]
 }
+
 
 # @traceable(
 #     name="render_prompt",
@@ -341,7 +365,8 @@ class RAGUsedContext(BaseModel):
 
 class RAGGenerationResponse(BaseModel):
     answer: str
-    retrieved_context_ids: List[RAGUsedContext]
+    # retrieved_context_ids: List[RAGUsedContext]
+    retrieved_context_ids: List[str]  # changed from Aurimas' code since we don't need description here
 
 class RAGSummarizationResponse(BaseModel):
     summary: str    
@@ -386,14 +411,19 @@ def generate_answer_groq(prompt):
     # Patch the Groq client with instructor
     client = instructor.from_groq(groq_client)
 
+    logger.info(f"-----")
+    logger.info(f"Prompt length: {len(prompt)}")
+    logger.info(f"Prompt: {prompt}")
+    logger.info(f"-----")
+
     # Use the instructor-patched Groq client for chat completions
     response, raw_response = client.chat.completions.create_with_completion(
         model=config.GENERATION_MODEL, # "llama-3.3-70b-versatile",
         response_model=RAGGenerationResponse,
         messages=prompt, #[{"role": "user", "content": prompt}],
-        temperature=config.GENERATION_MODEL_TEMPERATURE, #0.5,
+        temperature=0, #config.GENERATION_MODEL_TEMPERATURE, #0.5,
         max_tokens=config.GENERATION_MODEL_MAX_TOKENS, #1024
-        max_retries=5  # Set the number of retries here
+        max_retries=5,  # Set the number of retries here
     )
 
     current_run = get_current_run_tree()
