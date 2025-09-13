@@ -283,20 +283,32 @@ def process_context(context):
 #     },
 # }
 
+# OUTPUT_SCHEMA = {
+#     "type": "object",
+#     "properties": {
+#         "answer": {
+#             "type": "string",
+#             "description": "The answer to the question based on the provided documentation."
+#         },
+#         "retrieved_context_ids": {
+#             "type": "array",
+#             "items": {
+#                 "type": "string",
+#                 "description": "UUID of a document chunk that was used to answer the question."
+#             }
+#         },
+#     },
+#     "required": ["answer", "retrieved_context_ids"]
+# }
+
 OUTPUT_SCHEMA = {
     "type": "object",
     "properties": {
-        "answer": {
-            "type": "string",
-            "description": "The answer to the question based on the provided documentation."
-        },
+        "answer": {"type": "string"},
         "retrieved_context_ids": {
             "type": "array",
-            "items": {
-                "type": "string",
-                "description": "UUID of a document chunk that was used to answer the question."
-            }
-        },
+            "items": {"type": "string"}
+        }
     },
     "required": ["answer", "retrieved_context_ids"]
 }
@@ -379,20 +391,47 @@ class RAGSummarizationResponse(BaseModel):
 )
 def generate_answer(prompt):
 
-    client = instructor.from_openai(OpenAI(api_key=config.OPENAI_API_KEY))
-    response, raw_response = client.chat.completions.create_with_completion(
-        model="gpt-4.1", #"gpt-5-mini", # "gpt-4.1", #
-        response_model=RAGGenerationResponse,
-        messages=[{"role": "user", "content": prompt}],
-        temperature=0.5,
+    # client = instructor.from_openai(OpenAI(api_key=config.OPENAI_API_KEY))
+    # response, raw_response = client.chat.completions.create_with_completion(
+    #     model="gpt-4.1", #"gpt-5-mini", # "gpt-4.1", #
+    #     response_model=RAGGenerationResponse,
+    #     messages=[{"role": "user", "content": prompt}],
+    #     temperature=0.5,
+    # )
+
+    # Call OpenAI with JSON output enforcement
+    client = OpenAI(api_key=config.OPENAI_API_KEY)
+    response_json = client.chat.completions.create(
+        model=config.GENERATION_MODEL, # "gpt-4.1",
+        # messages=[
+        #     {"role": "system", "content": "You are a helpful assistant."},
+        #     {"role": "user", "content": "Answer using JSON format."}
+        # ],
+        messages=prompt,
+        # temperature=0,
+        # max_tokens=1024,
+        # response_format={"type": "json_schema", "json_schema": OUTPUT_SCHEMA}
+        response_format={
+            "type": "json_schema",
+            "json_schema": {
+                "name": "RAGGenerationResponse",
+                "schema": OUTPUT_SCHEMA
+            }
+        }
     )
+
+    raw_content = response_json.choices[0].message.content
+    parsed_content = json.loads(raw_content)  # now it's a dict
+
+    # Parse the JSON into your Pydantic model
+    response = RAGGenerationResponse(**parsed_content)    
 
     current_run = get_current_run_tree()
     if current_run:
         current_run.metadata["usage_metadata"] = {
-            "input_tokens": raw_response.usage.prompt_tokens,
-            "output_tokens": raw_response.usage.completion_tokens,
-            "total_tokens": raw_response.usage.total_tokens,
+            "input_tokens": response.usage.prompt_tokens,
+            "output_tokens": response.usage.completion_tokens,
+            "total_tokens": response.usage.total_tokens,
         }
 
     return response
@@ -464,8 +503,8 @@ def rag_pipeline(question, qdrant_client, session_id, top_k=5):
         question,
         session_id
     )
-    # answer = generate_answer(prompt) # openai's one
-    answer = generate_answer_groq(prompt)
+    answer = generate_answer(prompt) # openai's one
+    # answer = generate_answer_groq(prompt)
 
     # Deduplicate sources and aggregate page numbers
     seen = {}
@@ -516,7 +555,6 @@ def rag_pipeline(question, qdrant_client, session_id, top_k=5):
 
 
 def rag_pipeline_wrapper(question, session_id, summarizer_llm, top_k=5):
-# def rag_pipeline_wrapper(question, session_id, top_k=5):
     
     qdrant_client = QdrantClient(
         url=config.QDRANT_URL, # QDRANT_URL=http://qdrant:6333 when local, or web URL for Qdrant Cloud

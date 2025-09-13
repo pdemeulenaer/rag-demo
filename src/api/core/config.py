@@ -26,8 +26,8 @@ class Config(BaseSettings):
     EMBEDDING_MODEL_PROVIDER='openai'
 
     # Generation model settings
-    GENERATION_MODEL='llama-3.3-70b-versatile' # 'gpt-4.1' 'openai/gpt-oss-120b'
-    GENERATION_MODEL_PROVIDER='groq' # 'openai'
+    GENERATION_MODEL='gpt-4.1-nano' # 'gpt-4.1-mini' #'gpt-5-nano' 'llama-3.3-70b-versatile' 'gpt-5-mini' 'gpt-4.1' 'openai/gpt-oss-120b'
+    GENERATION_MODEL_PROVIDER='openai' # 'groq' # 'openai'
     GENERATION_MODEL_TEMPERATURE: float = 0.5
     GENERATION_MODEL_MAX_TOKENS: int = 1024
     RAG_PROMPT_TEMPLATE_PATH: str = "src/api/rag/prompts/rag_generation.yaml"    
