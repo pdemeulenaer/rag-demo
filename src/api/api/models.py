@@ -8,7 +8,10 @@ class ChatMessage(BaseModel):
 
 class RAGRequest(BaseModel):
     query: str = Field(..., description="The query to be used in the RAG pipeline")
-
+    generation_model: Optional[str] = Field(
+        None,
+        description="Optional override for the generation model (e.g. gpt-4-nano, gpt-4-mini, gpt-5-nano)"
+    )
 
 # class RAGUsedImage(BaseModel):
 #     image_url: str = Field(..., description="The URL of the image")

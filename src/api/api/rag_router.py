@@ -62,8 +62,15 @@ async def rag(
             samesite="lax"      # Adjust as needed
         )
 
+    # Determine generation model (user-selected or default)
+    gen_model = payload.generation_model or config.GENERATION_MODEL
+
     # Run the RAG pipeline with session-based memory
-    result = rag_pipeline_wrapper(payload.query, session_id, summarizer_llm)
+    result = rag_pipeline_wrapper(payload.query, 
+                                  session_id, 
+                                  summarizer_llm,
+                                  generation_model=gen_model
+                                  )
 
     # # Build and return the RAGResponse
     # return RAGResponse(

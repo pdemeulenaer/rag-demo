@@ -389,7 +389,7 @@ class RAGSummarizationResponse(BaseModel):
     run_type="llm",
     metadata={"ls_provider": config.GENERATION_MODEL_PROVIDER, "ls_model_name": config.GENERATION_MODEL}
 )
-def generate_answer(prompt):
+def generate_answer(prompt, generation_model=None):
 
     # client = instructor.from_openai(OpenAI(api_key=config.OPENAI_API_KEY))
     # response, raw_response = client.chat.completions.create_with_completion(
@@ -402,7 +402,7 @@ def generate_answer(prompt):
     # Call OpenAI with JSON output enforcement
     client = OpenAI(api_key=config.OPENAI_API_KEY)
     response_json = client.chat.completions.create(
-        model=config.GENERATION_MODEL, # "gpt-4.1",
+        model=generation_model, #config.GENERATION_MODEL, # "gpt-4.1",
         # messages=[
         #     {"role": "system", "content": "You are a helpful assistant."},
         #     {"role": "user", "content": "Answer using JSON format."}
@@ -442,7 +442,7 @@ def generate_answer(prompt):
     run_type="llm",
     metadata={"ls_provider": config.GENERATION_MODEL_PROVIDER, "ls_model_name": config.GENERATION_MODEL}
 )
-def generate_answer_groq(prompt):    
+def generate_answer_groq(prompt, generation_model=None):    
 
     # Initialize the Groq client
     groq_client = Groq(api_key=config.GROQ_API_KEY)
@@ -457,7 +457,7 @@ def generate_answer_groq(prompt):
 
     # Use the instructor-patched Groq client for chat completions
     response, raw_response = client.chat.completions.create_with_completion(
-        model=config.GENERATION_MODEL, # "llama-3.3-70b-versatile",
+        model=generation_model, # config.GENERATION_MODEL, # "llama-3.3-70b-versatile",
         response_model=RAGGenerationResponse,
         messages=prompt, #[{"role": "user", "content": prompt}],
         temperature=0, #config.GENERATION_MODEL_TEMPERATURE, #0.5,
@@ -480,7 +480,7 @@ def generate_answer_groq(prompt):
     name="rag_pipeline",
     run_type="chain"
 )
-def rag_pipeline(question, qdrant_client, session_id, top_k=5):
+def rag_pipeline(question, qdrant_client, session_id, generation_model=None, top_k=5):
 
     # If in evaluation mode, return a fresh memory each time
     if os.getenv("EVALUATION_MODE") == "true":
@@ -503,8 +503,8 @@ def rag_pipeline(question, qdrant_client, session_id, top_k=5):
         question,
         session_id
     )
-    answer = generate_answer(prompt) # openai's one
-    # answer = generate_answer_groq(prompt)
+    answer = generate_answer(prompt, generation_model) # openai's one
+    # answer = generate_answer_groq(prompt, generation_model)
 
     # Deduplicate sources and aggregate page numbers
     seen = {}
@@ -554,14 +554,14 @@ def rag_pipeline(question, qdrant_client, session_id, top_k=5):
 
 
 
-def rag_pipeline_wrapper(question, session_id, summarizer_llm, top_k=5):
+def rag_pipeline_wrapper(question, session_id, summarizer_llm, generation_model=None, top_k=5):
     
     qdrant_client = QdrantClient(
         url=config.QDRANT_URL, # QDRANT_URL=http://qdrant:6333 when local, or web URL for Qdrant Cloud
         api_key=config.QDRANT_API_KEY  # For Qdrant Cloud only, empty otherwise
     )
         
-    result = rag_pipeline(question, qdrant_client, session_id, top_k)
+    result = rag_pipeline(question, qdrant_client, session_id, generation_model, top_k)
 
     # Update memory with summarization
     add_message(session_id, "user", question, summarizer_llm)

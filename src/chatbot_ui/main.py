@@ -38,7 +38,13 @@ def ask_question_to_backend(question):
         if st.session_state.session_id:
             headers["Cookie"] = f"session_id={st.session_state.session_id}"
         
-        response = requests.post(f"{API_URL}/rag2", json={"query": question}, headers=headers)
+        # response = requests.post(f"{API_URL}/rag2", json={"query": question}, headers=headers)
+        payload = {
+            "query": question,
+            "generation_model": st.session_state.generation_model
+        }
+
+        response = requests.post(f"{API_URL}/rag2", json=payload, headers=headers)
         response.raise_for_status()
         
         # Check if the backend set a new session_id and store it
@@ -76,6 +82,34 @@ def main():
         st.success("🟢 Connected to Knowledge Base") # TODO: make a connection test for this
         st.info("The knowledge base is pre-loaded from a set of astronomy papers in PDF format.")
 
+        st.markdown("---")
+        st.subheader("⚙️ Generation Model")
+        # model_choice = st.selectbox(
+        #         "Select generation model",
+        #         ["gpt-4.1-nano", "gpt-4.1-mini", "gpt-5-nano"],
+        #         index=0,
+        #         key="generation_model",
+        #     )
+        # Mapping of internal value -> user-friendly label
+        model_labels = {
+            "gpt-4.1-nano": "gpt-4.1-nano (very fast)",
+            "gpt-4.1-mini": "gpt-4.1-mini (fast)",
+            "gpt-5-nano":  "gpt-5-nano (reasoning)"
+        }
+
+        # Let the user see the descriptive labels
+        selected_label = st.selectbox(
+            "Select generation model",
+            options=list(model_labels.values()),
+            index=0,
+            key="generation_model_label"
+        )
+
+        # Map back to the actual model name
+        # e.g., "gpt-4.1-nano (very fast)" → "gpt-4.1-nano"
+        st.session_state.generation_model = next(
+            key for key, val in model_labels.items() if val == selected_label
+        )        
 
         st.markdown("---")
         st.subheader("➕ Ingest Your Own PDFs")
