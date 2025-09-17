@@ -429,9 +429,9 @@ def generate_answer(prompt, generation_model=None):
     current_run = get_current_run_tree()
     if current_run:
         current_run.metadata["usage_metadata"] = {
-            "input_tokens": response.usage.prompt_tokens,
-            "output_tokens": response.usage.completion_tokens,
-            "total_tokens": response.usage.total_tokens,
+            "input_tokens": response_json.usage.prompt_tokens,
+            "output_tokens": response_json.usage.completion_tokens,
+            "total_tokens": response_json.usage.total_tokens,
         }
 
     return response
