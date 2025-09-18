@@ -1,12 +1,42 @@
 
 import os
 import streamlit as st
+from pathlib import Path
 import requests
 from htmlTemplates import css, bot_template, user_template
 
 # API_URL = "http://localhost:8000"  # Update for production (e.g., hosted backend)
 API_URL = os.getenv("API_URL", "http://localhost:8000")
 
+
+def get_app_version() -> str:
+    """
+    Returns the app version from version.txt.
+    Tries multiple locations to work both locally and inside Docker.
+    """    
+    candidate_paths = [
+        Path(__file__).resolve().parent / "version.txt",        # next to this file
+        Path(__file__).resolve().parent.parent / "version.txt", # parent folder
+        Path("version.txt"),                                    # working directory
+        Path("/app/version.txt"),                                # Docker container standard path
+    ]
+
+    for path in candidate_paths:
+        try:
+            if path.is_file():
+                return path.read_text().strip()
+        except Exception:
+            continue
+
+    # 3) As a last resort, walk up from current file
+    p = Path(__file__).resolve().parent
+    for _ in range(6):
+        candidate = p / "version.txt"
+        if candidate.is_file():
+            return candidate.read_text().strip()
+        p = p.parent
+
+    return "unknown"
 
 def get_session_id_from_response(response):
     """Parses the session_id from the response cookies."""
@@ -141,7 +171,9 @@ def main():
                 except requests.exceptions.RequestException as e:
                     st.error(f"❌ Failed to ingest documents: {e}")
 
-
+        st.markdown("---")
+        # ✅ Show version here
+        st.caption(f"App version: {get_app_version()}")
 
 
     question = st.text_input(
