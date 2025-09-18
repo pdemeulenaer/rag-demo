@@ -82,6 +82,7 @@ COPY --from=builder /app/.venv /app/.venv
 # COPY . .
 COPY src/ ./src/
 COPY config.yaml ./config.yaml
+COPY version.txt ./version.txt
 
 # Pre-compile Python files to bytecode for startup performance
 RUN python -m compileall ./src
