@@ -39,6 +39,18 @@ def get_app_version() -> str:
 
     return "unknown"
 
+
+# Function to get document titles from the backend API
+def get_document_titles():
+    try:
+        response = requests.get(f"{API_URL}/documents")
+        response.raise_for_status()
+        return response.json()
+    except requests.exceptions.RequestException as e:
+        st.error(f"❌ Failed to get document titles: {e}")
+        return None
+    
+
 def get_session_id_from_response(response):
     """Parses the session_id from the response cookies."""
     if 'set-cookie' in response.headers:
@@ -111,7 +123,31 @@ def main():
     with st.sidebar:
         st.subheader("📚 Knowledge Base")
         st.success("🟢 Connected to Knowledge Base") # TODO: make a connection test for this
-        st.info("The knowledge base is pre-loaded from a set of astronomy papers in PDF format.")
+        st.info("Pre-loaded with 10 astronomy PDF papers.")
+
+        # st.markdown("---")
+        # st.subheader("📊 Database Content")
+        if st.button("Currently in database", use_container_width=True):
+            titles_data = get_document_titles()
+            if titles_data:
+                titles_list = titles_data.get("titles", [])
+                total = titles_data.get("total_documents", 0)
+
+                # Build the response string
+                response_str = f"📚 **Total Documents:** {total}\n\n**Titles:**\n"
+                if titles_list:
+                    # Using a numbered list for better readability
+                    for i, title in enumerate(titles_list, 1):
+                        response_str += f"{i}. {title}\n"
+                else:
+                    response_str += "No documents found in the database."
+
+                # Append the response to the conversation history
+                st.session_state.full_conversation.append({
+                    "role": "assistant",
+                    "content": response_str,
+                    "sources": [] # No sources for this type of response
+                })
 
         st.markdown("---")
         st.subheader("➕ Ingest Your Own PDFs")
@@ -220,7 +256,7 @@ def main():
             key for key, val in model_labels.items() if val == selected_label
         )        
 
-        st.markdown("---")
+        # st.markdown("---")
         # ✅ Show version here
         st.caption(f"App version: {get_app_version()}")
 

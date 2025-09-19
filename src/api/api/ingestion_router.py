@@ -1,10 +1,11 @@
 # src/api/api/ingestion_router.py
 
 from fastapi import APIRouter, File, UploadFile, HTTPException
-from typing import List
+from typing import List, Dict, Any
 import os
 import tempfile
 import logging
+from qdrant_client import QdrantClient
 
 from src.api.core.config import config
 from src.api.ingestion.ingest_documents import ingest_documents, IngestionError
@@ -70,3 +71,59 @@ async def ingest_files(files: List[UploadFile] = File(...)):
 
     logger.info(f"Successfully ingested {ingested_count} document(s).")
     return {"message": f"Successfully ingested {ingested_count} document(s)."}
+
+
+
+@ingestion_router.get("/documents")
+async def get_all_document_titles():
+    """
+    Retrieves a list of all unique document titles from the Qdrant collection.
+    """
+    try:
+        qdrant_client = QdrantClient(
+            url=config.QDRANT_URL,
+            api_key=config.QDRANT_API_KEY
+        )
+        collection_name = config.QDRANT_COLLECTION_NAME
+
+        # Check if the collection exists before trying to access it
+        if not qdrant_client.collection_exists(collection_name=collection_name):
+            raise HTTPException(status_code=404, detail="Qdrant collection not found.")
+
+        # Use a set to store unique titles
+        unique_titles = set()
+        
+        offset = None
+        while True:
+            # Scroll through the collection in batches
+            # The `with_payload=True` is the default, but we specify a list
+            # of payload fields to retrieve for efficiency
+            points, next_offset = qdrant_client.scroll(
+                collection_name=collection_name,
+                limit=100,  # Fetch 100 points at a time
+                with_payload=["file_title"],
+                with_vectors=False, # We don't need the vectors, so don't retrieve them
+                offset=offset,
+            )
+
+            for point in points:
+                title = point.payload.get("file_title")
+                if title:
+                    unique_titles.add(title)
+            
+            # If there's no next offset, we've reached the end of the collection
+            if next_offset is None:
+                break
+            offset = next_offset
+
+        # Convert the set to a sorted list for a consistent output
+        titles_list = sorted(list(unique_titles))
+        
+        return {
+            "total_documents": len(titles_list),
+            "titles": titles_list
+        }
+
+    except Exception as e:
+        logger.error(f"Failed to retrieve document titles: {e}")
+        raise HTTPException(status_code=500, detail="Failed to retrieve document titles.")
