@@ -1,5 +1,6 @@
 
 import os
+from io import BytesIO
 import streamlit as st
 from pathlib import Path
 import requests
@@ -113,18 +114,95 @@ def main():
         st.info("The knowledge base is pre-loaded from a set of astronomy papers in PDF format.")
 
         st.markdown("---")
+        st.subheader("➕ Ingest Your Own PDFs")
+
+        # Add a radio button to choose the input method
+        ingestion_method = st.radio(
+            "Select ingestion method:",
+            ("Upload from Local", "Upload from URL"),
+            key="ingestion_method"
+        )
+
+        # Display the appropriate widget based on the selection
+        uploaded_files = []
+        # pdf_url = ""
+
+        if ingestion_method == "Upload from Local":
+            uploaded_files = st.file_uploader(
+                "Upload one or more PDF documents",
+                type="pdf",
+                accept_multiple_files=True,
+                key="local_uploader"
+            )
+            ingest_button_label = "Ingest Files"
+        else: # "Upload from URL"
+            pdf_urls_text = st.text_area(
+                "Paste PDF URLs here (one per line):",            
+                key="url_input",
+                placeholder="https://example.com/doc1.pdf\nhttps://example.com/doc2.pdf"
+            )
+            ingest_button_label = "Ingest from URL"
+
+        # Ingestion button and logic
+        ingest_button = st.button(ingest_button_label, use_container_width=True)
+
+        if ingest_button:
+            if ingestion_method == "Upload from Local" and uploaded_files:
+
+                with st.spinner("Ingesting documents... This may take a few minutes."):
+                    files_to_send = [
+                        ("files", (uploaded_file.name, uploaded_file, "application/pdf"))
+                        for uploaded_file in uploaded_files
+                    ]
+                    try:
+                        response = requests.post(f"{API_URL}/ingest", files=files_to_send, timeout=300)
+                        response.raise_for_status()
+                        st.success("✅ Documents ingested successfully!")
+                    except requests.exceptions.RequestException as e:
+                        st.error(f"❌ Failed to ingest documents: {e}")
+
+            elif ingestion_method == "Upload from URL" and pdf_urls_text: #pdf_url:
+
+                with st.spinner("Downloading and ingesting document from URL... This may take a few minutes."):
+                    # Split the string of URLs by newlines
+                    urls_list = [url.strip() for url in pdf_urls_text.split('\n') if url.strip()]
+                    
+                    if not urls_list:
+                        st.error("Please enter at least one valid URL.")
+                        st.stop()
+
+                    try:
+                        files_to_send = []
+                        for url in urls_list:
+                            # Download the file from the URL
+                            response = requests.get(url, timeout=300)
+                            response.raise_for_status()
+                            
+                            file_content = BytesIO(response.content)
+                            filename = os.path.basename(url) or 'downloaded_pdf.pdf'
+                            
+                            files_to_send.append(("files", (filename, file_content, "application/pdf")))
+                        
+                        # Post all files to the existing backend endpoint
+                        backend_response = requests.post(
+                            f"{API_URL}/ingest",
+                            files=files_to_send,
+                            timeout=300
+                        )
+                        backend_response.raise_for_status()
+
+                        st.success("✅ Document ingested successfully from URL!")
+                    except requests.exceptions.RequestException as e:
+                        st.error(f"❌ Failed to ingest URL: {e}")
+
+        st.markdown("---")
         st.subheader("⚙️ Generation Model")
-        # model_choice = st.selectbox(
-        #         "Select generation model",
-        #         ["gpt-4.1-nano", "gpt-4.1-mini", "gpt-5-nano"],
-        #         index=0,
-        #         key="generation_model",
-        #     )
+
         # Mapping of internal value -> user-friendly label
         model_labels = {
-            "gpt-4.1-nano": "gpt-4.1-nano (very fast)",
-            "gpt-4.1-mini": "gpt-4.1-mini (fast)",
-            "gpt-5-nano":  "gpt-5-nano (reasoning)"
+            "gpt-4.1-nano": "gpt-4.1-nano (fast)",
+            "gpt-4.1-mini": "gpt-4.1-mini (balanced)",
+            "gpt-5-nano":  "gpt-5-nano (slow, reasoning)"
         }
 
         # Let the user see the descriptive labels
@@ -140,36 +218,6 @@ def main():
         st.session_state.generation_model = next(
             key for key, val in model_labels.items() if val == selected_label
         )        
-
-        st.markdown("---")
-        st.subheader("➕ Ingest Your Own PDFs")
-
-        uploaded_files = st.file_uploader(
-            "Upload one or more PDF documents",
-            type="pdf",
-            accept_multiple_files=True
-        )
-
-        # Ingestion button and logic
-        ingest_button = st.button("Ingest Files", use_container_width=True)
-        if ingest_button and uploaded_files:
-            # Display a progress message
-            with st.spinner("Ingesting documents... This may take a few minutes."):
-                files_to_send = [
-                    ("files", (uploaded_file.name, uploaded_file, "application/pdf"))
-                    for uploaded_file in uploaded_files
-                ]
-                
-                try:
-                    response = requests.post(
-                        f"{API_URL}/ingest",
-                        files=files_to_send,
-                        timeout=300 # Set a higher timeout for large files
-                    )
-                    response.raise_for_status()
-                    st.success("✅ Documents ingested successfully!")
-                except requests.exceptions.RequestException as e:
-                    st.error(f"❌ Failed to ingest documents: {e}")
 
         st.markdown("---")
         # ✅ Show version here
