@@ -384,96 +384,175 @@ class RAGSummarizationResponse(BaseModel):
     summary: str    
 
 
+def is_openai_model(model_name: str) -> bool:
+    """
+    Decide provider by simple naming convention.
+    Adjust if you add custom prefixes.
+    """
+    model_name = model_name.lower()
+    return model_name.startswith("gpt-") or model_name.startswith("o1-") or model_name.startswith("openai-")
+
+
+
 @traceable(
     name="generate_answer",
     run_type="llm",
     metadata={"ls_provider": config.GENERATION_MODEL_PROVIDER, "ls_model_name": config.GENERATION_MODEL}
 )
+# def generate_answer(prompt: List[Dict[str, str]], generation_model: str = None):
 def generate_answer(prompt, generation_model=None):
+    """
+    Unified generation for OpenAI & Groq.
 
-    # client = instructor.from_openai(OpenAI(api_key=config.OPENAI_API_KEY))
-    # response, raw_response = client.chat.completions.create_with_completion(
-    #     model="gpt-4.1", #"gpt-5-mini", # "gpt-4.1", #
-    #     response_model=RAGGenerationResponse,
-    #     messages=[{"role": "user", "content": prompt}],
-    #     temperature=0.5,
-    # )
+    Args:
+        prompt: list of chat messages [{"role": "system", "content": "..."}]
+        generation_model: explicit model name (falls back to config.GENERATION_MODEL)
+    """
+    generation_model = generation_model or config.GENERATION_MODEL
+    logger.info(f"Using model: {generation_model}")
 
-    # Call OpenAI with JSON output enforcement
-    client = OpenAI(api_key=config.OPENAI_API_KEY)
-    response_json = client.chat.completions.create(
-        model=generation_model, #config.GENERATION_MODEL, # "gpt-4.1",
-        # messages=[
-        #     {"role": "system", "content": "You are a helpful assistant."},
-        #     {"role": "user", "content": "Answer using JSON format."}
-        # ],
-        messages=prompt,
-        # temperature=0,
-        # max_tokens=1024,
-        # response_format={"type": "json_schema", "json_schema": OUTPUT_SCHEMA}
-        response_format={
-            "type": "json_schema",
-            "json_schema": {
-                "name": "RAGGenerationResponse",
-                "schema": OUTPUT_SCHEMA
+    logger.info("-----")
+    logger.info(f"Prompt length: {len(str(prompt))}")
+    logger.info(f"Prompt: {prompt}")
+    logger.info("-----")
+
+    if is_openai_model(generation_model):
+        # --------- OpenAI branch ----------
+        client = OpenAI(api_key=config.OPENAI_API_KEY)
+        response_json = client.chat.completions.create(
+            model=generation_model,
+            messages=prompt,
+            response_format={
+                "type": "json_schema",
+                "json_schema": {
+                    "name": "RAGGenerationResponse",
+                    "schema": OUTPUT_SCHEMA
+                }
             }
-        }
-    )
+        )
 
-    raw_content = response_json.choices[0].message.content
-    parsed_content = json.loads(raw_content)  # now it's a dict
+        raw_content = response_json.choices[0].message.content
+        parsed_content = json.loads(raw_content)
+        response = RAGGenerationResponse(**parsed_content)
 
-    # Parse the JSON into your Pydantic model
-    response = RAGGenerationResponse(**parsed_content)    
-
-    current_run = get_current_run_tree()
-    if current_run:
-        current_run.metadata["usage_metadata"] = {
+        usage = {
             "input_tokens": response_json.usage.prompt_tokens,
             "output_tokens": response_json.usage.completion_tokens,
             "total_tokens": response_json.usage.total_tokens,
         }
 
-    return response
+    else:
+        # --------- Groq branch ----------
+        groq_client = Groq(api_key=config.GROQ_API_KEY)
+        instr_client = instructor.from_groq(groq_client)
 
+        response, raw_response = instr_client.chat.completions.create_with_completion(
+            model=generation_model,
+            response_model=RAGGenerationResponse,
+            messages=prompt,
+            temperature=0,
+            max_tokens=config.GENERATION_MODEL_MAX_TOKENS,
+            max_retries=5,
+        )
 
-@traceable(
-    name="generate_answer",
-    run_type="llm",
-    metadata={"ls_provider": config.GENERATION_MODEL_PROVIDER, "ls_model_name": config.GENERATION_MODEL}
-)
-def generate_answer_groq(prompt, generation_model=None):    
-
-    # Initialize the Groq client
-    groq_client = Groq(api_key=config.GROQ_API_KEY)
-
-    # Patch the Groq client with instructor
-    client = instructor.from_groq(groq_client)
-
-    logger.info(f"-----")
-    logger.info(f"Prompt length: {len(prompt)}")
-    logger.info(f"Prompt: {prompt}")
-    logger.info(f"-----")
-
-    # Use the instructor-patched Groq client for chat completions
-    response, raw_response = client.chat.completions.create_with_completion(
-        model=generation_model, # config.GENERATION_MODEL, # "llama-3.3-70b-versatile",
-        response_model=RAGGenerationResponse,
-        messages=prompt, #[{"role": "user", "content": prompt}],
-        temperature=0, #config.GENERATION_MODEL_TEMPERATURE, #0.5,
-        max_tokens=config.GENERATION_MODEL_MAX_TOKENS, #1024
-        max_retries=5,  # Set the number of retries here
-    )
-
-    current_run = get_current_run_tree()
-    if current_run:
-        current_run.metadata["usage_metadata"] = {
+        usage = {
             "input_tokens": raw_response.usage.prompt_tokens,
             "output_tokens": raw_response.usage.completion_tokens,
             "total_tokens": raw_response.usage.total_tokens,
         }
 
+    # attach token usage to LangSmith run if present
+    current_run = get_current_run_tree()
+    if current_run:
+        current_run.metadata["usage_metadata"] = usage
+
     return response
+
+# def generate_answer(prompt, generation_model=None):
+
+#     # client = instructor.from_openai(OpenAI(api_key=config.OPENAI_API_KEY))
+#     # response, raw_response = client.chat.completions.create_with_completion(
+#     #     model="gpt-4.1", #"gpt-5-mini", # "gpt-4.1", #
+#     #     response_model=RAGGenerationResponse,
+#     #     messages=[{"role": "user", "content": prompt}],
+#     #     temperature=0.5,
+#     # )
+
+#     # Call OpenAI with JSON output enforcement
+#     client = OpenAI(api_key=config.OPENAI_API_KEY)
+#     response_json = client.chat.completions.create(
+#         model=generation_model, #config.GENERATION_MODEL, # "gpt-4.1",
+#         # messages=[
+#         #     {"role": "system", "content": "You are a helpful assistant."},
+#         #     {"role": "user", "content": "Answer using JSON format."}
+#         # ],
+#         messages=prompt,
+#         # temperature=0,
+#         # max_tokens=1024,
+#         # response_format={"type": "json_schema", "json_schema": OUTPUT_SCHEMA}
+#         response_format={
+#             "type": "json_schema",
+#             "json_schema": {
+#                 "name": "RAGGenerationResponse",
+#                 "schema": OUTPUT_SCHEMA
+#             }
+#         }
+#     )
+
+#     raw_content = response_json.choices[0].message.content
+#     parsed_content = json.loads(raw_content)  # now it's a dict
+
+#     # Parse the JSON into your Pydantic model
+#     response = RAGGenerationResponse(**parsed_content)    
+
+#     current_run = get_current_run_tree()
+#     if current_run:
+#         current_run.metadata["usage_metadata"] = {
+#             "input_tokens": response_json.usage.prompt_tokens,
+#             "output_tokens": response_json.usage.completion_tokens,
+#             "total_tokens": response_json.usage.total_tokens,
+#         }
+
+#     return response
+
+
+# @traceable(
+#     name="generate_answer",
+#     run_type="llm",
+#     metadata={"ls_provider": config.GENERATION_MODEL_PROVIDER, "ls_model_name": config.GENERATION_MODEL}
+# )
+# def generate_answer_groq(prompt, generation_model=None):    
+
+#     # Initialize the Groq client
+#     groq_client = Groq(api_key=config.GROQ_API_KEY)
+
+#     # Patch the Groq client with instructor
+#     client = instructor.from_groq(groq_client)
+
+#     logger.info(f"-----")
+#     logger.info(f"Prompt length: {len(prompt)}")
+#     logger.info(f"Prompt: {prompt}")
+#     logger.info(f"-----")
+
+#     # Use the instructor-patched Groq client for chat completions
+#     response, raw_response = client.chat.completions.create_with_completion(
+#         model=generation_model, # config.GENERATION_MODEL, # "llama-3.3-70b-versatile",
+#         response_model=RAGGenerationResponse,
+#         messages=prompt, #[{"role": "user", "content": prompt}],
+#         temperature=0, #config.GENERATION_MODEL_TEMPERATURE, #0.5,
+#         max_tokens=config.GENERATION_MODEL_MAX_TOKENS, #1024
+#         max_retries=5,  # Set the number of retries here
+#     )
+
+#     current_run = get_current_run_tree()
+#     if current_run:
+#         current_run.metadata["usage_metadata"] = {
+#             "input_tokens": raw_response.usage.prompt_tokens,
+#             "output_tokens": raw_response.usage.completion_tokens,
+#             "total_tokens": raw_response.usage.total_tokens,
+#         }
+
+#     return response
 
 
 @traceable(

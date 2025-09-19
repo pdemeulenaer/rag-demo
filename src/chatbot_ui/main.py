@@ -200,16 +200,17 @@ def main():
 
         # Mapping of internal value -> user-friendly label
         model_labels = {
+            "llama-3.3-70b-versatile":  "llama-3.3-70b (fastest but succinct)",            
             "gpt-4.1-nano": "gpt-4.1-nano (fast)",
             "gpt-4.1-mini": "gpt-4.1-mini (balanced)",
-            "gpt-5-nano":  "gpt-5-nano (slow, reasoning)"
+            "gpt-5-nano":  "gpt-5-nano (slow, reasoning)",            
         }
 
         # Let the user see the descriptive labels
         selected_label = st.selectbox(
             "Select generation model",
             options=list(model_labels.values()),
-            index=0,
+            index=1, # index of default selection
             key="generation_model_label"
         )
 
