@@ -13,7 +13,7 @@ The application is composed of several key components:
 - **Embedding Model**: OpenAI's text-embedding-3-small.- 
 - **Vector Database**: A **Qdrant Cloud** vector database stores document embeddings and metadata for hybrid (semantic + exact keyword matching) search.
 - **Reranker**: **Cohere's Rerank API** improves relevance of retrieved chunks before LLM generation.- 
-- **LLM for Generation**: Groq (`llama-3.3-70b-versatile`) generates answers based on retrieved context.
+- **LLM for Generation**: Groq (`llama-3.3-70b-versatile`) or OpenAI (`gpt-4.1-nano`, `gpt-4.1-mini`, `gpt-5-nano`) LLMs can be selected to generate answers based on retrieved context.
 
 ---
 
@@ -22,7 +22,7 @@ The application is composed of several key components:
 ## Key Features
 
 *   **Conversational Chat**: Engages in a multi-turn dialogue, maintaining context through a conversation memory system.
-*   **PDF Knowledge Base**: Ingests and processes a large collection of PDF documents.
+*   **PDF Knowledge Base**: Users can upload and process a large collection of PDF documents.
 *   **Hybrid Search**: Combines semantic (vector) search with traditional keyword search for more robust retrieval. Re-ranking is performed on top of this.
 *   **Advanced RAG Pipeline**:
     *   Retrieves relevant text chunks from Qdrant (hybrid search)
@@ -31,6 +31,7 @@ The application is composed of several key components:
     *   Generates a comprehensive answer using Groq's LLM.
 *   **Source Citation**: Answers include references to the source documents (including author, title, year, and page numbers) from which the information was extracted.
 *   **Conversation Memory**: Implements a sliding window with summarization on the backend to manage long conversations efficiently without losing context.
+*   **Multi-user sessions**: a Redis database ensures that multiple users can chat independently with the RAG.
 
 ## Setup and Installation
 
@@ -68,7 +69,7 @@ The application is composed of several key components:
     - `LANGSMITH_TRACING`: Enable LangSmith tracing (`true` or `false`)
     - `LANGSMITH_ENDPOINT`: LangSmith API endpoint
     - `LANGSMITH_API_KEY`: LangSmith API key
-    - `LANGSMITH_PROJECT`: LangSmith project name (e.g., `rag
+    - `LANGSMITH_PROJECT`: LangSmith project name
 
 
 4. **Install Dependencies**
@@ -81,28 +82,19 @@ The application is composed of several key components:
      uv sync
      ```
 
-## Usage
-
 ## 📥 Usage
 
-1. **Ingest Documents** [TODO]
-   <!-- - Place PDFs in a folder (e.g., `data/`)
-   - Run ingestion:
-     ```bash
-     make ingest
-     ```
-   - Parses PDFs, chunks text, generates embeddings, uploads to Qdrant. -->
+**Run the Application locally**
 
-2. **Run the Application**
-   - Start backend API and Streamlit frontend with Docker Compose:
-  
-     ```bash
-     docker-compose up --build
-     ```
+- Start backend API and Streamlit frontend with Docker Compose:
 
-   - Access UI: [http://localhost:8501](http://localhost:8501)
-   - Access API: [http://localhost:8000/docs](http://localhost:8000/docs)
-   - Both frontend and backend logs can be investigated in the Docker Desktop containers
+  ```bash
+  docker-compose up --build
+  ```
+
+- Access UI: [http://localhost:8501](http://localhost:8501)
+- Access API: [http://localhost:8000/docs](http://localhost:8000/docs)
+- Both frontend and backend logs can be investigated in the Docker Desktop containers
 
 ---
 
