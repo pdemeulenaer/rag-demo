@@ -49,7 +49,7 @@ qdrant_client = QdrantClient(
 
 # Initialize the Groq model for Ragas evaluation
 ragas_llm = LangchainLLMWrapper(ChatGroq(model="llama-3.3-70b-versatile", groq_api_key=config.GROQ_API_KEY))
-# ragas_llm = LangchainLLMWrapper(ChatOpenAI(model="gpt-4.1-mini", openai_api_key=config.OPENAI_API_KEY))
+# ragas_llm = LangchainLLMWrapper(ChatOpenAI(model="gpt-4.1-nano", openai_api_key=config.OPENAI_API_KEY))
 ragas_embeddings = LangchainEmbeddingsWrapper(OpenAIEmbeddings(model="text-embedding-3-small", openai_api_key=config.OPENAI_API_KEY))
 
 
@@ -131,15 +131,6 @@ async def ragas_context_recall_non_llm(run, example):
     return await scorer.single_turn_ascore(sample)
 
 
-# def rag_pipeline_for_eval(inputs):
-#     result = rag_pipeline(inputs["question"], qdrant_client, session_id=0)
-#     return {
-#         "answer": result["answer"],
-#         "question": inputs["question"],
-#         "retrieved_context": result["retrieved_context"],
-#         "sources": result["sources"],
-#     }
-
 def rag_pipeline_for_eval(inputs): 
     result = rag_pipeline(inputs["question"], qdrant_client, session_id=0)
     return {
@@ -148,19 +139,6 @@ def rag_pipeline_for_eval(inputs):
         "retrieved_context": result["retrieved_context"],
         "sources": result["sources"], 
         }
-
-# results = ls_client.evaluate(
-#     rag_pipeline_for_eval,
-#     data="rag-evaluation-dataset",
-#     evaluators=[
-#         ragas_faithfulness,
-#         ragas_response_relevancy,
-#         ragas_context_precision,
-#         ragas_context_recall_llm_based,
-#         ragas_context_recall_non_llm,
-#     ],
-#     experiment_prefix="rag-evaluation-dataset"
-# )
 
 results = ls_client.evaluate(
     lambda x: rag_pipeline(x["question"], qdrant_client, session_id=0),
