@@ -172,8 +172,13 @@ def retrieve_context(query, qdrant_client, top_k=5):
             Prefetch(
                 filter=Filter(
                     must=[
-                        FieldCondition(
-                            key="text", match=MatchText(text=query)),
+                        # still search the main chunk text
+                        FieldCondition(key="text", match=MatchText(text=query)),
+                        # add metadata fields you’d like to search
+                        FieldCondition(key="authors", match=MatchText(text=query)),
+                        FieldCondition(key="file_title", match=MatchText(text=query)),
+                        FieldCondition(key="year", match=MatchText(text=query)),
+                        FieldCondition(key="keywords", match=MatchText(text=query)),                                            
                     ]
                 ),
                 limit=20
