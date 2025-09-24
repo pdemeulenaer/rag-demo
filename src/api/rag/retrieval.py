@@ -7,7 +7,6 @@ from pydantic import BaseModel
 from typing import List
 import json
 import cohere
-
 from qdrant_client import QdrantClient
 from qdrant_client.models import Prefetch, Filter, FieldCondition, MatchText, FusionQuery
 from langsmith import traceable, get_current_run_tree
@@ -24,10 +23,7 @@ logger = logging.getLogger(__name__)
 cohere_client = cohere.Client(config.COHERE_API_KEY)
 
 # Initialize the conversation memory
-# conversation_memory = {} # global memory dictionary, deprecated in favor of Redis
 redis_client = redis.Redis(host='redis', port=6379, db=0)
-
-
 
 
 class ConversationMemory:
@@ -67,8 +63,6 @@ def summarize_messages(messages, summarizer_llm):
         response_model=RAGSummarizationResponse,
         max_tokens=config.SUMMARIZATION_MODEL_MAX_TOKENS # 1000
     )
-
-    # return response.choices[0].message.content.strip()
     return response.summary.strip()
 
 
@@ -76,11 +70,6 @@ def summarize_messages(messages, summarizer_llm):
     name="get_memory",
     # run_type="prompt",
 )
-# def get_memory(session_id: str) -> ConversationMemory:
-#     # global conversation_memory, based on session_id
-#     if session_id not in conversation_memory:
-#         conversation_memory[session_id] = ConversationMemory()
-#     return conversation_memory[session_id]
 def get_memory(session_id: str) -> ConversationMemory:
 
     # If in evaluation mode, return a fresh memory each time
@@ -110,7 +99,6 @@ def add_message(session_id: str, role: str, content: str, summarizer_llm):
     # Add message to both lists
     memory.recent_messages.append({"role": role, "content": content})
     memory.full_history.append({"role": role, "content": content})
-
 
     # Summarize older messages if buffer exceeded
     if len(memory.recent_messages) > memory.window_size:
@@ -190,8 +178,6 @@ def retrieve_context(query, qdrant_client, top_k=5):
 
     retrieved_context = []
     for result in results.points:
-        # print("Qdrant payload keys:", result.payload.keys())
-        # print("Qdrant payload sample:", result.payload)
         logger.info("Qdrant payload keys: %s", result.payload.keys())
         logger.info("Qdrant payload sample: %s", result.payload)     
         retrieved_context.append({
@@ -240,19 +226,10 @@ def rerank_context(query: str, retrieved_context: list, top_n: int = 5):
     return reranked
 
 
-
 @traceable(
     name="format_retrieved_context",
     run_type="prompt"
 )
-# def process_context(context):
-
-#     formatted_context = ""
-
-#     for id, chunk in zip(context["retrieved_context_ids"], context["retrieved_context"]):
-#         formatted_context += f"- {id}: {chunk}\n"
-
-#     return formatted_context
 def process_context(context):
     lines = []
     for id, chunk in zip(context["retrieved_context_ids"], context["retrieved_context"]):
@@ -317,9 +294,6 @@ def build_prompt(context, question, session_id):
     # For LangSmith trace: return a string instead of the messages list
     traced_prompt = f"[SYSTEM]\n{system_prompt}\n\n[USER]\n{user_prompt}"
 
-    # # Instructor trace can log the string
-    # from langsmith import traceable
-
     @traceable(name="render_prompt", run_type="prompt")
     def traced():
         return traced_prompt
@@ -350,7 +324,6 @@ def is_openai_model(model_name: str) -> bool:
     """
     model_name = model_name.lower()
     return model_name.startswith("gpt-") or model_name.startswith("o1-") or model_name.startswith("openai-")
-
 
 
 @traceable(
@@ -455,8 +428,7 @@ def rag_pipeline(question, qdrant_client, session_id, generation_model=None, top
         question,
         session_id
     )
-    answer = generate_answer(prompt, generation_model) # openai's one
-    # answer = generate_answer_groq(prompt, generation_model)
+    answer = generate_answer(prompt, generation_model)
 
     # Deduplicate sources and aggregate page numbers
     seen = {}
@@ -489,7 +461,6 @@ def rag_pipeline(question, qdrant_client, session_id, generation_model=None, top
             # Aggregate page numbers for duplicate sources
             # if page_num is not None and page_num not in seen[key].page:
             #     seen[key].page.append(page_num)
-            # Aggregate page numbers for duplicate sources
             existing_pages = set(seen[key].page)
             existing_pages.update(page_num)
             seen[key].page = sorted(existing_pages)            
@@ -499,11 +470,10 @@ def rag_pipeline(question, qdrant_client, session_id, generation_model=None, top
 
     return {
         "answer": answer.answer,
-        "sources": unique_sources, # [s.__dict__ for s in unique_sources], # make sources JSON serializable #
+        "sources": unique_sources, 
         "question": question,
         "retrieved_context": retrieved_context_texts,
     }
-
 
 
 def rag_pipeline_wrapper(question, session_id, summarizer_llm, generation_model=None, top_k=5):
@@ -518,9 +488,6 @@ def rag_pipeline_wrapper(question, session_id, summarizer_llm, generation_model=
     # Update memory with summarization
     add_message(session_id, "user", question, summarizer_llm)
     add_message(session_id, "assistant", result["answer"], summarizer_llm)
-
-    # sources = [Source(**s) for s in result.get("sources", [])]
-
 
     return {
         "answer": result["answer"],

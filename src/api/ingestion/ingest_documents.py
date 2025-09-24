@@ -11,35 +11,18 @@ from datetime import datetime
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from qdrant_client import QdrantClient
 from qdrant_client.http.models import PointStruct, VectorParams, Distance, PayloadSchemaType
-# from qdrant_client.http.models import TextIndexParams, TextIndexType
-from typing import List, Tuple, Dict # Generator, 
-# import statistics
-# from huggingface_hub import InferenceClient
+from typing import List, Tuple, Dict
 from langchain.embeddings.base import Embeddings
-# from dotenv import load_dotenv
 from openai import OpenAI
-
 import instructor
 from pydantic import BaseModel, Field
 
 from src.api.core.config import config
 
 
-# from .utils import (
-#     load_config,
-#     # RemoteEmbeddingsAPI,
-# )
-
-# load_dotenv()
-
 # === Config ===
-# QDRANT_URL = config.QDRANT_URL # os.getenv("QDRANT_URL")
-# QDRANT_API_KEY = config.QDRANT_API_KEY # os.getenv("QDRANT_API_KEY")
-# COLLECTION_NAME = config.QDRANT_COLLECTION_NAME # "test_collection_oai_local"
-# PDF_FOLDER = os.path.join(os.path.dirname(__file__), "/../data/folder")
 PDF_FOLDER = os.path.abspath(os.path.join(os.path.dirname(__file__), "../data/folder"))
-# EMBEDDING_API_URL = config.QDRANT_API_KEY # os.getenv("EMBEDDING_API_URL")
-# OPENAI_API_KEY = config.OPENAI_API_KEY # os.getenv("OPENAI_API_KEY")
+
 
 
 # === OpenAI Embedding Class ===
@@ -49,7 +32,7 @@ client = OpenAI(api_key=config.OPENAI_API_KEY)
 groq_client = instructor.from_openai(
     OpenAI(
         base_url="https://api.groq.com/openai/v1",
-        api_key=config.GROQ_API_KEY # os.getenv("GROQ_API_KEY")
+        api_key=config.GROQ_API_KEY
     )
 )
 
@@ -107,7 +90,6 @@ def extract_metadata_with_llm(text: str) -> AdditionalMetadata:
         temperature=config.METADATA_MODEL_TEMPERATURE,
         max_tokens=config.METADATA_MODEL_MAX_TOKENS,
     )
-
 
 
 class OpenAIEmbeddings(Embeddings):
@@ -224,13 +206,13 @@ def summarize_chunk(text: str) -> str:
     }
 
     payload = {
-        "model": config.SUMMARIZATION_MODEL, # yaml_config["groq"]["summarization_model"],
+        "model": config.SUMMARIZATION_MODEL,
         "messages": [
             {"role": "system", "content": "You are a helpful assistant that summarizes academic documents."},
             {"role": "user", "content": f"Summarize the following chunk:\n\n{text}"}
         ],
-        "temperature": config.SUMMARIZATION_MODEL_TEMPERATURE, # yaml_config["groq"]["temperature"],
-        "max_tokens": config.SUMMARIZATION_MODEL_MAX_TOKENS #yaml_config["groq"]["max_tokens"]
+        "temperature": config.SUMMARIZATION_MODEL_TEMPERATURE, 
+        "max_tokens": config.SUMMARIZATION_MODEL_MAX_TOKENS 
     }
 
     try:
@@ -252,8 +234,6 @@ def ingest_documents(file_path: str, qdrant_url: str, qdrant_api_key: str, colle
     qdrant_client = QdrantClient(url=qdrant_url, api_key=qdrant_api_key)
 
     # Make sure your collection and indexes exist
-    # You might want to move this part to a separate initialization script
-    # that runs once on startup or deployment.
     if not qdrant_client.collection_exists(collection_name=collection_name):
         qdrant_client.create_collection(
             collection_name=collection_name,
