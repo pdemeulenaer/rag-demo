@@ -8,9 +8,8 @@ from pydantic import BaseModel
 
 from src.api.core.config import config
 from src.api.utils import get_conversation_chain, get_reranked_qdrant_retriever
-# from src.api.api.ingestion_router import ingestion_router # Import the new router
-
-
+from src.api.rag.intent_router import classify_question
+from src.api.rag import metadata_handlers as mh
 from src.api.rag.retrieval import rag_pipeline_wrapper, get_memory
 from src.api.api.models import RAGRequest, RAGResponse, ChatMessage #, RAGUsedImage
 
@@ -47,7 +46,7 @@ class QuestionRequest(BaseModel):
 async def rag(
     request: Request,
     payload: RAGRequest,
-    response: Response  # <-- Added here so you can set cookies
+    response: Response
 ) -> RAGResponse:
 
     # Get or create a session_id cookie
@@ -64,6 +63,38 @@ async def rag(
 
     # Determine generation model (user-selected or default)
     gen_model = payload.generation_model or config.GENERATION_MODEL
+    
+
+    # ---- NEW: classify intent ----
+    user_q = payload.query
+    intent = classify_question(user_q)
+    logger.info(f"Intent: {intent}")
+
+
+    if intent.intent != "mixed":
+        # structured / metadata path
+        if intent.intent == "list_titles":
+            answer = "\n".join(mh.list_titles())
+        elif intent.intent == "list_authors":
+            answer = "\n".join(mh.list_authors())
+        elif intent.intent == "titles_by_author":
+            answer = "\n".join(mh.titles_by_author(intent.author, intent.year))
+        elif intent.intent == "authors_by_year":
+            answer = "\n".join(mh.titles_by_author(None, intent.year))
+        elif intent.intent == "author_of_title":
+            answer = ", ".join(mh.author_of_title(intent.title))
+        elif intent.intent == "summarize_paper":
+            answer = mh.summarize_paper(intent.title)
+        else:
+            answer = "I couldn’t classify that question."
+
+        return RAGResponse(
+            request_id=request.state.request_id,
+            answer=answer,
+            chat_history=[],   # you can choose to include memory if you like
+            sources=[]
+        )            
+
 
     # Run the RAG pipeline with session-based memory
     result = rag_pipeline_wrapper(payload.query, 
@@ -71,12 +102,6 @@ async def rag(
                                   summarizer_llm,
                                   generation_model=gen_model
                                   )
-
-    # # Build and return the RAGResponse
-    # return RAGResponse(
-    #     request_id=request.state.request_id,
-    #     answer=result["answer"],
-    # )
 
     # Retrieve the full conversation memory
     memory = get_memory(session_id)
