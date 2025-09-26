@@ -13,6 +13,12 @@ from src.api.api.models import RAGRequest, RAGResponse, ChatMessage #, RAGUsedIm
 
 logger = logging.getLogger(__name__)
 
+def format_answer_for_display(ans: str) -> str:
+    """If `ans` has multiple non-empty lines, format as markdown bullets."""
+    lines = [l.strip() for l in ans.splitlines() if l.strip()]
+    if len(lines) > 1:
+        return "\n".join(f"- {l}" for l in lines)
+    return ans
 
 # Initialize the summarizer LLM using instructor with Groq
 summarizer_llm = instructor.from_openai(
@@ -89,7 +95,7 @@ async def rag(
 
         return RAGResponse(
             request_id=request.state.request_id,
-            answer=answer,
+            answer=format_answer_for_display(answer),
             chat_history=[],   # you can choose to include memory if you like
             sources=[]
         )            
