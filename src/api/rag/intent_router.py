@@ -3,7 +3,11 @@ from pydantic import BaseModel
 from typing import Literal, Optional
 import instructor
 import openai
+import logging
 from src.api.core.config import config
+
+logger = logging.getLogger(__name__)
+
 
 # ---------- Intent schema ----------
 class MetadataIntent(BaseModel):
@@ -44,9 +48,32 @@ router_llm = instructor.from_openai(
 )
 
 def classify_question(question: str) -> MetadataIntent:
-    return router_llm.chat.completions.create(
-        model="gpt-4o-mini",        # cheap/fast model
+    raw = router_llm.chat.completions.create(
+        model="gpt-4o-mini",
         response_model=MetadataIntent,
         temperature=0,
-        messages=[{"role": "user", "content": router_prompt.format(q=question)}]
+        messages=[
+            {
+                "role": "system",
+                "content": (
+                    "You are an intent classifier. "
+                    "Return JSON strictly matching the MetadataIntent schema. "
+                    "Choose one of: list_titles, list_authors, titles_by_author, "
+                    "authors_by_year, author_of_title, summarize_paper, mixed. "
+                    "If it is not about metadata, choose mixed."
+                ),
+            },
+            {"role": "user", "content": question},
+        ],
     )
+    logger.info("Raw classifier output: %s", raw)  # <-- add this
+    return MetadataIntent.model_validate(raw)
+
+
+# def classify_question(question: str) -> MetadataIntent:
+#     return router_llm.chat.completions.create(
+#         model="gpt-4o-mini",        # cheap/fast model
+#         response_model=MetadataIntent,
+#         temperature=0,
+#         messages=[{"role": "user", "content": router_prompt.format(q=question)}]
+#     )
