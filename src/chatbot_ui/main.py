@@ -346,7 +346,8 @@ def main():
                     #     sources_md = "\n\n---\n**Sources:**\n" + "\n".join(sources_list)
                     #     full_content += sources_md
 
-                    st.write(bot_template.replace("{{MSG}}", full_content), unsafe_allow_html=True)
+                    # st.write(bot_template.replace("{{MSG}}", full_content), unsafe_allow_html=True)
+                    st.markdown(full_content)
 
 
 

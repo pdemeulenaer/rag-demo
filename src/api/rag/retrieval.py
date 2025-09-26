@@ -1,3 +1,4 @@
+# src/api/rag/retrieval.py
 import os
 import openai
 import instructor
@@ -25,6 +26,10 @@ cohere_client = cohere.Client(config.COHERE_API_KEY)
 # Initialize the conversation memory
 redis_client = redis.Redis(host='redis', port=6379, db=0)
 
+
+def titles_by_author(author, year=None):
+    if not author:
+        return []
 
 class ConversationMemory:
     def __init__(self, window_size=10): # 10 messages, i.e. 5 question-answer turns
@@ -163,11 +168,12 @@ def retrieve_context(query, qdrant_client, top_k=5):
                         # still search the main chunk text
                         FieldCondition(key="text", match=MatchText(text=query)),
                         # add metadata fields you’d like to search
-                        FieldCondition(key="authors", match=MatchText(text=query)),
-                        FieldCondition(key="file_title", match=MatchText(text=query)),
-                        FieldCondition(key="year", match=MatchText(text=query)),
-                        FieldCondition(key="keywords", match=MatchText(text=query)),                                            
+                        # FieldCondition(key="authors", match=MatchText(text=query)),
+                        # FieldCondition(key="file_title", match=MatchText(text=query)),
+                        # FieldCondition(key="year", match=MatchText(text=query)),
+                        # FieldCondition(key="keywords", match=MatchText(text=query)),                                                                 
                     ]
+                    
                 ),
                 limit=20
             )

@@ -1,3 +1,4 @@
+# src/api/api/rag_router.py
 from fastapi import APIRouter, Request, Response
 import logging
 import uuid
@@ -13,12 +14,47 @@ from src.api.api.models import RAGRequest, RAGResponse, ChatMessage #, RAGUsedIm
 
 logger = logging.getLogger(__name__)
 
-def format_answer_for_display(ans: str) -> str:
-    """If `ans` has multiple non-empty lines, format as markdown bullets."""
-    lines = [l.strip() for l in ans.splitlines() if l.strip()]
+# def format_answer_for_display(ans) -> str:
+#     """
+#     Format an answer for display as Markdown bullets.
+#     - If `ans` is a list, each item becomes a bullet.
+#     - If `ans` is a string with multiple lines, each line becomes a bullet.
+#     - If `ans` is a single string, return as-is.
+#     """
+#     if isinstance(ans, list):
+#         return "\n".join(f"- {a}" for a in ans if a)
+#     elif isinstance(ans, str):
+#         lines = [l.strip() for l in ans.splitlines() if l.strip()]
+#         if len(lines) > 1:
+#             return "\n".join(f"- {l}" for l in lines)
+#         return ans
+#     return str(ans)
+# def format_answer_for_display(ans: str) -> str:
+#     """If `ans` has multiple non-empty lines, format as a numbered Markdown list."""
+#     lines = [l.strip() for l in ans.splitlines() if l.strip()]
+#     if len(lines) > 1:
+#         # 1-based numbering for Markdown
+#         return "\n".join(f"{i+1}. {l}" for i, l in enumerate(lines))
+#     return ans
+def format_answer_for_display(ans) -> str:
+    """
+    Accepts either a string or a list of strings and returns
+    a numbered Markdown list if there is more than one line/item.
+    """
+    if ans is None:
+        return ""
+
+    # If we already have a list or tuple, treat each item as a line
+    if isinstance(ans, (list, tuple)):
+        lines = [str(l).strip() for l in ans if str(l).strip()]
+    else:
+        lines = [l.strip() for l in str(ans).splitlines() if l.strip()]
+
     if len(lines) > 1:
-        return "\n".join(f"- {l}" for l in lines)
-    return ans
+        return "\n".join(f"{i+1}. {l}" for i, l in enumerate(lines))
+    return lines[0] if lines else ""
+
+
 
 # Initialize the summarizer LLM using instructor with Groq
 summarizer_llm = instructor.from_openai(
@@ -63,10 +99,10 @@ async def rag(
     if intent.intent != "mixed":
         # structured / metadata path
         if intent.intent == "list_titles":
-            answer = "\n".join(mh.list_titles())
+            answer = mh.list_titles() #"\n".join(mh.list_titles())
 
         elif intent.intent == "list_authors":
-            answer = "\n".join(mh.list_authors())
+            answer = mh.list_authors() #"\n".join(mh.list_authors())
 
         elif intent.intent == "titles_by_author":
             if not intent.author:
@@ -79,13 +115,13 @@ async def rag(
                     chat_history=[],
                     sources=result.get("sources", [])
                 )
-            answer = "\n".join(mh.titles_by_author(intent.author, intent.year))
+            answer = mh.titles_by_author(intent.author, intent.year) #"\n".join(mh.titles_by_author(intent.author, intent.year))
 
         elif intent.intent == "authors_by_year":
-            answer = "\n".join(mh.titles_by_author(None, intent.year))
+            answer = mh.titles_by_author(None, intent.year) #"\n".join(mh.titles_by_author(None, intent.year))
 
         elif intent.intent == "author_of_title":
-            answer = ", ".join(mh.author_of_title(intent.title))
+            answer = mh.author_of_title(intent.title) #", ".join(mh.author_of_title(intent.title))
 
         elif intent.intent == "summarize_paper":
             answer = mh.summarize_paper(intent.title)

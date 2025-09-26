@@ -45,62 +45,328 @@ def list_authors():
 #         must.append({"key": "year", "match": {"value": year}})
 #     r, _ = qc.scroll(collection_name=COLL, scroll_filter={"must": must}, limit=10000)
 #     return sorted({p.payload.get("file_title") for p in r if p.payload.get("file_title")})
+# def titles_by_author(author: str | None, year: str | None = None):
+#     if not author:
+#         logger.info("titles_by_author called without author; returning empty list")
+#         return []
+
+#     author = author.strip()
+#     logger.info("titles_by_author: requested author=%s year=%s", author, year)
+
+#     # 1) Try strict keyword match on authors payload (best when ingestion is clean)
+#     must = [{"key": "authors", "match": {"value": author}}]
+#     if year:
+#         must.append({"key": "year", "match": {"value": str(year)}})
+
+#     try:
+#         r, _ = qc.scroll(collection_name=COLL, scroll_filter={"must": must}, limit=10000)
+#         titles = {p.payload.get("file_title") for p in r if p.payload.get("file_title")}
+#         if titles:
+#             logger.info("titles_by_author: strict match found %d titles", len(titles))
+#             return sorted(titles)
+#     except Exception as e:
+#         logger.exception("titles_by_author: strict scroll failed: %s", e)
+
+#     # 2) Fallback: scan collection and do tolerant last-name matching
+#     logger.info("titles_by_author: strict match returned nothing, running fallback scan")
+#     try:
+#         r, _ = qc.scroll(collection_name=COLL, limit=10000)
+#     except Exception as e:
+#         logger.exception("titles_by_author: full scroll failed: %s", e)
+#         return []
+
+#     query_last = _last_name(author)
+#     logger.debug("titles_by_author: normalized last name = '%s'", query_last)
+
+#     matched = set()
+#     for p in r:
+#         payload = p.payload or {}
+#         # optional: check year
+#         if year and str(payload.get("year")) != str(year):
+#             continue
+
+#         authors = payload.get("authors", []) or []
+#         # authors could be a string or list
+#         if isinstance(authors, str):
+#             authors_list = [authors]
+#         else:
+#             authors_list = list(authors)
+
+#         # join authors and normalize
+#         authors_joined = " ".join(authors_list)
+#         if query_last and query_last in _normalize(authors_joined):
+#             title = payload.get("file_title")
+#             if title:
+#                 matched.add(title)
+
+#     logger.info("titles_by_author: fallback matched %d titles", len(matched))
+#     return sorted(matched)
+# def titles_by_author(author: str | None, year: str | None = None):
+#     if not author:
+#         logger.info("titles_by_author called without author; returning empty list")
+#         return []
+
+#     author = author.strip()
+#     logger.info("titles_by_author: requested author=%s year=%s", author, year)
+
+#     # 1) Try strict keyword match on authors payload
+#     must = [{"key": "authors", "match": {"value": author}}]
+#     if year:
+#         must.append({"key": "year", "match": {"value": str(year)}})
+
+#     try:
+#         r, _ = qc.scroll(collection_name=COLL, scroll_filter={"must": must}, limit=10000)
+#         titles = {p.payload.get("file_title") for p in r if p.payload.get("file_title")}
+#         if titles:
+#             logger.info("titles_by_author: strict match found %d titles", len(titles))
+#             return sorted(titles)
+#     except Exception as e:
+#         logger.exception("titles_by_author: strict scroll failed: %s", e)
+
+#     # 2) Fallback: scan collection and do tolerant matching
+#     logger.info("titles_by_author: strict match returned nothing, running fallback scan")
+#     try:
+#         r, _ = qc.scroll(collection_name=COLL, limit=10000)
+#     except Exception as e:
+#         logger.exception("titles_by_author: full scroll failed: %s", e)
+#         return []
+
+#     query_norm = _normalize(author)  # normalize full name
+#     query_last = _last_name(author)   # normalize last name
+
+#     matched = set()
+#     for p in r:
+#         payload = p.payload or {}
+
+#         # optional: filter by year
+#         if year and str(payload.get("year")) != str(year):
+#             continue
+
+#         authors = payload.get("authors", []) or []
+#         if isinstance(authors, str):
+#             authors_list = [authors]
+#         else:
+#             authors_list = list(authors)
+
+#         # check if any author matches full name or last name
+#         for a in authors_list:
+#             a_norm = _normalize(a)
+#             if query_norm in a_norm or (query_last and query_last in a_norm):
+#                 title = payload.get("file_title")
+#                 if title:
+#                     matched.add(title)
+#                 break  # stop after first match in authors of this paper
+
+#     logger.info("titles_by_author: fallback matched %d titles", len(matched))
+#     return sorted(matched)
+# def titles_by_author(author: str | None, year: str | None = None):
+#     if not author:
+#         logger.info("titles_by_author called without author; returning empty list")
+#         return []
+
+#     author = author.strip()
+#     logger.info("titles_by_author: requested author=%s year=%s", author, year)
+
+#     matched = set()
+
+#     # 1) Strict keyword match
+#     must = [{"key": "authors", "match": {"value": author}}]
+#     if year:
+#         must.append({"key": "year", "match": {"value": str(year)}})
+
+#     try:
+#         r, _ = qc.scroll(collection_name=COLL, scroll_filter={"must": must}, limit=10000)
+#         for p in r:
+#             title = p.payload.get("file_title")
+#             if title:
+#                 matched.add(title)
+#         if r:
+#             logger.info("titles_by_author: strict match found %d titles", len(matched))
+#     except Exception as e:
+#         logger.exception("titles_by_author: strict scroll failed: %s", e)
+
+#     # 2) Fallback scan (always run, merge with strict matches)
+#     logger.info("titles_by_author: running fallback scan")
+#     try:
+#         r, _ = qc.scroll(collection_name=COLL, limit=10000)
+#     except Exception as e:
+#         logger.exception("titles_by_author: full scroll failed: %s", e)
+#         return sorted(matched)
+
+#     query_norm = _normalize(author)
+#     query_last = _last_name(author)
+
+#     for p in r:
+#         payload = p.payload or {}
+
+#         if year and str(payload.get("year")) != str(year):
+#             continue
+
+#         authors = payload.get("authors", []) or []
+#         if isinstance(authors, str):
+#             authors_list = [authors]
+#         else:
+#             authors_list = list(authors)
+
+#         for a in authors_list:
+#             a_norm = _normalize(a)
+#             if query_norm in a_norm or (query_last and query_last in a_norm):
+#                 title = payload.get("file_title")
+#                 if title:
+#                     matched.add(title)
+#                 break
+
+#     logger.info("titles_by_author: total matched %d titles", len(matched))
+#     return sorted(matched)
+
+# def titles_by_author(author: str | None, year: str | None = None):
+#     if not author:
+#         logger.info("titles_by_author called without author; returning empty list")
+#         return []
+
+#     author = author.strip()
+#     logger.info("titles_by_author: requested author=%s year=%s", author, year)
+
+#     matched = set()
+
+#     # --- strict keyword match stays as before ---
+#     must = [{"key": "authors", "match": {"value": author}}]
+#     if year:
+#         must.append({"key": "year", "match": {"value": str(year)}})
+#     try:
+#         r, _ = qc.scroll(collection_name=COLL, scroll_filter={"must": must}, limit=10000)
+#         for p in r:
+#             t = p.payload.get("file_title")
+#             if t:
+#                 matched.add(t)
+#     except Exception as e:
+#         logger.exception("titles_by_author: strict scroll failed: %s", e)
+
+#     # --- smarter fallback ---
+#     try:
+#         r, _ = qc.scroll(collection_name=COLL, limit=10000)
+#     except Exception as e:
+#         logger.exception("titles_by_author: full scroll failed: %s", e)
+#         return sorted(matched)
+
+#     # normalize query name and split tokens
+#     query_norm = _normalize(author)
+#     query_parts = query_norm.split()
+#     query_last = query_parts[-1] if query_parts else ""
+#     query_first = query_parts[0] if len(query_parts) > 1 else ""  # empty if only last name
+
+#     for p in r:
+#         payload = p.payload or {}
+#         if year and str(payload.get("year")) != str(year):
+#             continue
+
+#         authors = payload.get("authors", []) or []
+#         if isinstance(authors, str):
+#             authors_list = [authors]
+#         else:
+#             authors_list = list(authors)
+
+#         for a in authors_list:
+#             a_norm = _normalize(a)
+#             a_parts = a_norm.split()
+#             a_last = a_parts[-1] if a_parts else ""
+#             a_first = a_parts[0] if len(a_parts) > 1 else ""
+
+#             # --- match rules ---
+#             if not query_last:
+#                 continue
+#             # always require last name match
+#             if query_last not in a_last:
+#                 continue
+#             # if a first name/initial was given, require it to match too
+#             if query_first and not (query_first == a_first or query_first[0] == a_first[0]):
+#                 continue
+
+#             title = payload.get("file_title")
+#             if title:
+#                 matched.add(title)
+#                 break
+
+#     logger.info("titles_by_author: total matched %d titles", len(matched))
+#     return sorted(matched)
 def titles_by_author(author: str | None, year: str | None = None):
+    """
+    Return a sorted list like:
+       "Title, A. Author, B. Coauthor (2023)"
+       or "Title, FirstAuthor et al. (2023)"
+    """
+
     if not author:
-        logger.info("titles_by_author called without author; returning empty list")
         return []
 
-    author = author.strip()
-    logger.info("titles_by_author: requested author=%s year=%s", author, year)
+    author_norm = _normalize(author)
+    parts = author_norm.split()
+    q_last = parts[-1] if parts else ""
+    q_first = parts[0] if len(parts) > 1 else ""
 
-    # 1) Try strict keyword match on authors payload (best when ingestion is clean)
+    def format_entry(p):
+        payload = p.payload or {}
+        title = payload.get("file_title") or payload.get("title")
+        if not title:
+            return None
+        authors = payload.get("authors") or []
+        if isinstance(authors, str):
+            # split on common separators
+            for sep in [";", " and ", ","]:
+                if sep in authors:
+                    authors = [a.strip() for a in authors.split(sep) if a.strip()]
+                    break
+            else:
+                authors = [authors.strip()]
+        if not authors:
+            auth_str = "Unknown author"
+        elif len(authors) > 3:
+            auth_str = f"{authors[0]} et al."
+        else:
+            auth_str = ", ".join(authors)
+        y = str(payload.get("year") or "n.d.")
+        return f"{title}, {auth_str} ({y})"
+
+    matched = set()
+
+    # --- strict filter first ---
     must = [{"key": "authors", "match": {"value": author}}]
     if year:
         must.append({"key": "year", "match": {"value": str(year)}})
-
     try:
-        r, _ = qc.scroll(collection_name=COLL, scroll_filter={"must": must}, limit=10000)
-        titles = {p.payload.get("file_title") for p in r if p.payload.get("file_title")}
-        if titles:
-            logger.info("titles_by_author: strict match found %d titles", len(titles))
-            return sorted(titles)
+        r, _ = qc.scroll(collection_name=COLL, scroll_filter={"must": must}, limit=10_000)
+        matched |= {fmt for p in r if (fmt := format_entry(p))}
     except Exception as e:
-        logger.exception("titles_by_author: strict scroll failed: %s", e)
+        logger.warning("strict scroll failed: %s", e)
 
-    # 2) Fallback: scan collection and do tolerant last-name matching
-    logger.info("titles_by_author: strict match returned nothing, running fallback scan")
+    # --- fallback scan for last-name + optional first-name/initial ---
     try:
-        r, _ = qc.scroll(collection_name=COLL, limit=10000)
+        r, _ = qc.scroll(collection_name=COLL, limit=10_000)
     except Exception as e:
-        logger.exception("titles_by_author: full scroll failed: %s", e)
-        return []
+        logger.warning("full scan failed: %s", e)
+        return sorted(matched)
 
-    query_last = _last_name(author)
-    logger.debug("titles_by_author: normalized last name = '%s'", query_last)
-
-    matched = set()
     for p in r:
         payload = p.payload or {}
-        # optional: check year
         if year and str(payload.get("year")) != str(year):
             continue
-
-        authors = payload.get("authors", []) or []
-        # authors could be a string or list
+        authors = payload.get("authors") or []
         if isinstance(authors, str):
-            authors_list = [authors]
-        else:
-            authors_list = list(authors)
+            authors = [authors]
+        for a in authors:
+            a_norm = _normalize(a)
+            a_parts = a_norm.split()
+            if not a_parts:
+                continue
+            a_first, a_last = a_parts[0], a_parts[-1]
+            if q_last and q_last in a_last:
+                if not q_first or q_first == a_first or q_first[0] == a_first[0]:
+                    if fmt := format_entry(p):
+                        matched.add(fmt)
+                    break
 
-        # join authors and normalize
-        authors_joined = " ".join(authors_list)
-        if query_last and query_last in _normalize(authors_joined):
-            title = payload.get("file_title")
-            if title:
-                matched.add(title)
-
-    logger.info("titles_by_author: fallback matched %d titles", len(matched))
     return sorted(matched)
+
 
 def author_of_title(title):
     r, _ = qc.scroll(collection_name=COLL,
