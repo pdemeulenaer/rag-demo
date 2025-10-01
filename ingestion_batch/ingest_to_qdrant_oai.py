@@ -31,7 +31,7 @@ load_dotenv()
 # === Config ===
 QDRANT_URL = os.getenv("QDRANT_URL")
 QDRANT_API_KEY = os.getenv("QDRANT_API_KEY")
-COLLECTION_NAME = "test_collection_oai_local"
+COLLECTION_NAME = "test_collection_oai_local2"
 # PDF_FOLDER = os.path.join(os.path.dirname(__file__), "/../data/folder")
 PDF_FOLDER = os.path.abspath(os.path.join(os.path.dirname(__file__), "../data/folder"))
 EMBEDDING_API_URL = os.getenv("EMBEDDING_API_URL")
@@ -425,14 +425,40 @@ def ingest_folder_to_qdrant(folder_path: str, qdrant_url: str, qdrant_api_key: s
         texts = [chunk for chunk, _ in chunks_with_meta]
         page_numbers = [page for _, page in chunks_with_meta]
 
-        vectors = embedding_model.embed_documents(texts)
 
-        chunk_lengths = [len(c) for c in texts]
+        # --- Build the Metadata Header for Chunks ---
+        title = doc_metadata.get("file_title") or "[Unknown Title]"
+        # Join authors into a single string
+        authors = ", ".join(doc_metadata.get("authors", [])) or "[Unknown Author(s)]"
+        year = doc_metadata.get("year") or "[Unknown Year]"
+        
+        # Create the standard header string exactly as requested
+        header = (
+            f"Document Title: {title}\n"
+            f"Author(s): {authors}\n"
+            f"Year of publication: {year}\n"
+            f"\n"  # <--- MODIFICATION: ADD THIS EXTRA NEWLINE
+            f"Chunk text: \n"  # <--- MODIFICATION: ADD THIS EXTRA NEWLINE            
+        )        
+
+        # --- Prepend Header and Prepare for Embedding ---
+        # The new list of texts to embed, including the header
+        texts_to_embed = [header + chunk for chunk in texts]
+
+        # Embed the new texts
+        vectors = embedding_model.embed_documents(texts_to_embed)
+        # vectors = embedding_model.embed_documents(texts)
+
+
+        chunk_lengths = [len(c) for c in texts_to_embed] # Calculate lengths of the *new* texts
         print(f"    - {len(texts)} chunks extracted")
         print(f"→ Min: {min(chunk_lengths)}, Max: {max(chunk_lengths)}, Median: {int(statistics.median(chunk_lengths))}")
 
         points = []
-        for chunk, vec, page_num in zip(texts, vectors, page_numbers):
+        # Iterate over the texts_to_embed, which includes the header
+        for chunk_with_header, original_chunk, vec, page_num in zip(
+            texts_to_embed, texts, vectors, page_numbers
+        ):
             points.append(PointStruct(
                 id=str(uuid.uuid4()),
                 vector=vec,
@@ -440,13 +466,15 @@ def ingest_folder_to_qdrant(folder_path: str, qdrant_url: str, qdrant_api_key: s
                     "file_name": filename,
                     "file_hash": file_hash,
                     "file_title": doc_metadata.get("file_title"),
-                    "authors": doc_metadata.get("authors"),
+                    "authors": doc_metadata.get("authors"), # Keep the list version for metadata filtering
                     "keywords": doc_metadata.get("keywords"),
                     "creation_date": doc_metadata.get("creation_date"),
                     "year": doc_metadata.get("year"),
                     "page_number": str(page_num),
-                    "text": chunk,
-                    "summary": summarize_chunk(chunk, config)
+                    # Store the header + text for better RAG context
+                    "text": chunk_with_header, 
+                    # Use the original chunk for summarization to avoid LLM repeating the header
+                    "summary": summarize_chunk(original_chunk, config) 
                 }
             ))
 
