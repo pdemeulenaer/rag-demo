@@ -87,74 +87,13 @@ def to_list(val: str | None) -> list[str]:
     return [x.strip() for x in re.split(r"[;,]", val) if x.strip()]
 
 
-
 class AdditionalMetadata(BaseModel):
     """Structured metadata extracted from a scientific PDF."""
     title: str = Field(..., description="The title of the document")
     authors: list[str] = Field(default_factory=list, description="List of authors of the document, as a string")
     keywords: list[str] = Field(default_factory=list, description="List of keywords (empty if none)")
 
-# def extract_metadata_with_llm(text: str, config) -> AdditionalMetadata:
-#     """Use Groq LLM to extract structured metadata from the first page text."""
-#     return groq_client.chat.completions.create(
-#         model=config["groq"]["summarization_model"],  # e.g., "mixtral-8x7b-32768"
-#         response_model=AdditionalMetadata,
-#         messages=[
-#             {
-#                 "role": "system",
-#                 "content": "You are an academic assistant. Extract structured metadata from academic documents."
-#             },
-#             {
-#                 "role": "user",
-#                 "content": f"Extract title, authors, and keywords from the following text:\n\n{text[:3000]}"
-#             }
-#         ],
-#         temperature=0,
-#         max_tokens=300
-#     )
 
-# def extract_metadata_with_llm(title_text: str, keywords_text: str, config) -> AdditionalMetadata:
-#     """Use Groq LLM to extract metadata (title/authors from first page, keywords from first 3 pages)."""
-#     return groq_client.chat.completions.create(
-#         model=config["groq"]["summarization_model"],
-#         response_model=AdditionalMetadata,
-#         messages=[
-#             {
-#                 "role": "system",
-#                 "content": "You are an academic assistant. Extract structured metadata from academic documents."
-#             },
-#             {
-#                 "role": "user",
-#                 "content": f"""
-#                 Extract the following fields as JSON:
-#                 - Title (from this text):\n{title_text[:1500]}
-#                 - Authors (from this text):\n{title_text[:1500]}
-#                 - Keywords (from this broader text, if present):\n{keywords_text[:8000]}
-#                 """
-#             }
-#         ],
-#         temperature=0,
-#         max_tokens=500
-#     )
-# def extract_metadata_with_llm(text: str, config) -> AdditionalMetadata:
-#     """
-#     Use Groq LLM to extract metadata (title, authors, keywords).
-#     Always uses SYSTEM_PROMPT and USER_PROMPT.
-#     """
-#     try:
-#         return groq_client.chat.completions.create(
-#             model=config["groq"]["metadata_model"],
-#             response_model=AdditionalMetadata,
-#             messages=[
-#                 {"role": "system", "content": SYSTEM_PROMPT},
-#                 {"role": "user", "content": USER_PROMPT.format(input_text=text)},
-#             ],
-#             temperature=0,
-#             max_tokens=500
-#         )
-#     except Exception as e:
-#         print(f"⚠️ Metadata extraction with Groq failed: {e}")
-#         return AdditionalMetadata(title="", authors=[], keywords=[])
 def extract_metadata_with_llm(text: str, config) -> AdditionalMetadata:
     return groq_client.chat.completions.create(
         model=config["groq"]["metadata_model"],
@@ -206,75 +145,6 @@ def get_text_chunks_recursive(text) -> List[str]:
 
 
 # === Chunk Generator with Metadata ===
-# def extract_chunks_with_metadata(filepath: str) -> Tuple[List[Tuple[str, int]], Dict[str, str]]:
-#     """
-#     Extract chunks of text with page numbers and collect metadata.
-#     Falls back to LLM extraction if PyMuPDF metadata is incomplete.
-#     """    
-#     chunks_with_page = []
-#     first_page_text, first_pages_text = "", ""
-#     with pymupdf.open(filepath) as doc:
-#         metadata = doc.metadata or {}
-#         for page_number, page in enumerate(doc, start=1):
-#             text = page.get_text()
-#             if page_number == 1:
-#                 first_page_text = text   
-#             if page_number <= 3:  # capture first 3 pages for keywords
-#                 first_pages_text += "\n" + text                         
-#             if not text.strip():
-#                 continue
-#             page_chunks = get_text_chunks_recursive(text)
-#             for chunk in page_chunks:
-#                 chunks_with_page.append((chunk, page_number))
-
-#         # Extract year from creationDate
-#         creation_date = metadata.get("creationDate")
-#         year = None
-#         if creation_date:
-#             try:
-#                 # Strip "D:" if present
-#                 clean_date = creation_date.lstrip("D:")
-#                 # Try parsing
-#                 dt = datetime.strptime(clean_date[:14], "%Y%m%d%H%M%S")
-#                 year = str(dt.year)
-#             except Exception:
-#                 pass
-
-#         # Prefer PDF metadata, fallback to LLM
-#         title = metadata.get("title")
-#         authors = metadata.get("author")
-#         keywords = metadata.get("keywords")            
-
-#         # if not title or not authors or not keywords:
-#         #     try:
-#         #         llm_meta = extract_metadata_with_llm(first_page_text, config)
-#         #         title = title or llm_meta.title
-#         #         authors = authors or llm_meta.authors
-#         #         keywords = keywords or llm_meta.keywords
-#         #     except Exception as e:
-#         #         print(f"⚠️ Metadata extraction with Groq failed: {e}")
-
-#         # Fallback to LLM if missing
-#         if not title or not authors or not keywords:
-#             try:
-#                 llm_meta = extract_metadata_with_llm(
-#                     title_text=first_page_text,
-#                     keywords_text=first_pages_text,
-#                     config=config
-#                 )
-#                 title = title or llm_meta.title
-#                 authors = authors or llm_meta.authors
-#                 keywords = keywords or llm_meta.keywords
-#             except Exception as e:
-#                 print(f"⚠️ Metadata extraction with Groq failed: {e}")
-
-#     return chunks_with_page, {
-#         "file_title": title,
-#         "authors": authors,
-#         "keywords": keywords,
-#         "creation_date": creation_date,
-#         "year": year
-#     }    
 def extract_chunks_with_metadata(filepath: str) -> Tuple[List[Tuple[str, int]], Dict[str, str]]:
     """
     Extract chunks of text with page numbers and collect metadata.
@@ -372,15 +242,15 @@ def summarize_chunk(text: str, config) -> str:
 
 # === Ingestion Function ===
 def ingest_folder_to_qdrant(folder_path: str, qdrant_url: str, qdrant_api_key: str, collection_name: str, config):
+    
     # Initialize embedding model using the new OpenAIEmbeddings class
     embedding_model = OpenAIEmbeddings()
-
     qdrant_client = QdrantClient(url=qdrant_url, api_key=qdrant_api_key)
 
+    # Make sure your collection and indexes exist
     if not qdrant_client.collection_exists(collection_name=collection_name):
         qdrant_client.create_collection(
             collection_name=collection_name,
-            # Update vector size to 1536 for text-embedding-3-small
             vectors_config=VectorParams(size=embedding_model.dimensions, distance=Distance.COSINE)
         )
 
@@ -392,7 +262,7 @@ def ingest_folder_to_qdrant(folder_path: str, qdrant_url: str, qdrant_api_key: s
             field_schema=PayloadSchemaType.KEYWORD
         )
 
-    # ADD THIS BLOCK to create the text index    
+    # Create the text index    
     qdrant_client.create_payload_index(
         collection_name=collection_name,
         field_name="text",
