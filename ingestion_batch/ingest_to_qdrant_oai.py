@@ -20,33 +20,34 @@ from openai import OpenAI
 import instructor
 from pydantic import BaseModel, Field
 
+from src.api.core.config import config
 
-from .utils import (
-    load_config,
-    # RemoteEmbeddingsAPI,
-)
+# from .utils import (
+#     load_config,
+#     # RemoteEmbeddingsAPI,
+# )
 
-load_dotenv()
+# load_dotenv()
 
 # === Config ===
-QDRANT_URL = os.getenv("QDRANT_URL")
-QDRANT_API_KEY = os.getenv("QDRANT_API_KEY")
+# QDRANT_URL = os.getenv("QDRANT_URL")
+# QDRANT_API_KEY = os.getenv("QDRANT_API_KEY")
 COLLECTION_NAME = "test_collection_oai_local2"
 # PDF_FOLDER = os.path.join(os.path.dirname(__file__), "/../data/folder")
 PDF_FOLDER = os.path.abspath(os.path.join(os.path.dirname(__file__), "../data/folder"))
-EMBEDDING_API_URL = os.getenv("EMBEDDING_API_URL")
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+# EMBEDDING_API_URL = os.getenv("EMBEDDING_API_URL")
+# OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
-config = load_config()
+# config = load_config()
 
 # === OpenAI Embedding Class ===
-client = OpenAI(api_key=OPENAI_API_KEY)
+client = OpenAI(api_key=config.OPENAI_API_KEY)
 # Wrap OpenAI client with Instructor
 # client = instructor.from_openai(OpenAI(api_key=OPENAI_API_KEY))
 groq_client = instructor.from_openai(
     OpenAI(
         base_url="https://api.groq.com/openai/v1",
-        api_key=os.getenv("GROQ_API_KEY")
+        api_key=config.GROQ_API_KEY # os.getenv("GROQ_API_KEY")
     )
 )
 
@@ -94,16 +95,16 @@ class AdditionalMetadata(BaseModel):
     keywords: list[str] = Field(default_factory=list, description="List of keywords (empty if none)")
 
 
-def extract_metadata_with_llm(text: str, config) -> AdditionalMetadata:
+def extract_metadata_with_llm(text: str) -> AdditionalMetadata:
     return groq_client.chat.completions.create(
-        model=config["groq"]["metadata_model"],
+        model=config.METADATA_MODEL, #yaml_config["groq"]["metadata_model"],
         response_model=AdditionalMetadata,  # ✅ Instructor enforces this
         messages=[
             {"role": "system", "content": SYSTEM_PROMPT},
             {"role": "user", "content": USER_PROMPT.format(input_text=text)},
         ],
-        temperature=0,
-        max_tokens=500
+        temperature=config.METADATA_MODEL_TEMPERATURE,
+        max_tokens=config.METADATA_MODEL_MAX_TOKENS
     )
 
 
@@ -190,7 +191,7 @@ def extract_chunks_with_metadata(filepath: str) -> Tuple[List[Tuple[str, int]], 
         # pdf_keywords = [pdf_keywords] if isinstance(pdf_keywords, str) else (pdf_keywords or [])
 
         # Always run LLM for metadata
-        llm_meta = extract_metadata_with_llm(first_pages_text, config)
+        llm_meta = extract_metadata_with_llm(first_pages_text)
 
         # Merge results (LLM takes priority if non-empty)
         title = llm_meta.title or pdf_title
@@ -208,11 +209,11 @@ def extract_chunks_with_metadata(filepath: str) -> Tuple[List[Tuple[str, int]], 
 
 
 # === Summarization with Groq ===
-def summarize_chunk(text: str, config) -> str:
+def summarize_chunk(text: str) -> str:
     """
     Use Groq's Mixtral model to summarize a long chunk of text.
     """
-    api_key = os.getenv("GROQ_API_KEY")
+    api_key = config.GROQ_API_KEY # os.getenv("GROQ_API_KEY")
     if not api_key:
         raise ValueError("GROQ_API_KEY is not set in environment variables.")
 
@@ -222,13 +223,13 @@ def summarize_chunk(text: str, config) -> str:
     }
 
     payload = {
-        "model": config["groq"]["summarization_model"],
+        "model": config.SUMMARIZATION_MODEL, # config["groq"]["summarization_model"],
         "messages": [
             {"role": "system", "content": "You are a helpful assistant that summarizes academic documents."},
             {"role": "user", "content": f"Summarize the following chunk:\n\n{text}"}
         ],
-        "temperature": config["groq"]["temperature"],
-        "max_tokens": config["groq"]["max_tokens"]
+        "temperature": config.SUMMARIZATION_MODEL_TEMPERATURE, #config["groq"]["temperature"],
+        "max_tokens": config.SUMMARIZATION_MODEL_MAX_TOKENS # config["groq"]["max_tokens"]
     }
 
     try:
@@ -241,7 +242,7 @@ def summarize_chunk(text: str, config) -> str:
 
 
 # === Ingestion Function ===
-def ingest_folder_to_qdrant(folder_path: str, qdrant_url: str, qdrant_api_key: str, collection_name: str, config):
+def ingest_folder_to_qdrant(folder_path: str, qdrant_url: str, qdrant_api_key: str, collection_name: str):
     
     # Initialize embedding model using the new OpenAIEmbeddings class
     embedding_model = OpenAIEmbeddings()
@@ -344,7 +345,7 @@ def ingest_folder_to_qdrant(folder_path: str, qdrant_url: str, qdrant_api_key: s
                     # Store the header + text for better RAG context
                     "text": chunk_with_header, 
                     # Use the original chunk for summarization to avoid LLM repeating the header
-                    "summary": summarize_chunk(original_chunk, config) 
+                    "summary": summarize_chunk(original_chunk) 
                 }
             ))
 
@@ -359,8 +360,7 @@ def ingest_folder_to_qdrant(folder_path: str, qdrant_url: str, qdrant_api_key: s
 if __name__ == "__main__":
     ingest_folder_to_qdrant(
         folder_path=PDF_FOLDER,
-        qdrant_url=QDRANT_URL,
-        qdrant_api_key=QDRANT_API_KEY,
+        qdrant_url=config.QDRANT_URL,
+        qdrant_api_key=config.QDRANT_API_KEY,
         collection_name=COLLECTION_NAME,
-        config=config
     )
