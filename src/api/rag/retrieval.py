@@ -491,9 +491,9 @@ def rag_pipeline_wrapper(question, session_id, summarizer_llm, generation_model=
         
     result = rag_pipeline(question, qdrant_client, session_id, generation_model, top_k)
 
-    # Update memory with summarization
-    add_message(session_id, "user", question, summarizer_llm)
-    add_message(session_id, "assistant", result["answer"], summarizer_llm)
+    # # Update memory with summarization
+    # add_message(session_id, "user", question, summarizer_llm)
+    # add_message(session_id, "assistant", result["answer"], summarizer_llm)
 
     return {
         "answer": result["answer"],

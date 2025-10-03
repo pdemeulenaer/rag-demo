@@ -9,7 +9,7 @@ from pydantic import BaseModel
 from src.api.core.config import config
 from src.api.rag.intent_router import classify_question
 from src.api.rag import metadata_handlers as mh
-from src.api.rag.retrieval import rag_pipeline_wrapper, get_memory
+from src.api.rag.retrieval import rag_pipeline_wrapper, get_memory, add_message
 from src.api.api.models import RAGRequest, RAGResponse, ChatMessage #, RAGUsedImage
 
 logger = logging.getLogger(__name__)
@@ -95,54 +95,89 @@ async def rag(
     logger.info(f"Intent: {intent}")
     logger.info("Classifier output: %s", intent.model_dump() if hasattr(intent,"model_dump") else intent)
 
-
+    # Depending on intent, 
     if intent.intent != "mixed":
         # structured / metadata path
         if intent.intent == "list_titles":
             answer = mh.list_titles() #"\n".join(mh.list_titles())
+            sources=[]
 
         elif intent.intent == "list_authors":
             answer = mh.list_authors() #"\n".join(mh.list_authors())
+            sources=[]
 
         elif intent.intent == "titles_by_author":
             if not intent.author:
                 # ❗ router said titles_by_author but didn’t give an author → fallback to RAG
                 logger.info("No author extracted for titles_by_author → falling back to semantic RAG")
                 result = rag_pipeline_wrapper(user_q, session_id, summarizer_llm, generation_model=gen_model)
+
+                # Update memory with summarization
+                add_message(session_id, "user", user_q, summarizer_llm)
+                add_message(session_id, "assistant", result['answer'], summarizer_llm)
+
+                # Retrieve the full conversation memory
+                memory = get_memory(session_id)
+                
+                # Create the chat history by combining the summary and recent messages
+                # This is a good way to represent the full history in a serializable format
+                full_history = []
+                if memory.summary:
+                    full_history.append({"role": "system", "content": memory.summary})
+                    
+                for msg in memory.recent_messages:
+                    full_history.append({"role": msg["role"], "content": msg["content"]})
+
                 return RAGResponse(
                     request_id=request.state.request_id,
                     answer=result["answer"],
-                    chat_history=[],
+                    chat_history=full_history,
                     sources=result.get("sources", [])
                 )
-            answer = mh.titles_by_author(intent.author, intent.year) #"\n".join(mh.titles_by_author(intent.author, intent.year))
+                # answer=result["answer"]
+                # sources=result.get("sources", [])
+            else:
+                answer = mh.titles_by_author(intent.author, intent.year) #"\n".join(mh.titles_by_author(intent.author, intent.year))
+                sources=[]
 
         elif intent.intent == "authors_by_year":
             answer = mh.titles_by_author(None, intent.year) #"\n".join(mh.titles_by_author(None, intent.year))
+            sources=[]
 
         elif intent.intent == "author_of_title":
             answer = mh.author_of_title(intent.title) #", ".join(mh.author_of_title(intent.title))
+            sources=[]
 
         elif intent.intent == "summarize_paper":
             answer = mh.summarize_paper(intent.title)
+            sources=[]
 
         else:
             answer = "I couldn’t classify that question."
-
-        return RAGResponse(
-            request_id=request.state.request_id,
-            answer=format_answer_for_display(answer),
-            chat_history=[],   # you can choose to include memory if you like
             sources=[]
-        )            
 
+        # return RAGResponse(
+        #     request_id=request.state.request_id,
+        #     answer=format_answer_for_display(answer),
+        #     chat_history=[],   # you can choose to include memory if you like
+        #     sources=[]
+        # )    
+        answer = format_answer_for_display(answer)
 
-    # Run the RAG pipeline with session-based memory
-    result = rag_pipeline_wrapper(payload.query, 
-                                  session_id, 
-                                  summarizer_llm,
-                                  generation_model=gen_model
-                                  )
+    else: # Use the RAG as intent is not "mixed"
+
+        # Run the RAG pipeline with session-based memory
+        result = rag_pipeline_wrapper(payload.query, 
+                                    session_id, 
+                                    summarizer_llm,
+                                    generation_model=gen_model
+                                    )        
+        answer = result["answer"]
+        sources = result.get("sources", [])
+
+    # Update memory with summarization
+    add_message(session_id, "user", user_q, summarizer_llm)
+    add_message(session_id, "assistant", answer, summarizer_llm)
 
     # Retrieve the full conversation memory
     memory = get_memory(session_id)
@@ -160,7 +195,7 @@ async def rag(
     # Build and return the RAGResponse, including the chat_history
     return RAGResponse(
         request_id=request.state.request_id,
-        answer=result["answer"],
+        answer=answer,
         chat_history=full_history,
-        sources=result.get("sources", [])
+        sources=sources
     )    
