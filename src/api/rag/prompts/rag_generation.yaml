@@ -24,6 +24,7 @@ prompts:
             OUTPUT REQUIREMENTS:
             - Be comprehensive but avoid unnecessary filler.
             - Explain reasoning and highlight relevant findings.
+            - Use BULLET POINTS for clarity when listing multiple items.
             - If the documentation is insufficient, clearly state so, and return an empty array for retrieved_context_ids.
             - You **must** return a single valid JSON object that exactly follows this schema:
                 {
