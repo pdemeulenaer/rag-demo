@@ -38,36 +38,6 @@ groq_client = instructor.from_openai(
     )
 )
 
-
-# SYSTEM_PROMPT = """
-# You are a research assistant that extracts structured metadata from scientific documents.
-# Your task is to generate concise, factual metadata that is directly grounded in the document text.
-# Do not hallucinate information. If a field cannot be determined, leave it empty.
-# """
-
-# USER_PROMPT = """
-# Extract the following metadata from the provided text:
-
-# - **Title**: The scientific title of the document (if present).
-# - **Authors**: The main author(s) or PhD candidate.
-# - **Keywords**: 5–10 scientific keywords that are explicitly present in the text,
-#   or strongly implied by domain-specific terminology. Avoid generic terms like
-#   'research', 'study', 'thesis'. Each keyword must be a single word or short phrase.
-
-# The keywords must come from the text (or be obvious synonyms), not invented.
-
-# Return only valid JSON following this schema:
-# {{
-#   "title": string,
-#   "authors": [string],
-#   "keywords": [string]
-# }}
-
-# Text to analyze:
-# ----------------
-# {input_text}
-# """
-
 OUTPUT_SCHEMA = {
     "type": "object",
     "properties": {
@@ -98,16 +68,6 @@ class AdditionalMetadata(BaseModel):
 
 
 def extract_metadata_with_llm(text: str) -> AdditionalMetadata:
-    # return groq_client.chat.completions.create(
-    #     model=config.METADATA_MODEL, #yaml_config["groq"]["metadata_model"],
-    #     response_model=AdditionalMetadata,  # ✅ Instructor enforces this
-    #     messages=[
-    #         {"role": "system", "content": SYSTEM_PROMPT},
-    #         {"role": "user", "content": USER_PROMPT.format(input_text=text)},
-    #     ],
-    #     temperature=config.METADATA_MODEL_TEMPERATURE,
-    #     max_tokens=config.METADATA_MODEL_MAX_TOKENS
-    # )
 
     prompt_template = prompt_template_config(config.RAG_PROMPT_TEMPLATE_PATH, "rag_ingestion")
 
@@ -342,8 +302,6 @@ def ingest_folder_to_qdrant(folder_path: str, qdrant_url: str, qdrant_api_key: s
 
         # Embed the new texts
         vectors = embedding_model.embed_documents(texts_to_embed)
-        # vectors = embedding_model.embed_documents(texts)
-
 
         chunk_lengths = [len(c) for c in texts_to_embed] # Calculate lengths of the *new* texts
         print(f"    - {len(texts)} chunks extracted")
