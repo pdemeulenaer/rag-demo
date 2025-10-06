@@ -12,6 +12,7 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter
 from qdrant_client import QdrantClient
 from qdrant_client.http.models import PointStruct, VectorParams, Distance, PayloadSchemaType
 from typing import List, Tuple, Dict
+import statistics
 from langchain.embeddings.base import Embeddings
 from openai import OpenAI
 import instructor
@@ -225,7 +226,7 @@ def summarize_chunk(text: str) -> str:
 
 
 
-def ingest_documents(file_path: str, qdrant_url: str, qdrant_api_key: str, collection_name: str):
+def ingest_documents(file_path: str, qdrant_url: str, qdrant_api_key: str, collection_name: str, verbose: bool = False):
     # This function will contain the core logic of your existing script.
     
     # Initialize embedding model and Qdrant client
@@ -297,7 +298,11 @@ def ingest_documents(file_path: str, qdrant_url: str, qdrant_api_key: str, colle
 
         # Embed the new texts
         vectors = embedding_model.embed_documents(texts_to_embed)
-        # vectors = embedding_model.embed_documents(texts)
+
+        if verbose:
+            chunk_lengths = [len(c) for c in texts_to_embed] # Calculate lengths of the *new* texts
+            print(f"    - {len(texts)} chunks extracted")
+            print(f"→ Min: {min(chunk_lengths)}, Max: {max(chunk_lengths)}, Median: {int(statistics.median(chunk_lengths))}")
 
         points = []
         # Iterate over the texts_to_embed, which includes the header
@@ -325,6 +330,12 @@ def ingest_documents(file_path: str, qdrant_url: str, qdrant_api_key: str, colle
         
         qdrant_client.upsert(collection_name=collection_name, points=points)
         print(f"✅ Indexed: {filename}")
+
+        if verbose:   
+            # Optional: show sample payloads
+            sample, _ = qdrant_client.scroll(collection_name=collection_name, limit=2)
+            for pt in sample:
+                print(f"Sample payload:\n{pt.payload}")                 
 
     except Exception as e:
         # Custom exception for better error handling in the API endpoint
