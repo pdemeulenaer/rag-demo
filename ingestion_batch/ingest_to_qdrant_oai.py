@@ -1,44 +1,31 @@
+# ingestion_batch/ingest_to_qdrant_oai.py
+
 import os
 import httpx
 import hashlib
 import uuid
-# import json
+import json
 import pymupdf
 import re
 from datetime import datetime
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from qdrant_client import QdrantClient
 from qdrant_client.http.models import PointStruct, VectorParams, Distance, PayloadSchemaType
-# from qdrant_client.http.models import TextIndexParams, TextIndexType
-from typing import List, Generator, Tuple, Dict
+from typing import List, Tuple, Dict
 import statistics
-# from huggingface_hub import InferenceClient
 from langchain.embeddings.base import Embeddings
-from dotenv import load_dotenv
 from openai import OpenAI
-
 import instructor
 from pydantic import BaseModel, Field
 
 from src.api.core.config import config
+from src.api.rag.utils.utils import prompt_template_config, prompt_template_registry
 
-# from .utils import (
-#     load_config,
-#     # RemoteEmbeddingsAPI,
-# )
-
-# load_dotenv()
 
 # === Config ===
-# QDRANT_URL = os.getenv("QDRANT_URL")
-# QDRANT_API_KEY = os.getenv("QDRANT_API_KEY")
-COLLECTION_NAME = "test_collection_oai_local2"
+COLLECTION_NAME = "test_collection_oai_prod"
 # PDF_FOLDER = os.path.join(os.path.dirname(__file__), "/../data/folder")
 PDF_FOLDER = os.path.abspath(os.path.join(os.path.dirname(__file__), "../data/folder"))
-# EMBEDDING_API_URL = os.getenv("EMBEDDING_API_URL")
-# OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-
-# config = load_config()
 
 # === OpenAI Embedding Class ===
 client = OpenAI(api_key=config.OPENAI_API_KEY)
@@ -52,35 +39,50 @@ groq_client = instructor.from_openai(
 )
 
 
-SYSTEM_PROMPT = """
-You are a research assistant that extracts structured metadata from scientific documents.
-Your task is to generate concise, factual metadata that is directly grounded in the document text.
-Do not hallucinate information. If a field cannot be determined, leave it empty.
-"""
+# SYSTEM_PROMPT = """
+# You are a research assistant that extracts structured metadata from scientific documents.
+# Your task is to generate concise, factual metadata that is directly grounded in the document text.
+# Do not hallucinate information. If a field cannot be determined, leave it empty.
+# """
 
-USER_PROMPT = """
-Extract the following metadata from the provided text:
+# USER_PROMPT = """
+# Extract the following metadata from the provided text:
 
-- **Title**: The scientific title of the document (if present).
-- **Authors**: The main author(s) or PhD candidate.
-- **Keywords**: 5–10 scientific keywords that are explicitly present in the text,
-  or strongly implied by domain-specific terminology. Avoid generic terms like
-  'research', 'study', 'thesis'. Each keyword must be a single word or short phrase.
+# - **Title**: The scientific title of the document (if present).
+# - **Authors**: The main author(s) or PhD candidate.
+# - **Keywords**: 5–10 scientific keywords that are explicitly present in the text,
+#   or strongly implied by domain-specific terminology. Avoid generic terms like
+#   'research', 'study', 'thesis'. Each keyword must be a single word or short phrase.
 
-The keywords must come from the text (or be obvious synonyms), not invented.
+# The keywords must come from the text (or be obvious synonyms), not invented.
 
-Return only valid JSON following this schema:
-{{
-  "title": string,
-  "authors": [string],
-  "keywords": [string]
-}}
+# Return only valid JSON following this schema:
+# {{
+#   "title": string,
+#   "authors": [string],
+#   "keywords": [string]
+# }}
 
-Text to analyze:
-----------------
-{input_text}
-"""
+# Text to analyze:
+# ----------------
+# {input_text}
+# """
 
+OUTPUT_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "title": {"type": "string"},
+        "authors": {
+            "type": "array",
+            "items": {"type": "string"}
+        },
+        "keywords": {
+            "type": "array",
+            "items": {"type": "string"}
+        }        
+    },
+    "required": ["title", "authors", "keywords"]
+}
 
 def to_list(val: str | None) -> list[str]:
     if not val:
@@ -96,16 +98,38 @@ class AdditionalMetadata(BaseModel):
 
 
 def extract_metadata_with_llm(text: str) -> AdditionalMetadata:
-    return groq_client.chat.completions.create(
-        model=config.METADATA_MODEL, #yaml_config["groq"]["metadata_model"],
+    # return groq_client.chat.completions.create(
+    #     model=config.METADATA_MODEL, #yaml_config["groq"]["metadata_model"],
+    #     response_model=AdditionalMetadata,  # ✅ Instructor enforces this
+    #     messages=[
+    #         {"role": "system", "content": SYSTEM_PROMPT},
+    #         {"role": "user", "content": USER_PROMPT.format(input_text=text)},
+    #     ],
+    #     temperature=config.METADATA_MODEL_TEMPERATURE,
+    #     max_tokens=config.METADATA_MODEL_MAX_TOKENS
+    # )
+
+    prompt_template = prompt_template_config(config.RAG_PROMPT_TEMPLATE_PATH, "rag_ingestion")
+
+    system_prompt = prompt_template["system"].render()
+
+    user_prompt = prompt_template["user"].render(
+        input_text=text,
+        output_json_schema=json.dumps(OUTPUT_SCHEMA, indent=2)
+    )
+
+    chat = groq_client.chat.completions.create(
+        model=config.METADATA_MODEL,
         response_model=AdditionalMetadata,  # ✅ Instructor enforces this
         messages=[
-            {"role": "system", "content": SYSTEM_PROMPT},
-            {"role": "user", "content": USER_PROMPT.format(input_text=text)},
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": user_prompt},
         ],
         temperature=config.METADATA_MODEL_TEMPERATURE,
         max_tokens=config.METADATA_MODEL_MAX_TOKENS
-    )
+    )    
+
+    return chat
 
 
 class OpenAIEmbeddings(Embeddings):
