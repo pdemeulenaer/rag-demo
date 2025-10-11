@@ -1,5 +1,6 @@
 
 import os
+import re
 from io import BytesIO
 import streamlit as st
 from pathlib import Path
@@ -311,9 +312,23 @@ def main():
                             sources_list.append(f"- {authors} ({year}). *{title}*{pages_str}")
 
                         
-                        sources_md = "\n\n---\n**Sources:**\n" + "\n".join(sources_list)
-                        full_content += sources_md
-                    
+                        # sources_md = "\n\n---\n**Sources:**\n" + "\n".join(sources_list)                   
+
+                        # # Convert Markdown list to a basic HTML unordered list
+                        # sources_items_html = "".join([f"<li>{item[2:].strip()}</li>" for item in sources_list])
+                        # sources_md = "<hr><strong>Sources:</strong><ul>" + sources_items_html + "</ul>"
+
+                        # Convert Markdown list to a basic HTML unordered list
+                        # Note: We strip the leading '- ' before wrapping in <li>
+                        sources_items_html = "".join([f"<li>{item[2:].strip()}</li>" for item in sources_list])
+                        
+                        # Use proper HTML tags for the source section
+                        sources_md_html = "<hr style='margin: 10px 0; border: 0; border-top: 1px solid rgba(0,0,0,.1);'><strong>Sources:</strong><ul>" + sources_items_html + "</ul>"
+                        
+                        # full_content += sources_md
+                        full_content += sources_md_html
+
+
                     # if "sources" in msg and msg["sources"]:
                     #     # Aggregate sources by (authors, title, year)
                     #     aggregated = {}
@@ -346,8 +361,27 @@ def main():
                     #     sources_md = "\n\n---\n**Sources:**\n" + "\n".join(sources_list)
                     #     full_content += sources_md
 
-                    # st.write(bot_template.replace("{{MSG}}", full_content), unsafe_allow_html=True)
-                    st.markdown(full_content)
+
+
+                    # 1. Convert bolding (**text**) to HTML <strong>
+                    # This must be done BEFORE step 3, as the dash is part of the list item
+                    html_content = re.sub(r'\*\*(.*?)\*\*', r'<strong>\1</strong>', full_content)
+                    
+                    # 2. Convert bullet list dash character to the HTML list structure
+                    # Find lines starting with a dash and a space, and convert them to <li> tags
+                    html_content = re.sub(r'\n- (.*)', r'<ul><li>\1</li></ul>', html_content)
+                    
+                    # Optional: Clean up lists that might span multiple lines if the LLM output is inconsistent
+                    # For simple lists, the previous step is usually sufficient. 
+                    
+                    # 3. Replace all remaining newlines with HTML line breaks
+                    # We do this last to handle paragraph breaks in the main text
+                    html_content = html_content.replace('\n', '<br>') 
+                    
+                    
+                    # --- DISPLAY FINAL HTML CONTENT ---
+                    st.write(bot_template.replace("{{MSG}}", html_content), unsafe_allow_html=True)
+                    # st.markdown(full_content)
 
 
 
