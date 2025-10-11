@@ -1,3 +1,11 @@
+https://arxiv.org/pdf/1301.3315
+https://arxiv.org/pdf/1009.1237
+https://arxiv.org/pdf/1301.2008
+https://arxiv.org/pdf/1407.4643
+https://arxiv.org/pdf/1410.2514
+https://arxiv.org/pdf/1502.04839
+https://arxiv.org/pdf/1507.08494
+https://talpykla.elaba.lt/elaba-fedora/objects/elaba:11726466/datastreams/MAIN/content
 https://talpykla.elaba.lt/elaba-fedora/objects/elaba:228379408/datastreams/MAIN/content
 https://talpykla.elaba.lt/elaba-fedora/objects/elaba:228192252/datastreams/MAIN/content
 https://talpykla.elaba.lt/elaba-fedora/objects/elaba:227735089/datastreams/MAIN/content

@@ -77,6 +77,7 @@ router_llm = instructor.from_openai(
     openai.OpenAI(api_key=config.OPENAI_API_KEY)   # or Groq/OpenAI as you prefer
 )
 
+# INTENT CLASSIFIER
 def classify_question(question: str) -> MetadataIntent:
     raw = router_llm.chat.completions.create(
         model="gpt-4o-mini",

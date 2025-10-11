@@ -29,6 +29,7 @@ PDF_FOLDER = os.path.abspath(os.path.join(os.path.dirname(__file__), "../data/fo
 
 # === OpenAI Embedding Class ===
 client = OpenAI(api_key=config.OPENAI_API_KEY)
+openai_client = instructor.from_openai(client) 
 # Wrap OpenAI client with Instructor
 # client = instructor.from_openai(OpenAI(api_key=OPENAI_API_KEY))
 groq_client = instructor.from_openai(
@@ -49,9 +50,10 @@ OUTPUT_SCHEMA = {
         "keywords": {
             "type": "array",
             "items": {"type": "string"}
-        }        
+        },
+        "summary": {"type": "string"}        
     },
-    "required": ["title", "authors", "keywords"]
+    "required": ["title", "authors", "keywords", "summary"]
 }
 
 def to_list(val: str | None) -> list[str]:
@@ -65,6 +67,8 @@ class AdditionalMetadata(BaseModel):
     title: str = Field(..., description="The title of the document")
     authors: list[str] = Field(default_factory=list, description="List of authors of the document, as a string")
     keywords: list[str] = Field(default_factory=list, description="List of keywords (empty if none)")
+    summary: str = Field(..., description="The abstract or high-level summary of the document, if present. If not present, generate a brief summary from the provided text.")
+
 
 
 def extract_metadata_with_llm(text: str) -> AdditionalMetadata:
@@ -78,7 +82,8 @@ def extract_metadata_with_llm(text: str) -> AdditionalMetadata:
         output_json_schema=json.dumps(OUTPUT_SCHEMA, indent=2)
     )
 
-    chat = groq_client.chat.completions.create(
+    # OpenAI call with response_model for structured output
+    chat = openai_client.chat.completions.create(
         model=config.METADATA_MODEL,
         response_model=AdditionalMetadata,  # ✅ Instructor enforces this
         messages=[
@@ -88,6 +93,18 @@ def extract_metadata_with_llm(text: str) -> AdditionalMetadata:
         temperature=config.METADATA_MODEL_TEMPERATURE,
         max_tokens=config.METADATA_MODEL_MAX_TOKENS
     )    
+
+    # # Groq call with response_model for structured output    
+    # chat = groq_client.chat.completions.create(
+    #     model=config.METADATA_MODEL,
+    #     response_model=AdditionalMetadata,  # ✅ Instructor enforces this
+    #     messages=[
+    #         {"role": "system", "content": system_prompt},
+    #         {"role": "user", "content": user_prompt},
+    #     ],
+    #     temperature=config.METADATA_MODEL_TEMPERATURE,
+    #     max_tokens=config.METADATA_MODEL_MAX_TOKENS
+    # )    
 
     return chat
 
@@ -181,13 +198,15 @@ def extract_chunks_with_metadata(filepath: str) -> Tuple[List[Tuple[str, int]], 
         title = llm_meta.title or pdf_title
         authors = list({*pdf_authors, *llm_meta.authors})
         keywords = list({*pdf_keywords, *llm_meta.keywords})
+        summary = llm_meta.summary or ""
 
     return chunks_with_page, {
         "file_title": title,
         "authors": authors,
         "keywords": keywords,
         "creation_date": creation_date,
-        "year": year
+        "year": year,
+        "summary": summary
     }
 
 
@@ -241,7 +260,7 @@ def ingest_documents(file_path: str, qdrant_url: str, qdrant_api_key: str, colle
         )
 
     # Create metadata indexes
-    for field in ["file_hash", "file_name", "file_title", "authors", "keywords", "creation_date", "page_number"]:
+    for field in ["file_hash", "file_name", "file_title", "authors", "keywords", "creation_date", "page_number", "type"]:
         qdrant_client.create_payload_index(
             collection_name=collection_name, 
             field_name=field, 
@@ -276,20 +295,21 @@ def ingest_documents(file_path: str, qdrant_url: str, qdrant_api_key: str, colle
         page_numbers = [page for _, page in chunks_with_meta]
 
 
-
         # --- Build the Metadata Header for Chunks ---
         title = doc_metadata.get("file_title") or "[Unknown Title]"
         # Join authors into a single string
         authors = ", ".join(doc_metadata.get("authors", [])) or "[Unknown Author(s)]"
         year = doc_metadata.get("year") or "[Unknown Year]"
+        summary_text = doc_metadata.get("summary") or "[No Summary Available]"
         
+        # 1. REGULAR CHUNK DEFINITION
         # Create the standard header string exactly as requested
         header = (
             f"Document Title: {title}\n"
             f"Author(s): {authors}\n"
             f"Year of publication: {year}\n"
-            f"\n"  # <--- MODIFICATION: ADD THIS EXTRA NEWLINE
-            f"Chunk text: \n"  # <--- MODIFICATION: ADD THIS EXTRA NEWLINE            
+            f"\n"
+            f"Chunk text: \n"          
         )        
 
         # --- Prepend Header and Prepare for Embedding ---
@@ -323,11 +343,50 @@ def ingest_documents(file_path: str, qdrant_url: str, qdrant_api_key: str, colle
                     "page_number": str(page_num),
                     # Store the header + text for better RAG context
                     "text": chunk_with_header, 
+                    "type": "chunk", # for regular chunks
                     # Use the original chunk for summarization to avoid LLM repeating the header
                     "summary": summarize_chunk(original_chunk) 
                 }
             ))
-        
+
+        # 2. DOCUMENT SUMMARY DEFINITION
+
+        # Embed the document summary as a separate point
+        # Create the standard header string exactly as requested
+        header = (
+            f"Document Title: {title}\n"
+            f"Author(s): {authors}\n"
+            f"Year of publication: {year}\n"
+            f"\n"
+            f"Summary text: \n"          
+        )        
+
+        # --- Prepend Header and Prepare for Embedding ---
+        # including the header
+        summary_with_header = [header + summary_text]        
+        vector_summary = embedding_model.embed_documents(summary_with_header)[0] # here I need to unlist
+
+        points.append(PointStruct(
+            id=str(uuid.uuid4()),
+            vector=vector_summary,
+            payload={
+                "file_name": filename,
+                "file_hash": file_hash,
+                "file_title": doc_metadata.get("file_title"),
+                "authors": doc_metadata.get("authors"), # Keep the list version for metadata filtering
+                "keywords": doc_metadata.get("keywords"),
+                "creation_date": doc_metadata.get("creation_date"),
+                "year": doc_metadata.get("year"),
+                "page_number": "0",  # No specific page number for the summary
+                # Store the header + text for better RAG context
+                "text": summary_with_header[0], # here I need to unlist
+                "type": "summary", # for full document summary
+                # Use the original chunk for summarization to avoid LLM repeating the header
+                "summary": "FULL_DOCUMENT_SUMMARY"
+            }
+        ))
+
+        # 3. Upsert points to Qdrant
         qdrant_client.upsert(collection_name=collection_name, points=points)
         print(f"✅ Indexed: {filename}")
 

@@ -38,7 +38,7 @@ class Config(BaseSettings):
     LANGSMITH_PROJECT='rag-tracing'
 
     # Ingestion settings
-    QDRANT_COLLECTION_NAME: str = 'test_collection_oai_prod' # test_collection_oai_local2
+    QDRANT_COLLECTION_NAME: str = 'test_collection_oai_test_summary' # test_collection_oai_prod # test_collection_oai_local2
 
     SUMMARIZATION_MODEL: str = 'llama-3.1-8b-instant' # 'llama-3.3-70b-versatile'
     SUMMARIZATION_PROMPT: str = 'Summarize the following text: {{text}}'
@@ -46,7 +46,7 @@ class Config(BaseSettings):
     SUMMARIZATION_MODEL_MAX_TOKENS: int = 256
     # SUMMARIZATION_PROMPT_TEMPLATE_PATH: str =
 
-    METADATA_MODEL: str = 'llama-3.3-70b-versatile'    
+    METADATA_MODEL: str = 'gpt-4.1-nano' # 'llama-3.3-70b-versatile'    
     METADATA_MODEL_TEMPERATURE: float = 0
     METADATA_MODEL_MAX_TOKENS: int = 500
     # METADATA_PROMPT_TEMPLATE_PATH: str =

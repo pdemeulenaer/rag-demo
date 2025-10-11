@@ -10,7 +10,7 @@ from src.api.ingestion.ingest_documents import IngestionError, ingest_documents
 
 
 # === Config ===
-COLLECTION_NAME = "test_collection_oai_prod"
+COLLECTION_NAME = "test_collection_oai_test_summary" # test_collection_oai_prod
 # PDF_FOLDER = os.path.join(os.path.dirname(__file__), "/../data/folder")
 PDF_FOLDER = os.path.abspath(os.path.join(os.path.dirname(__file__), "../data/folder"))
 URLS_FILE = os.path.abspath(os.path.join(os.path.dirname(__file__), "../ingestion_batch/url_list.txt"))
