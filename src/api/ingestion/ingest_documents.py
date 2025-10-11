@@ -51,6 +51,7 @@ OUTPUT_SCHEMA = {
             "type": "array",
             "items": {"type": "string"}
         },
+        "publication_year": {"type": "string"},        
         "summary": {"type": "string"}        
     },
     "required": ["title", "authors", "keywords", "summary"]
@@ -67,7 +68,8 @@ class AdditionalMetadata(BaseModel):
     title: str = Field(..., description="The title of the document")
     authors: list[str] = Field(default_factory=list, description="List of authors of the document, as a string")
     keywords: list[str] = Field(default_factory=list, description="List of keywords (empty if none)")
-    summary: str = Field(..., description="The abstract or high-level summary of the document, if present. If not present, generate a brief summary from the provided text.")
+    publication_year: str = Field(..., description="The correct year of publication, found directly in the text (e.g., '2023').") 
+    summary: str = Field(..., description="The abstract or summary of the document, if present. If not present, generate an extensive, detailed summary from the provided text.")
 
 
 
@@ -167,7 +169,7 @@ def extract_chunks_with_metadata(filepath: str) -> Tuple[List[Tuple[str, int]], 
             for chunk in page_chunks:
                 chunks_with_page.append((chunk, page_number))
 
-        # Extract year from creationDate
+        # Extract year from creationDate (i.e. from PDF built-in metadata)
         creation_date = metadata.get("creationDate")
         year = None
         if creation_date:
@@ -178,7 +180,7 @@ def extract_chunks_with_metadata(filepath: str) -> Tuple[List[Tuple[str, int]], 
             except Exception:
                 pass
 
-        # Extract metadata from PDF
+        # Extract metadata from PDF built-in metadata
         pdf_title = metadata.get("title")
         pdf_authors = metadata.get("author")
         pdf_keywords = metadata.get("keywords")
@@ -198,6 +200,7 @@ def extract_chunks_with_metadata(filepath: str) -> Tuple[List[Tuple[str, int]], 
         title = llm_meta.title or pdf_title
         authors = list({*pdf_authors, *llm_meta.authors})
         keywords = list({*pdf_keywords, *llm_meta.keywords})
+        publication_year = llm_meta.publication_year or year or ""
         summary = llm_meta.summary or ""
 
     return chunks_with_page, {
@@ -205,7 +208,7 @@ def extract_chunks_with_metadata(filepath: str) -> Tuple[List[Tuple[str, int]], 
         "authors": authors,
         "keywords": keywords,
         "creation_date": creation_date,
-        "year": year,
+        "publication_year": publication_year,
         "summary": summary
     }
 
@@ -299,7 +302,7 @@ def ingest_documents(file_path: str, qdrant_url: str, qdrant_api_key: str, colle
         title = doc_metadata.get("file_title") or "[Unknown Title]"
         # Join authors into a single string
         authors = ", ".join(doc_metadata.get("authors", [])) or "[Unknown Author(s)]"
-        year = doc_metadata.get("year") or "[Unknown Year]"
+        year = doc_metadata.get("publication_year") or "[Unknown Year]"
         summary_text = doc_metadata.get("summary") or "[No Summary Available]"
         
         # 1. REGULAR CHUNK DEFINITION
@@ -339,7 +342,7 @@ def ingest_documents(file_path: str, qdrant_url: str, qdrant_api_key: str, colle
                     "authors": doc_metadata.get("authors"), # Keep the list version for metadata filtering
                     "keywords": doc_metadata.get("keywords"),
                     "creation_date": doc_metadata.get("creation_date"),
-                    "year": doc_metadata.get("year"),
+                    "year": doc_metadata.get("publication_year"),
                     "page_number": str(page_num),
                     # Store the header + text for better RAG context
                     "text": chunk_with_header, 
@@ -376,7 +379,7 @@ def ingest_documents(file_path: str, qdrant_url: str, qdrant_api_key: str, colle
                 "authors": doc_metadata.get("authors"), # Keep the list version for metadata filtering
                 "keywords": doc_metadata.get("keywords"),
                 "creation_date": doc_metadata.get("creation_date"),
-                "year": doc_metadata.get("year"),
+                "year": doc_metadata.get("publication_year"),
                 "page_number": "0",  # No specific page number for the summary
                 # Store the header + text for better RAG context
                 "text": summary_with_header[0], # here I need to unlist

@@ -16,10 +16,11 @@ prompts:
             - **Authors**: The main author(s) or PhD candidate.
             - **Keywords**: up to 10 scientific keywords that are explicitly present in the text,
             or strongly implied by domain-specific terminology. Avoid generic terms like
+            - **Publication Year**: The correct year of publication, found directly in the text (e.g., '2023'). If no year is found, leave this field empty.
             'research', 'study', 'thesis'. Each keyword must be a single word or short phrase.
             - **Summary**: The document's abstract. **If an explicit 'Abstract' or 'Summary' section is present, 
-            use that text directly.** Otherwise, generate a concise, factual summary (2-3 sentences) of the document's 
-            main findings from the provided text.
+            use that text and enrich it if more context is present in the document.** Otherwise, generate an extensive, detailed summary of the document's 
+            main findings from the provided text. The result should be a summary of ideally 10-20 sentences
 
             The keywords must come from the text (or be obvious synonyms), not invented.
 
