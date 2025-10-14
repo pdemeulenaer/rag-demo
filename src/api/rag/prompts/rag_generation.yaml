@@ -20,7 +20,7 @@ prompts:
             'research', 'study', 'thesis'. Each keyword must be a single word or short phrase.
             - **Summary**: The document's abstract. **If an explicit 'Abstract' or 'Summary' section is present, 
             use that text and enrich it if more context is present in the document.** Otherwise, generate an extensive, detailed summary of the document's 
-            main findings from the provided text. The result should be a summary of ideally 10-20 sentences
+            main findings from the provided text. The result should be a summary of ideally 10-20 sentences. Use BULLETS if it helps clarity.
 
             The keywords must come from the text (or be obvious synonyms), not invented.
 
