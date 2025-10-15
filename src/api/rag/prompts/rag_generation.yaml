@@ -4,6 +4,45 @@ metadata:
     version: 1.1.0
 
 prompts:
+    summarization:
+        system: |
+            You are a research assistant that extracts structured metadata from scientific documents.
+            Your task is to generate concise, factual metadata that is directly grounded in the document text.
+            Do not hallucinate information. If a field cannot be determined, leave it empty.
+        user: |
+            Extract the following metadata from the provided text:
+
+            - **Title**: The scientific title of the document (if present).
+            - **Authors**: The main author(s) or PhD candidate.
+            - **Keywords**: up to 10 scientific keywords that are explicitly present in the text,
+            or strongly implied by domain-specific terminology. Avoid generic terms like
+            - **Publication Year**: The correct year of publication, found directly in the text (e.g., '2023'). If no year is found, leave this field empty.
+            'research', 'study', 'thesis'. Each keyword must be a single word or short phrase.
+            - **Summary**: The document's abstract. If an explicit 'Abstract' or 'Summary' section is present, 
+            use that text to generate the summary and enrich it if more context is present in the document. Otherwise, generate an extensive, detailed summary of the document's 
+            main findings from the provided text. The result should be a summary of ideally 10-20 sentences. You MUST reformulate the summary to use BULLET POINTS to structure the answer.
+
+            Ensure the JSON output is valid and follows this schema exactly:
+            {
+                "title": string,
+                "authors": string,
+                "keywords": array of strings,
+                "publication_year": string,
+                "summary": string
+            }
+
+            The keywords must come from the text (or be obvious synonyms), not invented.
+
+            Return only valid JSON following this schema:
+
+            <OUTPUT JSON SCHEMA>
+            {{ output_json_schema }}
+            </OUTPUT JSON SCHEMA>
+
+            Text to analyze:
+            ----------------
+            {{ input_text }}
+
     rag_ingestion:
         system: |
             You are a research assistant that extracts structured metadata from scientific documents.
