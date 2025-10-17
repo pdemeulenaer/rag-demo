@@ -110,7 +110,7 @@ async def rag(
             if not intent.author:
                 # ❗ router said titles_by_author but didn’t give an author → fallback to RAG
                 logger.info("No author extracted for titles_by_author → falling back to semantic RAG")
-                result = rag_pipeline_wrapper(user_q, session_id, summarizer_llm, generation_model=gen_model)
+                result = rag_pipeline_wrapper(user_q, session_id, generation_model=gen_model)
 
                 # Update memory with summarization
                 add_message(session_id, "user", user_q, summarizer_llm)
@@ -169,7 +169,6 @@ async def rag(
         # Run the RAG pipeline with session-based memory
         result = rag_pipeline_wrapper(payload.query, 
                                     session_id, 
-                                    summarizer_llm,
                                     generation_model=gen_model
                                     )        
         answer = result["answer"]

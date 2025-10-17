@@ -482,7 +482,7 @@ def rag_pipeline(question, qdrant_client, session_id, generation_model=None, top
     }
 
 
-def rag_pipeline_wrapper(question, session_id, summarizer_llm, generation_model=None, top_k=5):
+def rag_pipeline_wrapper(question, session_id, generation_model=None, top_k=5):
     
     qdrant_client = QdrantClient(
         url=config.QDRANT_URL, # QDRANT_URL=http://qdrant:6333 when local, or web URL for Qdrant Cloud
@@ -490,10 +490,6 @@ def rag_pipeline_wrapper(question, session_id, summarizer_llm, generation_model=
     )
         
     result = rag_pipeline(question, qdrant_client, session_id, generation_model, top_k)
-
-    # # Update memory with summarization
-    # add_message(session_id, "user", question, summarizer_llm)
-    # add_message(session_id, "assistant", result["answer"], summarizer_llm)
 
     return {
         "answer": result["answer"],
