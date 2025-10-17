@@ -1,6 +1,6 @@
 # src/api/rag/summarize.py
 import logging
-import httpx
+# import httpx
 from openai import OpenAI
 import instructor
 from pydantic import BaseModel
@@ -61,53 +61,88 @@ def summarize_text(
     # --- 2️⃣ Handle provider-specific calls ---
     try:
         if provider.lower() == "openai":
-            client = OpenAI(api_key=config.OPENAI_API_KEY)
-
-            response = client.chat.completions.create(
-                model=model,
-                messages=messages,
-                temperature=temperature,
-                max_tokens=max_tokens,
-                response_model=SummarizationResponse,
-            )
-            summary_text = response.choices[0].message.content.strip()
+            client = instructor.from_openai(OpenAI(api_key=config.OPENAI_API_KEY))
 
         elif provider.lower() == "groq":
-            api_key = config.GROQ_API_KEY
-            if not api_key:
+            if not config.GROQ_API_KEY:
                 raise ValueError("GROQ_API_KEY is not set in environment variables.")
 
-            headers = {
-                "Authorization": f"Bearer {api_key}",
-                "Content-Type": "application/json",
-            }
-            payload = {
-                "model": model,
-                "messages": messages,
-                "temperature": temperature,
-                "max_tokens": max_tokens,
-            }
-
-            response = httpx.post(
-                "https://api.groq.com/openai/v1/chat/completions",
-                headers=headers,
-                json=payload,
-                timeout=60,
+            client = instructor.from_openai(
+                OpenAI(
+                    api_key=config.GROQ_API_KEY,
+                    base_url="https://api.groq.com/openai/v1",
+                )
             )
-            response.raise_for_status()
-            summary_text = response.json()["choices"][0]["message"]["content"].strip()
-
         else:
             raise ValueError(f"Unsupported provider: {provider}")
 
-        logger.debug(f"Output summary length: {len(summary_text)}")
-        return SummarizationResponse(summary=summary_text)
+        response = client.chat.completions.create(
+            model=model,
+            messages=messages,
+            temperature=temperature,
+            max_tokens=max_tokens,
+            response_model=SummarizationResponse,
+        )
+
+        # Instructor automatically parses JSON into your Pydantic model
+        logger.debug(f"Output summary length: {len(response.summary)}")
+        return response
 
     except Exception as e:
         logger.error(f"Summarization failed ({provider}): {e}")
-        # fallback_summary = summary[:200] + "..."
         fallback_summary = f"[Summarization failed — returning truncated input] {summary[:200]}..."
-        return SummarizationResponse(summary=fallback_summary)
+        return SummarizationResponse(summary=fallback_summary)    
+
+
+    # try:
+    #     if provider.lower() == "openai":
+    #         client = OpenAI(api_key=config.OPENAI_API_KEY)
+
+    #         response = client.chat.completions.create(
+    #             model=model,
+    #             messages=messages,
+    #             temperature=temperature,
+    #             max_tokens=max_tokens,
+    #             response_model=SummarizationResponse,
+    #         )
+    #         summary_text = response.choices[0].message.content.strip()
+
+    #     elif provider.lower() == "groq":
+    #         api_key = config.GROQ_API_KEY
+    #         if not api_key:
+    #             raise ValueError("GROQ_API_KEY is not set in environment variables.")
+
+    #         headers = {
+    #             "Authorization": f"Bearer {api_key}",
+    #             "Content-Type": "application/json",
+    #         }
+    #         payload = {
+    #             "model": model,
+    #             "messages": messages,
+    #             "temperature": temperature,
+    #             "max_tokens": max_tokens,
+    #         }
+
+    #         response = httpx.post(
+    #             "https://api.groq.com/openai/v1/chat/completions",
+    #             headers=headers,
+    #             json=payload,
+    #             timeout=60,
+    #         )
+    #         response.raise_for_status()
+    #         summary_text = response.json()["choices"][0]["message"]["content"].strip()
+
+    #     else:
+    #         raise ValueError(f"Unsupported provider: {provider}")
+
+    #     logger.debug(f"Output summary length: {len(summary_text)}")
+    #     return SummarizationResponse(summary=summary_text)
+
+    # except Exception as e:
+    #     logger.error(f"Summarization failed ({provider}): {e}")
+    #     # fallback_summary = summary[:200] + "..."
+    #     fallback_summary = f"[Summarization failed — returning truncated input] {summary[:200]}..."
+    #     return SummarizationResponse(summary=fallback_summary)
 
 
 

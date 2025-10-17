@@ -17,6 +17,7 @@ import pickle
 
 from src.api.core.config import config
 from src.api.rag.utils.utils import prompt_template_config, prompt_template_registry
+from src.api.rag.summarize import summarize_text
 from src.api.api.models import Source
 
 
@@ -40,10 +41,10 @@ class ConversationMemory:
 
 
 @traceable(
-    name="summarize_messages",
+    name="summarize_conversation",
     run_type="prompt",
 )
-def summarize_messages(messages, summarizer_llm):
+def summarize_conversation(messages): #, summarizer_llm):
     """
     Summarizes the conversation history using the given LLM client (Groq in this case).
     This version works without Instructor's create_with_completion.
@@ -53,21 +54,30 @@ def summarize_messages(messages, summarizer_llm):
         [f"{m['role'].capitalize()}: {m['content']}" for m in messages]
     )
 
-    prompt = f"""
-    Please summarize the following conversation briefly, preserving key facts, names, and context
-    so that future turns can be understood without losing important details.
+    # prompt = f"""
+    # Please summarize the following conversation briefly, preserving key facts, names, and context
+    # so that future turns can be understood without losing important details.
     
-    Conversation:
-    {formatted_messages}
-    """
+    # Conversation:
+    # {formatted_messages}
+    # """
 
-    response = summarizer_llm.chat.completions.create(
-        model=config.SUMMARIZATION_MODEL, # "llama-3.3-70b-versatile",
-        messages=[{"role": "user", "content": prompt}],
-        temperature=config.SUMMARIZATION_MODEL_TEMPERATURE, # 0.5,
-        response_model=RAGSummarizationResponse,
-        max_tokens=config.SUMMARIZATION_MODEL_MAX_TOKENS # 1000
-    )
+    # response = summarizer_llm.chat.completions.create(
+    #     model=config.SUMMARIZATION_MODEL, # "llama-3.3-70b-versatile",
+    #     messages=[{"role": "user", "content": prompt}],
+    #     temperature=config.SUMMARIZATION_MODEL_TEMPERATURE, # 0.5,
+    #     response_model=RAGSummarizationResponse,
+    #     max_tokens=config.SUMMARIZATION_MODEL_MAX_TOKENS # 1000
+    # )
+
+    response = summarize_text(
+        formatted_messages,
+        provider='groq',
+        model=config.SUMMARIZATION_MODEL,
+        temperature=config.SUMMARIZATION_MODEL_TEMPERATURE,
+        max_tokens=config.SUMMARIZATION_MODEL_MAX_TOKENS,
+        template_name="summarize_conversation")
+
     return response.summary.strip()
 
 
@@ -98,7 +108,7 @@ def get_memory(session_id: str) -> ConversationMemory:
     name="add_message",
     # run_type="prompt",
 )
-def add_message(session_id: str, role: str, content: str, summarizer_llm):
+def add_message(session_id: str, role: str, content: str): #, summarizer_llm):
     memory = get_memory(session_id)
 
     # Add message to both lists
@@ -109,7 +119,7 @@ def add_message(session_id: str, role: str, content: str, summarizer_llm):
     if len(memory.recent_messages) > memory.window_size:
         # Get messages to summarize (all but the most recent)
         old_messages = memory.recent_messages[:-memory.window_size]
-        summary_update = summarize_messages(old_messages, summarizer_llm)
+        summary_update = summarize_conversation(old_messages) #, summarizer_llm)
         memory.summary += " " + summary_update
         # Keep only the most recent messages in the buffer
         memory.recent_messages = memory.recent_messages[-memory.window_size:]

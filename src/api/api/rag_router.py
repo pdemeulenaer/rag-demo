@@ -92,8 +92,8 @@ async def rag(
                 result = rag_pipeline_wrapper(user_q, session_id, generation_model=gen_model)
 
                 # Update memory with summarization
-                add_message(session_id, "user", user_q, summarizer_llm)
-                add_message(session_id, "assistant", result['answer'], summarizer_llm)
+                add_message(session_id, "user", user_q) #, summarizer_llm)
+                add_message(session_id, "assistant", result['answer']) #, summarizer_llm)
 
                 # Retrieve the full conversation memory
                 memory = get_memory(session_id)
@@ -154,8 +154,8 @@ async def rag(
         sources = result.get("sources", [])
 
     # Update memory with summarization
-    add_message(session_id, "user", user_q, summarizer_llm)
-    add_message(session_id, "assistant", answer, summarizer_llm)
+    add_message(session_id, "user", user_q) #, summarizer_llm)
+    add_message(session_id, "assistant", answer) #, summarizer_llm)
 
     # Retrieve the full conversation memory
     memory = get_memory(session_id)

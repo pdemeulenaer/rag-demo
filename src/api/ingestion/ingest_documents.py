@@ -19,6 +19,7 @@ import instructor
 from pydantic import BaseModel, Field
 
 from src.api.core.config import config
+from src.api.rag.summarize import summarize_text
 from src.api.rag.utils.utils import prompt_template_config, prompt_template_registry
 
 
@@ -214,36 +215,36 @@ def extract_chunks_with_metadata(filepath: str) -> Tuple[List[Tuple[str, int]], 
 
 
 # === Summarization with Groq ===
-def summarize_chunk(text: str) -> str:
-    """
-    Use Groq's Mixtral model to summarize a long chunk of text.
-    """
-    api_key = config.GROQ_API_KEY # os.getenv("GROQ_API_KEY")
-    if not api_key:
-        raise ValueError("GROQ_API_KEY is not set in environment variables.")
+# def summarize_chunk(text: str) -> str:
+#     """
+#     Use Groq's Mixtral model to summarize a long chunk of text.
+#     """
+#     api_key = config.GROQ_API_KEY # os.getenv("GROQ_API_KEY")
+#     if not api_key:
+#         raise ValueError("GROQ_API_KEY is not set in environment variables.")
 
-    headers = {
-        "Authorization": f"Bearer {api_key}",
-        "Content-Type": "application/json"
-    }
+#     headers = {
+#         "Authorization": f"Bearer {api_key}",
+#         "Content-Type": "application/json"
+#     }
 
-    payload = {
-        "model": config.SUMMARIZATION_MODEL,
-        "messages": [
-            {"role": "system", "content": "You are a helpful assistant that summarizes academic documents."},
-            {"role": "user", "content": f"Summarize the following chunk:\n\n{text}"}
-        ],
-        "temperature": config.SUMMARIZATION_MODEL_TEMPERATURE, 
-        "max_tokens": config.SUMMARIZATION_MODEL_MAX_TOKENS 
-    }
+#     payload = {
+#         "model": config.SUMMARIZATION_MODEL,
+#         "messages": [
+#             {"role": "system", "content": "You are a helpful assistant that summarizes academic documents."},
+#             {"role": "user", "content": f"Summarize the following chunk:\n\n{text}"}
+#         ],
+#         "temperature": config.SUMMARIZATION_MODEL_TEMPERATURE, 
+#         "max_tokens": config.SUMMARIZATION_MODEL_MAX_TOKENS 
+#     }
 
-    try:
-        response = httpx.post("https://api.groq.com/openai/v1/chat/completions", headers=headers, json=payload, timeout=60)
-        response.raise_for_status()
-        return response.json()["choices"][0]["message"]["content"].strip()
-    except Exception as e:
-        print(f"⚠️ Groq summarization failed: {e}")
-        return text[:200] + "..."
+#     try:
+#         response = httpx.post("https://api.groq.com/openai/v1/chat/completions", headers=headers, json=payload, timeout=60)
+#         response.raise_for_status()
+#         return response.json()["choices"][0]["message"]["content"].strip()
+#     except Exception as e:
+#         print(f"⚠️ Groq summarization failed: {e}")
+#         return text[:200] + "..."
 
 
 
@@ -332,6 +333,16 @@ def ingest_documents(file_path: str, qdrant_url: str, qdrant_api_key: str, colle
         for chunk_with_header, original_chunk, vec, page_num in zip(
             texts_to_embed, texts, vectors, page_numbers
         ):
+            
+            chunk_summary = summarize_text(
+                chunk_with_header,
+                provider='groq',
+                model=config.SUMMARIZATION_MODEL,
+                temperature=config.SUMMARIZATION_MODEL_TEMPERATURE,
+                max_tokens=config.SUMMARIZATION_MODEL_MAX_TOKENS,
+                template_name="document_chunk_summarization")
+            chunk_summary = chunk_summary.summary.strip() # CHECK THIS
+
             points.append(PointStruct(
                 id=str(uuid.uuid4()),
                 vector=vec,
@@ -348,7 +359,8 @@ def ingest_documents(file_path: str, qdrant_url: str, qdrant_api_key: str, colle
                     "text": chunk_with_header, 
                     "type": "chunk", # for regular chunks
                     # Use the original chunk for summarization to avoid LLM repeating the header
-                    "summary": summarize_chunk(original_chunk) 
+                    # "summary": summarize_chunk(original_chunk) 
+                    "summary": chunk_summary
                 }
             ))
 
