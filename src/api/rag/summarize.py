@@ -2,6 +2,7 @@
 import logging
 import httpx
 from openai import OpenAI
+import instructor
 from pydantic import BaseModel
 
 from src.api.core.config import config
@@ -67,6 +68,7 @@ def summarize_text(
                 messages=messages,
                 temperature=temperature,
                 max_tokens=max_tokens,
+                response_model=SummarizationResponse,
             )
             summary_text = response.choices[0].message.content.strip()
 

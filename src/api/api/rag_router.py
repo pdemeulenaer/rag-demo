@@ -14,28 +14,7 @@ from src.api.api.models import RAGRequest, RAGResponse, ChatMessage #, RAGUsedIm
 
 logger = logging.getLogger(__name__)
 
-# def format_answer_for_display(ans) -> str:
-#     """
-#     Format an answer for display as Markdown bullets.
-#     - If `ans` is a list, each item becomes a bullet.
-#     - If `ans` is a string with multiple lines, each line becomes a bullet.
-#     - If `ans` is a single string, return as-is.
-#     """
-#     if isinstance(ans, list):
-#         return "\n".join(f"- {a}" for a in ans if a)
-#     elif isinstance(ans, str):
-#         lines = [l.strip() for l in ans.splitlines() if l.strip()]
-#         if len(lines) > 1:
-#             return "\n".join(f"- {l}" for l in lines)
-#         return ans
-#     return str(ans)
-# def format_answer_for_display(ans: str) -> str:
-#     """If `ans` has multiple non-empty lines, format as a numbered Markdown list."""
-#     lines = [l.strip() for l in ans.splitlines() if l.strip()]
-#     if len(lines) > 1:
-#         # 1-based numbering for Markdown
-#         return "\n".join(f"{i+1}. {l}" for i, l in enumerate(lines))
-#     return ans
+
 def format_answer_for_display(ans) -> str:
     """
     Accepts either a string or a list of strings and returns
