@@ -10,7 +10,7 @@ from src.api.ingestion.ingest_documents import IngestionError, ingest_documents
 
 
 # === Config ===
-COLLECTION_NAME = "test_collection_oai_test_summary" # test_collection_oai_prod
+COLLECTION_NAME = "test_collection_oai_test_multilanguage" # test_collection_oai_prod
 # PDF_FOLDER = os.path.join(os.path.dirname(__file__), "/../data/folder")
 PDF_FOLDER = os.path.abspath(os.path.join(os.path.dirname(__file__), "../data/folder"))
 URLS_FILE = os.path.abspath(os.path.join(os.path.dirname(__file__), "../ingestion_batch/url_list.txt"))
@@ -113,20 +113,20 @@ def ingest_urls_to_qdrant(urls_file_path: str, qdrant_url: str, qdrant_api_key: 
 if __name__ == "__main__":
 
     # Example 1: Ingest from local folder
-    # print("--- Starting Folder Ingestion ---")
-    # ingest_folder_to_qdrant(
-    #     folder_path=PDF_FOLDER,
-    #     qdrant_url=config.QDRANT_URL,
-    #     qdrant_api_key=config.QDRANT_API_KEY,
-    #     collection_name=COLLECTION_NAME,
-    # )   
-
-    # Example 2: Ingest from list of URLs
-    # Assuming 'url_list.txt' exists and contains one URL per line
-    print("\n--- Starting URL Ingestion ---")
-    ingest_urls_to_qdrant(
-        urls_file_path=URLS_FILE,
+    print("--- Starting Folder Ingestion ---")
+    ingest_folder_to_qdrant(
+        folder_path=PDF_FOLDER,
         qdrant_url=config.QDRANT_URL,
         qdrant_api_key=config.QDRANT_API_KEY,
         collection_name=COLLECTION_NAME,
-    )        
+    )   
+
+    # # Example 2: Ingest from list of URLs
+    # # Assuming 'url_list.txt' exists and contains one URL per line
+    # print("\n--- Starting URL Ingestion ---")
+    # ingest_urls_to_qdrant(
+    #     urls_file_path=URLS_FILE,
+    #     qdrant_url=config.QDRANT_URL,
+    #     qdrant_api_key=config.QDRANT_API_KEY,
+    #     collection_name=COLLECTION_NAME,
+    # )        
