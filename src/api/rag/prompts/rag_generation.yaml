@@ -81,7 +81,7 @@ prompts:
         user: |
             Extract the following metadata from the provided text:
 
-            - **Title**: The scientific title of the document (if present).
+            - **Title**: The scientific title of the document (if present). Look for an ENGLISH title if multiple languages are present. In that case, the English title migh not be in the first page!
             - **Authors**: The main author(s) or PhD candidate.
             - **Keywords**: up to 10 scientific keywords that are explicitly present in the text,
             or strongly implied by domain-specific terminology. Avoid generic terms like
