@@ -131,6 +131,16 @@ async def rag(
             answer = mh.summarize_paper(intent.title)
             sources=[]
 
+        elif intent.intent == "chat_followup":
+            # Use the chat memory only — no retrieval CHANGE THIS WITH A LLM CALL TO GET A BETTER ANSWER
+            memory = get_memory(session_id)
+            if memory.recent_messages:
+                last_assistant_msg = memory.recent_messages[-1]["content"]
+                answer = f"It seems you're referring to our previous discussion. Here’s what I said earlier:\n\n{last_assistant_msg}"
+            else:
+                answer = "I don't have prior context for that yet."
+            sources = []
+
         else:
             answer = "I couldn’t classify that question."
             sources=[]

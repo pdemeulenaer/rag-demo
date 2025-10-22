@@ -34,44 +34,52 @@ prompts:
             Conversation:
             {{ summary }}
 
-    # summarization:
-    #     system: |
-    #         You are a research assistant that extracts structured metadata from scientific documents.
-    #         Your task is to generate concise, factual metadata that is directly grounded in the document text.
-    #         Do not hallucinate information. If a field cannot be determined, leave it empty.
-    #     user: |
-    #         Extract the following metadata from the provided text:
+    intent_classification:
+        system: |
+            You are an intent classifier for a scientific-paper assistant that combines:
+            1. A structured metadata database (authors, titles, years, summaries)
+            2. A semantic RAG retriever for deeper content questions
+            3. A chat memory of recent conversation turns
 
-    #         - **Title**: The scientific title of the document (if present).
-    #         - **Authors**: The main author(s) or PhD candidate.
-    #         - **Keywords**: up to 10 scientific keywords that are explicitly present in the text,
-    #         or strongly implied by domain-specific terminology. Avoid generic terms like
-    #         - **Publication Year**: The correct year of publication, found directly in the text (e.g., '2023'). If no year is found, leave this field empty.
-    #         'research', 'study', 'thesis'. Each keyword must be a single word or short phrase.
-    #         - **Summary**: The document's abstract. If an explicit 'Abstract' or 'Summary' section is present, 
-    #         use that text to generate the summary and enrich it if more context is present in the document. Otherwise, generate an extensive, detailed summary of the document's 
-    #         main findings from the provided text. The result should be a summary of ideally 10-20 sentences. You MUST reformulate the summary to use BULLET POINTS to structure the answer.
+            Your job is to classify the user's question into one of the following intents:
 
-    #         Ensure the JSON output is valid and follows this schema exactly:
-    #         {
-    #             "title": string,
-    #             "authors": string,
-    #             "keywords": array of strings,
-    #             "publication_year": string,
-    #             "summary": string
-    #         }
+            • list_titles — user asks for all titles in the collection.
+            • list_authors — user asks for all authors in the collection.
+            • titles_by_author — user asks for papers by a specific author (optionally filtered by year).
+            • authors_by_year — user asks for authors who published in a specific year.
+            • author_of_title — user asks who wrote a specific paper.
+            • summarize_paper — user asks for a summary of a specific paper title.
+            • chat_followup — user refers to something already discussed in the chat
+              (e.g. “Can you expand on that?”, “What was the second one?”, “And what about the 2021 paper?”).
+            • mixed — question requires semantic retrieval via RAG.
 
-    #         The keywords must come from the text (or be obvious synonyms), not invented.
+            Classification rules:
+            - If the user refers to something mentioned earlier in the conversation
+              (e.g., uses pronouns or context like “that paper”, “you mentioned”, “the first one”),
+              select **chat_followup**.
+            - If the question clearly targets structured metadata (authors, titles, years),
+              select the appropriate metadata intent.
+            - If it’s a general or content-based scientific question that needs document retrieval,
+              select **mixed**.
+            - Always extract and fill the `author`, `title`, and `year` fields when when they are mentioned in the question.
+            - If unsure, choose **mixed**.
 
-    #         Return only valid JSON following this schema:
+            Return a JSON object strictly matching this schema:
+            {
+                "intent": "one of [list_titles, list_authors, titles_by_author, authors_by_year, author_of_title, summarize_paper, chat_followup, mixed]",
+                "author": "string or null",
+                "year": "string or null",
+                "title": "string or null"
+            }
 
-    #         <OUTPUT JSON SCHEMA>
-    #         {{ output_json_schema }}
-    #         </OUTPUT JSON SCHEMA>
+        user: |
+            {% if chat_history %}
+            Previous chat context:
+            {{ chat_history }}
+            {% endif %}
 
-    #         Text to analyze:
-    #         ----------------
-    #         {{ input_text }}
+            Current user question:
+            {{ question }}
 
     rag_ingestion:
         system: |

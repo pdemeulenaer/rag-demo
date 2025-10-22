@@ -5,6 +5,7 @@ import instructor
 import openai
 import logging
 from src.api.core.config import config
+from src.api.rag.utils.utils import prompt_template_config
 
 logger = logging.getLogger(__name__)
 
@@ -79,27 +80,43 @@ router_llm = instructor.from_openai(
 
 # INTENT CLASSIFIER
 def classify_question(question: str) -> MetadataIntent:
+
+    prompt_template = prompt_template_config(config.RAG_PROMPT_TEMPLATE_PATH, "intent_classification")
+
+    messages = [
+        {"role": "system", "content": prompt_template["system"].render()},
+        {
+            "role": "user",
+            "content": prompt_template["user"].render(
+                question=question,
+                chat_history=chat_history or "",
+            ),
+        },
+    ]
+
+
     raw = router_llm.chat.completions.create(
         model="gpt-4o-mini",
         response_model=MetadataIntent,
         temperature=0,
-        messages=[
-            {
-                "role": "system",
-                "content": (
-                    "You are an intent classifier for a scientific-paper database.\n"
-                    "Return JSON strictly matching the MetadataIntent schema.\n"
-                    "Valid intents: list_titles, list_authors, titles_by_author,\n"
-                    "authors_by_year, author_of_title, summarize_paper, mixed.\n"
-                    "Rules:\n"
-                    "- If a question asks for titles and mentions an author (and optional year), "
-                    "use titles_by_author and fill the author/year fields.\n"
-                    "- Use list_titles ONLY when the user wants ALL titles with no author/year filter.\n"
-                    "- If it's not about metadata, use mixed."
-                ),
-            },
-            {"role": "user", "content": question},
-        ],
+        messages=messages,
+        # messages=[
+        #     {
+        #         "role": "system",
+        #         "content": (
+        #             "You are an intent classifier for a scientific-paper database.\n"
+        #             "Return JSON strictly matching the MetadataIntent schema.\n"
+        #             "Valid intents: list_titles, list_authors, titles_by_author,\n"
+        #             "authors_by_year, author_of_title, summarize_paper, mixed.\n"
+        #             "Rules:\n"
+        #             "- If a question asks for titles and mentions an author (and optional year), "
+        #             "use titles_by_author and fill the author/year fields.\n"
+        #             "- Use list_titles ONLY when the user wants ALL titles with no author/year filter.\n"
+        #             "- If it's not about metadata, use mixed."
+        #         ),
+        #     },
+        #     {"role": "user", "content": question},
+        # ],
     )
     logger.info("Raw classifier output: %s", raw)
 
