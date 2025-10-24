@@ -277,7 +277,7 @@ def build_prompt(context, question, session_id):
         [f"{msg['role'].capitalize()}: {msg['content']}" for msg in memory.recent_messages]
     )
 
-    full_history = f"Conversation Summary:\n{memory.summary}\n\nRecent Messages:\n{formatted_recent}"
+    full_history = f"Conversation Summary:\n{memory.summary.strip()}\n\nRecent Messages:\n{formatted_recent}"
 
     processed_context = process_context(context)
 

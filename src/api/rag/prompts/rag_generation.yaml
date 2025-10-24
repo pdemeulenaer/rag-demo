@@ -35,42 +35,87 @@ prompts:
             {{ summary }}
 
     intent_classification:
+        # system: |
+        #     You are an intent classifier for a scientific-paper assistant that combines:
+        #     1. A structured metadata database (authors, titles, years, summaries)
+        #     2. A semantic RAG retriever for deeper content questions
+        #     3. A chat memory of recent conversation turns
+
+        #     Your job is to classify the user's question into one of the following intents:
+
+        #     • list_titles — user asks for all titles in the collection.
+        #     • list_authors — user asks for all authors in the collection.
+        #     • titles_by_author — user asks for papers by a specific author (optionally filtered by year).
+        #     • authors_by_year — user asks for authors who published in a specific year.
+        #     • author_of_title — user asks who wrote a specific paper.
+        #     • summarize_paper — user asks for a summary of a specific paper title.
+        #     • chat_followup — user refers to something already discussed in the chat
+        #       (e.g. “Can you expand on that?”, “What was the second one?”, “And what about the 2021 paper?”).
+        #     • mixed — question requires semantic retrieval via RAG.
+
+        #     Classification rules:
+        #     - If the user refers to something mentioned earlier in the conversation
+        #       (e.g., uses pronouns or context like “that paper”, “you mentioned”, “the first one”),
+        #       select **chat_followup**.
+        #     - If the question clearly targets structured metadata (authors, titles, years),
+        #       select the appropriate metadata intent.
+        #     - If it’s a general or content-based scientific question that needs document retrieval,
+        #       select **mixed**.
+        #     - Always extract and fill the `author`, `title`, and `year` fields when when they are mentioned in the question.
+        #     - If unsure, choose **mixed**.
+
+        #     Return a JSON object strictly matching this schema:
+        #     {
+        #         "intent": "one of [list_titles, list_authors, titles_by_author, authors_by_year, author_of_title, summarize_paper, chat_followup, mixed]",
+        #         "author": "string or null",
+        #         "year": "string or null",
+        #         "title": "string or null"
+        #     }
+
+        # user: |
+        #     {% if chat_history %}
+        #     Previous chat context:
+        #     {{ chat_history }}
+        #     {% endif %}
+
+        #     Current user question:
+        #     {{ question }}
         system: |
             You are an intent classifier for a scientific-paper assistant that combines:
             1. A structured metadata database (authors, titles, years, summaries)
             2. A semantic RAG retriever for deeper content questions
-            3. A chat memory of recent conversation turns
+            3. A conversational memory containing recent exchanges
 
-            Your job is to classify the user's question into one of the following intents:
+            Your task is to classify the user's question into one of the following intents:
 
-            • list_titles — user asks for all titles in the collection.
-            • list_authors — user asks for all authors in the collection.
-            • titles_by_author — user asks for papers by a specific author (optionally filtered by year).
-            • authors_by_year — user asks for authors who published in a specific year.
-            • author_of_title — user asks who wrote a specific paper.
-            • summarize_paper — user asks for a summary of a specific paper title.
-            • chat_followup — user refers to something already discussed in the chat
-              (e.g. “Can you expand on that?”, “What was the second one?”, “And what about the 2021 paper?”).
+            • list_titles — user asks for all titles in the collection.  
+            • list_authors — user asks for all authors in the collection.  
+            • titles_by_author — user asks for papers by a specific author (optionally filtered by year).  
+            • authors_by_year — user asks for authors who published in a specific year.  
+            • author_of_title — user asks who wrote a specific paper.  
+            • summarize_paper — user asks for a summary of a specific paper title.  
+            • chat_followup — user refers to something already discussed in the chat  
+              (e.g., “Can you expand on that?”, “What was the second one?”, “And what about the 2021 paper?”).  
             • mixed — question requires semantic retrieval via RAG.
 
             Classification rules:
-            - If the user refers to something mentioned earlier in the conversation
-              (e.g., uses pronouns or context like “that paper”, “you mentioned”, “the first one”),
-              select **chat_followup**.
-            - If the question clearly targets structured metadata (authors, titles, years),
-              select the appropriate metadata intent.
-            - If it’s a general or content-based scientific question that needs document retrieval,
-              select **mixed**.
-            - Always extract and fill the `author`, `title`, and `year` fields when when they are mentioned in the question.
-            - If unsure, choose **mixed**.
+            - If the user refers to something mentioned earlier in the conversation (pronouns like “that paper”, “you mentioned”, “what about it”), select **chat_followup**.  
+            - If the question explicitly requests metadata (authors, titles, years, summaries), select the appropriate metadata intent.  
+            - If the question is open-ended or requires understanding of scientific content, select **mixed**.  
+            - Always extract and fill `author`, `title`, and `year` fields when mentioned.  
+            - If uncertain, choose **mixed**.
 
-            Return a JSON object strictly matching this schema:
-            {
+            --- STRICT OUTPUT RULES ---
+            - Output **only** valid JSON that strictly matches this schema:
+              {
                 "intent": "one of [list_titles, list_authors, titles_by_author, authors_by_year, author_of_title, summarize_paper, chat_followup, mixed]",
                 "author": "string or null",
                 "year": "string or null",
                 "title": "string or null"
-            }
+              }
+            - Do **not** include explanations, natural language, or markdown formatting.
+            - Do **not** add extra keys or comments.
+            - Ensure the JSON is syntactically valid and ready to be parsed by a Pydantic model.
 
         user: |
             {% if chat_history %}
@@ -79,7 +124,7 @@ prompts:
             {% endif %}
 
             Current user question:
-            {{ question }}
+            {{ question }}        
 
     rag_ingestion:
         system: |

@@ -34,6 +34,35 @@ def format_answer_for_display(ans) -> str:
     return lines[0] if lines else ""
 
 
+def chat_memory(session_id: str) -> str:
+    """
+    Retrieve and format the user's chat memory for LLM context classification.
+
+    Combines:
+      - A high-level conversation summary (if available)
+      - The recent chat messages (as maintained in memory.recent_messages)
+
+    Returns:
+        A compact text block suitable for injection into an LLM prompt.
+    """
+    
+    memory = get_memory(session_id)
+
+    # Format recent messages
+    formatted_recent = "\n".join(
+        f"{msg['role'].capitalize()}: {msg['content']}"
+        for msg in memory.recent_messages
+    )
+
+    # Combine summary + recent messages
+    parts = []
+    if memory.summary:
+        parts.append(f"Conversation Summary:\n{memory.summary.strip()}")
+    if formatted_recent:
+        parts.append(f"Recent Messages:\n{formatted_recent}")
+
+    return "\n\n".join(parts).strip()
+
 
 # Initialize the summarizer LLM using instructor with Groq
 summarizer_llm = instructor.from_openai(
@@ -67,10 +96,15 @@ async def rag(
     # Determine generation model (user-selected or default)
     gen_model = payload.generation_model or config.GENERATION_MODEL
     
+    logger.info(f"Session ID: {session_id}")
+    logger.info(f"Generation model: {gen_model}")
+
+    # Retrieve chat memory
+    chat_history = chat_memory(session_id) 
 
     # ---- NEW: classify intent ----
     user_q = payload.query
-    intent = classify_question(user_q)
+    intent = classify_question(user_q, chat_history)
     logger.info(f"Intent: {intent}")
     logger.info("Classifier output: %s", intent.model_dump() if hasattr(intent,"model_dump") else intent)
 

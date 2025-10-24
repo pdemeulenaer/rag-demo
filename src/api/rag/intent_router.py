@@ -79,7 +79,7 @@ router_llm = instructor.from_openai(
 )
 
 # INTENT CLASSIFIER
-def classify_question(question: str) -> MetadataIntent:
+def classify_question(question: str, chat_history: str = "") -> MetadataIntent:
 
     prompt_template = prompt_template_config(config.RAG_PROMPT_TEMPLATE_PATH, "intent_classification")
 
