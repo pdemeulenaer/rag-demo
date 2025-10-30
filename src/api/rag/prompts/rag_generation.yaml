@@ -58,12 +58,12 @@ prompts:
             or structured metadata, requiring semantic retrieval from document content.
 
             Classification rules:
-            - If the user explicitly refers to something mentioned earlier in the conversation (pronouns like “that paper”, “you mentioned”, “what about it”), select **chat_followup**.  
+            - If the user explicitly refers to something mentioned earlier in the conversation (pronouns like “that paper”, “you mentioned”, “what about it”), select **chat_followup** — *unless* the question clearly matches a metadata intent (e.g., asks for authors, titles, or summaries). 
+            - If the question explicitly requests document metadata (authors, titles, years, summaries), select the corresponding metadata intent even if it refers to prior context.  
             - If the question requires understanding or retrieving **new unseen content** from the papers’ full text or semantic index, select **rag**.              
-            - If the question explicitly requests document metadata (authors, titles, years, summaries), select the appropriate metadata intent.  
-            - Always extract and fill `author`, `title`, and `year` fields when mentioned.  
-            - If uncertain between **chat_followup** and **rag**, prefer **rag** (to avoid missing retrieval opportunities).
-
+            - Always extract and fill `author`, `title`, and `year` fields when mentioned.
+            - If uncertain between **chat_followup** and any metadata intent, prefer the metadata intent.
+            - If uncertain between **chat_followup** and **rag**, prefer **rag**.
 
             --- STRICT OUTPUT RULES ---
             - Output **only** valid JSON that strictly matches this schema:
