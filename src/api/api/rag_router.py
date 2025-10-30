@@ -15,6 +15,46 @@ from src.api.api.models import RAGRequest, RAGResponse, ChatMessage #, RAGUsedIm
 logger = logging.getLogger(__name__)
 
 
+class ChatFollowupResponse(BaseModel):
+    answer: str
+
+def answer_from_chat_context(question: str, chat_history: str, model="gpt-4o-mini") -> str:
+    """
+    Use the chat history alone to answer the user's follow-up question.
+    Does not trigger RAG or metadata retrieval.
+    """
+
+    llm = instructor.from_openai(
+        openai.OpenAI(api_key=config.OPENAI_API_KEY)
+    )
+
+    system_prompt = (
+        "You are a helpful scientific assistant. Answer the user's question based "
+        "only on the following chat history. Do not invent or retrieve new information "
+        "from outside the conversation context."
+    )
+
+    user_prompt = f"""
+    Chat history:
+    {chat_history}
+
+    Current user question:
+    {question}
+    """
+
+    response = llm.chat.completions.create(
+        model=model,
+        temperature=0.3,
+        messages=[
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": user_prompt},
+        ],
+        response_model=ChatFollowupResponse,
+    )
+
+    return response  # instructor will handle parsing to string
+
+
 def format_answer_for_display(ans) -> str:
     """
     Accepts either a string or a list of strings and returns
@@ -109,7 +149,7 @@ async def rag(
     logger.info("Classifier output: %s", intent.model_dump() if hasattr(intent,"model_dump") else intent)
 
     # Depending on intent, 
-    if intent.intent != "mixed":
+    if intent.intent != "rag":
         # structured / metadata path
         if intent.intent == "list_titles":
             answer = mh.list_titles() #"\n".join(mh.list_titles())
@@ -121,7 +161,7 @@ async def rag(
 
         elif intent.intent == "titles_by_author":
             if not intent.author:
-                # ❗ router said titles_by_author but didn’t give an author → fallback to RAG
+                # ❗ Intent router said titles_by_author but didn’t give an author → fallback to RAG
                 logger.info("No author extracted for titles_by_author → falling back to semantic RAG")
                 result = rag_pipeline_wrapper(user_q, session_id, generation_model=gen_model)
 
@@ -150,44 +190,44 @@ async def rag(
                 # answer=result["answer"]
                 # sources=result.get("sources", [])
             else:
-                answer = mh.titles_by_author(intent.author, intent.year) #"\n".join(mh.titles_by_author(intent.author, intent.year))
+                answer = mh.titles_by_author(intent.author, intent.year)
                 sources=[]
 
         elif intent.intent == "authors_by_year":
-            answer = mh.titles_by_author(None, intent.year) #"\n".join(mh.titles_by_author(None, intent.year))
+            answer = mh.titles_by_author(None, intent.year)
             sources=[]
 
         elif intent.intent == "author_of_title":
-            answer = mh.author_of_title(intent.title) #", ".join(mh.author_of_title(intent.title))
+            answer = mh.author_of_title(intent.title)
             sources=[]
 
         elif intent.intent == "summarize_paper":
             answer = mh.summarize_paper(intent.title)
             sources=[]
 
-        elif intent.intent == "chat_followup":
+        # elif intent.intent == "chat_followup":
             # Use the chat memory only — no retrieval CHANGE THIS WITH A LLM CALL TO GET A BETTER ANSWER
-            memory = get_memory(session_id)
-            if memory.recent_messages:
-                last_assistant_msg = memory.recent_messages[-1]["content"]
-                answer = f"It seems you're referring to our previous discussion. Here’s what I said earlier:\n\n{last_assistant_msg}"
-            else:
-                answer = "I don't have prior context for that yet."
-            sources = []
+            # memory = get_memory(session_id)
+            # if memory.recent_messages:
+            #     last_assistant_msg = memory.recent_messages[-1]["content"]
+            #     answer = f"It seems you're referring to our previous discussion. Here’s what I said earlier:\n\n{last_assistant_msg}"
+            # else:
+            #     answer = "I don't have prior context for that yet."
+            # sources = []
+        elif intent.intent == "chat_followup":
+            logger.info("Handling chat_followup intent via local context reasoning")
+            chat_history = chat_memory(session_id)
+            answer = answer_from_chat_context(user_q, chat_history)
+            sources = []            
 
         else:
-            answer = "I couldn’t classify that question."
+            answer = "I couldn't classify that question."
             sources=[]
+            logger.warning(f"Unrecognized intent: {intent.intent}")
 
-        # return RAGResponse(
-        #     request_id=request.state.request_id,
-        #     answer=format_answer_for_display(answer),
-        #     chat_history=[],   # you can choose to include memory if you like
-        #     sources=[]
-        # )    
         answer = format_answer_for_display(answer)
 
-    else: # Use the RAG as intent is not "mixed"
+    else: # Use the RAG
 
         # Run the RAG pipeline with session-based memory
         result = rag_pipeline_wrapper(payload.query, 
@@ -212,7 +252,6 @@ async def rag(
         
     for msg in memory.recent_messages:
         full_history.append({"role": msg["role"], "content": msg["content"]})
-
 
     # Build and return the RAGResponse, including the chat_history
     return RAGResponse(
