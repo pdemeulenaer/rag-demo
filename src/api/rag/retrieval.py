@@ -195,7 +195,7 @@ def retrieve_context(query, qdrant_client, top_k=5):
     retrieved_context = []
     for result in results.points:
         logger.info("Qdrant payload keys: %s", result.payload.keys())
-        logger.info("Qdrant payload sample: %s", result.payload)     
+        # logger.info("Qdrant payload sample: %s", result.payload)     
         retrieved_context.append({
             "id": result.id,
             "text": result.payload["text"],
