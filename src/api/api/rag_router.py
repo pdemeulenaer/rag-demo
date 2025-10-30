@@ -52,7 +52,7 @@ def answer_from_chat_context(question: str, chat_history: str, model="gpt-4o-min
         response_model=ChatFollowupResponse,
     )
 
-    return response  # instructor will handle parsing to string
+    return response.answer.strip()  # instructor will handle parsing to string
 
 
 def format_answer_for_display(ans) -> str:
