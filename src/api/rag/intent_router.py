@@ -63,12 +63,3 @@ def classify_question(question: str, chat_history: str = "") -> MetadataIntent:
         intent.intent = "titles_by_author"        
 
     return intent
-
-
-# def classify_question(question: str) -> MetadataIntent:
-#     return router_llm.chat.completions.create(
-#         model="gpt-4o-mini",        # cheap/fast model
-#         response_model=MetadataIntent,
-#         temperature=0,
-#         messages=[{"role": "user", "content": router_prompt.format(q=question)}]
-#     )

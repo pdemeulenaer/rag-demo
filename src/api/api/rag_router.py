@@ -22,6 +22,8 @@ def answer_from_chat_context(question: str, chat_history: str, model="gpt-4o-min
     """
     Use the chat history alone to answer the user's follow-up question.
     Does not trigger RAG or metadata retrieval.
+    TODO: USE TEMPLATE FROM YAML TEMPLATE FILE!
+    TODO: GENERALIZE TO GROQ LLM
     """
 
     llm = instructor.from_openai(
@@ -166,8 +168,8 @@ async def rag(
                 result = rag_pipeline_wrapper(user_q, session_id, generation_model=gen_model)
 
                 # Update memory with summarization
-                add_message(session_id, "user", user_q) #, summarizer_llm)
-                add_message(session_id, "assistant", result['answer']) #, summarizer_llm)
+                add_message(session_id, "user", user_q)
+                add_message(session_id, "assistant", result['answer'])
 
                 # Retrieve the full conversation memory
                 memory = get_memory(session_id)
@@ -205,15 +207,6 @@ async def rag(
             answer = mh.summarize_paper(intent.title)
             sources=[]
 
-        # elif intent.intent == "chat_followup":
-            # Use the chat memory only — no retrieval CHANGE THIS WITH A LLM CALL TO GET A BETTER ANSWER
-            # memory = get_memory(session_id)
-            # if memory.recent_messages:
-            #     last_assistant_msg = memory.recent_messages[-1]["content"]
-            #     answer = f"It seems you're referring to our previous discussion. Here’s what I said earlier:\n\n{last_assistant_msg}"
-            # else:
-            #     answer = "I don't have prior context for that yet."
-            # sources = []
         elif intent.intent == "chat_followup":
             logger.info("Handling chat_followup intent via local context reasoning")
             chat_history = chat_memory(session_id)
@@ -238,8 +231,8 @@ async def rag(
         sources = result.get("sources", [])
 
     # Update memory with summarization
-    add_message(session_id, "user", user_q) #, summarizer_llm)
-    add_message(session_id, "assistant", answer) #, summarizer_llm)
+    add_message(session_id, "user", user_q)
+    add_message(session_id, "assistant", answer)
 
     # Retrieve the full conversation memory
     memory = get_memory(session_id)
