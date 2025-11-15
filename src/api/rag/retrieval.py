@@ -54,22 +54,6 @@ def summarize_conversation(messages): #, summarizer_llm):
         [f"{m['role'].capitalize()}: {m['content']}" for m in messages]
     )
 
-    # prompt = f"""
-    # Please summarize the following conversation briefly, preserving key facts, names, and context
-    # so that future turns can be understood without losing important details.
-    
-    # Conversation:
-    # {formatted_messages}
-    # """
-
-    # response = summarizer_llm.chat.completions.create(
-    #     model=config.SUMMARIZATION_MODEL, # "llama-3.3-70b-versatile",
-    #     messages=[{"role": "user", "content": prompt}],
-    #     temperature=config.SUMMARIZATION_MODEL_TEMPERATURE, # 0.5,
-    #     response_model=RAGSummarizationResponse,
-    #     max_tokens=config.SUMMARIZATION_MODEL_MAX_TOKENS # 1000
-    # )
-
     response = summarize_text(
         formatted_messages,
         provider='groq',
@@ -260,7 +244,8 @@ OUTPUT_SCHEMA = {
         "retrieved_context_ids": {
             "type": "array",
             "items": {"type": "string"}
-        }
+        },
+        "used_chunks_rationale": {"type": "string"} # NEW 2025-11-15: field explaining why certain chunks were used
     },
     "required": ["answer", "retrieved_context_ids"]
 }
@@ -444,6 +429,8 @@ def rag_pipeline(question, qdrant_client, session_id, generation_model=None, top
         question,
         session_id
     )
+
+    # Generate answer using LLM
     answer = generate_answer(prompt, generation_model)
 
     # Deduplicate sources and aggregate page numbers
@@ -481,12 +468,17 @@ def rag_pipeline(question, qdrant_client, session_id, generation_model=None, top
             existing_pages.update(page_num)
             seen[key].page = sorted(existing_pages)            
 
+    # Filter out unused sources based on retrieved_context_ids
+    used_ids = set(answer.retrieved_context_ids)
+    unique_sources = [s for s in unique_sources if s.id in used_ids]
+    logger.info(f"Unique sources after filtering: {unique_sources}")
+
     # Extract just the text content from the retrieved_context objects
     retrieved_context_texts = [c["text"] for c in retrieved_context]
 
     return {
         "answer": answer.answer,
-        "sources": unique_sources, 
+        "sources": unique_sources,    # <-- filtered!
         "question": question,
         "retrieved_context": retrieved_context_texts,
     }
