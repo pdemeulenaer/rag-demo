@@ -185,156 +185,226 @@ def get_text_chunks_recursive(text) -> List[str]:
 
 
 # === New Logic: Figure Detection & Merging ===
-def identify_figures_on_page(page) -> List[Dict[str, Any]]:
-    """
-    Scans a PDF page for images and captions.
-    Merges nearby images (sub-plots) into single figures.
-    Associates "Fig." text blocks with the nearest image group.
-    """
+# def identify_figures_on_page(page) -> List[Dict[str, Any]]:
+#     """
+#     Scans a PDF page for images and captions.
+#     Merges nearby images (sub-plots) into single figures.
+#     Associates "Fig." text blocks with the nearest image group.
+#     """
     
-    # 1. Get all image bounding boxes (rects)
-    image_rects = []
-    for img in page.get_images(full=True):
-        try:
-            rect = page.get_image_bbox(img)
-            # Filter tiny images (icons, lines)
-            if rect.width < 50 or rect.height < 50: 
-                continue
-            image_rects.append(rect)
-        except Exception:
-            continue
+#     # 1. Get all image bounding boxes (rects)
+#     image_rects = []
+#     for img in page.get_images(full=True):
+#         try:
+#             rect = page.get_image_bbox(img)
+#             # Filter tiny images (icons, lines)
+#             if rect.width < 50 or rect.height < 50: 
+#                 continue
+#             image_rects.append(rect)
+#         except Exception:
+#             continue
 
-    if not image_rects:
-        return []
+#     if not image_rects:
+#         return []
 
-    # 2. Merge overlapping or close rectangles (clustering subplots)
-    changed = True
-    while changed:
-        changed = False
-        new_rects = []
-        while image_rects:
-            r1 = image_rects.pop(0)
-            merged = False
-            for i, r2 in enumerate(new_rects):
-                # *** CHANGE: Increased margin from 20 to 40 for adjacent subplots ***
-                expanded_r2 = r2 + (-40, -40, 40, 40)
+#     # 2. Merge overlapping or close rectangles (clustering subplots)
+#     changed = True
+#     max_merge_dist = 60 # INCREASED margin from 40 to 60 for better clustering of sub-panels
+
+#     while changed:
+#         changed = False
+#         new_rects = []
+#         while image_rects:
+#             r1 = image_rects.pop(0)
+#             merged = False
+#             for i, r2 in enumerate(new_rects):
+#                 # Check if r1 is close to r2 (within max_merge_dist points)
+#                 # Expand r2 by the margin on all sides to check intersection
+#                 expanded_r2 = r2 + (-max_merge_dist, -max_merge_dist, max_merge_dist, max_merge_dist)
                 
-                if expanded_r2.intersects(r1):
-                    new_rects[i] = r2 | r1 # Union
-                    merged = True
-                    changed = True
-                    break
-            if not merged:
-                new_rects.append(r1)
-        image_rects = new_rects
+#                 if expanded_r2.intersects(r1):
+#                     new_rects[i] = r2 | r1 # Union of rects
+#                     merged = True
+#                     changed = True
+#                     break
+#             if not merged:
+#                 new_rects.append(r1)
+#         # CRITICAL: Re-assign the list for the next pass
+#         image_rects = new_rects
 
-    # 3. Find Caption Text Blocks
+#     # 3. Find Caption Text Blocks
+#     text_blocks = page.get_text("blocks")
+#     captions = []
+    
+#     # Enhanced Regex (as agreed): More inclusive for common scientific labels
+#     fig_pattern = re.compile(r"^\s*(?:Fig\.?|Figure|Scheme|Chart|Panel|Box|A\.|B\.|C\.|D\.)\s*\d*", re.IGNORECASE)
+
+#     # First pass: find all text blocks that start a caption
+#     initial_caption_blocks = []
+#     for block in text_blocks:
+#         b_text = block[4]
+#         if fig_pattern.match(b_text):
+#             initial_caption_blocks.append(block)
+
+#     # Second pass: merge subsequent text blocks into the initial caption block
+#     # We use a set of block numbers to avoid using the same text block in multiple captions
+#     used_block_numbers = set()
+    
+#     for i, start_block in enumerate(initial_caption_blocks):
+#         start_block_number = start_block[5]
+#         # Skip if this block was already used as a continuation of a previous caption
+#         if start_block_number in used_block_numbers:
+#             continue
+            
+#         full_text = start_block[4].strip()
+#         full_rect = pymupdf.Rect(start_block[:4])
+        
+#         # Add the starting block number to the used set
+#         used_block_numbers.add(start_block_number)
+
+#         # Iterate through subsequent blocks to find continuations
+#         # The logic is: look for blocks that are vertically close AND horizontally aligned
+#         for j in range(start_block_number + 1, len(text_blocks)):
+#             next_block = text_blocks[j]
+#             next_rect = pymupdf.Rect(next_block[:4])
+#             next_text = next_block[4].strip()
+#             next_block_number = next_block[5]
+
+#             # 1. Check Proximity: The next block must be immediately below (Y-proximity)
+#             # A common line spacing is around 12-15 points. We use 30 as a generous vertical gap for line continuation.
+#             y_proximity = next_rect.y0 < full_rect.y1 + 30 
+            
+#             # 2. Check Alignment: The next block must be horizontally aligned with the start block.
+#             # Captions are often centered or full-width, so we check if the x0 is close to the starting block's x0.
+#             x_alignment = abs(next_rect.x0 - full_rect.x0) < 20
+            
+#             # 3. Stop Conditions: Break if the continuation criteria fail OR if we hit another caption/figure start.
+#             if not y_proximity or not x_alignment or fig_pattern.match(next_text):
+#                  break
+            
+#             # 4. Check for New Paragraph (Gutter Check): 
+#             # If the vertical gap is too large (e.g., > 1.5 times the generous line spacing), it's likely a new paragraph/body text.
+#             # We use 20 points as a safe threshold for the gap between the merged block's bottom and the new block's top.
+#             if next_rect.y0 - full_rect.y1 > 20: 
+#                 break # New paragraph/body text detected
+
+#             # If all checks pass, merge the text and union the rectangles
+#             full_text += " " + next_text.replace('\n', ' ')
+#             full_rect |= next_rect
+#             used_block_numbers.add(next_block_number)
+
+#         captions.append({
+#             "rect": full_rect,
+#             "text": full_text
+#         })
+    
+# # 4. Match Captions to Image Groups and Fix Truncation
+#     figures = []
+    
+#     for img_rect in image_rects:
+#         best_caption = None
+#         min_dist = float('inf')
+        
+#         for cap in captions:
+#             # Check if caption is below the image
+#             if cap["rect"].y0 >= img_rect.y0: 
+#                 dist = cap["rect"].y0 - img_rect.y1
+                
+#                 # Center alignment check
+#                 center_x_img = (img_rect.x0 + img_rect.x1) / 2
+#                 center_x_cap = (cap["rect"].x0 + cap["rect"].x1) / 2
+#                 dist += abs(center_x_img - center_x_cap) * 0.5
+                
+#                 if dist < min_dist and dist < 300: # Increased search radius
+#                     min_dist = dist
+#                     best_caption = cap
+
+#         if best_caption:
+#             # 1. Start with the caption rect
+#             final_rect = best_caption["rect"]
+            
+#             # 2. Find ALL image panels that are likely associated with this caption
+#             # (i.e., panels directly above this caption)
+#             associated_panels = [
+#                 r for r in image_rects 
+#                 if r.y1 <= best_caption["rect"].y0 + 10 # Is above caption
+#                 and abs((r.x0 + r.x1)/2 - (best_caption["rect"].x0 + best_caption["rect"].x1)/2) < 150 # Is roughly aligned
+#             ]
+            
+#             if associated_panels:
+#                 # Union of ALL associated panels + the caption
+#                 for panel in associated_panels:
+#                     final_rect |= panel
+#             else:
+#                 # Fallback if no panels detected (Vector graphic case)
+#                 # Expand upwards by a default "Figure height" to try and catch the drawing
+#                 final_rect |= pymupdf.Rect(final_rect.x0, final_rect.y0 - 400, final_rect.x1, final_rect.y0)
+
+#             # Add padding and ensure it stays within page boundaries
+#             final_rect = final_rect + (-10, -10, 10, 10)
+#             final_rect = final_rect & page.rect
+
+#             figures.append({
+#                 "rect": final_rect,
+#                 "caption": best_caption["text"]
+#             })
+
+#     # To prevent duplicates if multiple panels match the same caption:
+#     # Filter figures to keep only the one with the largest area for each unique caption
+#     unique_figures = {}
+#     for f in figures:
+#         cap_text = f["caption"]
+#         if cap_text not in unique_figures or f["rect"].get_area() > unique_figures[cap_text]["rect"].get_area():
+#             unique_figures[cap_text] = f
+
+#     return list(unique_figures.values())
+def identify_figures_on_page(page) -> List[Dict[str, Any]]:
+    # 1. Get Caption Blocks (The most reliable anchor)
     text_blocks = page.get_text("blocks")
+    fig_pattern = re.compile(r"^\s*(?:Fig\.?|Figure|Scheme|Chart|Panel|Box)\s*\d*", re.IGNORECASE)
+    
     captions = []
-    
-    # Enhanced Regex (as agreed): More inclusive for common scientific labels
-    fig_pattern = re.compile(r"^\s*(?:Fig\.?|Figure|Scheme|Chart|Panel|Box|A\.|B\.|C\.|D\.)\s*\d*", re.IGNORECASE)
-
-    # First pass: find all text blocks that start a caption
-    initial_caption_blocks = []
-    for block in text_blocks:
-        b_text = block[4]
-        if fig_pattern.match(b_text):
-            initial_caption_blocks.append(block)
-
-    # Second pass: merge subsequent text blocks into the initial caption block
-# We use a set of block numbers to avoid using the same text block in multiple captions
-    used_block_numbers = set()
-    
-    for i, start_block in enumerate(initial_caption_blocks):
-        start_block_number = start_block[5]
-        # Skip if this block was already used as a continuation of a previous caption
-        if start_block_number in used_block_numbers:
-            continue
+    for i, block in enumerate(text_blocks):
+        if fig_pattern.match(block[4]):
+            cap_rect = pymupdf.Rect(block[:4])
+            cap_text = block[4].strip().replace("\n", " ")
             
-        full_text = start_block[4].strip()
-        full_rect = pymupdf.Rect(start_block[:4])
-        
-        # Add the starting block number to the used set
-        used_block_numbers.add(start_block_number)
+            # Merge subsequent lines if they are part of the same paragraph
+            for j in range(i + 1, len(text_blocks)):
+                next_block = text_blocks[j]
+                if (next_block[1] - cap_rect.y1) < 15 and abs(next_block[0] - cap_rect.x0) < 20:
+                    cap_rect |= pymupdf.Rect(next_block[:4])
+                    cap_text += " " + next_block[4].strip().replace("\n", " ")
+                else: break
+            captions.append({"rect": cap_rect, "text": cap_text})
 
-        # Iterate through subsequent blocks to find continuations
-        # The logic is: look for blocks that are vertically close AND horizontally aligned
-        for j in range(start_block_number + 1, len(text_blocks)):
-            next_block = text_blocks[j]
-            next_rect = pymupdf.Rect(next_block[:4])
-            next_text = next_block[4].strip()
-            next_block_number = next_block[5]
-
-            # 1. Check Proximity: The next block must be immediately below (Y-proximity)
-            # A common line spacing is around 12-15 points. We use 30 as a generous vertical gap for line continuation.
-            y_proximity = next_rect.y0 < full_rect.y1 + 30 
-            
-            # 2. Check Alignment: The next block must be horizontally aligned with the start block.
-            # Captions are often centered or full-width, so we check if the x0 is close to the starting block's x0.
-            x_alignment = abs(next_rect.x0 - full_rect.x0) < 20
-            
-            # 3. Stop Conditions: Break if the continuation criteria fail OR if we hit another caption/figure start.
-            if not y_proximity or not x_alignment or fig_pattern.match(next_text):
-                 break
-            
-            # 4. Check for New Paragraph (Gutter Check): 
-            # If the vertical gap is too large (e.g., > 1.5 times the generous line spacing), it's likely a new paragraph/body text.
-            # We use 20 points as a safe threshold for the gap between the merged block's bottom and the new block's top.
-            if next_rect.y0 - full_rect.y1 > 20: 
-                break # New paragraph/body text detected
-
-            # If all checks pass, merge the text and union the rectangles
-            full_text += " " + next_text.replace('\n', ' ')
-            full_rect |= next_rect
-            used_block_numbers.add(next_block_number)
-
-        captions.append({
-            "rect": full_rect,
-            "text": full_text
-        })
-    
-    # 4. Match Captions to Image Groups (Logic remains the same)
+    # 2. Identify "Figure Zone" by searching UP from the caption
     figures = []
-    
-    for img_rect in image_rects:
-        best_caption = None
-        min_dist = float('inf')
+    for cap in captions:
+        # Define search area: full page width, from top of page down to the caption
+        search_top = 0
+        search_bottom = cap["rect"].y0
         
-        for i, cap in enumerate(captions):
-            # Calculate distance
-            dist = 0
-            # Vertical
-            if cap["rect"].y0 >= img_rect.y1: 
-                dist = cap["rect"].y0 - img_rect.y1
-            elif cap["rect"].y1 <= img_rect.y0:
-                dist = img_rect.y0 - cap["rect"].y1
-            else:
-                dist = 0
-            
-            # Horizontal center alignment penalty
-            center_x_img = (img_rect.x0 + img_rect.x1) / 2
-            center_x_cap = (cap["rect"].x0 + cap["rect"].x1) / 2
-            dist += abs(center_x_img - center_x_cap) * 0.5
-            
-            if dist < min_dist and dist < 200:
-                min_dist = dist
-                best_caption = cap
-
-        final_rect = img_rect
-        caption_text = ""
+        # Refine search_top: Look for the nearest text block ABOVE that isn't a sub-panel label
+        # This helps avoid capturing the previous paragraph.
+        for block in reversed(text_blocks):
+            block_rect = pymupdf.Rect(block[:4])
+            # If block is above the caption and likely body text (long text)
+            if block_rect.y1 < search_bottom - 20:
+                # Stop searching up if we hit a text block that looks like body text
+                if len(block[4].strip()) > 100: 
+                    search_top = block_rect.y1 + 5
+                    break
         
-        if best_caption:
-            final_rect = img_rect | best_caption["rect"]
-            caption_text = best_caption["text"]
-            # Add padding for the screenshot
-            final_rect = final_rect + (-5, -5, 5, 5)
-
-        final_rect = final_rect & page.rect
-
+        # Create final crop area: The space between the previous paragraph and the caption
+        figure_rect = pymupdf.Rect(page.rect.x0, search_top, page.rect.x1, cap["rect"].y1)
+        
+        # Add a bit of padding and clip to page
+        figure_rect = (figure_rect + (-5, -5, 5, 5)) & page.rect
+        
         figures.append({
-            "rect": final_rect,
-            "caption": caption_text
+            "rect": figure_rect,
+            "caption": cap["text"]
         })
 
     return figures
