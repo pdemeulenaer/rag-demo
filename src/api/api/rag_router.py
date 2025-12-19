@@ -1,6 +1,6 @@
 # src/api/api/rag_router.py
-from fastapi import APIRouter, Request, Response
-from fastapi.responses import FileResponse, HTTPException
+from fastapi import APIRouter, Request, Response, HTTPException
+from fastapi.responses import FileResponse
 import os
 import logging
 import uuid
