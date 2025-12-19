@@ -17,6 +17,7 @@ class Config(BaseSettings):
     LANGSMITH_PROJECT: str    
     EMBEDDING_API_URL: str
     COHERE_API_KEY: str
+    IMAGES_FOLDER: str = "data/images"  # Set your actual path here
 
     # Static settings (not from env)
     # ==============================
