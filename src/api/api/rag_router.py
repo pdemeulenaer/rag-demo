@@ -1,5 +1,7 @@
 # src/api/api/rag_router.py
 from fastapi import APIRouter, Request, Response
+from fastapi.responses import FileResponse, HTTPException
+import os
 import logging
 import uuid
 import openai
@@ -15,8 +17,15 @@ from src.api.api.models import RAGRequest, RAGResponse, ChatMessage #, RAGUsedIm
 logger = logging.getLogger(__name__)
 
 
+# Define where images are stored (import from config)
+IMAGES_DIR = config.IMAGES_FOLDER
+
+
 class ChatFollowupResponse(BaseModel):
     answer: str
+
+class QuestionRequest(BaseModel):
+    question: str
 
 def answer_from_chat_context(question: str, chat_history: str, model="gpt-4o-mini") -> str:
     """
@@ -111,10 +120,25 @@ summarizer_llm = instructor.from_openai(
     openai.OpenAI(api_key=config.GROQ_API_KEY, base_url="https://api.groq.com/openai/v1")
 )
 
+
 rag_router = APIRouter()
 
-class QuestionRequest(BaseModel):
-    question: str
+
+@rag_router.get("/images/{image_name}")
+async def get_image(image_name: str, request: Request):
+    # Security: Prevent directory traversal attacks
+    if ".." in image_name or "/" in image_name:
+        raise HTTPException(status_code=400, detail="Invalid filename")
+    
+    image_path = os.path.join(IMAGES_DIR, image_name)
+    
+    if not os.path.exists(image_path):
+        raise HTTPException(status_code=404, detail="Image not found")
+
+    # Optional: Check request.cookies.get("session_id") here if you want private access
+    
+    return FileResponse(image_path)
+
 
 @rag_router.post("/rag2")
 async def rag(
