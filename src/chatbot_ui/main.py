@@ -1,4 +1,4 @@
-
+# src/chatbot_ui/main.py
 import os
 import re
 from io import BytesIO

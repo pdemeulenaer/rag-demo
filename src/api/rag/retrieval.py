@@ -180,15 +180,32 @@ def retrieve_context(query, qdrant_client, top_k=5):
     for result in results.points:
         logger.info("Qdrant payload keys: %s", result.payload.keys())
         # logger.info("Qdrant payload sample: %s", result.payload)     
+        # retrieved_context.append({
+        #     "id": result.id,
+        #     "text": result.payload["text"],
+        #     "title": result.payload.get("file_title"),
+        #     "authors": result.payload.get("authors"),
+        #     "year": result.payload.get("year"),
+        #     "page": result.payload.get("page_number"),
+        #     "score": result.score            
+        # })
+
+        # payload is a dict, so we can use .get() safely
+        payload = result.payload
+        
         retrieved_context.append({
-            "id": result.id,
-            "text": result.payload["text"],
-            "title": result.payload.get("file_title"),
-            "authors": result.payload.get("authors"),
-            "year": result.payload.get("year"),
-            "page": result.payload.get("page_number"),
-            "score": result.score            
-        })
+            "id": str(result.id),
+            "text": payload["text"],
+            "title": payload.get("file_title"),
+            "authors": payload.get("authors"),
+            "year": payload.get("year"),
+            "page": payload.get("page_number"),
+            "score": result.score,
+            # --- NEW FIELDS PRESERVED ---
+            "type": payload.get("type", "text"),  # 'text' or 'figure'
+            "image_path": payload.get("image_path"), # Only present if type='figure'
+            "caption": payload.get("caption")        # Important for UI display
+        })        
 
     return retrieved_context    
 
@@ -473,12 +490,25 @@ def rag_pipeline(question, qdrant_client, session_id, generation_model=None, top
     unique_sources = [s for s in unique_sources if s.id in used_ids]
     logger.info(f"Unique sources after filtering: {unique_sources}")
 
+    # Extract Used Images (NEW LOGIC)
+    used_images = []
+    for chunk in retrieved_context:
+        # Check if this chunk was CITIED by the LLM and is a FIGURE
+        if chunk["id"] in used_ids and chunk.get("type") == "figure":
+            used_images.append({
+                "url": f"/api/images/{os.path.basename(chunk['image_path'])}", # Secure local URL
+                "caption": chunk.get("caption") or "Relevant Figure",
+                "page": chunk.get("page"),
+                "file_title": chunk.get("title")
+            })
+
     # Extract just the text content from the retrieved_context objects
     retrieved_context_texts = [c["text"] for c in retrieved_context]
 
     return {
         "answer": answer.answer,
-        "sources": unique_sources,    # <-- filtered!
+        "sources": unique_sources, # Text sources
+        "images": used_images,     # Image sources
         "question": question,
         "retrieved_context": retrieved_context_texts,
     }
