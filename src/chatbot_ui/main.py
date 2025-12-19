@@ -273,7 +273,13 @@ def main():
         if result:
             # Update frontend full conversation (append user + assistant)
             st.session_state.full_conversation.append({"role": "user", "content": question})
-            st.session_state.full_conversation.append({"role": "assistant", "content": result["answer"], "sources": result.get("sources", [])})
+            # st.session_state.full_conversation.append({"role": "assistant", "content": result["answer"], "sources": result.get("sources", [])})
+            st.session_state.full_conversation.append({
+                "role": "assistant", 
+                "content": result["answer"], 
+                "sources": result.get("sources", []),
+                "images": result.get("images", [])
+            })            
 
             # Store backend's truncated/summarized memory separately
             if "chat_history" in result:
@@ -383,7 +389,28 @@ def main():
                     st.write(bot_template.replace("{{MSG}}", html_content), unsafe_allow_html=True)
                     # st.markdown(full_content)
 
+                    # Check if the API response included images (figures)
+                    # retrieve images from the CURRENT message being looped over
+                    images = msg.get("images", [])
 
+                    if images:
+                        st.markdown("#### 🖼️ Relevant Figures")
+                        
+                        # Display images in a responsive grid (2 columns)
+                        cols = st.columns(2)
+                        for i, img in enumerate(images):
+                            with cols[i % 2]:
+                                # Construct the full URL. 
+                                full_image_url = f"{API_URL}{img['url']}"
+                                
+                                st.image(
+                                    full_image_url, 
+                                    caption=f"Fig from page {img.get('page', '?')}: {img['caption']}",
+                                    use_container_width=True
+                                )
+                                # Optional: Expander for details
+                                with st.expander("Figure Details"):
+                                    st.caption(f"**Source:** {img.get('file_title', 'Unknown Paper')}")
 
 
     # Optional: show backend’s truncated memory view
