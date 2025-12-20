@@ -302,6 +302,8 @@ def main():
                 if msg["role"] == "user":
                     st.write(user_template.replace("{{MSG}}", msg["content"]), unsafe_allow_html=True)
                 elif msg["role"] == "assistant":
+
+                    # 1. Logic for text/source processing
                     # Combine the answer and sources into a single markdown string
                     full_content = msg["content"]
                     if "sources" in msg and msg["sources"]:
@@ -385,33 +387,37 @@ def main():
                     html_content = html_content.replace('\n', '<br>') 
                     
                     
+                    # 2. Display the Bot Bubble
                     # --- DISPLAY FINAL HTML CONTENT ---
                     st.write(bot_template.replace("{{MSG}}", html_content), unsafe_allow_html=True)
                     # st.markdown(full_content)
 
+                    # 3. Display Figures immediately after the bubble
                     # Check if the API response included images (figures)
                     # retrieve images from the CURRENT message being looped over
                     images = msg.get("images", [])
 
                     if images:
-                        st.markdown("#### 🖼️ Relevant Figures")
+                        # st.markdown("#### 🖼️ Relevant Figures")
+                        # Use a custom div for the header to style it via CSS
+                        st.markdown('<p class="assistant-fig-header">🖼️ Relevant Figures</p>', unsafe_allow_html=True)                        
                         
                         # Display images in a responsive grid (2 columns)
+                        # Use a grid (2 columns)
                         cols = st.columns(2)
                         for i, img in enumerate(images):
                             with cols[i % 2]:
-                                # Construct the full URL. 
-                                full_image_url = f"{API_URL}{img['url']}"
-                                
+                                # IMPORTANT: 'img["url"]' is already an absolute URL 
+                                # from the backend, so we use it directly.
                                 st.image(
-                                    full_image_url, 
-                                    caption=f"Fig from page {img.get('page', '?')}: {img['caption']}",
+                                    img['url'], 
+                                    caption=f"Page {img.get('page', '?')}: {img.get('caption', 'Figure')}",
                                     use_container_width=True
                                 )
-                                # Optional: Expander for details
-                                with st.expander("Figure Details"):
-                                    st.caption(f"**Source:** {img.get('file_title', 'Unknown Paper')}")
-
+                                # Optional: Additional metadata in an expander
+                                with st.expander("📄 Source Info"):
+                                    st.write(f"**Paper:** {img.get('file_title', 'Unknown')}")
+                                    st.write(f"**Full Caption:** {img.get('caption')}")
 
     # Optional: show backend’s truncated memory view
     if st.session_state.backend_memory:

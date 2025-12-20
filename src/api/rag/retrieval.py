@@ -526,4 +526,5 @@ def rag_pipeline_wrapper(question, session_id, generation_model=None, top_k=5):
     return {
         "answer": result["answer"],
         "sources": result.get("sources", []),
+        "images": result.get("images", []),
     }

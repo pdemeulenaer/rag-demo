@@ -1,5 +1,10 @@
+import os
+from pathlib import Path
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+
+# Get the root directory of your project (2 levels up from src/api/core/config.py)
+BASE_DIR = Path(__file__).resolve().parent.parent.parent.parent
 class Config(BaseSettings):
     OPENAI_API_KEY: str
     GROQ_API_KEY: str
@@ -17,7 +22,11 @@ class Config(BaseSettings):
     LANGSMITH_PROJECT: str    
     EMBEDDING_API_URL: str
     COHERE_API_KEY: str
-    IMAGES_FOLDER: str = "data/images"  # Set your actual path here
+
+    # We define the folder relative to the BASE_DIR
+    # This results in /app/src/api/data/images inside Docker
+    # and [your_path]/src/api/data/images locally.
+    IMAGES_FOLDER: str = str(BASE_DIR / "src" / "api" / "data" / "images")
 
     # Static settings (not from env)
     # ==============================
@@ -52,10 +61,13 @@ class Config(BaseSettings):
     METADATA_MODEL_MAX_TOKENS: int = 500
     # METADATA_PROMPT_TEMPLATE_PATH: str =
     
-    model_config = SettingsConfigDict(env_file=".env")
+    # model_config = SettingsConfigDict(env_file=".env")
+    model_config = SettingsConfigDict(
+        env_file=".env", 
+        extra="ignore" # Prevents crashes if extra vars are in .env
+        )
 
 class Settings(BaseSettings):
-
     DEFAULT_TIMEOUT: float = 30.0
     VERSION: str = "0.1.0"
 

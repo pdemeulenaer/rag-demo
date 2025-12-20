@@ -6,6 +6,7 @@ import logging
 import uuid
 import openai
 import instructor
+from typing import List
 from pydantic import BaseModel
 
 from src.api.core.config import config
@@ -16,7 +17,6 @@ from src.api.api.models import RAGRequest, RAGResponse, ChatMessage #, RAGUsedIm
 
 logger = logging.getLogger(__name__)
 
-
 # Define where images are stored (import from config)
 IMAGES_DIR = config.IMAGES_FOLDER
 
@@ -26,6 +26,15 @@ class ChatFollowupResponse(BaseModel):
 
 class QuestionRequest(BaseModel):
     question: str
+
+
+# # Initialize the summarizer LLM using instructor with Groq
+# summarizer_llm = instructor.from_openai(
+#     openai.OpenAI(api_key=config.GROQ_API_KEY, base_url="https://api.groq.com/openai/v1")
+# )
+
+
+# --- Helper Functions ---
 
 def answer_from_chat_context(question: str, chat_history: str, model="gpt-4o-mini") -> str:
     """
@@ -115,11 +124,35 @@ def chat_memory(session_id: str) -> str:
     return "\n\n".join(parts).strip()
 
 
-# Initialize the summarizer LLM using instructor with Groq
-summarizer_llm = instructor.from_openai(
-    openai.OpenAI(api_key=config.GROQ_API_KEY, base_url="https://api.groq.com/openai/v1")
-)
+def _process_images(raw_images: list, request: Request) -> list:
+    """
+    Helper to convert relative image URLs returned by the pipeline 
+    into absolute URLs that the frontend can reach.
+    """
+    processed_images = []
+    
+    for img in raw_images:
+        # The pipeline returns relative paths like "/api/images/figure_3.png"
+        relative_url = img.get("url", "")
+        
+        # Remove leading slash to join cleanly with base_url
+        clean_path = relative_url.lstrip("/") 
+        
+        # Construct absolute URL (e.g., http://localhost:8000/api/images/figure_3.png)
+        # str(request.base_url) automatically handles http/https and port
+        absolute_url = str(request.base_url) + clean_path
+        
+        processed_images.append({
+            "url": absolute_url,
+            "caption": img.get("caption", ""),
+            "page": img.get("page"),
+            "file_title": img.get("file_title", "")
+        })
+        
+    return processed_images
 
+
+# --- Router ---
 
 rag_router = APIRouter()
 
@@ -147,6 +180,7 @@ async def rag(
     response: Response
 ) -> RAGResponse:
 
+    # 1. Session Management
     # Get or create a session_id cookie
     session_id = request.cookies.get("session_id")
     if not session_id:
@@ -165,25 +199,37 @@ async def rag(
     logger.info(f"Session ID: {session_id}")
     logger.info(f"Generation model: {gen_model}")
 
+    # 2. Intent Classification
+
     # Retrieve chat memory
     chat_history = chat_memory(session_id) 
-
-    # ---- NEW: classify intent ----
     user_q = payload.query
     intent = classify_question(user_q, chat_history)
     logger.info(f"Intent: {intent}")
     logger.info("Classifier output: %s", intent.model_dump() if hasattr(intent,"model_dump") else intent)
 
+    # Initialize outputs
+    answer = ""
+    sources = []
+    rag_images = []
+
+    # 3. Execution Logic
     # Depending on intent, 
     if intent.intent != "rag":
-        # structured / metadata path
+        # --- Metadata / Structured Intents ---
         if intent.intent == "list_titles":
-            answer = mh.list_titles() #"\n".join(mh.list_titles())
-            sources=[]
-
+            answer = mh.list_titles()
         elif intent.intent == "list_authors":
-            answer = mh.list_authors() #"\n".join(mh.list_authors())
-            sources=[]
+            answer = mh.list_authors()
+        elif intent.intent == "authors_by_year":
+            answer = mh.titles_by_author(None, intent.year)
+        elif intent.intent == "author_of_title":
+            answer = mh.author_of_title(intent.title)
+        elif intent.intent == "summarize_paper":
+            answer = mh.summarize_paper(intent.title)
+        elif intent.intent == "chat_followup":
+            logger.info("Handling chat_followup intent via local context reasoning")
+            answer = answer_from_chat_context(user_q, chat_history)
 
         elif intent.intent == "titles_by_author":
             if not intent.author:
@@ -207,66 +253,49 @@ async def rag(
                 for msg in memory.recent_messages:
                     full_history.append({"role": msg["role"], "content": msg["content"]})
 
-                return RAGResponse(
-                    request_id=request.state.request_id,
-                    answer=result["answer"],
-                    chat_history=full_history,
-                    sources=result.get("sources", [])
-                )
-                # answer=result["answer"]
-                # sources=result.get("sources", [])
+                answer = result["answer"]
+                sources = result.get("sources", [])
+
+                # Process images for the fallback path too
+                rag_images = _process_images(result.get("images", []), request)
+
             else:
                 answer = mh.titles_by_author(intent.author, intent.year)
-                sources=[]
-
-        elif intent.intent == "authors_by_year":
-            answer = mh.titles_by_author(None, intent.year)
-            sources=[]
-
-        elif intent.intent == "author_of_title":
-            answer = mh.author_of_title(intent.title)
-            sources=[]
-
-        elif intent.intent == "summarize_paper":
-            answer = mh.summarize_paper(intent.title)
-            sources=[]
-
-        elif intent.intent == "chat_followup":
-            logger.info("Handling chat_followup intent via local context reasoning")
-            chat_history = chat_memory(session_id)
-            answer = answer_from_chat_context(user_q, chat_history)
-            sources = []            
 
         else:
             answer = "I couldn't classify that question."
-            sources=[]
             logger.warning(f"Unrecognized intent: {intent.intent}")
 
+        # # Format list-based answers
+        # if intent.intent != "titles_by_author" or (intent.intent == "titles_by_author" and intent.author):
+        #     answer = format_answer_for_display(answer)
         answer = format_answer_for_display(answer)
 
     else: # Use the RAG
-
+        # --- Standard RAG Intent ---
         # Run the RAG pipeline with session-based memory
-        result = rag_pipeline_wrapper(payload.query, 
-                                    session_id, 
-                                    generation_model=gen_model
-                                    )        
+        result = rag_pipeline_wrapper(user_q,
+                                      session_id,
+                                      generation_model=gen_model
+                                      )        
         answer = result["answer"]
         sources = result.get("sources", [])
 
-    # Update memory with summarization
+        # Process images returned by the pipeline
+        rag_images = _process_images(result.get("images", []), request)
+
+    # 4. Memory Update
     add_message(session_id, "user", user_q)
     add_message(session_id, "assistant", answer)
 
+    # 5. Build Final History for Response
     # Retrieve the full conversation memory
-    memory = get_memory(session_id)
-    
+    memory = get_memory(session_id)    
     # Create the chat history by combining the summary and recent messages
     # This is a good way to represent the full history in a serializable format
     full_history = []
     if memory.summary:
-        full_history.append({"role": "system", "content": memory.summary})
-        
+        full_history.append({"role": "system", "content": memory.summary})        
     for msg in memory.recent_messages:
         full_history.append({"role": msg["role"], "content": msg["content"]})
 
@@ -275,5 +304,6 @@ async def rag(
         request_id=request.state.request_id,
         answer=answer,
         chat_history=full_history,
-        sources=sources
+        sources=sources,
+        images=rag_images
     )    
