@@ -132,15 +132,16 @@ def _process_images(raw_images: list, request: Request) -> list:
     processed_images = []
     
     for img in raw_images:
-        # The pipeline returns relative paths like "/api/images/figure_3.png"
-        relative_url = img.get("url", "")
+        # Get just the filename (e.g., figure_1.png) from the stored path
+        filename = os.path.basename(img.get("url", ""))
         
-        # Remove leading slash to join cleanly with base_url
-        clean_path = relative_url.lstrip("/") 
+        # request.base_url provides "http://localhost:8000/"
+        # We append "api/images/" to match the mount above
+        absolute_url = f"{str(request.base_url).rstrip('/')}/api/images/{filename}"
         
-        # Construct absolute URL (e.g., http://localhost:8000/api/images/figure_3.png)
-        # str(request.base_url) automatically handles http/https and port
-        absolute_url = str(request.base_url) + clean_path
+        # request.base_url provides "http://localhost:8000/"
+        # We append "api/images/" to match the mount above
+        absolute_url = f"{str(request.base_url).rstrip('/')}/api/images/{filename}"
         
         processed_images.append({
             "url": absolute_url,
@@ -148,7 +149,6 @@ def _process_images(raw_images: list, request: Request) -> list:
             "page": img.get("page"),
             "file_title": img.get("file_title", "")
         })
-        
     return processed_images
 
 

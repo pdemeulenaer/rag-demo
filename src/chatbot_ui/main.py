@@ -411,7 +411,7 @@ def main():
                                 # from the backend, so we use it directly.
                                 st.image(
                                     img['url'], 
-                                    caption=f"Page {img.get('page', '?')}: {img.get('caption', 'Figure')}",
+                                    caption=f"Fig from page {img.get('page', '?')}: {img['caption']}",
                                     use_container_width=True
                                 )
                                 # Optional: Additional metadata in an expander

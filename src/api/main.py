@@ -1,5 +1,7 @@
+# src/api/main.py
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 import os
 import logging
 from httpx import AsyncClient
@@ -36,6 +38,10 @@ async def lifespan(app: FastAPI):
     await client.aclose()
 
 app = FastAPI(lifespan=lifespan)
+
+# --- MOUNT STATIC FILES HERE ---
+# This links the physical folder to the URL path /api/images
+app.mount("/api/images", StaticFiles(directory=config.IMAGES_FOLDER), name="images")
 
 app.add_middleware(RequestIDMiddleware)
 app.add_middleware(
