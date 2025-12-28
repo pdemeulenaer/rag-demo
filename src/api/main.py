@@ -41,7 +41,10 @@ app = FastAPI(lifespan=lifespan)
 
 # --- MOUNT STATIC FILES HERE ---
 # This links the physical folder to the URL path /api/images
-app.mount("/api/images", StaticFiles(directory=config.IMAGES_FOLDER), name="images")
+# app.mount("/api/images", StaticFiles(directory=config.IMAGES_FOLDER), name="images")
+
+IMAGE_PATH_IN_CONTAINER = "/app/src/api/data/images"
+app.mount("/api/images", StaticFiles(directory=IMAGE_PATH_IN_CONTAINER), name="images")
 
 app.add_middleware(RequestIDMiddleware)
 app.add_middleware(

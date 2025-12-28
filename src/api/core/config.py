@@ -61,6 +61,8 @@ class Config(BaseSettings):
     METADATA_MODEL_MAX_TOKENS: int = 500
     # METADATA_PROMPT_TEMPLATE_PATH: str =
     
+    EXTERNAL_API_URL: str = "http://localhost:8000" # Default for local dev
+
     # model_config = SettingsConfigDict(env_file=".env")
     model_config = SettingsConfigDict(
         env_file=".env", 

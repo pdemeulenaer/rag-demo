@@ -124,24 +124,45 @@ def chat_memory(session_id: str) -> str:
     return "\n\n".join(parts).strip()
 
 
+# def _process_images(raw_images: list, request: Request) -> list:
+#     """
+#     Helper to convert relative image URLs returned by the pipeline 
+#     into absolute URLs that the frontend can reach.
+#     """
+#     processed_images = []
+    
+#     for img in raw_images:
+#         # Get just the filename (e.g., figure_1.png) from the stored path
+#         filename = os.path.basename(img.get("url", ""))
+        
+#         # request.base_url provides "http://localhost:8000/"
+#         # We append "api/images/" to match the mount above
+#         absolute_url = f"{str(request.base_url).rstrip('/')}/api/images/{filename}"
+        
+#         # request.base_url provides "http://localhost:8000/"
+#         # We append "api/images/" to match the mount above
+#         absolute_url = f"{str(request.base_url).rstrip('/')}/api/images/{filename}"
+        
+#         processed_images.append({
+#             "url": absolute_url,
+#             "caption": img.get("caption", ""),
+#             "page": img.get("page"),
+#             "file_title": img.get("file_title", "")
+#         })
+#     return processed_images
+
 def _process_images(raw_images: list, request: Request) -> list:
-    """
-    Helper to convert relative image URLs returned by the pipeline 
-    into absolute URLs that the frontend can reach.
-    """
     processed_images = []
     
+    # We ignore request.base_url because it returns 'http://api:8000' in Docker
+    # We use the URL that the browser actually understands
+    base_url = config.EXTERNAL_API_URL.rstrip("/")
+
     for img in raw_images:
-        # Get just the filename (e.g., figure_1.png) from the stored path
         filename = os.path.basename(img.get("url", ""))
         
-        # request.base_url provides "http://localhost:8000/"
-        # We append "api/images/" to match the mount above
-        absolute_url = f"{str(request.base_url).rstrip('/')}/api/images/{filename}"
-        
-        # request.base_url provides "http://localhost:8000/"
-        # We append "api/images/" to match the mount above
-        absolute_url = f"{str(request.base_url).rstrip('/')}/api/images/{filename}"
+        # This will now correctly result in http://localhost:8000/api/images/...
+        absolute_url = f"{base_url}/api/images/{filename}"
         
         processed_images.append({
             "url": absolute_url,
@@ -149,6 +170,7 @@ def _process_images(raw_images: list, request: Request) -> list:
             "page": img.get("page"),
             "file_title": img.get("file_title", "")
         })
+        
     return processed_images
 
 
