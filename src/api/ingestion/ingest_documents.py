@@ -24,13 +24,14 @@ from pydantic import BaseModel, Field
 from src.api.core.config import config
 from src.api.rag.summarize import summarize_text
 from src.api.rag.utils.utils import prompt_template_config, prompt_template_registry
+from src.api.core.storage import get_storage_provider
 
 
 # === Config ===
 PDF_FOLDER = os.path.abspath(os.path.join(os.path.dirname(__file__), "../data/folder"))
 # Folder for storing extracted images
-IMAGES_FOLDER = os.path.abspath(os.path.join(os.path.dirname(__file__), "../data/images"))
-os.makedirs(IMAGES_FOLDER, exist_ok=True)
+# IMAGES_FOLDER = os.path.abspath(os.path.join(os.path.dirname(__file__), "../data/images"))
+# os.makedirs(IMAGES_FOLDER, exist_ok=True)
 
 
 # === OpenAI Embedding Class ===
@@ -240,6 +241,8 @@ def extract_content_with_metadata(filepath: str, file_hash: str) -> Tuple[List, 
     chunks_with_page = []
     extracted_images = []
     first_pages_text = ""
+
+    storage = get_storage_provider() # <--- Initialize the storage provider
     
     doc = pymupdf.open(filepath)
     metadata = doc.metadata or {}
@@ -263,11 +266,11 @@ def extract_content_with_metadata(filepath: str, file_hash: str) -> Tuple[List, 
         # Instead of raw extraction, we use the visual identification logic
         figures = identify_figures_on_page(page)
         
-        # Check that the IMAGES_FOLDER exists and is accessible
-        if not os.path.isdir(IMAGES_FOLDER):
-            print(f"   ! ERROR: IMAGES_FOLDER path does not exist or is not a directory: {IMAGES_FOLDER}")
-            # Ensure folder is created/re-checked, though it should be at the start
-            os.makedirs(IMAGES_FOLDER, exist_ok=True)
+        # # Check that the IMAGES_FOLDER exists and is accessible
+        # if not os.path.isdir(IMAGES_FOLDER):
+        #     print(f"   ! ERROR: IMAGES_FOLDER path does not exist or is not a directory: {IMAGES_FOLDER}")
+        #     # Ensure folder is created/re-checked, though it should be at the start
+        #     os.makedirs(IMAGES_FOLDER, exist_ok=True)
 
         # for fig_idx, fig in enumerate(figures):
             
@@ -350,20 +353,46 @@ def extract_content_with_metadata(filepath: str, file_hash: str) -> Tuple[List, 
             if pix.width < 100 or pix.height < 100: continue
 
             # New naming convention: figure_3.png
-            image_filename = f"figure_{fig_label}.png"
-            image_path = os.path.join(IMAGES_FOLDER, image_filename)
+            # image_filename = f"figure_{fig_label}.png"
+            # Standardized filename (adding hash for uniqueness is highly recommended here)
+            image_filename = f"{file_hash}_fig_{fig_label}.png"            
+
+            # image_path = os.path.join(IMAGES_FOLDER, image_filename)
             
-            # Save logic
+            # # Save logic
+            # try:
+            #     pix.save(image_path)
+            # except Exception as e:
+            #     print(f"Error saving {image_filename}: {e}")
+            #     continue
+
+            # --- NEW HYBRID SAVING LOGIC ---
             try:
-                pix.save(image_path)
+                # Convert PyMuPDF pixmap to bytes in memory
+                img_bytes = pix.tobytes("png")
+                
+                # Use the provider to save (Local OR Azure)
+                # This returns either the filename (Local) or the full URL (Azure)
+                # stored_path_or_url = storage.save_image(img_bytes, image_filename)
+
+                # The provider handles the actual upload/save
+                storage.save_image(img_bytes, image_filename)
+                
+                # CRITICAL CHANGE: We only store the naked filename in our list
+                # This ensures Qdrant payload 'image_path' is always just 'hash_fig_1.png'
+                clean_reference = image_filename                
+                
             except Exception as e:
-                print(f"Error saving {image_filename}: {e}")
-                continue
+                print(f"Error saving {image_filename} via {config.STORAGE_MODE}: {e}")
+                continue            
             
             # Base64 and Analysis
             try:
-                with open(image_path, "rb") as img_f:
-                    base64_img = base64.b64encode(img_f.read()).decode('utf-8')
+                # with open(image_path, "rb") as img_f:
+                #     base64_img = base64.b64encode(img_f.read()).decode('utf-8')
+
+                # We use the raw bytes directly for GPT-4o instead of re-reading from disk
+                base64_img = base64.b64encode(img_bytes).decode('utf-8')                
                 
                 # GPT-4o will now describe panels (a, b, c, d) within this single file
                 description = describe_image_with_gpt4o(base64_img, caption=fig["caption"])
@@ -372,7 +401,7 @@ def extract_content_with_metadata(filepath: str, file_hash: str) -> Tuple[List, 
                     "description": description,
                     "caption": fig["caption"],
                     "page_number": page_number,
-                    "image_path": image_filename # Stored in Qdrant for easy retrieval
+                    "image_path": clean_reference # Store filename in metadata
                 })
             except Exception as e:
                 print(f"Failed to process {image_filename}: {e}")        

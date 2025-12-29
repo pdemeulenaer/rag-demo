@@ -14,6 +14,7 @@ from src.api.rag.intent_router import classify_question
 from src.api.rag import metadata_handlers as mh
 from src.api.rag.retrieval import rag_pipeline_wrapper, get_memory, add_message
 from src.api.api.models import RAGRequest, RAGResponse, ChatMessage #, RAGUsedImage
+from src.api.core.storage import get_storage_provider
 
 logger = logging.getLogger(__name__)
 
@@ -151,26 +152,50 @@ def chat_memory(session_id: str) -> str:
 #         })
 #     return processed_images
 
+# def _process_images(raw_images: list, request: Request) -> list:
+#     processed_images = []
+    
+#     # We ignore request.base_url because it returns 'http://api:8000' in Docker
+#     # We use the URL that the browser actually understands
+#     base_url = config.EXTERNAL_API_URL.rstrip("/")
+
+#     for img in raw_images:
+#         filename = os.path.basename(img.get("url", ""))
+        
+#         # This will now correctly result in http://localhost:8000/api/images/...
+#         absolute_url = f"{base_url}/api/images/{filename}"
+        
+#         processed_images.append({
+#             "url": absolute_url,
+#             "caption": img.get("caption", ""),
+#             "page": img.get("page"),
+#             "file_title": img.get("file_title", "")
+#         })
+        
+#     return processed_images
 def _process_images(raw_images: list, request: Request) -> list:
     processed_images = []
+    storage = get_storage_provider()
     
-    # We ignore request.base_url because it returns 'http://api:8000' in Docker
-    # We use the URL that the browser actually understands
-    base_url = config.EXTERNAL_API_URL.rstrip("/")
-
     for img in raw_images:
-        filename = os.path.basename(img.get("url", ""))
+        # This is the 'hash_fig1.png' from Qdrant
+        db_path = img.get("url", "") 
         
-        # This will now correctly result in http://localhost:8000/api/images/...
-        absolute_url = f"{base_url}/api/images/{filename}"
-        
+        if config.STORAGE_MODE.upper() == "AZURE":
+            # The provider now handles the full URL building
+            final_url = storage.generate_signed_url(db_path)
+        else:
+            # Local mode still needs the local API prefix
+            base_url = config.EXTERNAL_API_URL.rstrip("/")
+            filename = os.path.basename(db_path)
+            final_url = f"{base_url}/api/images/{filename}"
+            
         processed_images.append({
-            "url": absolute_url,
+            "url": final_url,
             "caption": img.get("caption", ""),
             "page": img.get("page"),
             "file_title": img.get("file_title", "")
         })
-        
     return processed_images
 
 

@@ -63,6 +63,17 @@ class Config(BaseSettings):
     
     EXTERNAL_API_URL: str = "http://localhost:8000" # Default for local dev
 
+    # Storage toggle: "LOCAL" or "AZURE"
+    STORAGE_MODE: str = "LOCAL"    
+
+    # Azure Settings (only needed if STORAGE_MODE == "AZURE")
+    AZURE_STORAGE_CONNECTION_STRING: str = ""
+    AZURE_CONTAINER_NAME: str = "rag-images"
+    
+    # This is the public URL of your storage account or CDN
+    # e.g., https://mystorage.blob.core.windows.net/rag-images
+    AZURE_STORAGE_PUBLIC_URL: str = ""    
+
     # model_config = SettingsConfigDict(env_file=".env")
     model_config = SettingsConfigDict(
         env_file=".env", 
