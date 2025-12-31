@@ -1,50 +1,39 @@
 # src/api/ingestion/ingest_documents.py
 
 import os
-import httpx
 import hashlib
 import uuid
 import json
 import pymupdf
 import re
 import base64
-import io
-from PIL import Image
+import statistics
 from datetime import datetime
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from typing import List, Tuple, Dict, Any
+
+from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
+
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from qdrant_client import QdrantClient
 from qdrant_client.http.models import PointStruct, VectorParams, Distance, PayloadSchemaType
-from typing import List, Tuple, Dict, Any
-import statistics
 from langchain.embeddings.base import Embeddings
-from openai import OpenAI
+from openai import OpenAI, RateLimitError, APIError
 import instructor
 from pydantic import BaseModel, Field
 
 from src.api.core.config import config
 from src.api.rag.summarize import summarize_text
-from src.api.rag.utils.utils import prompt_template_config, prompt_template_registry
+from src.api.rag.utils.utils import prompt_template_config
 from src.api.core.storage import get_storage_provider
 
 
 # === Config ===
-PDF_FOLDER = os.path.abspath(os.path.join(os.path.dirname(__file__), "../data/folder"))
-# Folder for storing extracted images
-# IMAGES_FOLDER = os.path.abspath(os.path.join(os.path.dirname(__file__), "../data/images"))
-# os.makedirs(IMAGES_FOLDER, exist_ok=True)
+# Define max workers for parallel API calls (prevent hitting rate limits too hard)
+MAX_WORKERS = 10 
 
-
-# === OpenAI Embedding Class ===
 client = OpenAI(api_key=config.OPENAI_API_KEY)
-openai_client = instructor.from_openai(client) 
-# Wrap OpenAI client with Instructor
-# client = instructor.from_openai(OpenAI(api_key=OPENAI_API_KEY))
-# groq_client = instructor.from_openai(
-#     OpenAI(
-#         base_url="https://api.groq.com/openai/v1",
-#         api_key=config.GROQ_API_KEY
-#     )
-# )
+openai_client = instructor.from_openai(client)
 
 OUTPUT_SCHEMA = {
     "type": "object",
@@ -63,7 +52,6 @@ def to_list(val: str | None) -> list[str]:
         return []
     return [x.strip() for x in re.split(r"[;,]", val) if x.strip()]
 
-
 class AdditionalMetadata(BaseModel):
     """Structured metadata extracted from a scientific PDF."""
     title: str = Field(..., description="The title of the document")
@@ -73,22 +61,26 @@ class AdditionalMetadata(BaseModel):
     summary: str = Field(..., description="The abstract or summary of the document, if present. If not present, generate an extensive, detailed summary from the provided text.")
 
 
-# === Helper: Image Analysis ===
+# === 1. Robust API Calls with Retries ===
+# We wrap LLM calls with tenacity to handle 429 Rate Limits automatically
+@retry(
+    retry=retry_if_exception_type((RateLimitError, APIError)),
+    wait=wait_exponential(multiplier=1, min=2, max=20),
+    stop=stop_after_attempt(5)
+)
 def describe_image_with_gpt4o(base64_image: str, caption: str = "") -> str:
-    """Sends image to GPT-4o to get a detailed scientific description."""
-    
+    """Sends image to GPT-4o for description."""
     prompt = (
         "You are a scientific research assistant. Analyze this figure extracted from a research paper.\n"
         f"Context/Caption: \"{caption}\"\n\n"
         "1. Identify the type of figure (chart, diagram, microscopy, etc.).\n"
-        "2. If it's a chart, describe axes, data trends, and error bars.\n"
+        "2. Describe axes, data trends, and error bars if applicable.\n"
         "3. If it has multiple panels (A, B, C...), describe the relationship between them.\n"
-        "4. Summarize the key scientific insight provided by this figure.\n"
+        "4. Summarize the key scientific insight.\n"
         "Provide a dense, searchable description."
     )
-
     response = client.chat.completions.create(
-        model="gpt-4o",  # Best for vision
+        model="gpt-4o",
         messages=[
             {
                 "role": "user",
@@ -108,13 +100,14 @@ def describe_image_with_gpt4o(base64_image: str, caption: str = "") -> str:
     )
     return response.choices[0].message.content
 
-
+@retry(
+    retry=retry_if_exception_type((RateLimitError, APIError)),
+    wait=wait_exponential(multiplier=1, min=2, max=20),
+    stop=stop_after_attempt(5)
+)
 def extract_metadata_with_llm(text: str) -> AdditionalMetadata:
-
     prompt_template = prompt_template_config(config.RAG_PROMPT_TEMPLATE_PATH, "rag_ingestion")
-
     system_prompt = prompt_template["system"].render()
-
     user_prompt = prompt_template["user"].render(
         input_text=text,
         output_json_schema=json.dumps(OUTPUT_SCHEMA, indent=2)
@@ -146,6 +139,21 @@ def extract_metadata_with_llm(text: str) -> AdditionalMetadata:
 
     return chat
 
+@retry(
+    retry=retry_if_exception_type((RateLimitError, APIError)),
+    wait=wait_exponential(multiplier=1, min=2, max=20),
+    stop=stop_after_attempt(3)
+)
+def robust_summarize_text(text: str) -> str:
+    """Wrapper for your existing summarize_text to make it retry-safe."""
+    # Importing here to avoid circular dependency issues if any
+    summary_obj = summarize_text(
+        text, provider='groq', model=config.SUMMARIZATION_MODEL,
+        temperature=config.SUMMARIZATION_MODEL_TEMPERATURE, 
+        max_tokens=config.SUMMARIZATION_MODEL_MAX_TOKENS,
+        template_name="document_chunk_summarization"
+    )
+    return summary_obj.summary.strip()
 
 class OpenAIEmbeddings(Embeddings):
     """A wrapper for OpenAI's embedding model."""
@@ -156,45 +164,41 @@ class OpenAIEmbeddings(Embeddings):
         self.dimensions = 1536  # text-embedding-3-small has a dimension of 1536 by default
 
     def embed_documents(self, texts: List[str]) -> List[List[float]]:
-        """Embeds a list of documents."""
-        response = self.client.embeddings.create(
-            input=texts,
-            model=self.model_name,
-        )
-        return [item.embedding for item in response.data]
+        # OpenAI supports batch embedding.
+        # Ensure we don't exceed max batch size (e.g., 2048).
+        # Simple batching logic:
+        batch_size = 100
+        all_embeddings = []
+        for i in range(0, len(texts), batch_size):
+            batch = texts[i : i + batch_size]
+            response = self.client.embeddings.create(input=batch, model=self.model_name)
+            all_embeddings.extend([item.embedding for item in response.data])
+        return all_embeddings
 
     def embed_query(self, text: str) -> List[float]:
-        """Embeds a single query string."""
         return self.embed_documents([text])[0]
 
-
-# === File Hashing ===
 def get_file_hash(filepath) -> str:
     with open(filepath, "rb") as f:
         return hashlib.sha256(f.read()).hexdigest()
 
-
-# === Chunking ===
 def get_text_chunks_recursive(text) -> List[str]:
     splitter = RecursiveCharacterTextSplitter(
-        chunk_size=10000,
-        chunk_overlap=2000,
+        chunk_size=5000, # Increased chunk size for better context
+        chunk_overlap=500,
         separators=["\n\n", "\n", ".", "!", "?", ",", " ", ""]
     )
     return splitter.split_text(text)
-
 
 def identify_figures_on_page(page) -> List[Dict[str, Any]]:
     # 1. Get Caption Blocks (The most reliable anchor)
     text_blocks = page.get_text("blocks")
     fig_pattern = re.compile(r"^\s*(?:Fig\.?|Figure|Scheme|Chart|Panel|Box)\s*\d*", re.IGNORECASE)
-    
     captions = []
     for i, block in enumerate(text_blocks):
         if fig_pattern.match(block[4]):
             cap_rect = pymupdf.Rect(block[:4])
             cap_text = block[4].strip().replace("\n", " ")
-            
             # Merge subsequent lines if they are part of the same paragraph
             for j in range(i + 1, len(text_blocks)):
                 next_block = text_blocks[j]
@@ -224,222 +228,71 @@ def identify_figures_on_page(page) -> List[Dict[str, Any]]:
         
         # Create final crop area: The space between the previous paragraph and the caption
         figure_rect = pymupdf.Rect(page.rect.x0, search_top, page.rect.x1, cap["rect"].y1)
-        
         # Add a bit of padding and clip to page
         figure_rect = (figure_rect + (-5, -5, 5, 5)) & page.rect
-        
-        figures.append({
-            "rect": figure_rect,
-            "caption": cap["text"]
-        })
-
+        figures.append({"rect": figure_rect, "caption": cap["text"]})
     return figures
 
 
-# === Chunk Generator with Metadata ===
-def extract_content_with_metadata(filepath: str, file_hash: str) -> Tuple[List, List, Dict]:
-    chunks_with_page = []
-    extracted_images = []
-    first_pages_text = ""
-
-    storage = get_storage_provider() # <--- Initialize the storage provider
-    
+# === 2. Refactored Extraction Phase (Pure CPU/Disk) ===
+def extract_raw_content(filepath: str, file_hash: str):
+    """
+    Step 1: Extract all raw data (text & image bytes) WITHOUT calling any external APIs.
+    """
     doc = pymupdf.open(filepath)
-    metadata = doc.metadata or {}
-
-    # Global counter only used if regex fails to find a number in the caption
-    fallback_fig_counter = 1
+    raw_text_chunks = [] # List of (text, page_number)
+    raw_images = []      # List of dicts with bytes, caption, etc.
+    first_pages_text = ""
     
+    metadata_fallback = doc.metadata or {}
+    fallback_fig_counter = 1
+
     for page_number, page in enumerate(doc, start=1):
-        
-        # --- A. Text Extraction ---
+        # Text
         text = page.get_text()
         if page_number <= 10:
             first_pages_text += "\n" + text
         
         if text.strip():
-            page_chunks = get_text_chunks_recursive(text)
-            for chunk in page_chunks:
-                chunks_with_page.append((chunk, page_number))
+            chunks = get_text_chunks_recursive(text)
+            for chunk in chunks:
+                raw_text_chunks.append((chunk, page_number))
 
-        # --- B. Smart Figure Extraction ---
-        # Instead of raw extraction, we use the visual identification logic
+        # Images
         figures = identify_figures_on_page(page)
-        
-        # # Check that the IMAGES_FOLDER exists and is accessible
-        # if not os.path.isdir(IMAGES_FOLDER):
-        #     print(f"   ! ERROR: IMAGES_FOLDER path does not exist or is not a directory: {IMAGES_FOLDER}")
-        #     # Ensure folder is created/re-checked, though it should be at the start
-        #     os.makedirs(IMAGES_FOLDER, exist_ok=True)
-
-        # for fig_idx, fig in enumerate(figures):
-            
-        #     # 1. Render the specific area of the page (Image + Caption)
-        #     try:
-        #         # Use a high DPI for better quality vision model input
-        #         pix = page.get_pixmap(clip=fig["rect"], dpi=200) 
-        #     except Exception as e:
-        #         print(f"   ! Failed to create pixmap for figure on page {page_number}: {e}")
-        #         continue
-            
-        #     # Skip if result is empty or tiny
-        #     if pix.width < 100 or pix.height < 100:
-        #         continue
-
-        #     image_filename = f"{file_hash}_p{page_number}_fig{fig_idx}.png"
-        #     image_path = os.path.join(IMAGES_FOLDER, image_filename)
-            
-        #     # 2. Save the Pixmap (rendered image) to disk
-        #     saved_successfully = False
-        #     try:
-        #         # Use .save() on the pymupdf pixmap object
-        #         pix.save(image_path)
-        #         saved_successfully = True
-        #         # CRITICAL DEBUG: Check if the file actually exists after saving
-        #         if os.path.exists(image_path):
-        #             print(f"   > Image SAVED successfully to: {image_path}")
-        #         else:
-        #             # This happens if pix.save() returns without error but the file is not written (e.g., permission issue)
-        #             print(f"   ! Image SAVE failed (File not found after pix.save()): {image_path}")
-        #             saved_successfully = False
-                    
-        #     except Exception as e:
-        #         print(f"   ! Error saving image file {image_path}. Check permissions or file path: {e}")
-                
-        #     if not saved_successfully:
-        #         continue # Skip this figure if we can't save it
-            
-        #     # 3. Convert the saved file to base64 for the API call
-        #     base64_img = ""
-        #     try:
-        #         with open(image_path, "rb") as img_f:
-        #             base64_img = base64.b64encode(img_f.read()).decode('utf-8')
-        #     except Exception as e:
-        #         print(f"   ! Error reading saved image file {image_path} for encoding: {e}")
-        #         continue # Skip if we can't read the file back
-            
-        #     # 4. Analyze the image with GPT-4o
-        #     print(f"   > Analyzing Figure {fig_idx+1} on page {page_number} (Caption found: {bool(fig['caption'])})...")
-            
-        #     try:
-        #         # Pass both the image and the extracted caption to the LLM
-        #         description = describe_image_with_gpt4o(base64_img, caption=fig["caption"])
-                
-        #         extracted_images.append({
-        #             "description": description,
-        #             "caption": fig["caption"], # Store caption in metadata too
-        #             "page_number": page_number,
-        #             "image_path": image_filename
-        #         })
-        #     except Exception as e:
-        #         print(f"   ! Failed to describe image: {e}")
-
         for fig in figures:
-            # 1. Extract the actual Figure Number from the caption
-            # Matches "Fig. 3", "Figure 3", "Fig 3"
             match = re.search(r"(?:Fig(?:\.|ure)?)\s*(\d+)", fig["caption"], re.IGNORECASE)
-            
             if match:
                 fig_label = match.group(1)
             else:
                 fig_label = f"unlabeled_{fallback_fig_counter}"
                 fallback_fig_counter += 1
 
-            # Render logic
             try:
-                pix = page.get_pixmap(clip=fig["rect"], dpi=200) 
-            except Exception: continue
-            
-            if pix.width < 100 or pix.height < 100: continue
-
-            # New naming convention: figure_3.png
-            # image_filename = f"figure_{fig_label}.png"
-            # Standardized filename (adding hash for uniqueness is highly recommended here)
-            image_filename = f"{file_hash}_fig_{fig_label}.png"            
-
-            # image_path = os.path.join(IMAGES_FOLDER, image_filename)
-            
-            # # Save logic
-            # try:
-            #     pix.save(image_path)
-            # except Exception as e:
-            #     print(f"Error saving {image_filename}: {e}")
-            #     continue
-
-            # --- NEW HYBRID SAVING LOGIC ---
-            try:
-                # Convert PyMuPDF pixmap to bytes in memory
+                pix = page.get_pixmap(clip=fig["rect"], dpi=200)
+                if pix.width < 100 or pix.height < 100: continue
+                
                 img_bytes = pix.tobytes("png")
+                filename = f"{file_hash}_fig_{fig_label}.png"
                 
-                # Use the provider to save (Local OR Azure)
-                # This returns either the filename (Local) or the full URL (Azure)
-                # stored_path_or_url = storage.save_image(img_bytes, image_filename)
-
-                # The provider handles the actual upload/save
-                storage.save_image(img_bytes, image_filename)
-                
-                # CRITICAL CHANGE: We only store the naked filename in our list
-                # This ensures Qdrant payload 'image_path' is always just 'hash_fig_1.png'
-                clean_reference = image_filename                
-                
-            except Exception as e:
-                print(f"Error saving {image_filename} via {config.STORAGE_MODE}: {e}")
-                continue            
-            
-            # Base64 and Analysis
-            try:
-                # with open(image_path, "rb") as img_f:
-                #     base64_img = base64.b64encode(img_f.read()).decode('utf-8')
-
-                # We use the raw bytes directly for GPT-4o instead of re-reading from disk
-                base64_img = base64.b64encode(img_bytes).decode('utf-8')                
-                
-                # GPT-4o will now describe panels (a, b, c, d) within this single file
-                description = describe_image_with_gpt4o(base64_img, caption=fig["caption"])
-                
-                extracted_images.append({
-                    "description": description,
+                raw_images.append({
+                    "bytes": img_bytes,
+                    "filename": filename,
                     "caption": fig["caption"],
-                    "page_number": page_number,
-                    "image_path": clean_reference # Store filename in metadata
+                    "page_number": page_number
                 })
             except Exception as e:
-                print(f"Failed to process {image_filename}: {e}")        
+                print(f"Error extracting figure on p{page_number}: {e}")
 
-    # Metadata extraction logic (unchanged)
-    creation_date = metadata.get("creationDate")
-    year = None
-    if creation_date:
-        try:
-            clean_date = creation_date.lstrip("D:")
-            dt = datetime.strptime(clean_date[:14], "%Y%m%d%H%M%S")
-            year = str(dt.year)
-        except Exception:
-            pass
-
-    pdf_authors = to_list(metadata.get("author"))
-    pdf_keywords = to_list(metadata.get("keywords"))        
-    
-    llm_meta = extract_metadata_with_llm(first_pages_text)
-
-    title = llm_meta.title or metadata.get("title")
-    authors = list({*pdf_authors, *llm_meta.authors})
-    keywords = list({*pdf_keywords, *llm_meta.keywords})
-    publication_year = llm_meta.publication_year or year or ""
-    summary = llm_meta.summary or ""
-
-    return chunks_with_page, extracted_images, {
-        "file_title": title,
-        "authors": authors,
-        "keywords": keywords,
-        "creation_date": creation_date,
-        "publication_year": publication_year,
-        "summary": summary
-    }
+    return raw_text_chunks, raw_images, first_pages_text, metadata_fallback
 
 
+# === 3. Main Ingestion Logic (Parallelized) ===
 def ingest_documents(file_path: str, qdrant_url: str, qdrant_api_key: str, collection_name: str, verbose: bool = False):
     
+    start_time = datetime.now()
+    
+    # -- Setup Qdrant --
     embedding_model = OpenAIEmbeddings()
     qdrant_client = QdrantClient(url=qdrant_url, api_key=qdrant_api_key)
 
@@ -448,23 +301,14 @@ def ingest_documents(file_path: str, qdrant_url: str, qdrant_api_key: str, colle
             collection_name=collection_name,
             vectors_config=VectorParams(size=embedding_model.dimensions, distance=Distance.COSINE)
         )
-
-    for field in ["file_hash", "file_name", "file_title", "authors", "keywords", "creation_date", "page_number", "type", "image_path"]:
-        qdrant_client.create_payload_index(
-            collection_name=collection_name, 
-            field_name=field, 
-            field_schema=PayloadSchemaType.KEYWORD
-        )
-
-    qdrant_client.create_payload_index(
-        collection_name=collection_name, 
-        field_name="text", 
-        field_schema=PayloadSchemaType.TEXT
-    )
+        # Create indexes just once
+        for field in ["file_hash", "type", "file_name"]:
+            qdrant_client.create_payload_index(collection_name, field, PayloadSchemaType.KEYWORD)
 
     filename = os.path.basename(file_path)
     file_hash = get_file_hash(file_path)
 
+    # Check existence
     existing = qdrant_client.scroll(
         collection_name=collection_name,
         scroll_filter={"must": [{"key": "file_hash", "match": {"value": file_hash}}]},
@@ -474,121 +318,168 @@ def ingest_documents(file_path: str, qdrant_url: str, qdrant_api_key: str, colle
         print(f"✔ Skipping (already indexed): {filename}")
         return
 
-    print(f"→ Processing: {filename}")
+    print(f"→ Starting Ingestion: {filename}")
+    
+    # -- 1. FAST Extraction (No API calls yet) --
+    text_chunks, raw_images, first_pages_text, pdf_meta = extract_raw_content(file_path, file_hash)
+    storage = get_storage_provider()
+    
+    # -- 2. PARALLEL Processing (The magic happens here) --
+    # We will hold results here
+    processed_images = [] # will hold {description, filename, ...}
+    summarized_chunks = [None] * len(text_chunks) # preserve order
+    doc_metadata_result = None
 
-    try:
-        text_chunks, image_chunks, doc_metadata = extract_content_with_metadata(file_path, file_hash)
+    print(f"   > Processing {len(text_chunks)} text chunks and {len(raw_images)} images in parallel...")
+
+    with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
         
-        points = []
-        title = doc_metadata.get("file_title") or "[Unknown Title]"
-        authors = ", ".join(doc_metadata.get("authors", [])) or "[Unknown Author(s)]"
-        year = doc_metadata.get("publication_year") or "[Unknown Year]"
-        doc_summary_text = doc_metadata.get("summary") or "[No Summary]"
-
-        base_header = (
-            f"Document Title: {title}\n"
-            f"Author(s): {authors}\n"
-            f"Year of publication: {year}\n\n"
-        )
-
-        # 1. TEXT CHUNKS
-        if text_chunks:
-            texts = [chunk for chunk, _ in text_chunks]
-            page_numbers = [page for _, page in text_chunks]
-            texts_to_embed = [f"{base_header}Chunk text:\n{chunk}" for chunk in texts]
-            vectors = embedding_model.embed_documents(texts_to_embed)
-
-            for chunk_with_header, vec, page_num in zip(texts_to_embed, vectors, page_numbers):
-                chunk_summary_obj = summarize_text(
-                    chunk_with_header, provider='groq', model=config.SUMMARIZATION_MODEL,
-                    temperature=config.SUMMARIZATION_MODEL_TEMPERATURE, max_tokens=config.SUMMARIZATION_MODEL_MAX_TOKENS,
-                    template_name="document_chunk_summarization"
-                )
-                points.append(PointStruct(
-                    id=str(uuid.uuid4()),
-                    vector=vec,
-                    payload={
-                        "file_name": filename,
-                        "file_hash": file_hash,
-                        "file_title": title,
-                        "authors": doc_metadata.get("authors"),
-                        "keywords": doc_metadata.get("keywords"),
-                        "year": year,
-                        "page_number": str(page_num),
-                        "text": chunk_with_header,
-                        "type": "chunk",
-                        "summary": chunk_summary_obj.summary.strip(),
-                        "image_path": None
-                    }
-                ))
-
-        # 2. FIGURE CHUNKS
-        if image_chunks:
-            print(f"→ Processing {len(image_chunks)} figures...")
-            
-            # Embed Metadata + Caption + Generated Description
-            img_texts_to_embed = [
-                f"{base_header}Figure Caption: {img['caption']}\nDescription:\n{img['description']}" 
-                for img in image_chunks
-            ]
-            
-            img_vectors = embedding_model.embed_documents(img_texts_to_embed)
-            
-            for img_data, text_content, vec in zip(image_chunks, img_texts_to_embed, img_vectors):
-                points.append(PointStruct(
-                    id=str(uuid.uuid4()),
-                    vector=vec,
-                    payload={
-                        "file_name": filename,
-                        "file_hash": file_hash,
-                        "file_title": title,
-                        "authors": doc_metadata.get("authors"),
-                        "keywords": doc_metadata.get("keywords"),
-                        "year": year,
-                        "page_number": str(img_data['page_number']),
-                        "text": text_content,
-                        "type": "figure",
-                        "summary": "FIGURE_DESCRIPTION",
-                        "image_path": img_data['image_path']
-                    }
-                ))
-
-        # 3. DOC SUMMARY
-        summary_text_final = f"{base_header}Summary text:\n{doc_summary_text}"
-        vector_summary = embedding_model.embed_documents([summary_text_final])[0]
+        # A. Metadata Extraction Task
+        future_meta = executor.submit(extract_metadata_with_llm, first_pages_text)
         
-        points.append(PointStruct(
-            id=str(uuid.uuid4()),
-            vector=vector_summary,
-            payload={
+        # B. Image Tasks (Upload + Analyze)
+        image_futures_map = {}
+        for img in raw_images:
+            def process_image(img_data):
+                # 1. Upload to Storage (Network I/O)
+                storage.save_image(img_data["bytes"], img_data["filename"])
+                
+                # 2. Analyze (Network I/O)
+                b64_str = base64.b64encode(img_data["bytes"]).decode('utf-8')
+                desc = describe_image_with_gpt4o(b64_str, img_data["caption"])
+                
+                return {
+                    "filename": img_data["filename"],
+                    "description": desc,
+                    "caption": img_data["caption"],
+                    "page_number": img_data["page_number"]
+                }
+            
+            f = executor.submit(process_image, img)
+            image_futures_map[f] = img["filename"]
+
+        # C. Text Summarization Tasks
+        chunk_futures_map = {}
+        for i, (txt, _) in enumerate(text_chunks):
+            f = executor.submit(robust_summarize_text, txt)
+            chunk_futures_map[f] = i
+
+        # -- Wait for Results --
+        
+        # 1. Get Metadata
+        try:
+            doc_metadata_result = future_meta.result()
+        except Exception as e:
+            print(f"   ! Metadata extraction failed: {e}")
+            # Fallback
+            doc_metadata_result = AdditionalMetadata(
+                title=pdf_meta.get("title", filename),
+                publication_year="Unknown",
+                summary="Metadata extraction failed."
+            )
+
+        # 2. Get Images
+        for f in as_completed(image_futures_map):
+            try:
+                res = f.result()
+                processed_images.append(res)
+            except Exception as e:
+                fname = image_futures_map[f]
+                print(f"   ! Failed to process image {fname}: {e}")
+
+        # 3. Get Chunk Summaries
+        for f in as_completed(chunk_futures_map):
+            idx = chunk_futures_map[f]
+            try:
+                summarized_chunks[idx] = f.result()
+            except Exception as e:
+                print(f"   ! Chunk summary failed: {e}")
+                summarized_chunks[idx] = ""
+
+    # -- 3. Prepare Payloads for Batch Embedding --
+    
+    # Merge Metadata
+    final_title = doc_metadata_result.title
+    final_authors = doc_metadata_result.authors or to_list(pdf_meta.get("author"))
+    final_year = doc_metadata_result.publication_year
+    final_summary = doc_metadata_result.summary
+
+    points_to_upsert = []
+    
+    # Prepare a list of text strings to embed in one go
+    # Structure: (text_to_embed, payload_dict_template)
+    embed_queue = []
+
+    base_info = f"Title: {final_title}\nYear: {final_year}\nAuthors: {', '.join(final_authors)}\n"
+
+    # A. Text Chunks
+    for i, ((chunk_text, page_num), summary) in enumerate(zip(text_chunks, summarized_chunks)):
+        text_for_vec = f"{base_info}Summary: {summary}\n\nContent: {chunk_text}"
+        payload = {
+            "type": "chunk",
+            "text": text_for_vec, # Store the full context text or just raw chunk? Usually full context.
+            "page_number": str(page_num),
+            "summary": summary,
+            "image_path": None
+        }
+        embed_queue.append((text_for_vec, payload))
+
+    # B. Images
+    for img in processed_images:
+        text_for_vec = f"{base_info}Figure Caption: {img['caption']}\nDescription: {img['description']}"
+        payload = {
+            "type": "figure",
+            "text": text_for_vec,
+            "page_number": str(img['page_number']),
+            "summary": "FIGURE",
+            "image_path": img['filename'] # Just the filename!
+        }
+        embed_queue.append((text_for_vec, payload))
+
+    # C. Document Summary
+    doc_sum_text = f"{base_info}Full Document Summary: {final_summary}"
+    embed_queue.append((doc_sum_text, {
+        "type": "summary",
+        "text": doc_sum_text,
+        "page_number": "0",
+        "summary": "FULL_DOC",
+        "image_path": None
+    }))
+
+    # -- 4. Batch Embedding (One API Call) --
+    if embed_queue:
+        print("   > Generating embeddings...")
+        texts = [x[0] for x in embed_queue]
+        vectors = embedding_model.embed_documents(texts)
+        
+        # Zip back together
+        for vec, (_, partial_payload) in zip(vectors, embed_queue):
+            # Add common fields
+            full_payload = {
+                **partial_payload,
                 "file_name": filename,
                 "file_hash": file_hash,
-                "file_title": title,
-                "authors": doc_metadata.get("authors"),
-                "keywords": doc_metadata.get("keywords"),
-                "year": year,
-                "page_number": "0",
-                "text": summary_text_final,
-                "type": "summary",
-                "summary": "FULL_DOCUMENT_SUMMARY",
-                "image_path": None
+                "file_title": final_title,
+                "authors": final_authors,
+                "keywords": doc_metadata_result.keywords,
+                "year": final_year,
+                "creation_date": datetime.now().isoformat()
             }
-        ))
+            
+            points_to_upsert.append(PointStruct(
+                id=str(uuid.uuid4()),
+                vector=vec,
+                payload=full_payload
+            ))
 
-        # Upsert
-        qdrant_client.upsert(collection_name=collection_name, points=points)
-        print(f"✅ Indexed: {filename} ({len(points)} points)")
+        # -- 5. Upsert --
+        qdrant_client.upsert(collection_name=collection_name, points=points_to_upsert)
+    
+    elapsed = (datetime.now() - start_time).total_seconds()
+    print(f"✅ Indexed {filename} with {len(points_to_upsert)} points in {elapsed:.2f}s")
 
-        if verbose:   
-            # Optional: show sample payloads
-            sample, _ = qdrant_client.scroll(collection_name=collection_name, limit=2)
-            for pt in sample:
-                print(f"Sample payload:\n{pt.payload}")                 
 
-    except Exception as e:
-        # Custom exception for better error handling in the API endpoint
-        raise IngestionError(f"Error processing {filename}: {e}")
 
 # Create a simple custom exception for clarity
 class IngestionError(Exception):
-    pass
+    pass    
