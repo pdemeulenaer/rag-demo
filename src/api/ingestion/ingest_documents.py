@@ -21,6 +21,8 @@ from langchain.embeddings.base import Embeddings
 from openai import OpenAI, RateLimitError, APIError
 import instructor
 from pydantic import BaseModel, Field
+import concurrent.futures
+from qdrant_client.http import models
 
 from src.api.core.config import config
 from src.api.rag.summarize import summarize_text
@@ -296,14 +298,27 @@ def ingest_documents(file_path: str, qdrant_url: str, qdrant_api_key: str, colle
     embedding_model = OpenAIEmbeddings()
     qdrant_client = QdrantClient(url=qdrant_url, api_key=qdrant_api_key)
 
+# 1. Setup Collection and Indices
     if not qdrant_client.collection_exists(collection_name=collection_name):
         qdrant_client.create_collection(
             collection_name=collection_name,
-            vectors_config=VectorParams(size=embedding_model.dimensions, distance=Distance.COSINE)
+            vectors_config=models.VectorParams(size=embedding_model.dimensions, distance=models.Distance.COSINE)
         )
-        # Create indexes just once
-        for field in ["file_hash", "type", "file_name"]:
-            qdrant_client.create_payload_index(collection_name, field, PayloadSchemaType.KEYWORD)
+
+    # Metadata Indices
+    for field in ["file_hash", "file_name", "file_title", "authors", "keywords", "page_number", "type", "image_path"]:
+        qdrant_client.create_payload_index(
+            collection_name=collection_name, 
+            field_name=field, 
+            field_schema=models.PayloadSchemaType.KEYWORD
+        )
+
+    # The Full-Text Index
+    qdrant_client.create_payload_index(
+        collection_name=collection_name, 
+        field_name="text", 
+        field_schema=models.PayloadSchemaType.TEXT
+    )
 
     filename = os.path.basename(file_path)
     file_hash = get_file_hash(file_path)
@@ -319,6 +334,7 @@ def ingest_documents(file_path: str, qdrant_url: str, qdrant_api_key: str, colle
         return
 
     print(f"→ Starting Ingestion: {filename}")
+    
     
     # -- 1. FAST Extraction (No API calls yet) --
     text_chunks, raw_images, first_pages_text, pdf_meta = extract_raw_content(file_path, file_hash)
