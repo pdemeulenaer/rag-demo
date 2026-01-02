@@ -8,7 +8,7 @@ import logging
 from qdrant_client import QdrantClient
 
 from src.api.core.config import config
-from src.api.ingestion.ingest_documents import ingest_documents, IngestionError
+from src.api.ingestion.ingest_documents import ingest_documents #, IngestionError
 
 ingestion_router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -58,9 +58,9 @@ async def ingest_files(files: List[UploadFile] = File(...)):
                 logger.info(f"Ingestion successful for {file.filename}.")
                 ingested_count += 1
 
-            except IngestionError as e:
-                logger.error(f"IngestionError for {file.filename}: {e}")
-                failed_files.append({"filename": file.filename, "error": str(e)})
+            # except IngestionError as e:
+            #     logger.error(f"IngestionError for {file.filename}: {e}")
+            #     failed_files.append({"filename": file.filename, "error": str(e)})
             except Exception as e:
                 logger.exception(f"An unexpected error occurred while processing {file.filename}")
                 failed_files.append({"filename": file.filename, "error": f"An unexpected error occurred: {e}"})

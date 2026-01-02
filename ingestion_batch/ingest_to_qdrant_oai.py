@@ -6,7 +6,7 @@ import tempfile
 import time
 
 from src.api.core.config import config
-from src.api.ingestion.ingest_documents import IngestionError, ingest_documents
+from src.api.ingestion.ingest_documents import  ingest_documents # IngestionError
 
 
 # === Config ===
@@ -37,8 +37,8 @@ def ingest_folder_to_qdrant(folder_path: str, qdrant_url: str, qdrant_api_key: s
                     collection_name=collection_name, 
                     verbose=True
                 )
-            except IngestionError as e:
-                print(f"⚠️ Failed to ingest {filename}: {e}")
+            # except IngestionError as e:
+            #     print(f"⚠️ Failed to ingest {filename}: {e}")
             except Exception as e:
                 print(f"🛑 Critical error processing {filename}: {e}")
 
@@ -97,8 +97,8 @@ def ingest_urls_to_qdrant(urls_file_path: str, qdrant_url: str, qdrant_api_key: 
                 collection_name=collection_name, 
                 verbose=True
             )
-        except IngestionError as e:
-            print(f"⚠️ Failed to ingest {filename} (from URL): {e}")
+        # except IngestionError as e:
+        #     print(f"⚠️ Failed to ingest {filename} (from URL): {e}")
         except Exception as e:
             print(f"🛑 Critical error processing {filename} (from URL): {e}")
         finally:
