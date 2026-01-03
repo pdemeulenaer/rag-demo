@@ -28,7 +28,7 @@ from src.api.rag.utils.utils import prompt_template_config
 from src.api.core.storage import get_storage_provider
 
 # === Config ===
-MAX_WORKERS = 10 
+MAX_WORKERS = 40 
 
 # OpenAI Client (For Embeddings & Vision)
 client = OpenAI(api_key=config.OPENAI_API_KEY)
@@ -127,7 +127,7 @@ def describe_image_with_gpt4o(base64_image: str, caption: str = "") -> str:
 
 # In your Config or constants
 # "openai/gpt-oss-20b" is currently one of the fastest models on Groq (approx 1000 t/s)
-METADATA_MODEL_FAST = "openai/gpt-oss-120b" # "llama-3.1-8b-instant" # produces 400 error
+METADATA_MODEL_FAST = "openai/gpt-oss-20b" # "llama-3.1-8b-instant" # produces 400 error
 
 @retry(retry=retry_if_exception_type((RateLimitError, APIError)), wait=wait_exponential(multiplier=1, min=2, max=10), stop=stop_after_attempt(3))
 def extract_metadata_fast(text: str) -> AdditionalMetadata:
@@ -161,7 +161,7 @@ def robust_summarize_text(text: str) -> str:
         text, provider='groq', model=config.SUMMARIZATION_MODEL,
         temperature=config.SUMMARIZATION_MODEL_TEMPERATURE, 
         max_tokens=config.SUMMARIZATION_MODEL_MAX_TOKENS,
-        template_name="document_chunk_summarization"
+        template_name="document_chunk_summarization",
     )
     return summary_obj.summary.strip()
 
@@ -331,6 +331,17 @@ def ingest_documents(file_path: str, qdrant_url: str, qdrant_api_key: str, colle
         
         # B. Start Text Summarization (Fast Groq)
         chunk_futures = {executor.submit(robust_summarize_text, txt): i for i, (txt, _) in enumerate(text_chunks)}
+        # Use the 'instant' model to ensure text processing finishes 
+        # long before the Vision (GPT-4o) tasks.
+        # chunk_futures = {
+        #     executor.submit(
+        #         summarize_text, 
+        #         txt, 
+        #         provider='groq', 
+        #         model='llama-3.1-8b-instant',
+        #         template_name="document_chunk_summarization"
+        #     ): i for i, (txt, _) in enumerate(text_chunks)
+        # }
         
         # C. Start Image Processing (Hybrid Upload/Analyze)
         # We separate Upload and Analysis so they don't block each other

@@ -1,4 +1,5 @@
 # src/api/rag/summarize.py
+
 import logging
 # import httpx
 from openai import OpenAI
@@ -70,8 +71,9 @@ def summarize_text(
             client = instructor.from_openai(
                 OpenAI(
                     api_key=config.GROQ_API_KEY,
-                    base_url="https://api.groq.com/openai/v1",
-                )
+                    base_url="https://api.groq.com/openai/v1",                    
+                ),
+                mode=instructor.Mode.JSON # make sure to use JSON mode for structured responses
             )
         else:
             raise ValueError(f"Unsupported provider: {provider}")
@@ -82,6 +84,7 @@ def summarize_text(
             temperature=temperature,
             max_tokens=max_tokens,
             response_model=SummarizationResponse,
+            response_format={"type": "json_object"},
         )
 
         # Instructor automatically parses JSON into your Pydantic model
