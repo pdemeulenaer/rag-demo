@@ -2,12 +2,14 @@ import os
 import hashlib
 import uuid
 import json
+import fitz
 import pymupdf
 import re
 import base64
 import statistics
 from datetime import datetime
 from concurrent.futures import ThreadPoolExecutor, as_completed, wait
+from concurrent.futures import ProcessPoolExecutor
 from typing import List, Tuple, Dict, Any
 
 from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
@@ -233,47 +235,137 @@ def identify_figures_on_page(page) -> List[Dict[str, Any]]:
     return figures
 
 # === Optimized Extraction ===
+# def extract_raw_content(filepath: str, file_hash: str):
+#     doc = pymupdf.open(filepath)
+#     raw_text_chunks = [] 
+#     raw_images = []      
+#     first_pages_text = ""
+    
+#     metadata_fallback = doc.metadata or {}
+#     fallback_fig_counter = 1
+
+#     for page_number, page in enumerate(doc, start=1):
+#         text = page.get_text()
+#         if page_number <= 5: # Only need first 5 for metadata
+#             first_pages_text += "\n" + text
+        
+#         if text.strip():
+#             chunks = get_text_chunks_recursive(text)
+#             for chunk in chunks:
+#                 raw_text_chunks.append((chunk, page_number))
+
+#         figures = identify_figures_on_page(page)
+#         for fig in figures:
+#             match = re.search(r"(?:Fig(?:\.|ure)?)\s*(\d+)", fig["caption"], re.IGNORECASE)
+#             fig_label = match.group(1) if match else f"unlabeled_{fallback_fig_counter}"
+#             if not match: fallback_fig_counter += 1
+
+#             try:
+#                 # pix = page.get_pixmap(clip=fig["rect"], dpi=150) # DPI 150 is usually sufficient for LLM & faster
+#                 pix = page.get_pixmap(clip=fig["rect"], dpi=150, colorspace=fitz.csRGB, alpha=False)
+#                 if pix.width < 100 or pix.height < 100: continue
+                
+#                 # --- Old PNG code ---
+#                 # img_bytes = pix.tobytes("png")
+#                 # filename = f"{file_hash}_fig_{fig_label}.png"
+
+#                 # --- New JPEG code ---
+#                 # We use jpg_quality=80 as it's the "sweet spot": 
+#                 # Small enough for fast upload, clear enough for gpt-4o-mini.
+#                 img_bytes = pix.tobytes(output="jpg", jpg_quality=80) 
+#                 filename = f"{file_hash}_fig_{fig_label}.jpg"
+                
+#                 raw_images.append({
+#                     "bytes": img_bytes,
+#                     "filename": filename,
+#                     "caption": fig["caption"],
+#                     "page_number": page_number
+#                 })
+#             except Exception: pass
+
+#     return raw_text_chunks, raw_images, first_pages_text, metadata_fallback
+
+
+def process_single_page(page_data):
+    """Worker function to process one page at a time."""
+    # Unpack data
+    filepath, page_number, file_hash = page_data
+    
+    # We must open a new doc handle per process/thread for safety
+    doc = pymupdf.open(filepath)
+    page = doc[page_number - 1] # 0-indexed
+    
+    local_text_chunks = []
+    local_images = []
+    
+    text = page.get_text()
+    
+    # 1. Chunking logic (Matches your current per-page style)
+    if text.strip():
+        chunks = get_text_chunks_recursive(text)
+        for chunk in chunks:
+            local_text_chunks.append((chunk, page_number))
+
+    # 2. Figure detection
+    figures = identify_figures_on_page(page)
+    for i, fig in enumerate(figures):
+        match = re.search(r"(?:Fig(?:\.|ure)?)\s*(\d+)", fig["caption"], re.IGNORECASE)
+        fig_label = match.group(1) if match else f"p{page_number}_{i}"
+
+        try:
+            pix = page.get_pixmap(clip=fig["rect"], dpi=150, colorspace=fitz.csRGB, alpha=False)
+            if pix.width < 100 or pix.height < 100: continue
+            
+            img_bytes = pix.tobytes(output="jpg", jpg_quality=80) 
+            filename = f"{file_hash}_fig_{fig_label}.jpg"
+            
+            local_images.append({
+                "bytes": img_bytes,
+                "filename": filename,
+                "caption": fig["caption"],
+                "page_number": page_number
+            })
+        except Exception: pass
+    
+    doc.close()
+    return text, local_text_chunks, local_images
+
+
+
 def extract_raw_content(filepath: str, file_hash: str):
     doc = pymupdf.open(filepath)
-    raw_text_chunks = [] 
-    raw_images = []      
-    first_pages_text = ""
-    
+    total_pages = len(doc)
     metadata_fallback = doc.metadata or {}
-    fallback_fig_counter = 1
+    doc.close() # Close handle before starting pool
 
-    for page_number, page in enumerate(doc, start=1):
-        text = page.get_text()
-        if page_number <= 5: # Only need first 5 for metadata
-            first_pages_text += "\n" + text
+    # Prepare arguments for the workers
+    page_tasks = [(filepath, pnum, file_hash) for pnum in range(1, total_pages + 1)]
+    
+    raw_text_chunks = []
+    raw_images = []
+    first_pages_text_list = [None] * total_pages 
+
+    # --- Parallel Execution ---
+    # Using ProcessPoolExecutor to utilize all CPU cores for PDF rendering
+    with ProcessPoolExecutor() as executor:
+        results = list(executor.map(process_single_page, page_tasks))
+
+    # --- Reassemble Results ---
+    for i, (text, chunks, images) in enumerate(results):
+        page_num = i + 1
         
-        if text.strip():
-            chunks = get_text_chunks_recursive(text)
-            for chunk in chunks:
-                raw_text_chunks.append((chunk, page_number))
+        # Collect first 5 pages for metadata
+        if page_num <= 5:
+            first_pages_text_list[i] = text
+            
+        raw_text_chunks.extend(chunks)
+        raw_images.extend(images)
 
-        figures = identify_figures_on_page(page)
-        for fig in figures:
-            match = re.search(r"(?:Fig(?:\.|ure)?)\s*(\d+)", fig["caption"], re.IGNORECASE)
-            fig_label = match.group(1) if match else f"unlabeled_{fallback_fig_counter}"
-            if not match: fallback_fig_counter += 1
-
-            try:
-                pix = page.get_pixmap(clip=fig["rect"], dpi=150) # DPI 150 is usually sufficient for LLM & faster
-                if pix.width < 100 or pix.height < 100: continue
-                
-                img_bytes = pix.tobytes("png")
-                filename = f"{file_hash}_fig_{fig_label}.png"
-                
-                raw_images.append({
-                    "bytes": img_bytes,
-                    "filename": filename,
-                    "caption": fig["caption"],
-                    "page_number": page_number
-                })
-            except Exception: pass
+    first_pages_text = "\n".join(filter(None, first_pages_text_list))
 
     return raw_text_chunks, raw_images, first_pages_text, metadata_fallback
+
+
 
 # === Main Ingestion ===
 def ingest_documents(file_path: str, qdrant_url: str, qdrant_api_key: str, collection_name: str, verbose: bool = False):
@@ -378,64 +470,128 @@ def ingest_documents(file_path: str, qdrant_url: str, qdrant_api_key: str, colle
             try: summarized_chunks[chunk_futures[f]] = f.result()
             except: summarized_chunks[chunk_futures[f]] = ""
 
-        # 3. Images (Vision)
+        # 🔥 NEW: Start Embedding Text Chunks immediately while Vision is still running
+        # This overlaps the ~2.5s embedding time with the remaining Vision time.
+        base_info = f"Title: {doc_metadata_result.title}\nAuthors: {', '.join(doc_metadata_result.authors)}\n"
+        embed_inputs = []
+        points = []
+
+        for (txt, pnum), summary in zip(text_chunks, summarized_chunks):
+            content = f"{base_info}Summary: {summary}\nContent: {txt}"
+            embed_inputs.append(content)
+            points.append({"payload": {"type": "chunk", "text": content, "page_number": str(pnum), "summary": summary, "image_path": None}})
+        
+        # Add Doc Summary to initial batch
+        final_sum = f"{base_info}Full Summary: {doc_metadata_result.summary}"
+        embed_inputs.append(final_sum)
+        points.append({"payload": {"type": "summary", "text": final_sum, "page_number": "0", "summary": "FULL_DOC", "image_path": None}})
+
+        # Fire text embedding (Non-blocking if we use executor, but even sequential here 'hides' vision time)
+        text_vectors = embedding_model.embed_documents(embed_inputs)
+
+        # 3. Images (Vision) - Now we wait for the long pole
         for f in as_completed(vision_futures):
             try: processed_images.append(f.result())
             except Exception as e: print(f"   ! Vision failed: {e}")
 
-        # 4. Ensure Uploads Finished (Non-blocking usually, but we need to ensure success before DB entry)
-        # We wait for uploads at the very end while the CPU is preparing the vectors, effectively hiding the latency
         wait(upload_futures) 
 
-    print(f"   ⏱️ [Phase 2] Parallel API calls (Vision/Meta/Summary): {time.time() - t_start_parallel:.2f}s")
+        print(f"   ⏱️ [Phase 2] Parallel API calls (Vision/Meta/Summary): {time.time() - t_start_parallel:.2f}s")
 
-    # 3. Batch Embedding
-    t_start_embed = time.time()
-    print("   > Embedding...")
-    
-    base_info = f"Title: {doc_metadata_result.title}\nAuthors: {', '.join(doc_metadata_result.authors)}\n"
-    embed_inputs = []
-    points = []
-
-    # Prepare Texts
-    for (txt, pnum), summary in zip(text_chunks, summarized_chunks):
-        content = f"{base_info}Summary: {summary}\nContent: {txt}"
-        embed_inputs.append(content)
-        points.append({
-            "payload": {"type": "chunk", "text": content, "page_number": str(pnum), "summary": summary, "image_path": None}
-        })
-
-    for img in processed_images:
-        content = f"{base_info}Figure: {img['caption']}\nDescription: {img['description']}"
-        embed_inputs.append(content)
-        points.append({
-            "payload": {"type": "figure", "text": content, "page_number": str(img['page_number']), "summary": "FIGURE", "image_path": img['filename']}
-        })
+        # 3. Batch Embedding (Now only for images)
+        t_start_embed = time.time()
+        print("   > Finalizing Embeddings...")
         
-    # Doc Summary
-    final_sum = f"{base_info}Full Summary: {doc_metadata_result.summary}"
-    embed_inputs.append(final_sum)
-    points.append({"payload": {"type": "summary", "text": final_sum, "page_number": "0", "summary": "FULL_DOC", "image_path": None}})
+        image_embed_inputs = []
+        image_points = []
+        for img in processed_images:
+            content = f"{base_info}Figure: {img['caption']}\nDescription: {img['description']}"
+            image_embed_inputs.append(content)
+            image_points.append({"payload": {"type": "figure", "text": content, "page_number": str(img['page_number']), "summary": "FIGURE", "image_path": img['filename']}})
 
-    # Call API
-    vectors = embedding_model.embed_documents(embed_inputs)
+        # Final small embedding call for images
+        image_vectors = embedding_model.embed_documents(image_embed_inputs) if image_embed_inputs else []
+        
+        # Combine everything
+        all_vectors = text_vectors + image_vectors
+        all_points_metadata = points + image_points
+        
+        # Construct Qdrant Points
+        qdrant_points = []
+        common_payload = {
+            "file_name": filename, "file_hash": file_hash, "file_title": doc_metadata_result.title,
+            "authors": doc_metadata_result.authors, "keywords": doc_metadata_result.keywords, 
+            "year": doc_metadata_result.publication_year, "creation_date": datetime.now().isoformat()
+        }
+
+        for i, pt in enumerate(all_points_metadata):
+            qdrant_points.append(PointStruct(
+                id=str(uuid.uuid4()),
+                vector=all_vectors[i],
+                payload={**common_payload, **pt["payload"]}
+            ))
+
+        qdrant_client.upsert(collection_name=collection_name, points=qdrant_points)
+        print(f"   ⏱️ [Phase 3] Embedding & Qdrant Upsert: {time.time() - t_start_embed:.2f}s")
+
+    #     # 3. Images (Vision)
+    #     for f in as_completed(vision_futures):
+    #         try: processed_images.append(f.result())
+    #         except Exception as e: print(f"   ! Vision failed: {e}")
+
+    #     # 4. Ensure Uploads Finished (Non-blocking usually, but we need to ensure success before DB entry)
+    #     # We wait for uploads at the very end while the CPU is preparing the vectors, effectively hiding the latency
+    #     wait(upload_futures) 
+
+    # print(f"   ⏱️ [Phase 2] Parallel API calls (Vision/Meta/Summary): {time.time() - t_start_parallel:.2f}s")
+
+    # # 3. Batch Embedding
+    # t_start_embed = time.time()
+    # print("   > Embedding...")
     
-    # Construct Qdrant Points
-    qdrant_points = []
-    common_payload = {
-        "file_name": filename, "file_hash": file_hash, "file_title": doc_metadata_result.title,
-        "authors": doc_metadata_result.authors, "keywords": doc_metadata_result.keywords, 
-        "year": doc_metadata_result.publication_year, "creation_date": datetime.now().isoformat()
-    }
+    # base_info = f"Title: {doc_metadata_result.title}\nAuthors: {', '.join(doc_metadata_result.authors)}\n"
+    # embed_inputs = []
+    # points = []
 
-    for i, pt in enumerate(points):
-        qdrant_points.append(PointStruct(
-            id=str(uuid.uuid4()),
-            vector=vectors[i],
-            payload={**common_payload, **pt["payload"]}
-        ))
+    # # Prepare Texts
+    # for (txt, pnum), summary in zip(text_chunks, summarized_chunks):
+    #     content = f"{base_info}Summary: {summary}\nContent: {txt}"
+    #     embed_inputs.append(content)
+    #     points.append({
+    #         "payload": {"type": "chunk", "text": content, "page_number": str(pnum), "summary": summary, "image_path": None}
+    #     })
 
-    qdrant_client.upsert(collection_name=collection_name, points=qdrant_points)
-    print(f"   ⏱️ [Phase 3] Embedding & Qdrant Upsert: {time.time() - t_start_embed:.2f}s")
+    # for img in processed_images:
+    #     content = f"{base_info}Figure: {img['caption']}\nDescription: {img['description']}"
+    #     embed_inputs.append(content)
+    #     points.append({
+    #         "payload": {"type": "figure", "text": content, "page_number": str(img['page_number']), "summary": "FIGURE", "image_path": img['filename']}
+    #     })
+        
+    # # Doc Summary
+    # final_sum = f"{base_info}Full Summary: {doc_metadata_result.summary}"
+    # embed_inputs.append(final_sum)
+    # points.append({"payload": {"type": "summary", "text": final_sum, "page_number": "0", "summary": "FULL_DOC", "image_path": None}})
+
+    # # Call API
+    # vectors = embedding_model.embed_documents(embed_inputs)
+    
+    # # Construct Qdrant Points
+    # qdrant_points = []
+    # common_payload = {
+    #     "file_name": filename, "file_hash": file_hash, "file_title": doc_metadata_result.title,
+    #     "authors": doc_metadata_result.authors, "keywords": doc_metadata_result.keywords, 
+    #     "year": doc_metadata_result.publication_year, "creation_date": datetime.now().isoformat()
+    # }
+
+    # for i, pt in enumerate(points):
+    #     qdrant_points.append(PointStruct(
+    #         id=str(uuid.uuid4()),
+    #         vector=vectors[i],
+    #         payload={**common_payload, **pt["payload"]}
+    #     ))
+
+    # qdrant_client.upsert(collection_name=collection_name, points=qdrant_points)
+    # print(f"   ⏱️ [Phase 3] Embedding & Qdrant Upsert: {time.time() - t_start_embed:.2f}s")
     
     print(f"✅ Indexed {filename} in {(datetime.now() - start_time).total_seconds():.2f}s")
