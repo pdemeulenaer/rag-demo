@@ -96,7 +96,7 @@ def describe_image_with_gpt4o(base64_image: str, caption: str = "") -> str:
     )
     # Use gpt-4o-mini if cost/speed is a priority, otherwise gpt-4o
     response = client.chat.completions.create(
-        model="gpt-4o-mini", #"gpt-4o", 
+        model="gpt-4.1-mini", #"gpt-4o-mini", #"gpt-4o", 
         messages=[
             {
                 "role": "user",
