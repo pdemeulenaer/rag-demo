@@ -346,19 +346,17 @@ def identify_figures_on_page(page) -> List[Dict[str, Any]]:
 #     return text, local_text_chunks, local_images
 def process_single_page(page_data):
     """Worker function to process one page at a time."""
-    # Unpack data
     filepath, page_number, file_hash = page_data
     
-    # We must open a new doc handle per process/thread for safety
     doc = pymupdf.open(filepath)
-    page = doc[page_number - 1] # 0-indexed
+    page = doc[page_number - 1] 
     
     local_text_chunks = []
     local_images = []
     
     text = page.get_text()
     
-    # 1. Chunking logic (Matches your current per-page style)
+    # 1. Chunking logic
     if text.strip():
         chunks = get_text_chunks_recursive(text)
         for chunk in chunks:
@@ -367,15 +365,50 @@ def process_single_page(page_data):
     # 2. Figure detection
     figures = identify_figures_on_page(page)
     for i, fig in enumerate(figures):
-        match = re.search(r"(?:Fig(?:\.|ure)?)\s*(\d+)", fig["caption"], re.IGNORECASE)
-        fig_label = match.group(1) if match else f"p{page_number}_{i}"
+        # IMPROVED REGEX: Captures "1.1", "2-3", "A.1" etc. 
+        match = re.search(r"(?:Fig(?:\.|ure)?)\s*([\d\.\-A-Za-z]+)", fig["caption"], re.IGNORECASE)
+        
+        if match:
+            # Clean the label (replace dots with underscores for filename safety)
+            fig_label = re.sub(r"[^a-zA-Z0-9]", "_", match.group(1))
+        else:
+            fig_label = f"unlabeled_{i}"
 
         try:
+
+            # --- Text Density Filter ---
+            # 1. Get the text within the block
+            text_inside_fig = page.get_text("text", clip=fig["rect"]).strip()
+            
+            # 2. Check the area of the detected figure
+            # Width x Height in points
+            rect_area = fig["rect"].width * fig["rect"].height
+            
+            # 3. Calculate "Character Density" 
+            # (Chars per 1000 square points)
+            char_density = (len(text_inside_fig) / rect_area) * 1000 if rect_area > 0 else 0
+
+            # 4. Filter Logic:
+            # Standard paragraphs (like the one in your screenshot) have high density (~15-30+)
+            # Scientific figures with labels/captions usually stay below 10.
+            if char_density > 12: 
+                # If density is high, check if it's just a long caption 
+                # or a real paragraph by seeing if it has standard sentence structure
+                if len(text_inside_fig.split()) > 40: # Likely a text paragraph
+                    continue
+
+            # --- Proceed with Extraction if it passed the density test ---
             pix = page.get_pixmap(clip=fig["rect"], dpi=150, colorspace=fitz.csRGB, alpha=False)
-            if pix.width < 100 or pix.height < 100: continue
+            
+            # Increased filter: 100px is often too small for PhD theses (captures logos/icons)
+            # 150px helps ignore small decorative elements.
+            if pix.width < 150 or pix.height < 150: continue
             
             img_bytes = pix.tobytes(output="jpg", jpg_quality=80) 
-            filename = f"{file_hash}_fig_{fig_label}.jpg"
+            
+            # COLLISION-PROOF FILENAME: hash + page_number + unique_index + label
+            # This prevents Figure 1.1 on page 5 from overwriting Figure 1.1 on page 50.
+            filename = f"{file_hash}_p{page_number}_idx{i}_{fig_label}.jpg"
             
             local_images.append({
                 "bytes": img_bytes,
@@ -426,27 +459,26 @@ def extract_raw_content(filepath: str, file_hash: str):
     doc = pymupdf.open(filepath)
     total_pages = len(doc)
     metadata_fallback = doc.metadata or {}
-    doc.close() # Close handle before starting pool
+    doc.close() 
 
-    # Prepare arguments for the workers
+    # Prepare arguments
     page_tasks = [(filepath, pnum, file_hash) for pnum in range(1, total_pages + 1)]
     
+    # --- Parallel Execution ---
+    with ProcessPoolExecutor() as executor:
+        # map() preserves order, so results[0] is page 1
+        results = list(executor.map(process_single_page, page_tasks))
+
     raw_text_chunks = []
     raw_images = []
-    first_pages_text_list = [None] * total_pages 
-
-    # --- Parallel Execution ---
-    # Using ProcessPoolExecutor to utilize all CPU cores for PDF rendering
-    with ProcessPoolExecutor() as executor:
-        results = list(executor.map(process_single_page, page_tasks))
+    first_pages_text_list = [None] * min(5, total_pages) 
 
     # --- Reassemble Results ---
     for i, (text, chunks, images) in enumerate(results):
         page_num = i + 1
         
-        # Collect first 5 pages for metadata
         if page_num <= 5:
-            first_pages_text_list[i] = text
+            first_pages_text_list[page_num-1] = text
             
         raw_text_chunks.extend(chunks)
         raw_images.extend(images)
