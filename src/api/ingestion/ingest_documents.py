@@ -214,16 +214,115 @@ def get_text_chunks_recursive(text) -> List[str]:
     )
     return splitter.split_text(text)
 
+# def identify_figures_on_page(page) -> List[Dict[str, Any]]:
+#     text_blocks = page.get_text("blocks")
+#     fig_pattern = re.compile(r"^\s*(?:Fig\.?|Figure|Scheme|Chart|Panel|Box)\s*\d*", re.IGNORECASE)
+#     captions = []
+    
+#     # 1. Find captions
+#     for i, block in enumerate(text_blocks):
+#         if fig_pattern.match(block[4]):
+#             cap_rect = pymupdf.Rect(block[:4])
+#             cap_text = block[4].strip().replace("\n", " ")
+#             for j in range(i + 1, len(text_blocks)):
+#                 next_block = text_blocks[j]
+#                 if (next_block[1] - cap_rect.y1) < 15 and abs(next_block[0] - cap_rect.x0) < 20:
+#                     cap_rect |= pymupdf.Rect(next_block[:4])
+#                     cap_text += " " + next_block[4].strip().replace("\n", " ")
+#                 else: break
+#             captions.append({"rect": cap_rect, "text": cap_text})
+
+#     # 2. Find figures based on captions
+#     figures = []
+#     for cap in captions:
+#         search_bottom = cap["rect"].y0
+#         search_top = 0
+#         for block in reversed(text_blocks):
+#             block_rect = pymupdf.Rect(block[:4])
+#             if block_rect.y1 < search_bottom - 20:
+#                 if len(block[4].strip()) > 100: 
+#                     search_top = block_rect.y1 + 5
+#                     break
+        
+#         figure_rect = pymupdf.Rect(page.rect.x0, search_top, page.rect.x1, cap["rect"].y1)
+#         figure_rect = (figure_rect + (-5, -5, 5, 5)) & page.rect
+#         figures.append({"rect": figure_rect, "caption": cap["text"]})
+#     return figures
+# def identify_figures_on_page(page) -> List[Dict[str, Any]]:
+#     text_blocks = page.get_text("blocks")
+#     fig_pattern = re.compile(r"^\s*(?:Fig\.?|Figure|Scheme|Chart|Panel|Box)\s*\d*", re.IGNORECASE)
+#     captions = []
+    
+#     # 1. Find captions
+#     for i, block in enumerate(text_blocks):
+#         if fig_pattern.match(block[4]):
+#             cap_rect = pymupdf.Rect(block[:4])
+#             cap_text = block[4].strip().replace("\n", " ")
+#             for j in range(i + 1, len(text_blocks)):
+#                 next_block = text_blocks[j]
+#                 if (next_block[1] - cap_rect.y1) < 15 and abs(next_block[0] - cap_rect.x0) < 20:
+#                     cap_rect |= pymupdf.Rect(next_block[:4])
+#                     cap_text += " " + next_block[4].strip().replace("\n", " ")
+#                 else: break
+#             captions.append({"rect": cap_rect, "text": cap_text})
+
+#     # Pre-fetch page objects to speed up the loop
+#     image_info = page.get_image_info() # Get metadata for all images on page
+#     drawings = page.get_drawings()      # Get all vector paths (plots/charts)
+
+#     # 2. Find figures based on captions
+#     figures = []
+#     for cap in captions:
+#         search_bottom = cap["rect"].y0
+#         search_top = 0
+        
+#         # Determine the potential figure area (searching upwards)
+#         for block in reversed(text_blocks):
+#             block_rect = pymupdf.Rect(block[:4])
+#             if block_rect.y1 < search_bottom - 20:
+#                 if len(block[4].strip()) > 150: # Increased threshold for thesis paragraphs
+#                     search_top = block_rect.y1 + 5
+#                     break
+        
+#         figure_rect = pymupdf.Rect(page.rect.x0, search_top, page.rect.x1, cap["rect"].y1)
+#         figure_rect = (figure_rect + (-5, -5, 5, 5)) & page.rect
+
+#         # --- NEW: OBJECT VERIFICATION ---
+#         # 1. Check if an actual IMAGE object exists in this rectangle
+#         has_image = any(figure_rect.intersects(pymupdf.Rect(img["bbox"])) for img in image_info)
+        
+#         # 2. Check if VECTOR DRAWINGS exist (common for scientific plots/charts)
+#         # We only count drawings that aren't just tiny dots or lines
+#         has_drawing = any(
+#             figure_rect.intersects(pymupdf.Rect(d["rect"])) 
+#             for d in drawings if d["rect"].width > 20 or d["rect"].height > 20
+#         )
+
+#         # 3. Text Density Check: If it's mostly text, it's a paragraph reference, not a figure
+#         text_inside = page.get_text("text", clip=figure_rect).strip()
+#         is_dense_text = len(text_inside) > 200 and (len(text_inside) / (figure_rect.width * figure_rect.height) * 1000) > 12
+
+#         # Final decision: Must have a visual object AND not be a dense text block
+#         if (has_image or has_drawing) and not is_dense_text:
+#             figures.append({"rect": figure_rect, "caption": cap["text"]})
+            
+#     return figures
 def identify_figures_on_page(page) -> List[Dict[str, Any]]:
     text_blocks = page.get_text("blocks")
+    # Pattern to catch the start of a caption
     fig_pattern = re.compile(r"^\s*(?:Fig\.?|Figure|Scheme|Chart|Panel|Box)\s*\d*", re.IGNORECASE)
     captions = []
     
     # 1. Find captions
     for i, block in enumerate(text_blocks):
-        if fig_pattern.match(block[4]):
+        block_text = block[4].strip()
+        # We only treat it as a caption if the block STARTS with the Figure label
+        # This ignores paragraphs that just mention "As seen in Fig 1..." in the middle
+        if fig_pattern.match(block_text):
             cap_rect = pymupdf.Rect(block[:4])
-            cap_text = block[4].strip().replace("\n", " ")
+            cap_text = block_text.replace("\n", " ")
+            
+            # Look ahead to see if the caption continues in the next block
             for j in range(i + 1, len(text_blocks)):
                 next_block = text_blocks[j]
                 if (next_block[1] - cap_rect.y1) < 15 and abs(next_block[0] - cap_rect.x0) < 20:
@@ -232,22 +331,53 @@ def identify_figures_on_page(page) -> List[Dict[str, Any]]:
                 else: break
             captions.append({"rect": cap_rect, "text": cap_text})
 
+    # Pre-fetch page objects for speed
+    image_info = page.get_image_info() 
+    drawings = page.get_drawings()      
+
     # 2. Find figures based on captions
     figures = []
     for cap in captions:
         search_bottom = cap["rect"].y0
         search_top = 0
+        
+        # Search upwards for the boundary of the figure
         for block in reversed(text_blocks):
             block_rect = pymupdf.Rect(block[:4])
-            if block_rect.y1 < search_bottom - 20:
+            if block_rect.y1 < search_bottom - 15:
+                # If we hit a block with significant text, that's our top boundary
                 if len(block[4].strip()) > 100: 
-                    search_top = block_rect.y1 + 5
+                    search_top = block_rect.y1 + 2
                     break
         
         figure_rect = pymupdf.Rect(page.rect.x0, search_top, page.rect.x1, cap["rect"].y1)
-        figure_rect = (figure_rect + (-5, -5, 5, 5)) & page.rect
-        figures.append({"rect": figure_rect, "caption": cap["text"]})
+        figure_rect = (figure_rect + (-2, -2, 2, 2)) & page.rect
+
+        # --- REFINED OBJECT VERIFICATION ---
+        
+        # A. Bitmap Check
+        has_image = any(figure_rect.intersects(pymupdf.Rect(img["bbox"])) for img in image_info)
+        
+        # B. Drawing Check (Ignore tiny lines/noise)
+        # Scientific plots often use vector drawings
+        has_drawing = any(
+            figure_rect.intersects(pymupdf.Rect(d["rect"])) 
+            for d in drawings if d["rect"].width > 40 or d["rect"].height > 40
+        )
+
+        # C. Text Density Check (The Paragraph Killer)
+        # Paragraphs are dense (~25+ chars per 1k pts). Figures are airy (< 10).
+        text_inside = page.get_text("text", clip=figure_rect).strip()
+        area = figure_rect.width * figure_rect.height
+        density = (len(text_inside) / area * 1000) if area > 0 else 0
+
+        # Logic: Must have a visual object AND not be a wall of text
+        if (has_image or has_drawing) and density < 12:
+            figures.append({"rect": figure_rect, "caption": cap["text"]})
+            
     return figures
+
+
 
 # === Optimized Extraction ===
 # def extract_raw_content(filepath: str, file_hash: str):
