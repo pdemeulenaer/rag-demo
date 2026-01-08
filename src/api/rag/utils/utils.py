@@ -1,3 +1,4 @@
+# src/api/rag/utils/utils.py
 import yaml
 from jinja2 import Template
 from langsmith import Client
@@ -5,16 +6,6 @@ from langsmith import Client
 ls_client = Client()
 
 
-# def prompt_template_config(yaml_file, prompt_key):
-
-#     with open(yaml_file, "r") as f:
-#         config = yaml.safe_load(f)
-
-#     template_content = config["prompts"][prompt_key]
-
-#     template = Template(template_content)
-
-#     return template
 def prompt_template_config(path, template_name):
     with open(path, "r") as f:
         config = yaml.safe_load(f)

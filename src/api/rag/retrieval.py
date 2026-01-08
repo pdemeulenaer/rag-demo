@@ -1,3 +1,4 @@
+# src/api/rag/retrieval.py
 import os
 import openai
 import instructor
@@ -7,7 +8,6 @@ from pydantic import BaseModel
 from typing import List
 import json
 import cohere
-
 from qdrant_client import QdrantClient
 from qdrant_client.models import Prefetch, Filter, FieldCondition, MatchText, FusionQuery
 from langsmith import traceable, get_current_run_tree
@@ -17,6 +17,7 @@ import pickle
 
 from src.api.core.config import config
 from src.api.rag.utils.utils import prompt_template_config, prompt_template_registry
+from src.api.rag.summarize import summarize_text
 from src.api.api.models import Source
 
 
@@ -24,11 +25,12 @@ logger = logging.getLogger(__name__)
 cohere_client = cohere.Client(config.COHERE_API_KEY)
 
 # Initialize the conversation memory
-# conversation_memory = {} # global memory dictionary, deprecated in favor of Redis
 redis_client = redis.Redis(host='redis', port=6379, db=0)
 
 
-
+def titles_by_author(author, year=None):
+    if not author:
+        return []
 
 class ConversationMemory:
     def __init__(self, window_size=10): # 10 messages, i.e. 5 question-answer turns
@@ -39,10 +41,10 @@ class ConversationMemory:
 
 
 @traceable(
-    name="summarize_messages",
+    name="summarize_conversation",
     run_type="prompt",
 )
-def summarize_messages(messages, summarizer_llm):
+def summarize_conversation(messages): #, summarizer_llm):
     """
     Summarizes the conversation history using the given LLM client (Groq in this case).
     This version works without Instructor's create_with_completion.
@@ -52,23 +54,14 @@ def summarize_messages(messages, summarizer_llm):
         [f"{m['role'].capitalize()}: {m['content']}" for m in messages]
     )
 
-    prompt = f"""
-    Please summarize the following conversation briefly, preserving key facts, names, and context
-    so that future turns can be understood without losing important details.
-    
-    Conversation:
-    {formatted_messages}
-    """
+    response = summarize_text(
+        formatted_messages,
+        provider='groq',
+        model=config.SUMMARIZATION_MODEL,
+        temperature=config.SUMMARIZATION_MODEL_TEMPERATURE,
+        max_tokens=config.SUMMARIZATION_MODEL_MAX_TOKENS,
+        template_name="summarize_conversation")
 
-    response = summarizer_llm.chat.completions.create(
-        model=config.SUMMARIZATION_MODEL, # "llama-3.3-70b-versatile",
-        messages=[{"role": "user", "content": prompt}],
-        temperature=config.SUMMARIZATION_MODEL_TEMPERATURE, # 0.5,
-        response_model=RAGSummarizationResponse,
-        max_tokens=config.SUMMARIZATION_MODEL_MAX_TOKENS # 1000
-    )
-
-    # return response.choices[0].message.content.strip()
     return response.summary.strip()
 
 
@@ -76,11 +69,6 @@ def summarize_messages(messages, summarizer_llm):
     name="get_memory",
     # run_type="prompt",
 )
-# def get_memory(session_id: str) -> ConversationMemory:
-#     # global conversation_memory, based on session_id
-#     if session_id not in conversation_memory:
-#         conversation_memory[session_id] = ConversationMemory()
-#     return conversation_memory[session_id]
 def get_memory(session_id: str) -> ConversationMemory:
 
     # If in evaluation mode, return a fresh memory each time
@@ -104,19 +92,18 @@ def get_memory(session_id: str) -> ConversationMemory:
     name="add_message",
     # run_type="prompt",
 )
-def add_message(session_id: str, role: str, content: str, summarizer_llm):
+def add_message(session_id: str, role: str, content: str): #, summarizer_llm):
     memory = get_memory(session_id)
 
     # Add message to both lists
     memory.recent_messages.append({"role": role, "content": content})
     memory.full_history.append({"role": role, "content": content})
 
-
     # Summarize older messages if buffer exceeded
     if len(memory.recent_messages) > memory.window_size:
         # Get messages to summarize (all but the most recent)
         old_messages = memory.recent_messages[:-memory.window_size]
-        summary_update = summarize_messages(old_messages, summarizer_llm)
+        summary_update = summarize_conversation(old_messages) #, summarizer_llm)
         memory.summary += " " + summary_update
         # Keep only the most recent messages in the buffer
         memory.recent_messages = memory.recent_messages[-memory.window_size:]
@@ -175,11 +162,12 @@ def retrieve_context(query, qdrant_client, top_k=5):
                         # still search the main chunk text
                         FieldCondition(key="text", match=MatchText(text=query)),
                         # add metadata fields you’d like to search
-                        FieldCondition(key="authors", match=MatchText(text=query)),
-                        FieldCondition(key="file_title", match=MatchText(text=query)),
-                        FieldCondition(key="year", match=MatchText(text=query)),
-                        FieldCondition(key="keywords", match=MatchText(text=query)),                                            
+                        # FieldCondition(key="authors", match=MatchText(text=query)),
+                        # FieldCondition(key="file_title", match=MatchText(text=query)),
+                        # FieldCondition(key="year", match=MatchText(text=query)),
+                        # FieldCondition(key="keywords", match=MatchText(text=query)),                                                                 
                     ]
+                    
                 ),
                 limit=20
             )
@@ -190,19 +178,34 @@ def retrieve_context(query, qdrant_client, top_k=5):
 
     retrieved_context = []
     for result in results.points:
-        # print("Qdrant payload keys:", result.payload.keys())
-        # print("Qdrant payload sample:", result.payload)
         logger.info("Qdrant payload keys: %s", result.payload.keys())
-        logger.info("Qdrant payload sample: %s", result.payload)     
+        # logger.info("Qdrant payload sample: %s", result.payload)     
+        # retrieved_context.append({
+        #     "id": result.id,
+        #     "text": result.payload["text"],
+        #     "title": result.payload.get("file_title"),
+        #     "authors": result.payload.get("authors"),
+        #     "year": result.payload.get("year"),
+        #     "page": result.payload.get("page_number"),
+        #     "score": result.score            
+        # })
+
+        # payload is a dict, so we can use .get() safely
+        payload = result.payload
+        
         retrieved_context.append({
-            "id": result.id,
-            "text": result.payload["text"],
-            "title": result.payload.get("file_title"),
-            "authors": result.payload.get("authors"),
-            "year": result.payload.get("year"),
-            "page": result.payload.get("page_number"),
-            "score": result.score            
-        })
+            "id": str(result.id),
+            "text": payload["text"],
+            "title": payload.get("file_title"),
+            "authors": payload.get("authors"),
+            "year": payload.get("year"),
+            "page": payload.get("page_number"),
+            "score": result.score,
+            # --- NEW FIELDS PRESERVED ---
+            "type": payload.get("type", "text"),  # 'text' or 'figure'
+            "image_path": payload.get("image_path"), # Only present if type='figure'
+            "caption": payload.get("caption")        # Important for UI display
+        })        
 
     return retrieved_context    
 
@@ -240,19 +243,10 @@ def rerank_context(query: str, retrieved_context: list, top_n: int = 5):
     return reranked
 
 
-
 @traceable(
     name="format_retrieved_context",
     run_type="prompt"
 )
-# def process_context(context):
-
-#     formatted_context = ""
-
-#     for id, chunk in zip(context["retrieved_context_ids"], context["retrieved_context"]):
-#         formatted_context += f"- {id}: {chunk}\n"
-
-#     return formatted_context
 def process_context(context):
     lines = []
     for id, chunk in zip(context["retrieved_context_ids"], context["retrieved_context"]):
@@ -267,7 +261,8 @@ OUTPUT_SCHEMA = {
         "retrieved_context_ids": {
             "type": "array",
             "items": {"type": "string"}
-        }
+        },
+        "used_chunks_rationale": {"type": "string"} # NEW 2025-11-15: field explaining why certain chunks were used
     },
     "required": ["answer", "retrieved_context_ids"]
 }
@@ -284,7 +279,7 @@ def build_prompt(context, question, session_id):
         [f"{msg['role'].capitalize()}: {msg['content']}" for msg in memory.recent_messages]
     )
 
-    full_history = f"Conversation Summary:\n{memory.summary}\n\nRecent Messages:\n{formatted_recent}"
+    full_history = f"Conversation Summary:\n{memory.summary.strip()}\n\nRecent Messages:\n{formatted_recent}"
 
     processed_context = process_context(context)
 
@@ -317,9 +312,6 @@ def build_prompt(context, question, session_id):
     # For LangSmith trace: return a string instead of the messages list
     traced_prompt = f"[SYSTEM]\n{system_prompt}\n\n[USER]\n{user_prompt}"
 
-    # # Instructor trace can log the string
-    # from langsmith import traceable
-
     @traceable(name="render_prompt", run_type="prompt")
     def traced():
         return traced_prompt
@@ -350,7 +342,6 @@ def is_openai_model(model_name: str) -> bool:
     """
     model_name = model_name.lower()
     return model_name.startswith("gpt-") or model_name.startswith("o1-") or model_name.startswith("openai-")
-
 
 
 @traceable(
@@ -455,8 +446,9 @@ def rag_pipeline(question, qdrant_client, session_id, generation_model=None, top
         question,
         session_id
     )
-    answer = generate_answer(prompt, generation_model) # openai's one
-    # answer = generate_answer_groq(prompt, generation_model)
+
+    # Generate answer using LLM
+    answer = generate_answer(prompt, generation_model)
 
     # Deduplicate sources and aggregate page numbers
     seen = {}
@@ -489,24 +481,40 @@ def rag_pipeline(question, qdrant_client, session_id, generation_model=None, top
             # Aggregate page numbers for duplicate sources
             # if page_num is not None and page_num not in seen[key].page:
             #     seen[key].page.append(page_num)
-            # Aggregate page numbers for duplicate sources
             existing_pages = set(seen[key].page)
             existing_pages.update(page_num)
             seen[key].page = sorted(existing_pages)            
+
+    # Filter out unused sources based on retrieved_context_ids
+    used_ids = set(answer.retrieved_context_ids)
+    unique_sources = [s for s in unique_sources if s.id in used_ids]
+    logger.info(f"Unique sources after filtering: {unique_sources}")
+
+    # Extract Used Images (NEW LOGIC)
+    used_images = []
+    for chunk in retrieved_context:
+        # Check if this chunk was CITIED by the LLM and is a FIGURE
+        if chunk["id"] in used_ids and chunk.get("type") == "figure":
+            used_images.append({
+                "url": f"/api/images/{os.path.basename(chunk['image_path'])}", # Secure local URL
+                "caption": chunk.get("caption") or "Relevant Figure",
+                "page": chunk.get("page"),
+                "file_title": chunk.get("title")
+            })
 
     # Extract just the text content from the retrieved_context objects
     retrieved_context_texts = [c["text"] for c in retrieved_context]
 
     return {
         "answer": answer.answer,
-        "sources": unique_sources, # [s.__dict__ for s in unique_sources], # make sources JSON serializable #
+        "sources": unique_sources, # Text sources
+        "images": used_images,     # Image sources
         "question": question,
         "retrieved_context": retrieved_context_texts,
     }
 
 
-
-def rag_pipeline_wrapper(question, session_id, summarizer_llm, generation_model=None, top_k=5):
+def rag_pipeline_wrapper(question, session_id, generation_model=None, top_k=5):
     
     qdrant_client = QdrantClient(
         url=config.QDRANT_URL, # QDRANT_URL=http://qdrant:6333 when local, or web URL for Qdrant Cloud
@@ -515,14 +523,8 @@ def rag_pipeline_wrapper(question, session_id, summarizer_llm, generation_model=
         
     result = rag_pipeline(question, qdrant_client, session_id, generation_model, top_k)
 
-    # Update memory with summarization
-    add_message(session_id, "user", question, summarizer_llm)
-    add_message(session_id, "assistant", result["answer"], summarizer_llm)
-
-    # sources = [Source(**s) for s in result.get("sources", [])]
-
-
     return {
         "answer": result["answer"],
         "sources": result.get("sources", []),
+        "images": result.get("images", []),
     }

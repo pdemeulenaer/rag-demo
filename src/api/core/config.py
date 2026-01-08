@@ -1,5 +1,10 @@
+import os
+from pathlib import Path
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+
+# Get the root directory of your project (2 levels up from src/api/core/config.py)
+BASE_DIR = Path(__file__).resolve().parent.parent.parent.parent
 class Config(BaseSettings):
     OPENAI_API_KEY: str
     GROQ_API_KEY: str
@@ -17,6 +22,11 @@ class Config(BaseSettings):
     LANGSMITH_PROJECT: str    
     EMBEDDING_API_URL: str
     COHERE_API_KEY: str
+
+    # We define the folder relative to the BASE_DIR
+    # This results in /app/src/api/data/images inside Docker
+    # and [your_path]/src/api/data/images locally.
+    IMAGES_FOLDER: str = str(BASE_DIR / "src" / "api" / "data" / "images")
 
     # Static settings (not from env)
     # ==============================
@@ -38,7 +48,7 @@ class Config(BaseSettings):
     LANGSMITH_PROJECT='rag-tracing'
 
     # Ingestion settings
-    QDRANT_COLLECTION_NAME: str = 'test_collection_oai_local'
+    QDRANT_COLLECTION_NAME: str = 'test_collection_oai_test_image' # 'test_collection_oai_test_summary' # test_collection_oai_prod # test_collection_oai_local2
 
     SUMMARIZATION_MODEL: str = 'llama-3.1-8b-instant' # 'llama-3.3-70b-versatile'
     SUMMARIZATION_PROMPT: str = 'Summarize the following text: {{text}}'
@@ -46,15 +56,31 @@ class Config(BaseSettings):
     SUMMARIZATION_MODEL_MAX_TOKENS: int = 256
     # SUMMARIZATION_PROMPT_TEMPLATE_PATH: str =
 
-    METADATA_MODEL: str = 'llama-3.3-70b-versatile'    
+    METADATA_MODEL: str = 'gpt-4.1-nano' # 'llama-3.3-70b-versatile'    
     METADATA_MODEL_TEMPERATURE: float = 0
     METADATA_MODEL_MAX_TOKENS: int = 500
     # METADATA_PROMPT_TEMPLATE_PATH: str =
     
-    model_config = SettingsConfigDict(env_file=".env")
+    EXTERNAL_API_URL: str = "http://localhost:8000" # Default for local dev
+
+    # Storage toggle: "LOCAL" or "AZURE"
+    STORAGE_MODE: str = "LOCAL"    
+
+    # Azure Settings (only needed if STORAGE_MODE == "AZURE")
+    AZURE_STORAGE_CONNECTION_STRING: str = ""
+    AZURE_CONTAINER_NAME: str = "rag-images"
+    
+    # This is the public URL of your storage account or CDN
+    # e.g., https://mystorage.blob.core.windows.net/rag-images
+    AZURE_STORAGE_PUBLIC_URL: str = ""    
+
+    # model_config = SettingsConfigDict(env_file=".env")
+    model_config = SettingsConfigDict(
+        env_file=".env", 
+        extra="ignore" # Prevents crashes if extra vars are in .env
+        )
 
 class Settings(BaseSettings):
-
     DEFAULT_TIMEOUT: float = 30.0
     VERSION: str = "0.1.0"
 

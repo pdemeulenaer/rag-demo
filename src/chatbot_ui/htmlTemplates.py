@@ -52,6 +52,23 @@ css = '''
     padding-top: 2rem !important;  /* Reduce from default ~6.25rem */
 }
 
+/* Styling for the Streamlit container that holds our figures */
+.stImage {
+    border: 1px solid #475063;
+    border-radius: 5px;
+    padding: 10px;
+    background-color: #1e222b; /* Slightly darker than the bubble */
+    margin-top: -1rem; /* Pull it closer to the chat bubble */
+}
+
+/* Make the figure subheader look integrated */
+.assistant-fig-header {
+    color: #ffd700; /* Gold color for visibility */
+    font-size: 0.9rem;
+    font-weight: bold;
+    margin-top: 5px;
+}
+
 /* Optional: reduce vertical spacing between title and first element */
 h1 {
     margin-top: 0rem;

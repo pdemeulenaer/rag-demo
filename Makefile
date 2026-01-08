@@ -49,7 +49,8 @@ test:
 # quality-ci: lint test
 
 ingest:
-	uv run python -m ingestion.ingest_to_qdrant_oai
+	uv run python -m ingestion_batch.ingest_to_qdrant_oai
+# 	uv run python ./ingestion/ingest_to_qdrant_oai.py
 
 run-api:
 # 	uv run uvicorn src.api.main:app --reload --port 8000

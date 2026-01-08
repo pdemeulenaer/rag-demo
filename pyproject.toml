@@ -26,7 +26,7 @@ dependencies = [
     "langchain-groq (>=0.2.4,<0.3.0)",
     "streamlit (>=1.43.2,<2.0.0)",
     "pymupdf (>=1.25.5,<2.0.0)",
-    "qdrant-client (<1.13.3)",
+    "qdrant-client (>=0.15.0,<1.16.0)",
     "httpx (>=0.28.1,<0.29.0)",
     "pyyaml (>=6.0.2,<7.0.0)",
     "cohere >=5.12.0,<6.0.0",
@@ -41,9 +41,18 @@ dependencies = [
     "redis>=6.4.0",
     "rapidfuzz>=3.14.0",
     "python-multipart>=0.0.20",
+    "pillow>=11.3.0",
+    "azure-storage-blob>=12.27.1",
+    "tenacity>=9.1.2",
 ]
 
 [dependency-groups]
 dev = [
     "ipykernel>=6.29.5",
+    "mkdocs>=1.6.1", 
+    # "mkdocs-pdf-export-plugin>=1.1.2", 
+    "mkdocstrings[python]>=0.28.0", 
+    "mkdocs-print-site-plugin>=2.6.0",
+    "mkdocs-with-pdf>=0.9.3",
+    "mkdocs-same-dir>=0.1.3",
 ]
