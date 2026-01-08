@@ -268,7 +268,6 @@ def get_text_chunks_recursive(text) -> List[str]:
 #     return figures
 def identify_figures_on_page(page) -> List[Dict[str, Any]]:
     text_blocks = page.get_text("blocks")
-    # Regex for captions (starts with Fig/Figure)
     fig_pattern = re.compile(r"^\s*(?:Fig\.?|Figure|Scheme|Chart|Panel|Box)\s*\d*", re.IGNORECASE)
     captions = []
     
@@ -282,100 +281,71 @@ def identify_figures_on_page(page) -> List[Dict[str, Any]]:
             # Merge multi-line captions
             for j in range(i + 1, len(text_blocks)):
                 next_block = text_blocks[j]
-                # Check if next block is close (vertically) and aligned
                 if (next_block[1] - cap_rect.y1) < 20 and abs(next_block[0] - cap_rect.x0) < 50:
                     cap_rect |= pymupdf.Rect(next_block[:4])
                     cap_text += " " + next_block[4].strip().replace("\n", " ")
                 else: break
             captions.append({"rect": cap_rect, "text": cap_text})
 
-    # Pre-fetch objects
     image_info = page.get_image_info() 
     drawings = page.get_drawings()      
 
     figures = []
     for cap in captions:
         cap_rect = cap["rect"]
-        candidates = []
         
-        # 2. Define Search Zone
-        # Look above the caption (standard) AND horizontally (side-by-side)
-        # We search up to 600pts above, and 20pts below (to catch low-hanging axis labels)
-        search_rect = pymupdf.Rect(0, max(0, cap_rect.y0 - 600), page.rect.width, cap_rect.y1 + 20)
+        # 2. Dynamic Search Zone (Expanded Horizon)
+        # We find the "Barrier" (previous paragraph) as before
+        search_top = 0
+        for block in text_blocks:
+            b_rect = pymupdf.Rect(block[:4])
+            if b_rect.y1 < cap_rect.y0 - 5:
+                text = block[4].strip()
+                if fig_pattern.match(text) or len(text) > 100:
+                    if b_rect.y1 > search_top: search_top = b_rect.y1
+        
+        # EXTENDED HORIZON: 
+        # Search from the barrier down to the BOTTOM of the caption.
+        # This captures multi-panel plots even if the caption is off to the side.
+        search_rect = pymupdf.Rect(0, search_top, page.rect.width, cap_rect.y1 + 10)
+        
+        candidates = []
 
-        # 3. Find Visual Candidates (Images)
+        # 3. Find Visuals (Images & Drawings)
         for img in image_info:
             bbox = pymupdf.Rect(img["bbox"])
             if bbox.intersects(search_rect):
-                # Filter: Must be vertically close to the caption
-                # distance > 0 means image is above caption. 
-                # distance < 0 means overlap or side-by-side.
-                dist_bottom = cap_rect.y0 - bbox.y1 
-                
-                # Allow image to be up to 100pts away, or overlapping/side-by-side
-                if dist_bottom < 100: 
-                    candidates.append(bbox)
+                candidates.append(bbox)
 
-        # 4. Find Visual Candidates (Drawings/Vectors)
         for d in drawings:
             d_rect = pymupdf.Rect(d["rect"])
-            # Filter tiny noise (dots/thin lines)
+            # Ignore thin decorative lines or page borders
             if d_rect.width < 15 or d_rect.height < 15: continue
-            
             if d_rect.intersects(search_rect):
-                dist_bottom = cap_rect.y0 - d_rect.y1
-                # Vector drawings are often fragmented, so we are more permissive
-                if dist_bottom < 150: 
-                    candidates.append(d_rect)
+                candidates.append(d_rect)
 
-        figure_rect = None
-        
-        # 5. Determine Figure Boundary
+        # 4. Construct Figure
         if candidates:
-            # Union of all visual objects found near the caption
-            figure_rect = candidates[0]
+            # Union of all visual parts
+            visual_rect = candidates[0]
             for c in candidates[1:]:
-                figure_rect |= c
+                visual_rect |= c
             
-            # ✅ FIX: Do NOT force-clip at cap_rect.y0
-            # If the figure is side-by-side, figure_rect.y1 will be > cap_rect.y0. This is desired.
-            
-            # Safety: If the visual rect is massive (e.g. full page background), ignore it
-            if figure_rect.height > page.rect.height * 0.9:
-                figure_rect = None
+            # Final bounding box: All visuals + the caption itself
+            final_rect = visual_rect | cap_rect
 
-        # 6. Fallback (Text Scan) if no visual objects found
-        if not figure_rect:
-            search_bottom = cap_rect.y0
-            search_top = 0
-            for block in reversed(text_blocks):
-                block_rect = pymupdf.Rect(block[:4])
-                # Stop if we hit text above the caption
-                if block_rect.y1 < search_bottom - 20:
-                    if len(block[4].strip()) > 100: # Significant text paragraph
-                        search_top = block_rect.y1 + 5
-                        break
-            figure_rect = pymupdf.Rect(page.rect.x0, search_top, page.rect.x1, cap_rect.y0)
-
-        # 7. Final Polish & Density Check
-        if figure_rect:
-            # Add small padding
-            figure_rect = (figure_rect + (-5, -5, 5, 5)) & page.rect
+            # Padding and bounds check
+            final_rect = (final_rect + (-5, -5, 5, 5)) & page.rect
             
-            # Text Density Check (Prevents "Parasitic Text" images)
-            text_inside = page.get_text("text", clip=figure_rect).strip()
-            area = figure_rect.width * figure_rect.height
+            # 5. Density Check
+            # We check density on the visual_rect only. 
+            # Multi-panel figures have a lot of white space, so density is usually very low (< 5).
+            text_inside = page.get_text("text", clip=visual_rect).strip()
+            area = visual_rect.width * visual_rect.height
             density = (len(text_inside) / area * 1000) if area > 0 else 0
             
-            # Valid figure criteria:
-            # - Must have some size (>50x50)
-            # - Must NOT be just a wall of text (Density < 12)
-            # - OR if it was found via Visual Candidates (images/drawings), we trust it more
-            is_visual = len(candidates) > 0
-            
-            if figure_rect.width > 50 and figure_rect.height > 50:
-                if density < 12 or (is_visual and density < 20):
-                    figures.append({"rect": figure_rect, "caption": cap["text"]})
+            if final_rect.width > 50 and final_rect.height > 50 and density < 20:
+                figures.append({"rect": final_rect, "caption": cap["text"]})
             
     return figures
 
