@@ -125,23 +125,6 @@ def describe_image_with_gpt4o(base64_image: str, caption: str = "") -> str:
     )
     return response.choices[0].message.content
 
-# @retry(retry=retry_if_exception_type((RateLimitError, APIError)), wait=wait_exponential(multiplier=1, min=2, max=10), stop=stop_after_attempt(3))
-# def extract_metadata_fast(text: str) -> AdditionalMetadata:
-#     """Uses Groq (Llama-3) for ultra-fast metadata extraction."""
-    
-#     # Simple prompt for Groq
-#     system_prompt = "You are an expert librarian. Extract metadata from this scientific text into JSON."
-    
-#     return groq_client.chat.completions.create(
-#         model="llama3-70b-8192", # Much faster than GPT-4o
-#         response_model=AdditionalMetadata,
-#         messages=[
-#             {"role": "system", "content": system_prompt},
-#             {"role": "user", "content": f"Text: {text[:4000]}"}, # Limit text to fit context if needed
-#         ],
-#         temperature=0.1
-#     )
-
 # In your Config or constants
 # "openai/gpt-oss-20b" is currently one of the fastest models on Groq (approx 1000 t/s)
 METADATA_MODEL_FAST = "openai/gpt-oss-20b" # "llama-3.1-8b-instant" # produces 400 error
@@ -216,14 +199,20 @@ def get_text_chunks_recursive(text) -> List[str]:
 
 # def identify_figures_on_page(page) -> List[Dict[str, Any]]:
 #     text_blocks = page.get_text("blocks")
+#     # Pattern to catch the start of a caption
 #     fig_pattern = re.compile(r"^\s*(?:Fig\.?|Figure|Scheme|Chart|Panel|Box)\s*\d*", re.IGNORECASE)
 #     captions = []
     
 #     # 1. Find captions
 #     for i, block in enumerate(text_blocks):
-#         if fig_pattern.match(block[4]):
+#         block_text = block[4].strip()
+#         # We only treat it as a caption if the block STARTS with the Figure label
+#         # This ignores paragraphs that just mention "As seen in Fig 1..." in the middle
+#         if fig_pattern.match(block_text):
 #             cap_rect = pymupdf.Rect(block[:4])
-#             cap_text = block[4].strip().replace("\n", " ")
+#             cap_text = block_text.replace("\n", " ")
+            
+#             # Look ahead to see if the caption continues in the next block
 #             for j in range(i + 1, len(text_blocks)):
 #                 next_block = text_blocks[j]
 #                 if (next_block[1] - cap_rect.y1) < 15 and abs(next_block[0] - cap_rect.x0) < 20:
@@ -232,150 +221,164 @@ def get_text_chunks_recursive(text) -> List[str]:
 #                 else: break
 #             captions.append({"rect": cap_rect, "text": cap_text})
 
+#     # Pre-fetch page objects for speed
+#     image_info = page.get_image_info() 
+#     drawings = page.get_drawings()      
+
 #     # 2. Find figures based on captions
 #     figures = []
 #     for cap in captions:
 #         search_bottom = cap["rect"].y0
 #         search_top = 0
+        
+#         # Search upwards for the boundary of the figure
 #         for block in reversed(text_blocks):
 #             block_rect = pymupdf.Rect(block[:4])
-#             if block_rect.y1 < search_bottom - 20:
+#             if block_rect.y1 < search_bottom - 15:
+#                 # If we hit a block with significant text, that's our top boundary
 #                 if len(block[4].strip()) > 100: 
-#                     search_top = block_rect.y1 + 5
+#                     search_top = block_rect.y1 + 2
 #                     break
         
 #         figure_rect = pymupdf.Rect(page.rect.x0, search_top, page.rect.x1, cap["rect"].y1)
-#         figure_rect = (figure_rect + (-5, -5, 5, 5)) & page.rect
-#         figures.append({"rect": figure_rect, "caption": cap["text"]})
-#     return figures
-# def identify_figures_on_page(page) -> List[Dict[str, Any]]:
-#     text_blocks = page.get_text("blocks")
-#     fig_pattern = re.compile(r"^\s*(?:Fig\.?|Figure|Scheme|Chart|Panel|Box)\s*\d*", re.IGNORECASE)
-#     captions = []
-    
-#     # 1. Find captions
-#     for i, block in enumerate(text_blocks):
-#         if fig_pattern.match(block[4]):
-#             cap_rect = pymupdf.Rect(block[:4])
-#             cap_text = block[4].strip().replace("\n", " ")
-#             for j in range(i + 1, len(text_blocks)):
-#                 next_block = text_blocks[j]
-#                 if (next_block[1] - cap_rect.y1) < 15 and abs(next_block[0] - cap_rect.x0) < 20:
-#                     cap_rect |= pymupdf.Rect(next_block[:4])
-#                     cap_text += " " + next_block[4].strip().replace("\n", " ")
-#                 else: break
-#             captions.append({"rect": cap_rect, "text": cap_text})
+#         figure_rect = (figure_rect + (-2, -2, 2, 2)) & page.rect
 
-#     # Pre-fetch page objects to speed up the loop
-#     image_info = page.get_image_info() # Get metadata for all images on page
-#     drawings = page.get_drawings()      # Get all vector paths (plots/charts)
-
-#     # 2. Find figures based on captions
-#     figures = []
-#     for cap in captions:
-#         search_bottom = cap["rect"].y0
-#         search_top = 0
+#         # --- REFINED OBJECT VERIFICATION ---
         
-#         # Determine the potential figure area (searching upwards)
-#         for block in reversed(text_blocks):
-#             block_rect = pymupdf.Rect(block[:4])
-#             if block_rect.y1 < search_bottom - 20:
-#                 if len(block[4].strip()) > 150: # Increased threshold for thesis paragraphs
-#                     search_top = block_rect.y1 + 5
-#                     break
-        
-#         figure_rect = pymupdf.Rect(page.rect.x0, search_top, page.rect.x1, cap["rect"].y1)
-#         figure_rect = (figure_rect + (-5, -5, 5, 5)) & page.rect
-
-#         # --- NEW: OBJECT VERIFICATION ---
-#         # 1. Check if an actual IMAGE object exists in this rectangle
+#         # A. Bitmap Check
 #         has_image = any(figure_rect.intersects(pymupdf.Rect(img["bbox"])) for img in image_info)
         
-#         # 2. Check if VECTOR DRAWINGS exist (common for scientific plots/charts)
-#         # We only count drawings that aren't just tiny dots or lines
+#         # B. Drawing Check (Ignore tiny lines/noise)
+#         # Scientific plots often use vector drawings
 #         has_drawing = any(
 #             figure_rect.intersects(pymupdf.Rect(d["rect"])) 
-#             for d in drawings if d["rect"].width > 20 or d["rect"].height > 20
+#             for d in drawings if d["rect"].width > 40 or d["rect"].height > 40
 #         )
 
-#         # 3. Text Density Check: If it's mostly text, it's a paragraph reference, not a figure
+#         # C. Text Density Check (The Paragraph Killer)
+#         # Paragraphs are dense (~25+ chars per 1k pts). Figures are airy (< 10).
 #         text_inside = page.get_text("text", clip=figure_rect).strip()
-#         is_dense_text = len(text_inside) > 200 and (len(text_inside) / (figure_rect.width * figure_rect.height) * 1000) > 12
+#         area = figure_rect.width * figure_rect.height
+#         density = (len(text_inside) / area * 1000) if area > 0 else 0
 
-#         # Final decision: Must have a visual object AND not be a dense text block
-#         if (has_image or has_drawing) and not is_dense_text:
+#         # Logic: Must have a visual object AND not be a wall of text
+#         if (has_image or has_drawing) and density < 12:
 #             figures.append({"rect": figure_rect, "caption": cap["text"]})
             
 #     return figures
 def identify_figures_on_page(page) -> List[Dict[str, Any]]:
     text_blocks = page.get_text("blocks")
-    # Pattern to catch the start of a caption
+    # Regex for captions (starts with Fig/Figure)
     fig_pattern = re.compile(r"^\s*(?:Fig\.?|Figure|Scheme|Chart|Panel|Box)\s*\d*", re.IGNORECASE)
     captions = []
     
-    # 1. Find captions
+    # 1. Detect Caption Blocks
     for i, block in enumerate(text_blocks):
         block_text = block[4].strip()
-        # We only treat it as a caption if the block STARTS with the Figure label
-        # This ignores paragraphs that just mention "As seen in Fig 1..." in the middle
         if fig_pattern.match(block_text):
             cap_rect = pymupdf.Rect(block[:4])
             cap_text = block_text.replace("\n", " ")
             
-            # Look ahead to see if the caption continues in the next block
+            # Merge multi-line captions
             for j in range(i + 1, len(text_blocks)):
                 next_block = text_blocks[j]
-                if (next_block[1] - cap_rect.y1) < 15 and abs(next_block[0] - cap_rect.x0) < 20:
+                # Check if next block is close (vertically) and aligned
+                if (next_block[1] - cap_rect.y1) < 20 and abs(next_block[0] - cap_rect.x0) < 50:
                     cap_rect |= pymupdf.Rect(next_block[:4])
                     cap_text += " " + next_block[4].strip().replace("\n", " ")
                 else: break
             captions.append({"rect": cap_rect, "text": cap_text})
 
-    # Pre-fetch page objects for speed
+    # Pre-fetch objects
     image_info = page.get_image_info() 
     drawings = page.get_drawings()      
 
-    # 2. Find figures based on captions
     figures = []
     for cap in captions:
-        search_bottom = cap["rect"].y0
-        search_top = 0
+        cap_rect = cap["rect"]
+        candidates = []
         
-        # Search upwards for the boundary of the figure
-        for block in reversed(text_blocks):
-            block_rect = pymupdf.Rect(block[:4])
-            if block_rect.y1 < search_bottom - 15:
-                # If we hit a block with significant text, that's our top boundary
-                if len(block[4].strip()) > 100: 
-                    search_top = block_rect.y1 + 2
-                    break
-        
-        figure_rect = pymupdf.Rect(page.rect.x0, search_top, page.rect.x1, cap["rect"].y1)
-        figure_rect = (figure_rect + (-2, -2, 2, 2)) & page.rect
+        # 2. Define Search Zone
+        # Look above the caption (standard) AND horizontally (side-by-side)
+        # We search up to 600pts above, and 20pts below (to catch low-hanging axis labels)
+        search_rect = pymupdf.Rect(0, max(0, cap_rect.y0 - 600), page.rect.width, cap_rect.y1 + 20)
 
-        # --- REFINED OBJECT VERIFICATION ---
-        
-        # A. Bitmap Check
-        has_image = any(figure_rect.intersects(pymupdf.Rect(img["bbox"])) for img in image_info)
-        
-        # B. Drawing Check (Ignore tiny lines/noise)
-        # Scientific plots often use vector drawings
-        has_drawing = any(
-            figure_rect.intersects(pymupdf.Rect(d["rect"])) 
-            for d in drawings if d["rect"].width > 40 or d["rect"].height > 40
-        )
+        # 3. Find Visual Candidates (Images)
+        for img in image_info:
+            bbox = pymupdf.Rect(img["bbox"])
+            if bbox.intersects(search_rect):
+                # Filter: Must be vertically close to the caption
+                # distance > 0 means image is above caption. 
+                # distance < 0 means overlap or side-by-side.
+                dist_bottom = cap_rect.y0 - bbox.y1 
+                
+                # Allow image to be up to 100pts away, or overlapping/side-by-side
+                if dist_bottom < 100: 
+                    candidates.append(bbox)
 
-        # C. Text Density Check (The Paragraph Killer)
-        # Paragraphs are dense (~25+ chars per 1k pts). Figures are airy (< 10).
-        text_inside = page.get_text("text", clip=figure_rect).strip()
-        area = figure_rect.width * figure_rect.height
-        density = (len(text_inside) / area * 1000) if area > 0 else 0
+        # 4. Find Visual Candidates (Drawings/Vectors)
+        for d in drawings:
+            d_rect = pymupdf.Rect(d["rect"])
+            # Filter tiny noise (dots/thin lines)
+            if d_rect.width < 15 or d_rect.height < 15: continue
+            
+            if d_rect.intersects(search_rect):
+                dist_bottom = cap_rect.y0 - d_rect.y1
+                # Vector drawings are often fragmented, so we are more permissive
+                if dist_bottom < 150: 
+                    candidates.append(d_rect)
 
-        # Logic: Must have a visual object AND not be a wall of text
-        if (has_image or has_drawing) and density < 12:
-            figures.append({"rect": figure_rect, "caption": cap["text"]})
+        figure_rect = None
+        
+        # 5. Determine Figure Boundary
+        if candidates:
+            # Union of all visual objects found near the caption
+            figure_rect = candidates[0]
+            for c in candidates[1:]:
+                figure_rect |= c
+            
+            # ✅ FIX: Do NOT force-clip at cap_rect.y0
+            # If the figure is side-by-side, figure_rect.y1 will be > cap_rect.y0. This is desired.
+            
+            # Safety: If the visual rect is massive (e.g. full page background), ignore it
+            if figure_rect.height > page.rect.height * 0.9:
+                figure_rect = None
+
+        # 6. Fallback (Text Scan) if no visual objects found
+        if not figure_rect:
+            search_bottom = cap_rect.y0
+            search_top = 0
+            for block in reversed(text_blocks):
+                block_rect = pymupdf.Rect(block[:4])
+                # Stop if we hit text above the caption
+                if block_rect.y1 < search_bottom - 20:
+                    if len(block[4].strip()) > 100: # Significant text paragraph
+                        search_top = block_rect.y1 + 5
+                        break
+            figure_rect = pymupdf.Rect(page.rect.x0, search_top, page.rect.x1, cap_rect.y0)
+
+        # 7. Final Polish & Density Check
+        if figure_rect:
+            # Add small padding
+            figure_rect = (figure_rect + (-5, -5, 5, 5)) & page.rect
+            
+            # Text Density Check (Prevents "Parasitic Text" images)
+            text_inside = page.get_text("text", clip=figure_rect).strip()
+            area = figure_rect.width * figure_rect.height
+            density = (len(text_inside) / area * 1000) if area > 0 else 0
+            
+            # Valid figure criteria:
+            # - Must have some size (>50x50)
+            # - Must NOT be just a wall of text (Density < 12)
+            # - OR if it was found via Visual Candidates (images/drawings), we trust it more
+            is_visual = len(candidates) > 0
+            
+            if figure_rect.width > 50 and figure_rect.height > 50:
+                if density < 12 or (is_visual and density < 20):
+                    figures.append({"rect": figure_rect, "caption": cap["text"]})
             
     return figures
+
 
 
 
@@ -620,177 +623,6 @@ def extract_raw_content(filepath: str, file_hash: str):
 
 
 # === Main Ingestion ===
-# def ingest_documents(file_path: str, qdrant_url: str, qdrant_api_key: str, collection_name: str, verbose: bool = False):
-#     start_time = datetime.now()
-    
-#     embedding_model = OpenAIEmbeddings()
-#     qdrant_client = QdrantClient(url=qdrant_url, api_key=qdrant_api_key)
-
-#     # Setup Collection (Idempotent)
-#     if not qdrant_client.collection_exists(collection_name=collection_name):
-#         qdrant_client.create_collection(
-#             collection_name=collection_name,
-#             vectors_config=models.VectorParams(size=embedding_model.dimensions, distance=models.Distance.COSINE)
-#         )
-        
-#         # Create Indices only on creation to save time on subsequent runs
-#         for field in ["file_hash", "file_name", "type"]:
-#             qdrant_client.create_payload_index(collection_name, field, models.PayloadSchemaType.KEYWORD)
-#         qdrant_client.create_payload_index(collection_name, "text", models.PayloadSchemaType.TEXT)
-
-#     file_hash = get_file_hash(file_path)
-#     filename = os.path.basename(file_path)
-
-#     # Check existence
-#     existing = qdrant_client.scroll(
-#         collection_name=collection_name,
-#         scroll_filter={"must": [{"key": "file_hash", "match": {"value": file_hash}}]},
-#         limit=1
-#     )
-#     if existing[0]:
-#         print(f"✔ Skipping (already indexed): {filename}")
-#         return
-
-#     print(f"→ Processing: {filename}")
-    
-#     # 1. CPU Extraction
-#     t_start_extraction = time.time()
-#     text_chunks, raw_images, first_pages_text, pdf_meta = extract_raw_content(file_path, file_hash)
-#     storage = get_storage_provider()
-#     print(f"   ⏱️ [Phase 1] CPU Extraction: {time.time() - t_start_extraction:.2f}s")    
-    
-#     # 2. Parallel Processing
-#     print(f"   > Processing {len(text_chunks)} chunks & {len(raw_images)} images...")
-#     t_start_parallel = time.time()
-    
-#     doc_metadata_result = None
-#     processed_images = []
-#     summarized_chunks = [None] * len(text_chunks)
-    
-#     # We use a ThreadPool for network calls
-#     with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
-        
-#         # A. Start Metadata (Fast Groq)
-#         future_meta = executor.submit(extract_metadata_fast, first_pages_text)
-        
-#         # B. Start Text Summarization (Fast Groq)
-#         chunk_futures = {executor.submit(robust_summarize_text, txt): i for i, (txt, _) in enumerate(text_chunks)}
-#         # Use the 'instant' model to ensure text processing finishes 
-#         # long before the Vision (GPT-4o) tasks.
-#         # chunk_futures = {
-#         #     executor.submit(
-#         #         summarize_text, 
-#         #         txt, 
-#         #         provider='groq', 
-#         #         model='llama-3.1-8b-instant',
-#         #         template_name="document_chunk_summarization"
-#         #     ): i for i, (txt, _) in enumerate(text_chunks)
-#         # }
-        
-#         # C. Start Image Processing (Hybrid Upload/Analyze)
-#         # We separate Upload and Analysis so they don't block each other
-#         upload_futures = [] 
-#         vision_futures = []
-        
-#         for img in raw_images:
-#             # 1. Fire Upload Task
-#             upload_futures.append(executor.submit(storage.save_image, img["bytes"], img["filename"]))
-            
-#             # 2. Fire Vision Task
-#             b64_str = base64.b64encode(img["bytes"]).decode('utf-8')
-#             # Using partial to keep context
-#             def analyze_wrapper(b64, cap, fname, pnum):
-#                 return {
-#                     "filename": fname,
-#                     "description": describe_image_with_gpt4o(b64, cap),
-#                     "caption": cap,
-#                     "page_number": pnum
-#                 }
-#             vision_futures.append(executor.submit(analyze_wrapper, b64_str, img["caption"], img["filename"], img["page_number"]))
-
-#         # -- Collect Results --
-        
-#         # 1. Metadata
-#         try:
-#             doc_metadata_result = future_meta.result()
-#         except Exception as e:
-#             print(f"   ! Metadata failed: {e}")
-#             doc_metadata_result = AdditionalMetadata(title=pdf_meta.get("title", filename), publication_year="Unknown", summary="N/A")
-
-#         # 2. Chunks
-#         for f in as_completed(chunk_futures):
-#             try: summarized_chunks[chunk_futures[f]] = f.result()
-#             except: summarized_chunks[chunk_futures[f]] = ""
-
-#         # 🔥 NEW: Start Embedding Text Chunks immediately while Vision is still running
-#         # This overlaps the ~2.5s embedding time with the remaining Vision time.
-#         base_info = f"Title: {doc_metadata_result.title}\nAuthors: {', '.join(doc_metadata_result.authors)}\n"
-#         embed_inputs = []
-#         points = []
-
-#         for (txt, pnum), summary in zip(text_chunks, summarized_chunks):
-#             content = f"{base_info}Summary: {summary}\nContent: {txt}"
-#             embed_inputs.append(content)
-#             points.append({"payload": {"type": "chunk", "text": content, "page_number": str(pnum), "summary": summary, "image_path": None}})
-        
-#         # Add Doc Summary to initial batch
-#         final_sum = f"{base_info}Full Summary: {doc_metadata_result.summary}"
-#         embed_inputs.append(final_sum)
-#         points.append({"payload": {"type": "summary", "text": final_sum, "page_number": "0", "summary": "FULL_DOC", "image_path": None}})
-
-#         # Fire text embedding (Non-blocking if we use executor, but even sequential here 'hides' vision time)
-#         text_vectors = embedding_model.embed_documents(embed_inputs)
-
-#         # 3. Images (Vision) - Now we wait for the long pole
-#         for f in as_completed(vision_futures):
-#             try: processed_images.append(f.result())
-#             except Exception as e: print(f"   ! Vision failed: {e}")
-
-#         wait(upload_futures) 
-
-#         print(f"   ⏱️ [Phase 2] Parallel API calls (Vision/Meta/Summary): {time.time() - t_start_parallel:.2f}s")
-
-#         # 3. Batch Embedding (Now only for images)
-#         t_start_embed = time.time()
-#         print("   > Finalizing Embeddings...")
-        
-#         image_embed_inputs = []
-#         image_points = []
-#         for img in processed_images:
-#             content = f"{base_info}Figure: {img['caption']}\nDescription: {img['description']}"
-#             image_embed_inputs.append(content)
-#             image_points.append({"payload": {"type": "figure", "text": content, "page_number": str(img['page_number']), "summary": "FIGURE", "image_path": img['filename']}})
-
-#         # Final small embedding call for images
-#         image_vectors = embedding_model.embed_documents(image_embed_inputs) if image_embed_inputs else []
-        
-#         # Combine everything
-#         all_vectors = text_vectors + image_vectors
-#         all_points_metadata = points + image_points
-        
-#         # Construct Qdrant Points
-#         qdrant_points = []
-#         common_payload = {
-#             "file_name": filename, "file_hash": file_hash, "file_title": doc_metadata_result.title,
-#             "authors": doc_metadata_result.authors, "keywords": doc_metadata_result.keywords, 
-#             "year": doc_metadata_result.publication_year, "creation_date": datetime.now().isoformat()
-#         }
-
-#         for i, pt in enumerate(all_points_metadata):
-#             qdrant_points.append(PointStruct(
-#                 id=str(uuid.uuid4()),
-#                 vector=all_vectors[i],
-#                 payload={**common_payload, **pt["payload"]}
-#             ))
-
-#         qdrant_client.upsert(collection_name=collection_name, points=qdrant_points)
-#         print(f"   ⏱️ [Phase 3] Embedding & Qdrant Upsert: {time.time() - t_start_embed:.2f}s")
-
-
-    # print(f"✅ Indexed {filename} in {(datetime.now() - start_time).total_seconds():.2f}s")
-
-
-
 def ingest_documents(file_path: str, qdrant_url: str, qdrant_api_key: str, collection_name: str, verbose: bool = False):
     start_time = datetime.now()
     
