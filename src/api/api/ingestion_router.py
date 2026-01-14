@@ -73,7 +73,6 @@ async def ingest_files(files: List[UploadFile] = File(...)):
     return {"message": f"Successfully ingested {ingested_count} document(s)."}
 
 
-
 @ingestion_router.get("/documents")
 async def get_all_document_titles():
     """

@@ -1,6 +1,7 @@
 # poller.py
 
 import time, json, redis, logging
+import openai
 from openai import OpenAI
 from qdrant_client import QdrantClient
 from src.api.core.config import config
@@ -61,10 +62,10 @@ def main_loop():
                         r.srem("pending_openai_batches", b_id) # Remove failed tasks
                 
                 except openai.NotFoundError:
-                    logger.warning(f"Batch {b_id} not found on OpenAI. Removing from Redis.")
+                    logger.error(f"⚠️ Batch {b_id} not found on OpenAI. Removing from queue.")
                     r.srem("pending_openai_batches", b_id)
                 except Exception as e:
-                    logger.error(f"Error checking batch {b_id}: {e}")
+                    logger.error(f"Unexpected error: {e}")
 
             time.sleep(30) # Wait before next poll
             
