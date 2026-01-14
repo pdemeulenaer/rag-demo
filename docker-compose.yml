@@ -44,8 +44,42 @@ services:
       - REDIS_PORT=6379     
       # - QDRANT_URL=http://qdrant:6333   
     depends_on:
-      - redis
+      redis:
+        condition: service_healthy
       # - qdrant
+    # (Optional) You can add a healthcheck for FastAPI too
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3      
+
+  # Ingestion worker
+  ingestion-worker:
+    build:
+      context: .
+      dockerfile: Dockerfile.fastapi # Reuse the same environment
+    image: pdemeulenaer/rag-backend:0.2.1
+    command: python -m src.api.ingestion.poller # Override start command
+    env_file:
+      - .env
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    volumes:
+      - ./src/api:/app/src/api
+    depends_on:
+      redis:
+        condition: service_healthy
+      api:
+        condition: service_healthy
+    restart: unless-stopped     
+    # The worker uses our custom script for its own health check
+    healthcheck:
+      test: ["CMD", "python", "-m", "src.api.healthcheck"]
+      interval: 30s
+      timeout: 10s
+      retries: 3     
 
   # Redis database service
   redis:
@@ -54,6 +88,13 @@ services:
       - "6379:6379"
     volumes:
       - redis_data:/data # Use a named volume for persistent data
+    restart: unless-stopped 
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5      
 
 volumes:
   redis_data: {}  
+  # qdrant_data: {}  

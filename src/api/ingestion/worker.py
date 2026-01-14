@@ -1,3 +1,5 @@
+# src/api/ingestion/worker.py
+
 import os
 import json
 import logging
@@ -5,6 +7,8 @@ import uuid
 from concurrent.futures import ProcessPoolExecutor
 from datetime import datetime
 from openai import OpenAI
+import redis
+
 from src.api.core.config import config
 from src.api.core.database import save_batch_to_sqlite # Your Phase 1 DB
 from src.api.utils.storage_provider import get_storage_provider, AzureStorageProvider
@@ -12,7 +16,10 @@ from src.api.ingestion.ingest_documents import extract_pdf_data # Your existing 
 
 logger = logging.getLogger(__name__)
 client = OpenAI(api_key=config.OPENAI_API_KEY)
-BATCH_THRESHOLD = 5
+
+
+# Initialize Redis
+r = redis.Redis(host=config.REDIS_HOST, port=config.REDIS_PORT, db=config.REDIS_DB)
 
 def start_smart_ingestion(file_paths: list[str]):
     """
@@ -29,7 +36,7 @@ def start_smart_ingestion(file_paths: list[str]):
         all_extracted_data.append(doc_data)
 
     # 2. DECISION PHASE: Batch vs Real-time
-    if len(file_paths) >= BATCH_THRESHOLD:
+    if len(file_paths) >= config.INGESTION_BATCH_THRESHOLD:
         logger.info(f"📦 Batch Ingestion triggered for {len(file_paths)} files")
         return handle_batch_flow(all_extracted_data)
     else:
@@ -53,20 +60,19 @@ def handle_batch_flow(all_data):
         return handle_realtime_flow(all_data)
 
     batch_tasks = []
-    image_metadata_map = []
+    image_metadata_map = {} # Changed to dict for faster O(1) lookup later
 
     for doc in all_data:
         for img in doc['images']:
             custom_id = f"task_{uuid.uuid4()}"
             
-            # 1. Upload to Azure (using your existing provider)
+            # 1. Upload to Azure
             with open(img['local_path'], "rb") as f:
                 provider.save_image(f.read(), img['filename'])
             
-            # 2. Get 24-hour SAS URL for OpenAI
             sas_url = provider.generate_signed_url(img['filename'], expiry_hours=24)
 
-            # 3. Create JSONL request object
+            # 2. JSONL Object
             request_item = {
                 "custom_id": custom_id,
                 "method": "POST",
@@ -82,29 +88,33 @@ def handle_batch_flow(all_data):
             }
             batch_tasks.append(json.dumps(request_item))
             
-            # Keep track of which ID belongs to which Qdrant point
-            image_metadata_map.append({
-                "custom_id": custom_id,
-                "qdrant_id": img['qdrant_id'],
-                "filename": img['filename']
-            })
+            # Map custom_id -> qdrant_id for the poller
+            image_metadata_map[custom_id] = img['qdrant_id']
 
-    # 4. SUBMIT TO OPENAI
-    # Save local .jsonl
-    batch_filename = f"batch_{datetime.now().strftime('%Y%m%d_%H%M%S')}.jsonl"
-    with open(batch_filename, "w") as f:
-        f.write("\n".join(batch_tasks))
+    # 3. SUBMIT TO OPENAI
+    batch_filename = f"batch_{uuid.uuid4()}.jsonl"
+    try:
+        with open(batch_filename, "w") as f:
+            f.write("\n".join(batch_tasks))
 
-    # Upload & Create Batch
-    file_batch = client.files.create(file=open(batch_filename, "rb"), purpose="batch")
-    openai_batch = client.batches.create(
-        input_file_id=file_batch.id,
-        endpoint="/v1/chat/completions",
-        completion_window="24h"
-    )
+        file_batch = client.files.create(file=open(batch_filename, "rb"), purpose="batch")
+        openai_batch = client.batches.create(
+            input_file_id=file_batch.id,
+            endpoint="/v1/chat/completions",
+            completion_window="24h"
+        )
 
-    # 5. PERSIST STATE
-    # Save the batch ID and metadata map to SQLite so the Poller can find it
-    save_batch_to_sqlite(openai_batch.id, image_metadata_map)
-    
-    logger.info(f"Batch {openai_batch.id} submitted successfully.")
+        # 4. PERSIST TO REDIS (Atomic Pipeline)
+        with r.pipeline() as pipe:
+            # Track the batch itself
+            pipe.sadd("pending_openai_batches", openai_batch.id)
+            # Store metadata (mapping)
+            pipe.set(f"metadata:{openai_batch.id}", json.dumps(image_metadata_map))
+            pipe.execute()
+        
+        logger.info(f"🚀 Batch {openai_batch.id} submitted.")
+
+    finally:
+        # Cleanup local file to prevent storage bloat in Docker
+        if os.path.exists(batch_filename):
+            os.remove(batch_filename)

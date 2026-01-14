@@ -1,0 +1,2 @@
+{"id": "batch_req_1", "custom_id": "task_local_test_001", "response": {"status_code": 200, "body": {"choices": [{"message": {"content": "This is a mock description of a technical chart showing a linear growth trend over five years."}}]}}}
+{"id": "batch_req_2", "custom_id": "task_local_test_002", "response": {"status_code": 200, "body": {"choices": [{"message": {"content": "This is a mock description of a architecture diagram illustrating a three-tier cloud system."}}]}}}

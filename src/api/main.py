@@ -11,6 +11,7 @@ from src.api.core.config import settings
 from src.api.api.middleware import RequestIDMiddleware
 from src.api.api.rag_router import rag_router
 from src.api.api.ingestion_router import ingestion_router
+from src.api.api.system_router import router as system_router
 from src.api.core.config import config
 
 # This must be the first thing your app does!
@@ -55,7 +56,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Include both routers in the main application instance
+# Include all routers in the main application instance
+app.include_router(system_router, tags=["system"])
 app.include_router(rag_router, tags=["rag"])
 app.include_router(ingestion_router, tags=["ingestion"])
 

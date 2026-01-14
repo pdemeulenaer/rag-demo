@@ -1,3 +1,5 @@
+# Dockerfile.fastapi
+
 # ===========================
 #  🚀 Stage 1: Builder
 # ===========================
@@ -47,6 +49,7 @@ ENV PYTHONPATH=/app
 
 # # Install only required system dependencies
 RUN apt-get update && apt-get install -y \
+    curl \
     libmagic1 \
     # libgl1-mesa-glx \
     libgl1 \
