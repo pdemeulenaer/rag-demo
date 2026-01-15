@@ -37,7 +37,8 @@ services:
       - .env
     restart: unless-stopped
     volumes:
-      - ./src/api:/app/src/api
+      - ./src/api:/app/src/api 
+      - shared_uploads:/app/temp_uploads  # for sharing PDFs between API and worker   
     environment:
       - ALLOW_ORIGINS=*  
       - REDIS_HOST=redis  # Use the service name for Redis
@@ -68,6 +69,7 @@ services:
       - REDIS_PORT=6379
     volumes:
       - ./src/api:/app/src/api
+      - shared_uploads:/app/temp_uploads  # for sharing PDFs between API and worker         
     depends_on:
       redis:
         condition: service_healthy
@@ -97,4 +99,5 @@ services:
 
 volumes:
   redis_data: {}  
+  shared_uploads: {}  # For sharing PDFs between API and worker
   # qdrant_data: {}  
