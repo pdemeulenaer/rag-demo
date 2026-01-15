@@ -119,22 +119,31 @@ def trigger_batch_ingestion(file_paths: list[str]):
                 # We send images as Base64 strings inside the Batch JSONL
                 b64_image = base64.b64encode(img["bytes"]).decode('utf-8')
                 
+                prompt = (
+                    "You are a scientific research assistant. Analyze this figure.\n"
+                    f"Caption: \"{img['caption']}\"\n\n"
+                    "1. Identify figure type.\n"
+                    "2. Describe data trends/relationships.\n"
+                    "3. Summarize key insight.\n"
+                    "Provide a dense, searchable description."
+                )
+
                 task = {
                     "custom_id": custom_req_id,
                     "method": "POST",
                     "url": "/v1/chat/completions",
                     "body": {
-                        "model": "gpt-4o-mini",
+                        "model": "gpt-4.1-mini", #"gpt-4o-mini", #"gpt-4o", 
                         "messages": [
                             {
                                 "role": "user",
                                 "content": [
-                                    {"type": "text", "text": f"Describe this figure from a technical paper. Caption: {img['caption']}"},
+                                    {"type": "text", "text": prompt},
                                     {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{b64_image}"}}
                                 ]
                             }
                         ],
-                        "max_tokens": 400
+                        "max_tokens": 300
                     }
                 }
                 batch_tasks.append(json.dumps(task))
