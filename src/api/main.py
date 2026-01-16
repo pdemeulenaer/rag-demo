@@ -10,7 +10,7 @@ from contextlib import asynccontextmanager
 from src.api.core.config import settings
 from src.api.api.middleware import RequestIDMiddleware
 from src.api.api.rag_router import rag_router
-from src.api.api.ingestion_router import ingestion_router
+from src.api.api.ingestion_router import router as ingestion_router
 from src.api.api.system_router import router as system_router
 from src.api.core.config import config
 
