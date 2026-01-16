@@ -16,6 +16,8 @@ import time, json, redis, logging
 import openai
 from openai import OpenAI
 from qdrant_client import QdrantClient
+import uuid
+
 from src.api.core.config import config
 from src.api.ingestion.ingest_documents import OpenAIEmbeddings
 
