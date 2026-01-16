@@ -38,7 +38,8 @@ services:
     restart: unless-stopped
     volumes:
       - ./src/api:/app/src/api 
-      - shared_uploads:/app/temp_uploads  # for sharing PDFs between API and worker   
+      # - shared_uploads:/app/temp_uploads  # for sharing PDFs between API and worker   
+      - ./temp_uploads:/app/temp_uploads  # Change to a local folder mapping  
     environment:
       - ALLOW_ORIGINS=*  
       - REDIS_HOST=redis  # Use the service name for Redis
@@ -69,7 +70,8 @@ services:
       - REDIS_PORT=6379
     volumes:
       - ./src/api:/app/src/api
-      - shared_uploads:/app/temp_uploads  # for sharing PDFs between API and worker         
+      # - shared_uploads:/app/temp_uploads  # for sharing PDFs between API and worker      
+      - ./temp_uploads:/app/temp_uploads  # Change to a local folder mapping   
     depends_on:
       redis:
         condition: service_healthy
