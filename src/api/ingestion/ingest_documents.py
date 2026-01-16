@@ -102,29 +102,66 @@ class AdditionalMetadata(BaseModel):
 
 @retry(retry=retry_if_exception_type((RateLimitError, APIError)), wait=wait_exponential(multiplier=1, min=2, max=20), stop=stop_after_attempt(5))
 def describe_image_with_gpt4o(base64_image: str, caption: str = "") -> str:
-    """Sends image to GPT-4o for description."""
-    prompt = (
-        "You are a scientific research assistant. Analyze this figure.\n"
-        f"Caption: \"{caption}\"\n\n"
-        "1. Identify figure type.\n"
-        "2. Describe data trends/relationships.\n"
-        "3. Summarize key insight.\n"
-        "Provide a dense, searchable description."
+    """Sends image to LLM for description using YAML templates."""
+
+    # 1. Load the template
+    template = prompt_template_config(
+        config.IMAGE_DESCRIPTION_PROMPT_TEMPLATE_PATH, 
+        "image_description_generation"
     )
-    # Use gpt-4o-mini if cost/speed is a priority, otherwise gpt-4o
+
+    # 2. Render the prompts with variables
+    system_prompt = template["system"].render()
+    user_prompt = template["user"].render(caption=caption)    
+
+    # 3. Format messages for OpenAI
+    # Note: Vision models accept text + image_url objects in the USER message
+    messages = [
+        {"role": "system", "content": system_prompt},
+        {
+            "role": "user",
+            "content": [
+                {"type": "text", "text": user_prompt},
+                {
+                    "type": "image_url", 
+                    "image_url": {
+                        "url": f"data:image/jpeg;base64,{base64_image}", 
+                        "detail": "high"
+                    }
+                },
+            ],
+        }
+    ]
+
+    # 4. API Call
     response = client.chat.completions.create(
-        model="gpt-4.1-mini", #"gpt-4o-mini", #"gpt-4o", 
-        messages=[
-            {
-                "role": "user",
-                "content": [
-                    {"type": "text", "text": prompt},
-                    {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{base64_image}", "detail": "high"}},
-                ],
-            }
-        ],
+        model=config.IMAGE_DESCRIPTION_MODEL,
+        messages=messages,
         max_tokens=300
-    )
+    )    
+
+    # prompt = (
+    #     "You are a scientific research assistant. Analyze this figure.\n"
+    #     f"Caption: \"{caption}\"\n\n"
+    #     "1. Identify figure type.\n"
+    #     "2. Describe data trends/relationships.\n"
+    #     "3. Summarize key insight.\n"
+    #     "Provide a dense, searchable description."
+    # )
+    # # Use gpt-4o-mini if cost/speed is a priority, otherwise gpt-4o
+    # response = client.chat.completions.create(
+    #     model="gpt-4.1-mini", #"gpt-4o-mini", #"gpt-4o", 
+    #     messages=[
+    #         {
+    #             "role": "user",
+    #             "content": [
+    #                 {"type": "text", "text": prompt},
+    #                 {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{base64_image}", "detail": "high"}},
+    #             ],
+    #         }
+    #     ],
+    #     max_tokens=300
+    # )
     return response.choices[0].message.content
 
 # In your Config or constants

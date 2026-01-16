@@ -12,6 +12,7 @@ from qdrant_client import QdrantClient, models
 
 from src.api.core.config import config
 from src.api.core.storage import get_storage_provider
+from src.api.rag.utils.utils import prompt_template_config
 
 # [IMPORT HARMONIZATION]
 # Reusing the robust extraction and processing logic from your existing script
@@ -37,7 +38,7 @@ def start_smart_ingestion(file_paths: list[str]):
     Decides between Real-time (Sync) and Batch (Async) based on volume.
     """
     count = len(file_paths)
-    threshold = config.BATCH_THRESHOLD
+    threshold = config.INGESTION_BATCH_THRESHOLD
     
     logger.info(f"🧠 Smart Ingestion: Analyzing {count} files (Threshold: {threshold})")
 
@@ -119,26 +120,28 @@ def trigger_batch_ingestion(file_paths: list[str]):
                 # We send images as Base64 strings inside the Batch JSONL
                 b64_image = base64.b64encode(img["bytes"]).decode('utf-8')
                 
-                prompt = (
-                    "You are a scientific research assistant. Analyze this figure.\n"
-                    f"Caption: \"{img['caption']}\"\n\n"
-                    "1. Identify figure type.\n"
-                    "2. Describe data trends/relationships.\n"
-                    "3. Summarize key insight.\n"
-                    "Provide a dense, searchable description."
+                # 1. Load the template
+                template = prompt_template_config(
+                    config.IMAGE_DESCRIPTION_PROMPT_TEMPLATE_PATH, 
+                    "image_description_generation"
                 )
+
+                # 2. Render the prompts with variables
+                system_prompt = template["system"].render()
+                user_prompt = template["user"].render(caption=img['caption'])   
 
                 task = {
                     "custom_id": custom_req_id,
                     "method": "POST",
                     "url": "/v1/chat/completions",
                     "body": {
-                        "model": "gpt-4.1-mini", #"gpt-4o-mini", #"gpt-4o", 
+                        "model": config.IMAGE_DESCRIPTION_MODEL,
                         "messages": [
+                            {"role": "system", "content": system_prompt},
                             {
                                 "role": "user",
                                 "content": [
-                                    {"type": "text", "text": prompt},
+                                    {"type": "text", "text": user_prompt},
                                     {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{b64_image}"}}
                                 ]
                             }
@@ -146,6 +149,7 @@ def trigger_batch_ingestion(file_paths: list[str]):
                         "max_tokens": 300
                     }
                 }
+
                 batch_tasks.append(json.dumps(task))
                 
                 # Save metadata for the Poller to re-link results to Qdrant
