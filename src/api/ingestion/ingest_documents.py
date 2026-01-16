@@ -632,12 +632,12 @@ def extract_raw_content(filepath: str, file_hash: str):
 
 
 # === Main Ingestion ===
-def ingest_documents(file_path: str, qdrant_url: str, qdrant_api_key: str, collection_name: str, verbose: bool = False):
+def ingest_documents(file_path: str, verbose: bool = False):
     start_time = datetime.now()
     
     # --- Setup ---
     embedding_model = OpenAIEmbeddings()
-    qdrant_client = QdrantClient(url=qdrant_url, api_key=qdrant_api_key)
+    qdrant_client = QdrantClient(url=config.QDRANT_URL, api_key=config.QDRANT_API_KEY)
     
     # 1. Rate Limiter: Limit concurrent Groq/OpenAI calls to 15 to prevent 429 Errors
     api_semaphore = Semaphore(15)
@@ -648,20 +648,20 @@ def ingest_documents(file_path: str, qdrant_url: str, qdrant_api_key: str, colle
             return summarize_text(text, provider='groq', model='llama-3.1-8b-instant', template_name="document_chunk_summarization")
 
     # --- Collection Check (Idempotent) ---
-    if not qdrant_client.collection_exists(collection_name=collection_name):
+    if not qdrant_client.collection_exists(collection_name=config.QDRANT_COLLECTION_NAME):
         qdrant_client.create_collection(
-            collection_name=collection_name,
+            collection_name=config.QDRANT_COLLECTION_NAME,
             vectors_config=models.VectorParams(size=embedding_model.dimensions, distance=models.Distance.COSINE)
         )
         for field in ["file_hash", "file_name", "type"]:
-            qdrant_client.create_payload_index(collection_name, field, models.PayloadSchemaType.KEYWORD)
-        qdrant_client.create_payload_index(collection_name, "text", models.PayloadSchemaType.TEXT)
+            qdrant_client.create_payload_index(config.QDRANT_COLLECTION_NAME, field, models.PayloadSchemaType.KEYWORD)
+        qdrant_client.create_payload_index(config.QDRANT_COLLECTION_NAME, "text", models.PayloadSchemaType.TEXT)
 
     file_hash = get_file_hash(file_path)
     filename = os.path.basename(file_path)
 
     existing = qdrant_client.scroll(
-        collection_name=collection_name,
+        collection_name=config.QDRANT_COLLECTION_NAME,
         scroll_filter={"must": [{"key": "file_hash", "match": {"value": file_hash}}]},
         limit=1
     )
@@ -790,7 +790,7 @@ def ingest_documents(file_path: str, qdrant_url: str, qdrant_api_key: str, colle
                 payload={**common_payload, **meta["payload"]}
             ))
         try:
-            qdrant_client.upsert(collection_name=collection_name, points=points_batch)
+            qdrant_client.upsert(collection_name=config.QDRANT_COLLECTION_NAME, points=points_batch)
         except Exception as e:
             print(f"     ! Batch failed: {e}")
 

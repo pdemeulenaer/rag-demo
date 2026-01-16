@@ -59,10 +59,7 @@ async def ingest_documents_endpoint(
         # We pass the paths and configuration needed for the worker to take over
         background_tasks.add_task(
             start_smart_ingestion,
-            file_paths=saved_file_paths,
-            qdrant_url=config.QDRANT_URL,
-            qdrant_api_key=config.QDRANT_API_KEY,
-            collection_name=config.QDRANT_COLLECTION_NAME
+            file_paths=saved_file_paths
         )
 
         return {

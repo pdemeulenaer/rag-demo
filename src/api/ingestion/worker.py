@@ -48,12 +48,7 @@ def start_smart_ingestion(file_paths: list[str]):
         for path in file_paths:
             try:
                 # Calls your original script's main function
-                ingest_documents(
-                    file_path=path, 
-                    qdrant_url=config.QDRANT_URL, 
-                    qdrant_api_key=config.QDRANT_API_KEY, 
-                    collection_name=config.QDRANT_COLLECTION_NAME
-                )
+                ingest_documents(file_path=path, verbose=False)
             except Exception as e:
                 logger.error(f"Failed to ingest {path}: {e}")
     else:
