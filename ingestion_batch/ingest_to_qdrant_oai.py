@@ -17,7 +17,7 @@ URLS_FILE = os.path.abspath(os.path.join(os.path.dirname(__file__), "../ingestio
 
 
 # === Ingestion Function ===
-def ingest_folder_to_qdrant(folder_path: str, qdrant_url: str, qdrant_api_key: str, collection_name: str):
+def ingest_folder_to_qdrant(folder_path: str): #, qdrant_url: str, qdrant_api_key: str, collection_name: str):
     """
     Wrapper function to iterate over a local folder and ingest each PDF.
     """
@@ -32,9 +32,9 @@ def ingest_folder_to_qdrant(folder_path: str, qdrant_url: str, qdrant_api_key: s
                 # Call the single-document ingestion function, passing config
                 ingest_documents(
                     file_path=filepath, 
-                    qdrant_url=qdrant_url, 
-                    qdrant_api_key=qdrant_api_key, 
-                    collection_name=collection_name, 
+                    # qdrant_url=qdrant_url, 
+                    # qdrant_api_key=qdrant_api_key, 
+                    # collection_name=collection_name, 
                     verbose=True
                 )
             # except IngestionError as e:
@@ -44,7 +44,7 @@ def ingest_folder_to_qdrant(folder_path: str, qdrant_url: str, qdrant_api_key: s
 
 
 # === Ingestion Function for URLs ===
-def ingest_urls_to_qdrant(urls_file_path: str, qdrant_url: str, qdrant_api_key: str, collection_name: str):
+def ingest_urls_to_qdrant(urls_file_path: str): #, qdrant_url: str, qdrant_api_key: str, collection_name: str):
     """
     Reads a file containing a list of PDF URLs, downloads each PDF to a
     temporary file, and then ingests it using ingest_documents.
@@ -92,9 +92,9 @@ def ingest_urls_to_qdrant(urls_file_path: str, qdrant_url: str, qdrant_api_key: 
             # We assume ingest_documents is available and takes config as its fifth argument
             ingest_documents(
                 file_path=temp_filepath, 
-                qdrant_url=qdrant_url, 
-                qdrant_api_key=qdrant_api_key, 
-                collection_name=collection_name, 
+                # qdrant_url=qdrant_url, 
+                # qdrant_api_key=qdrant_api_key, 
+                # collection_name=collection_name, 
                 verbose=True
             )
         # except IngestionError as e:
@@ -116,9 +116,9 @@ if __name__ == "__main__":
     print("--- Starting Folder Ingestion ---")
     ingest_folder_to_qdrant(
         folder_path=PDF_FOLDER,
-        qdrant_url=config.QDRANT_URL,
-        qdrant_api_key=config.QDRANT_API_KEY,
-        collection_name=COLLECTION_NAME,
+        # qdrant_url=config.QDRANT_URL,
+        # qdrant_api_key=config.QDRANT_API_KEY,
+        # collection_name=COLLECTION_NAME,
     )   
 
     # # Example 2: Ingest from list of URLs
