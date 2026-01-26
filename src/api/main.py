@@ -31,6 +31,10 @@ client = AsyncClient(timeout=settings.DEFAULT_TIMEOUT)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    """
+    Middleware to handle the lifecycle of the FastAPI app.
+    It is called when the application starts up and shuts down.
+    """    
     logger.info("Application starting up...")
 
     yield
