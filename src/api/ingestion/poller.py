@@ -1,4 +1,4 @@
-# poller.py
+# src/api/ingestion/poller.py
 
 """
 DESCRIPTION OF POLLER
@@ -11,15 +11,17 @@ Embed	    Call Embedding API	        To make the description searchable by "mean
 Upsert	    Write to Qdrant	            To make the data available for the Chatbot.
 """
 
-
 import time, json, redis, logging
 import openai
 from openai import OpenAI
 from qdrant_client import QdrantClient
 import uuid
+from uuid import uuid5, NAMESPACE_URL
+from qdrant_client.http import models
 
 from src.api.core.config import config
 from src.api.ingestion.ingest_documents import OpenAIEmbeddings
+
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("poller")
@@ -66,18 +68,41 @@ def process_completed_batch(batch_id, output_file_id):
             vector = embedding_model.embed_query(full_content)
             
             # 5. Upsert as a NEW point in Qdrant
-            # (In Batch mode, we add the figures after the text is already there)
-            from qdrant_client.http import models
+            # (In Batch mode, we add the figures after the text is already there)          
             
+            # q_client.upsert(
+            #     collection_name=config.QDRANT_COLLECTION_NAME,
+            #     points=[
+            #         models.PointStruct(
+            #             id=str(uuid.uuid4()),
+            #             vector=vector,
+            #             payload={
+            #                 "file_name": img_info["file_name"],
+            #                 "file_hash": img_info["file_hash"],
+            #                 "text": full_content,
+            #                 "type": "figure",
+            #                 "page": img_info["page_number"],
+            #                 "image_path": img_info["image_filename"]
+            #             }
+            #         )
+            #     ]
+            # )
+
+            # Generate a deterministic ID based on the custom_id from OpenAI 
+            # (which we created in worker.py)
+            point_id = str(uuid5(NAMESPACE_URL, f"{img_info['file_hash']}_fig_{custom_id}"))
+
             q_client.upsert(
                 collection_name=config.QDRANT_COLLECTION_NAME,
                 points=[
                     models.PointStruct(
-                        id=str(uuid.uuid4()),
+                        id=point_id,  # Use deterministic ID here
                         vector=vector,
                         payload={
                             "file_name": img_info["file_name"],
                             "file_hash": img_info["file_hash"],
+                            "file_title": img_info.get("title"), # Added for consistency
+                            "authors": img_info.get("authors"),  # Added for consistency
                             "text": full_content,
                             "type": "figure",
                             "page": img_info["page_number"],
@@ -86,6 +111,7 @@ def process_completed_batch(batch_id, output_file_id):
                     )
                 ]
             )
+
             logger.info(f"✅ Upserted figure description for {img_info['file_name']} (Page {img_info['page_number']})")
     
     # 6. Cleanup Redis

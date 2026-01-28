@@ -1,5 +1,4 @@
-
-#src/api/ingestion/ingest_documents.py
+# src/api/ingestion/ingest_documents.py
 import os
 import hashlib
 import uuid
@@ -142,28 +141,6 @@ def describe_image_with_gpt4o(base64_image: str, caption: str = "") -> str:
         max_tokens=300
     )    
 
-    # prompt = (
-    #     "You are a scientific research assistant. Analyze this figure.\n"
-    #     f"Caption: \"{caption}\"\n\n"
-    #     "1. Identify figure type.\n"
-    #     "2. Describe data trends/relationships.\n"
-    #     "3. Summarize key insight.\n"
-    #     "Provide a dense, searchable description."
-    # )
-    # # Use gpt-4o-mini if cost/speed is a priority, otherwise gpt-4o
-    # response = client.chat.completions.create(
-    #     model="gpt-4.1-mini", #"gpt-4o-mini", #"gpt-4o", 
-    #     messages=[
-    #         {
-    #             "role": "user",
-    #             "content": [
-    #                 {"type": "text", "text": prompt},
-    #                 {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{base64_image}", "detail": "high"}},
-    #             ],
-    #         }
-    #     ],
-    #     max_tokens=300
-    # )
     return response.choices[0].message.content
 
 # In your Config or constants
