@@ -31,6 +31,8 @@ from src.api.core.config import config
 from src.api.rag.summarize import summarize_text
 from src.api.rag.utils.utils import prompt_template_config
 from src.api.core.storage import get_storage_provider
+from src.api.ingestion.common import build_point_payload
+
 
 # === Config ===
 # Limit concurrent calls to Groq/OpenAI to 15 (safe for most tiers)
@@ -732,12 +734,42 @@ def ingest_documents(file_path: str, verbose: bool = False):
         for (txt, pnum), summary in zip(text_chunks, summarized_chunks):
             content = f"{base_info}Summary: {summary}\nContent: {txt}"
             embed_inputs.append(content)
-            points_metadata.append({"payload": {"type": "chunk", "text": content, "page_number": str(pnum), "summary": summary, "image_path": None}})
+            # points_metadata.append({"payload": {"type": "chunk", "text": content, "page_number": str(pnum), "summary": summary, "image_path": None}})
+
+            payload = build_point_payload(
+                file_name=filename,
+                file_hash=file_hash,
+                doc_meta=doc_metadata_result,
+                text=content,
+                point_type="chunk",
+                img_page=pnum,                 # page number of this chunk
+            )
+
+            # The helper does not know about the per‑chunk summary, so we add it manually.
+            payload["summary"] = summary
+            payload["page_number"] = str(pnum)   # keep the legacy key that the rest of the code expects
+
+            points_metadata.append({"payload": payload})           
         
         # Add Doc Summary
         final_sum = f"{base_info}Full Summary: {doc_metadata_result.summary}"
         embed_inputs.append(final_sum)
-        points_metadata.append({"payload": {"type": "summary", "text": final_sum, "page_number": "0", "summary": "FULL_DOC", "image_path": None}})
+        # points_metadata.append({"payload": {"type": "summary", "text": final_sum, "page_number": "0", "summary": "FULL_DOC", "image_path": None}})
+
+        summary_payload = build_point_payload(
+            file_name=filename,
+            file_hash=file_hash,
+            doc_meta=doc_metadata_result,
+            text=final_sum,
+            point_type="summary",
+        )
+
+        # Keep the legacy keys that downstream code may read.
+        summary_payload["page_number"] = "0"
+        summary_payload["summary"] = "FULL_DOC"
+        summary_payload["image_path"] = None
+
+        points_metadata.append({"payload": summary_payload})        
 
         # Fire Text Embedding (Hides Latency)
         text_vectors = embedding_model.embed_documents(embed_inputs) if embed_inputs else []
@@ -760,7 +792,23 @@ def ingest_documents(file_path: str, verbose: bool = False):
     for img in processed_images:
         content = f"{base_info}Figure: {img['caption']}\nDescription: {img['description']}"
         image_embed_inputs.append(content)
-        image_points_metadata.append({"payload": {"type": "figure", "text": content, "page_number": str(img['page_number']), "summary": "FIGURE", "image_path": img['filename']}})
+        # image_points_metadata.append({"payload": {"type": "figure", "text": content, "page_number": str(img['page_number']), "summary": "FIGURE", "image_path": img['filename']}})
+
+        figure_payload = build_point_payload(
+            file_name=filename,
+            file_hash=file_hash,
+            doc_meta=doc_metadata_result,
+            text=content,
+            point_type="figure",
+            img_caption=img["caption"],
+            img_page=img["page_number"],
+            img_path=img["filename"],
+        )
+
+        # Preserve the legacy “summary” field that the old code stored.
+        figure_payload["summary"] = "FIGURE"
+
+        image_points_metadata.append({"payload": figure_payload})        
 
     image_vectors = embedding_model.embed_documents(image_embed_inputs) if image_embed_inputs else []
     

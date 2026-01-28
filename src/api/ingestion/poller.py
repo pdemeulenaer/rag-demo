@@ -25,20 +25,23 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("poller")
 
 # Initialize Redis & clients
-r = redis.Redis(host=config.REDIS_HOST, port=config.REDIS_PORT, db=config.REDIS_DB)
+r = redis.Redis(host=config.REDIS_HOST, port=config.REDIS_PORT, db=config.REDIS_DB, decode_responses=True)
 client = OpenAI(api_key=config.OPENAI_API_KEY)
 q_client = QdrantClient(url=config.QDRANT_URL, api_key=config.QDRANT_API_KEY)
+# Log Redis connection details for debugging
+logger.debug(f"🔧 Redis connection: {config.REDIS_HOST}:{config.REDIS_PORT}/{config.REDIS_DB}")
 
 # Initialize embeddings inside poller or globally
 embedding_model = OpenAIEmbeddings()
 
 def process_completed_batch(batch_id, output_file_id):
     # 1. Use the key matching worker.py
-    meta_raw = r.get(f"batch_meta:{batch_id}")
+    # Retrieve metadata map from Redis (ignore type checker warnings)
+    meta_raw = r.get(f"batch_meta:{batch_id}")  # type: ignore
     if not meta_raw:
         logger.error(f"Missing metadata for batch {batch_id}")
         return
-    image_metadata_map = json.loads(meta_raw)
+    image_metadata_map = json.loads(meta_raw)  # type: ignore
 
     # 2. Download results from OpenAI
     content = client.files.content(output_file_id).text
@@ -94,11 +97,11 @@ def main_loop():
     while True:
         try:
             # Get all pending batches from Redis
-            batch_ids = r.smembers("pending_openai_batches")
+            # Retrieve pending batch IDs (ignore type checker warnings)
+            batch_ids = r.smembers("pending_openai_batches")  # type: ignore
             
-            for b_id_bytes in batch_ids:
-                b_id = b_id_bytes.decode('utf-8')
-                
+            for b_id in batch_ids:  # type: ignore
+                # batch IDs are strings when decode_responses=True
                 try:
                     batch = client.batches.retrieve(b_id)
                     

@@ -76,7 +76,7 @@ class Config(BaseSettings):
     # and [your_path]/src/api/data/images locally.
     IMAGES_FOLDER: str = str(BASE_DIR / "src" / "api" / "data" / "images")    
     # ingestion batch threshold: above the threshold, use batch OpenAI API
-    INGESTION_BATCH_THRESHOLD: int = 1
+    INGESTION_BATCH_THRESHOLD: int = 2
     IMAGE_DESCRIPTION_PROMPT_TEMPLATE_PATH: str = "src/api/rag/prompts/document_ingestion.yaml"
     IMAGE_DESCRIPTION_MODEL: str = "gpt-4.1-mini" #"gpt-4o-mini", #"gpt-4o", 
 
