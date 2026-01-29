@@ -632,7 +632,7 @@ def ingest_documents(file_path: str, verbose: bool = False):
             collection_name=config.QDRANT_COLLECTION_NAME,
             vectors_config=models.VectorParams(size=embedding_model.dimensions, distance=models.Distance.COSINE)
         )
-        for field in ["file_hash", "file_name", "type"]:
+        for field in ["file_hash", "file_name", "type", "file_title", "year", "page_number"]:
             qdrant_client.create_payload_index(config.QDRANT_COLLECTION_NAME, field, models.PayloadSchemaType.KEYWORD)
         qdrant_client.create_payload_index(config.QDRANT_COLLECTION_NAME, "text", models.PayloadSchemaType.TEXT)
 
