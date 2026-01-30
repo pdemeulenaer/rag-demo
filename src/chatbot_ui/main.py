@@ -237,7 +237,9 @@ def main():
 
         # Mapping of internal value -> user-friendly label
         model_labels = {
-            "llama-3.3-70b-versatile":  "llama-3.3-70b (fastest but succinct)",            
+            "openai/gpt-oss-120b":  "gpt-oss-120b (fast, reasoning)", 
+            "openai/gpt-oss-20b":  "gpt-oss-20b (fastest, some reasoning)", 
+            "llama-3.3-70b-versatile":  "llama-3.3-70b (fast but succinct)",            
             "gpt-4.1-nano": "gpt-4.1-nano (fast)",
             "gpt-4.1-mini": "gpt-4.1-mini (balanced)",
             "gpt-5-nano":  "gpt-5-nano (slow, reasoning)",            

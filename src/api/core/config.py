@@ -45,7 +45,7 @@ class Config(BaseSettings):
     GENERATION_MODEL='gpt-4.1-nano' # 'gpt-4.1-mini' #'gpt-5-nano' 'llama-3.3-70b-versatile' 'gpt-5-mini' 'gpt-4.1' 'openai/gpt-oss-120b'
     GENERATION_MODEL_PROVIDER='openai' # 'groq' # 'openai'
     GENERATION_MODEL_TEMPERATURE: float = 0.5
-    GENERATION_MODEL_MAX_TOKENS: int = 1024
+    GENERATION_MODEL_MAX_TOKENS: int = 4096 # previously 1024 but too small for complex answers
     RAG_PROMPT_TEMPLATE_PATH: str = "src/api/rag/prompts/rag_generation.yaml"    
 
     # Langsmith settings

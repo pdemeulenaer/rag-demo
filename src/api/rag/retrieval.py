@@ -179,16 +179,6 @@ def retrieve_context(query, qdrant_client, top_k=5):
     retrieved_context = []
     for result in results.points:
         logger.info("Qdrant payload keys: %s", result.payload.keys())
-        # logger.info("Qdrant payload sample: %s", result.payload)     
-        # retrieved_context.append({
-        #     "id": result.id,
-        #     "text": result.payload["text"],
-        #     "title": result.payload.get("file_title"),
-        #     "authors": result.payload.get("authors"),
-        #     "year": result.payload.get("year"),
-        #     "page": result.payload.get("page_number"),
-        #     "score": result.score            
-        # })
 
         # payload is a dict, so we can use .get() safely
         payload = result.payload
@@ -201,7 +191,6 @@ def retrieve_context(query, qdrant_client, top_k=5):
             "year": payload.get("year"),
             "page": payload.get("page_number"),
             "score": result.score,
-            # --- NEW FIELDS PRESERVED ---
             "type": payload.get("type", "text"),  # 'text' or 'figure'
             "image_path": payload.get("image_path"), # Only present if type='figure'
             "caption": payload.get("caption")        # Important for UI display
@@ -335,13 +324,30 @@ class RAGSummarizationResponse(BaseModel):
     summary: str    
 
 
+# def is_openai_model(model_name: str) -> bool:
+#     """
+#     Decide provider by simple naming convention.
+#     Adjust if you add custom prefixes.
+#     """
+#     model_name = model_name.lower()
+#     return model_name.startswith("gpt-") or model_name.startswith("o1-") or model_name.startswith("openai-")
+
 def is_openai_model(model_name: str) -> bool:
     """
     Decide provider by simple naming convention.
-    Adjust if you add custom prefixes.
+    Excludes OSS variants (openai/gpt-oss-...) hosted on Groq.
     """
     model_name = model_name.lower()
-    return model_name.startswith("gpt-") or model_name.startswith("o1-") or model_name.startswith("openai-")
+    
+    # Check for the exclusion prefix first
+    if model_name.startswith("openai/gpt-oss-"):
+        return False
+        
+    return (
+        model_name.startswith("gpt-") or 
+        model_name.startswith("o1-") or 
+        model_name.startswith("openai-")
+    )
 
 
 @traceable(
@@ -394,7 +400,11 @@ def generate_answer(prompt, generation_model=None):
     else:
         # --------- Groq branch ----------
         groq_client = Groq(api_key=config.GROQ_API_KEY)
-        instr_client = instructor.from_groq(groq_client)
+        # instr_client = instructor.from_groq(groq_client)
+        instr_client = instructor.from_groq(
+                    groq_client, 
+                    mode=instructor.Mode.JSON 
+                )        
 
         response, raw_response = instr_client.chat.completions.create_with_completion(
             model=generation_model,
