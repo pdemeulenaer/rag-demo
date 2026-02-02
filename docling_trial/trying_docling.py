@@ -17,7 +17,8 @@ converter = DocumentConverter()
 init_end = time.perf_counter()
 
 # 2. Start timer for Conversion (The actual processing)
-source = "https://arxiv.org/pdf/2408.09869"
+# source = "https://arxiv.org/pdf/2408.09869"
+source = "https://arxiv.org/pdf/1502.04839"
 filename = os.path.basename(source).replace(".pdf", ".md")
 
 conv_start = time.perf_counter()
