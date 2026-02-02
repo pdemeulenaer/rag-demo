@@ -1,0 +1,9 @@
+
+11th Gen Intel® Core™ i7-1165G7 × 8 from my Lenovo ThinkPad X1 Carbon Gen 9
+
+--- Docling Benchmark ---
+Model Initialization: 0.01 seconds
+Total Conversion Time: 149.68 seconds
+Number of Pages: 9
+Average Speed: 16.63 seconds per page
+-------------------------
