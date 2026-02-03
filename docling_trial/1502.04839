@@ -138,9 +138,55 @@ Recently, Caldwell et al. (2011) produced the spectroscopic study of old star cl
 
 5 http: // aladin.u-strasbg.fr /
 
-Fig. 5. Age, mass, and extinction derived with fixed solar metallicity grid vs the results of Fouesneau et al. (2014). Filled dots are the 65 clusters of group 1 and open dots are the 138 clusters of group 2, which are specified in Fig. 3. Clusters marked 1-5 in this figure and Figs. 6 and 8 are the same objects.
+log10(t/yr)(M/H] =0.0
 
-<!-- image -->
+10
+
+8
+
+6
+
+a)
+
+O
+
+O
+
+O
+
+4
+
+8
+
+log10(t /yr)Fouesneau
+
+O
+
+3
+
+1
+
+4
+
+6
+
+log10(M/ M )Fouesneau
+
+O
+
+8
+
+O
+
+O
+
+0.4
+
+0.8
+
+E( B-V)Fouesneau
+
+Fig. 5. Age, mass, and extinction derived with fixed solar metallicity grid vs the results of Fouesneau et al. (2014). Filled dots are the 65 clusters of group 1 and open dots are the 138 clusters of group 2, which are specified in Fig. 3. Clusters marked 1-5 in this figure and Figs. 6 and 8 are the same objects.
 
 Fig. 6. Age, mass, and extinction using free metallicity grid vs the results derived using a model grid of fixed solar metallicity. Filled dots are the 65 clusters of group 1 and open dots are the 138 clusters of group 2, which are specified in Fig. 3. Clusters marked 1-5 in this figure and Figs. 5 and 8 are the same objects.
 
@@ -155,6 +201,54 @@ Fig. 9. The derived metallicity of clusters with ages lower than 1 Gyr (panel a)
 <!-- image -->
 
 ing the metallicity to a value as high as the solar value assumed by Fouesneau et al. (2014) is likely a good choice for most of the young M31 clusters. Note that Caldwell et al. (2009) recommends supersolar metallicities for young M31 clusters, although they did not derive individual young cluster metallicities.
+
+1
+
+O
+
+10
+
+=0.0
+
+[H/N]( N /W)1%0[
+
+6
+
+b)
+
+1
+
+O
+
+O
+
+2
+
+E(B- V)(M/H] =0.0
+
+0.8
+
+0.4
+
+0
+
+0
+
+c)
+
+2
+
+O
+
+O
+
+00
+
+8
+
+D
+
+O
 
 Fig. 7. Two-dimensional marginalized likelihood L node (see Eq. 2) parameter maps derived with free metallicity model grid for the cluster ID 428 (B229-G282 in Revised Bologna Catalog V5, Galleti et al. 2004, indicated as '2' in the Figs. 5, 6, and 8) photometry taken from Johnson et al. (2012) catalog. The white points indicate the maximum L node in the 4-dimensional parameter space, while the black points show the solution when the metallicity is fixed to solar value. The white contour lines contain 68% (solid line), 95% (long-dashed line), and 99% (short-dashed line) of the marginalized likelihood.
 

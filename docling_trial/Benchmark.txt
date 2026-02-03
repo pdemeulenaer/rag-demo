@@ -1,4 +1,9 @@
 
+
+1.-------------------------------------------------------------
+Tested on this paper:
+source = "https://arxiv.org/pdf/2408.09869"
+
 11th Gen Intel® Core™ i7-1165G7 × 8 from my Lenovo ThinkPad X1 Carbon Gen 9
 
 --- Docling Benchmark ---
@@ -6,4 +11,40 @@ Model Initialization: 0.01 seconds
 Total Conversion Time: 149.68 seconds
 Number of Pages: 9
 Average Speed: 16.63 seconds per page
+-------------------------
+
+Intel® Core™ i5-9600K × 6 with RTX 3050
+
+--- Docling Benchmark ---
+Model Initialization: 0.00 seconds
+Total Conversion Time: 9.81 seconds
+Number of Pages: 9
+Average Speed: 1.09 seconds per page
+-------------------------
+
+
+
+2.-------------------------------------------------------------
+Tested on this paper:
+source = "https://arxiv.org/pdf/1502.04839"
+
+11th Gen Intel® Core™ i7-1165G7 × 8 from my Lenovo ThinkPad X1 Carbon Gen 9
+
+
+
+
+Intel® Core™ i5-9600K × 6 with RTX 3050
+
+--- Docling Benchmark ---
+Model Initialization: 0.00 seconds
+Total Conversion Time: 23.99 seconds
+Number of Pages: 8
+Average Speed: 3.00 seconds per page
+-------------------------
+
+--- Docling Benchmark ---
+Model Initialization: 0.00 seconds
+Total Conversion Time: 13.59 seconds
+Number of Pages: 8
+Average Speed: 1.70 seconds per page
 -------------------------
