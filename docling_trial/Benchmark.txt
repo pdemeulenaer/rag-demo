@@ -37,13 +37,6 @@ Intel® Core™ i5-9600K × 6 with RTX 3050
 
 --- Docling Benchmark ---
 Model Initialization: 0.00 seconds
-Total Conversion Time: 23.99 seconds
-Number of Pages: 8
-Average Speed: 3.00 seconds per page
--------------------------
-
---- Docling Benchmark ---
-Model Initialization: 0.00 seconds
 Total Conversion Time: 13.59 seconds
 Number of Pages: 8
 Average Speed: 1.70 seconds per page
