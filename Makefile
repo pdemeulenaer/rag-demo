@@ -11,6 +11,9 @@ VERSION := $(shell cat version.txt)
 
 DOCKER_FOLDER := pdemeulenaer
 
+# Port for the MkDocs development server
+PORT ?= 8000
+
 # 0. General local commands
 
 env-file:
@@ -41,8 +44,14 @@ lint:
 test:
 	behave tests/features/
 
-# doc: 
-# 	mkdocs build	
+docs:
+	uv run mkdocs serve -a 127.0.0.1:$(PORT)
+
+docs-build:
+	uv run mkdocs build
+
+docs-deploy:
+	uv run mkdocs gh-deploy --force
 
 # quality: black lint test
 
@@ -74,7 +83,7 @@ run-evals:
 	uv run python evals/eval_retriever.py	
 
 
-.PHONY: build run
+.PHONY: build run docs docs-build docs-deploy
 
 # Frontend
 build-ui:

@@ -1,34 +1,84 @@
-site_name: rag-demo
-docs_dir: . # this, in combination with plugin '- same-dir', makes root folder as reference folder
-
-# Copyright
-# copyright: Copyright &copy; 2004 - 2024 Partners Ltd
+site_name: RAG Demo
+site_description: Documentation for the RAG demo — Streamlit + FastAPI + Qdrant retrieval-augmented generation stack
 site_author: Philippe de Meulenaer
-
-
-nav:
-  - Home: 'README.md'
-  - Code Reference:
-      - Benchmarks: 'docs/code_documentation.md' 
-                     
+repo_url: https://github.com/pdemeulenaer/rag-demo
 
 theme:
-  name: "material"
+  name: material
   font:
     text: Roboto
     code: Roboto Mono
+  palette:
+    - scheme: default
+      primary: orange
+      accent: amber
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - scheme: slate
+      primary: orange
+      accent: amber
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+
+nav:
+  - Home: index.md
+  - Getting Started:
+      - Overview: getting-started/index.md
+      - Installation: getting-started/installation.md
+      - Configuration: getting-started/configuration.md
+  - Architecture:
+      - Overview: architecture/index.md
+      - RAG Pipeline: architecture/rag-pipeline.md
+      - Ingestion: architecture/ingestion.md
+      - API Surface: architecture/api.md
+  - Operations:
+      - Overview: operations/index.md
+      - Deployment: operations/deployment.md
+      - Evaluation: operations/evaluation.md
+      - Benchmarks: operations/benchmarks.md
+  - Code Reference:
+      - Overview: reference/index.md
+      - API Routers: reference/api.md
+      - RAG Core: reference/rag.md
+      - Ingestion: reference/ingestion.md
+      - Frontend: reference/frontend.md
 
 plugins:
-  - search        # to have search functionality in the document
-  - mkdocstrings:  # To generate documentation from the code docstrings
-      default_handler: python
+  - search
+  - mkdocstrings:
       handlers:
         python:
+          paths: [.]
           options:
-            show_source: false  
-  - with-pdf:
-      cover_subtitle: Architecture Design Specification (ADS)
-      output_path: pdf/rag_demo_ads.pdf      
+            docstring_style: google
+            show_source: true
+            show_root_heading: true
+            show_symbol_type_toc: true
+            members_order: source
 
-  - same-dir      # this makes documentation consider root folder as reference https://github.com/oprypin/mkdocs-same-dir/blob/master/README.md
-  - print-site    # this should be at the bottom of the plugin list!
+markdown_extensions:
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - admonition
+  - tables
+  - toc:
+      permalink: true
+  - attr_list
+
+validation:
+  nav:
+    omitted_files: ignore
