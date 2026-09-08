@@ -45,10 +45,10 @@ test:
 	behave tests/features/
 
 docs:
-	uv run mkdocs serve -a 127.0.0.1:$(PORT)
+	uv run --group dev mkdocs serve -a 127.0.0.1:$(PORT)
 
 docs-build:
-	uv run mkdocs build
+	uv run --group dev mkdocs build
 
 docs-deploy:
 	uv run mkdocs gh-deploy --force
@@ -67,7 +67,7 @@ run-api:
 
 serve:
 # 	uv run streamlit run src/rag_demo/app.py
-	uv run streamlit run src/chatbot_ui/main.py	
+	uv run --group frontend streamlit run src/chatbot_ui/main.py
 
 # evaluate: # TODO: take from other repo
 # 	uv run python src/rag_demo/evaluation_ragas.py	
@@ -77,10 +77,10 @@ redis-chat:
 	uv run python src/api/redis/inspect_redis.py 
 
 create-eval-dataset:
-	uv run python evals/eval_dataset_creation.py
+	uv run --group eval python evals/eval_dataset_creation.py
 
 run-evals:
-	uv run python evals/eval_retriever.py	
+	uv run --group eval python evals/eval_retriever.py
 
 
 .PHONY: build run docs docs-build docs-deploy
@@ -135,4 +135,3 @@ compose:
 	@echo "Running docker-compose up"
 	@docker compose up -d --build
 	@echo "Docker Compose is running. Access the Streamlit frontend at http://localhost:8501, the RAG backend at http://localhost:8000, and the Qdrant UI at http://localhost:6333/dashboard"
-

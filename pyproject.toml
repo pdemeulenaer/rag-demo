@@ -24,30 +24,38 @@ dependencies = [
     "langchain (>=0.3.20,<0.4.0)",
     "langchain-community (>=0.3.19,<0.4.0)",
     "langchain-groq (>=0.2.4,<0.3.0)",
-    "streamlit (>=1.43.2,<2.0.0)",
     "pymupdf (>=1.25.5,<2.0.0)",
     "qdrant-client (>=0.15.0,<1.16.0)",
     "httpx (>=0.28.1,<0.29.0)",
     "pyyaml (>=6.0.2,<7.0.0)",
     "cohere >=5.12.0,<6.0.0",
-    "ragas (>=0.2.15,<0.3.0)",
     "uvicorn>=0.35.0",
     "fastapi>=0.116.1",
     "langsmith>=0.4.14",
     "openai>=1.95.1",
     "instructor>=1.10.0",
     "groq>=0.30.0",
-    "google-genai",
     "redis>=6.4.0",
     "rapidfuzz>=3.14.0",
     "python-multipart>=0.0.20",
     "pillow>=11.3.0",
     "azure-storage-blob>=12.27.1",
     "tenacity>=9.1.2",
-    "docling>=2.71.0", # heavy, as pytorch + cuda backend
 ]
 
 [dependency-groups]
+frontend = [
+    "streamlit (>=1.43.2,<2.0.0)",
+    "requests>=2.32.0",
+]
+eval = [
+    "ragas (>=0.2.15,<0.3.0)",
+    "langchain-openai>=0.3.0,<0.4.0",
+]
+docling = [
+    # Experimental PDF parser; pulls PyTorch and model-related dependencies.
+    "docling>=2.71.0",
+]
 dev = [
     "ipykernel>=6.29.5",
     "mkdocs>=1.6.1", 

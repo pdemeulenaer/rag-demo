@@ -19,7 +19,7 @@ COPY pyproject.toml uv.lock ./
 
 # Install dependencies
 RUN --mount=type=cache,target=/root/.cache/uv \
-    uv sync --frozen
+    uv sync --frozen --only-group frontend --no-install-project
 
 # # Install dependencies into .venv (cached)
 # RUN --mount=type=cache,target=/root/.cache/uv \
@@ -48,7 +48,7 @@ RUN apt-get update && apt-get install -y \
     libmagic1 \
     # libgl1-mesa-glx \
     libgl1 \
-    libglx-mesa0 \    
+    libglx-mesa0 \
     libglib2.0-0 \
     && rm -rf /var/lib/apt/lists/*
 
@@ -105,4 +105,3 @@ EXPOSE 8501
 # CMD ["/app/.venv/bin/streamlit", "run", "src/chatbot_ui/main.py", "--server.address=0.0.0.0"]
 # CMD ["/app/.venv/bin/streamlit", "run", "src/chatbot_ui/app.py", "--server.port", "${PORT:-8501}", "--server.address", "0.0.0.0"]
 CMD /app/.venv/bin/streamlit run src/chatbot_ui/main.py --server.port ${PORT:-8501} --server.address 0.0.0.0
-

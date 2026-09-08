@@ -3,6 +3,16 @@ __pycache__
 *.pyo
 *.pyd
 .git
+.venv/
+.env
+.env.*
 tests/
 docs/
+site/
+data/
+notebooks/
+evals/
+ingestion/
+docling_trial/
+temp_uploads/
 *.md
