@@ -23,7 +23,11 @@ async def health_check():
     async def check_qdrant():
         try:
             # Note: We use the QDRANT_URL from your config
-            q_client = AsyncQdrantClient(url=config.QDRANT_URL, api_key=config.QDRANT_API_KEY)
+            q_client = AsyncQdrantClient(
+                url=config.QDRANT_URL,
+                port=config.qdrant_port,
+                api_key=config.QDRANT_API_KEY,
+            )
             await asyncio.wait_for(q_client.get_collections(), timeout=2.0)
             await q_client.close()
             return "ok"

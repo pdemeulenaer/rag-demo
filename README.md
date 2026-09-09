@@ -89,7 +89,15 @@ The application is composed of several key components:
 - Start backend API and Streamlit frontend with Docker Compose:
 
   ```bash
-  docker-compose up --build
+  make compose
+  ```
+
+  `make compose` runs the API and ingestion worker with your host UID/GID, so their
+  shared `temp_uploads` directory is writable without manually changing ownership.
+  If you run Docker Compose directly, supply the same values explicitly:
+
+  ```bash
+  LOCAL_UID=$(id -u) LOCAL_GID=$(id -g) docker compose up --build
   ```
 
 - Access UI: [http://localhost:8501](http://localhost:8501)
@@ -136,9 +144,17 @@ This project uses **`docker-compose.prod.yml`** for deployment. The CI/CD pipeli
 
 ## 📌 TODOs
 
+### Functionalities to add
+
+* [ ] Add (Airflow pipeline) daily ingest for a particular topic
+
+### Functionalities to correct/improve
+
 * [ ] Add monitoring/logging in Azure deployment.
 * [ ] Improve error handling when backend cannot connect to Qdrant.
 * [ ] Add support for authentication in Streamlit UI.
+* [ ] Add question rephrasing
+
 
 ## License
 

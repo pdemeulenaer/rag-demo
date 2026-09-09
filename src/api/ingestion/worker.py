@@ -204,7 +204,11 @@ def trigger_batch_ingestion(file_paths: list[str]):
     5️⃣  Stores a *rich* metadata map in Redis so the poller can reconstruct a
         **identical payload** to the real‑time path.
     """
-    qdrant = QdrantClient(url=config.QDRANT_URL, api_key=config.QDRANT_API_KEY)
+    qdrant = QdrantClient(
+        url=config.QDRANT_URL,
+        port=config.qdrant_port,
+        api_key=config.QDRANT_API_KEY,
+    )
     embedding_model = OpenAIEmbeddings()
 
     batch_tasks: list[str] = []

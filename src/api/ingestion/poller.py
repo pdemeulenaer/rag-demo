@@ -29,7 +29,11 @@ logger = logging.getLogger("poller")
 # Initialize Redis & clients
 r = redis.Redis(host=config.REDIS_HOST, port=config.REDIS_PORT, db=config.REDIS_DB, decode_responses=True)
 client = OpenAI(api_key=config.OPENAI_API_KEY)
-q_client = QdrantClient(url=config.QDRANT_URL, api_key=config.QDRANT_API_KEY)
+q_client = QdrantClient(
+    url=config.QDRANT_URL,
+    port=config.qdrant_port,
+    api_key=config.QDRANT_API_KEY,
+)
 # Log Redis connection details for debugging
 logger.debug(f"🔧 Redis connection: {config.REDIS_HOST}:{config.REDIS_PORT}/{config.REDIS_DB}")
 

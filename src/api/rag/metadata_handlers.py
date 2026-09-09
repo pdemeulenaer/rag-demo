@@ -8,7 +8,11 @@ from src.api.core.config import config
 logger = logging.getLogger(__name__)
 
 
-qc = QdrantClient(url=config.QDRANT_URL, api_key=config.QDRANT_API_KEY)
+qc = QdrantClient(
+    url=config.QDRANT_URL,
+    port=config.qdrant_port,
+    api_key=config.QDRANT_API_KEY,
+)
 COLL = config.QDRANT_COLLECTION_NAME
 
 def _normalize(s: str) -> str:

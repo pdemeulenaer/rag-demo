@@ -232,6 +232,18 @@ def rerank_context(query: str, retrieved_context: list, top_n: int = 5):
     return reranked
 
 
+def optional_int(value: object) -> int | None:
+    """Return an integer metadata value, or None for absent/non-numeric values."""
+    if value is None or isinstance(value, bool):
+        return None
+    if isinstance(value, int):
+        return value
+    try:
+        return int(str(value).strip())
+    except (TypeError, ValueError):
+        return None
+
+
 @traceable(
     name="format_retrieved_context",
     run_type="prompt"
@@ -482,7 +494,7 @@ def rag_pipeline(question, qdrant_client, session_id, generation_model=None, top
                 id=str(c["id"]),
                 title=c.get("title"),
                 authors=c.get("authors", []),
-                year=c.get("year"),
+                year=optional_int(c.get("year")),
                 page=page_num
             )
             seen[key] = s
@@ -528,6 +540,7 @@ def rag_pipeline_wrapper(question, session_id, generation_model=None, top_k=5):
     
     qdrant_client = QdrantClient(
         url=config.QDRANT_URL, # QDRANT_URL=http://qdrant:6333 when local, or web URL for Qdrant Cloud
+        port=config.qdrant_port,
         api_key=config.QDRANT_API_KEY  # For Qdrant Cloud only, empty otherwise
     )
         

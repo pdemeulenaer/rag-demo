@@ -10,6 +10,8 @@ BACKEND_IMAGE_NAME := rag-frontend
 VERSION := $(shell cat version.txt)
 
 DOCKER_FOLDER := pdemeulenaer
+LOCAL_UID := $(shell id -u)
+LOCAL_GID := $(shell id -g)
 
 # Port for the MkDocs development server
 PORT ?= 8000
@@ -133,5 +135,15 @@ push-fastapi:
 
 compose:
 	@echo "Running docker-compose up"
-	@docker compose up -d --build
-	@echo "Docker Compose is running. Access the Streamlit frontend at http://localhost:8501, the RAG backend at http://localhost:8000, and the Qdrant UI at http://localhost:6333/dashboard"
+	@LOCAL_UID="$(LOCAL_UID)" LOCAL_GID="$(LOCAL_GID)" docker compose up -d --build
+	@api_container="$$(docker compose ps -q api)"; \
+	api_health="$$(docker inspect --format='{{if .State.Health}}{{.State.Health.Status}}{{else}}{{.State.Status}}{{end}}' "$$api_container")"; \
+	if [ "$$api_health" = "healthy" ]; then \
+		echo "Docker Compose is healthy on this Docker host."; \
+		echo "From this host: Streamlit http://127.0.0.1:8501 | API http://127.0.0.1:8000"; \
+		echo "From another device or remote IDE, localhost points to that client; use the Docker host address or a forwarded port instead."; \
+	else \
+		echo "Docker Compose started, but the API is $$api_health. Check 'docker compose logs api' and your Qdrant configuration." >&2; \
+		docker compose ps >&2; \
+		exit 1; \
+	fi

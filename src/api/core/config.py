@@ -19,6 +19,14 @@ class Config(BaseSettings):
     # Qdrant Settings
     QDRANT_URL: str
     QDRANT_COLLECTION_NAME: str 
+    QDRANT_PORT: Optional[int] = None
+
+    @property
+    def qdrant_port(self) -> int:
+        """Use Qdrant Cloud's HTTPS port unless a port is explicitly configured."""
+        if self.QDRANT_PORT is not None:
+            return self.QDRANT_PORT
+        return 443 if self.QDRANT_URL.startswith("https://") else 6333
 
     # Model Settings (Defaults provided)
     EMBEDDING_MODEL: str

@@ -616,7 +616,11 @@ def ingest_documents(file_path: str, verbose: bool = False):
     
     # --- Setup ---
     embedding_model = OpenAIEmbeddings()
-    qdrant_client = QdrantClient(url=config.QDRANT_URL, api_key=config.QDRANT_API_KEY)
+    qdrant_client = QdrantClient(
+        url=config.QDRANT_URL,
+        port=config.qdrant_port,
+        api_key=config.QDRANT_API_KEY,
+    )
     
     # 1. Rate Limiter: Limit concurrent Groq/OpenAI calls to 15 to prevent 429 Errors
     api_semaphore = Semaphore(15)

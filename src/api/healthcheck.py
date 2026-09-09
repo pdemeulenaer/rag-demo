@@ -19,6 +19,7 @@ def check_health():
         # 2. Check Qdrant Connection
         q_client = QdrantClient(
             url=config.QDRANT_URL, 
+            port=config.qdrant_port,
             api_key=config.QDRANT_API_KEY,
             timeout=2
         )

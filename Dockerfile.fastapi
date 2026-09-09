@@ -47,16 +47,6 @@ FROM python:3.12-slim
 WORKDIR /app
 ENV PYTHONPATH=/app
 
-# # Install only required system dependencies
-RUN apt-get update && apt-get install -y \
-    curl \
-    libmagic1 \
-    # libgl1-mesa-glx \
-    libgl1 \
-    libglx-mesa0 \
-    libglib2.0-0 \
-    && rm -rf /var/lib/apt/lists/*
-
 # Create non-root user and group
 RUN addgroup --system app && \
     adduser --system --ingroup app app
@@ -85,9 +75,9 @@ COPY --from=builder /app/.venv /app/.venv
 
 # Copy the rest of the application code
 # COPY . .
-COPY src/ ./src/
-COPY config.yaml ./config.yaml
-COPY run_with_env.py ./run_with_env.py
+COPY --chown=app:app src/api/ ./src/api/
+COPY --chown=app:app config.yaml ./config.yaml
+COPY --chown=app:app run_with_env.py ./run_with_env.py
 
 # Pre-compile Python files to bytecode for startup performance
 RUN python -m compileall ./src
@@ -96,9 +86,6 @@ RUN python -m compileall ./src
 # RUN addgroup --system app && \
 #     adduser --system --ingroup app app && \
 #     chown -R app:app /app
-# Set permissions for /app
-RUN chown -R app:app /app
-
 # Switch to non-root user
 USER app
 
