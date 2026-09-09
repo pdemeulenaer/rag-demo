@@ -181,3 +181,4 @@ data/
 qdrant_storage/
 postgres_data/
 temp_uploads/
+data/paper_artifacts/

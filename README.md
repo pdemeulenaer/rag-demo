@@ -146,14 +146,30 @@ This project uses **`docker-compose.prod.yml`** for deployment. The CI/CD pipeli
 
 ### Functionalities to add
 
+* [ ] Use Langfuse in container
 * [ ] Add (Airflow pipeline) daily ingest for a particular topic
 
 ### Functionalities to correct/improve
 
-* [ ] Add monitoring/logging in Azure deployment.
+Rag FastAPI:
+
+Streamlit/frontend:
+
+
+Qdrant:
 * [ ] Improve error handling when backend cannot connect to Qdrant.
-* [ ] Add support for authentication in Streamlit UI.
+* [ ] Save Qdrant content into local/cloud based storage for backup & fast re-enablement if Qdrant Cloud cluster goes down after inactivity
+* [ ] Allow local Qdrant cluster for testing
+
+Context retrieval:
 * [ ] Add question rephrasing
+
+Observability:
+* [ ] Add support for authentication in Streamlit UI.
+
+Deployment & setup monitoring:
+* [ ] Add monitoring/logging in Azure deployment.
+
 
 
 ## License

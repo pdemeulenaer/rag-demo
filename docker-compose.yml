@@ -46,6 +46,7 @@ services:
       - ALLOW_ORIGINS=*  
       - REDIS_HOST=redis  # Use the service name for Redis
       - REDIS_PORT=6379     
+      - PAPERS_DATABASE_URL=postgresql+psycopg://rag:${PAPERS_DB_PASSWORD:-rag}@postgres:5432/papers
       # - QDRANT_URL=http://qdrant:6333   
     depends_on:
       redis:
@@ -89,6 +90,46 @@ services:
       timeout: 10s
       retries: 3     
 
+  # Opt-in catalogue. Existing uploads do not require PostgreSQL.
+  postgres:
+    image: postgres:16-alpine
+    profiles: [papers]
+    environment:
+      POSTGRES_DB: papers
+      POSTGRES_USER: rag
+      POSTGRES_PASSWORD: ${PAPERS_DB_PASSWORD:-rag}
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - papers_postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U rag -d papers"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+
+  # One-shot CLI, NEVER automatic ingestion on `compose up`.
+  papers-cli:
+    profiles: [papers]
+    build:
+      context: .
+      dockerfile: Dockerfile.fastapi
+    image: pdemeulenaer/rag-backend:0.2.1
+    user: "${LOCAL_UID:-1000}:${LOCAL_GID:-1000}"
+    entrypoint: ["/app/.venv/bin/python", "-m", "src.api.papers"]
+    command: ["scope"]
+    env_file: [.env]
+    environment:
+      PAPERS_DATABASE_URL: postgresql+psycopg://rag:${PAPERS_DB_PASSWORD:-rag}@postgres:5432/papers
+      PAPERS_ARTIFACT_DIR: /app/paper_artifacts
+    volumes:
+      - ./data/paper_artifacts:/app/paper_artifacts
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: "no"
+
   # Redis database service
   redis:
     image: redis:7.0-alpine # Using a lightweight Redis image
@@ -104,6 +145,7 @@ services:
       retries: 5      
 
 volumes:
+  papers_postgres: {}
   redis_data: {}  
   shared_uploads: {}  # For sharing PDFs between API and worker
   # qdrant_data: {}  

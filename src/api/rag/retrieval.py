@@ -9,7 +9,6 @@ from typing import List
 import json
 import cohere
 from qdrant_client import QdrantClient
-from qdrant_client.models import Prefetch, Filter, FieldCondition, MatchText, FusionQuery
 from langsmith import traceable, get_current_run_tree
 import logging
 import redis
@@ -19,13 +18,14 @@ from src.api.core.config import config
 from src.api.rag.utils.utils import prompt_template_config, prompt_template_registry
 from src.api.rag.summarize import summarize_text
 from src.api.api.models import Source
+from src.api.rag.search import search_points
 
 
 logger = logging.getLogger(__name__)
 cohere_client = cohere.Client(config.COHERE_API_KEY)
 
 # Initialize the conversation memory
-redis_client = redis.Redis(host='redis', port=6379, db=0)
+redis_client = redis.Redis(host=config.REDIS_HOST, port=config.REDIS_PORT, db=config.REDIS_DB)
 
 
 def titles_by_author(author, year=None):
@@ -138,43 +138,11 @@ def get_embedding(text, model=config.EMBEDDING_MODEL):
     name="retrieve_top_n",
     run_type="retriever"
 )
-def retrieve_context(query, qdrant_client, top_k=5):
+def retrieve_context(query, qdrant_client, top_k=5, mode="hybrid", collection=None, scope=None):
     query_embedding = get_embedding(query)
 
-    # # SIMPLE SEARCH
-    # results = qdrant_client.query_points(
-    #     collection_name=config.QDRANT_COLLECTION_NAME,
-    #     query=query_embedding,
-    #     limit=5,
-    # )    
-
-    # HYBRID SEARCH
-    results = qdrant_client.query_points(
-        collection_name=config.QDRANT_COLLECTION_NAME,
-        prefetch=[
-            Prefetch(
-                query=query_embedding,
-                limit=20
-            ),
-            Prefetch(
-                filter=Filter(
-                    must=[
-                        # still search the main chunk text
-                        FieldCondition(key="text", match=MatchText(text=query)),
-                        # add metadata fields you’d like to search
-                        # FieldCondition(key="authors", match=MatchText(text=query)),
-                        # FieldCondition(key="file_title", match=MatchText(text=query)),
-                        # FieldCondition(key="year", match=MatchText(text=query)),
-                        # FieldCondition(key="keywords", match=MatchText(text=query)),                                                                 
-                    ]
-                    
-                ),
-                limit=20
-            )
-        ],
-        query=FusionQuery(fusion="rrf"),
-        limit=top_k
-    )
+    results = search_points(qdrant_client, collection or config.QDRANT_COLLECTION_NAME,
+                           query_embedding, query, top_k, mode, scope)
 
     retrieved_context = []
     for result in results.points:
@@ -187,6 +155,10 @@ def retrieve_context(query, qdrant_client, top_k=5):
             "id": str(result.id),
             "text": payload["text"],
             "title": payload.get("file_title"),
+            "paper_id": payload.get("paper_id"),
+            "arxiv_id": payload.get("arxiv_id"),
+            "paper_version": payload.get("paper_version"),
+            "source_url": payload.get("source_url"),
             "authors": payload.get("authors"),
             "year": payload.get("year"),
             "page": payload.get("page_number"),
@@ -209,6 +181,8 @@ def rerank_context(query: str, retrieved_context: list, top_n: int = 5):
     Reranks the retrieved context chunks using Cohere's reranker.
     """
 
+    if not retrieved_context:
+        return []
     docs = [c["text"] for c in retrieved_context]
 
     response = cohere_client.rerank(
@@ -445,10 +419,16 @@ def generate_answer(prompt, generation_model=None):
     name="rag_pipeline",
     run_type="chain"
 )
-def rag_pipeline(question, qdrant_client, session_id, generation_model=None, top_k=5):
+def rag_pipeline(question, qdrant_client, session_id, generation_model=None, top_k=5,
+                 mode=None, collection=None, scope=None):
 
     # If in evaluation mode, return a fresh memory each time
-    if os.getenv("EVALUATION_MODE") == "true":
+    if mode is not None:
+        retrieved_context = retrieve_context(question, qdrant_client,
+            top_k=top_k if mode == "vanilla" else 20, mode=mode, collection=collection, scope=scope)
+        if mode == "hybrid":
+            retrieved_context = rerank_context(question, retrieved_context, top_n=top_k)
+    elif os.getenv("EVALUATION_MODE") == "true":
         
         # just use hybrid retrieval without reranking
         retrieved_context = retrieve_context(question, qdrant_client, top_k=5)
@@ -460,10 +440,16 @@ def rag_pipeline(question, qdrant_client, session_id, generation_model=None, top
         # Rerank with Cohere
         retrieved_context = rerank_context(question, retrieved_context, top_n=top_k)
 
+    if not retrieved_context:
+        return {"answer": "I found no indexed evidence for this question in the selected corpus.",
+                "sources": [], "images": [], "question": question, "retrieved_context": []}
+
     prompt = build_prompt(
         {
             "retrieved_context_ids": [c["id"] for c in retrieved_context],
-            "retrieved_context": [c["text"] for c in retrieved_context]
+            "retrieved_context": [f"Title: {c.get('title')}; arXiv: {c.get('arxiv_id')}; "
+                                  f"version: {c.get('paper_version')}; page: {c.get('page')}\n{c['text']}"
+                                  for c in retrieved_context]
         },
         question,
         session_id
@@ -476,8 +462,11 @@ def rag_pipeline(question, qdrant_client, session_id, generation_model=None, top
     seen = {}
     unique_sources = []
 
+    used_ids = set(answer.retrieved_context_ids)
     for c in retrieved_context:
-        key = (tuple(c.get("authors", [])), c.get("title"), c.get("year"))
+        if c["id"] not in used_ids:
+            continue
+        key = (c.get("paper_id"), c.get("paper_version"), tuple(c.get("authors") or []), c.get("title"), c.get("year"))
         page_num = c.get("page")
 
         # Ensure page_num is always an integer if present
@@ -493,7 +482,11 @@ def rag_pipeline(question, qdrant_client, session_id, generation_model=None, top
             s = Source(
                 id=str(c["id"]),
                 title=c.get("title"),
-                authors=c.get("authors", []),
+                authors=c.get("authors") or [],
+                paper_id=c.get("paper_id"),
+                arxiv_id=c.get("arxiv_id"),
+                paper_version=c.get("paper_version"),
+                source_url=c.get("source_url"),
                 year=optional_int(c.get("year")),
                 page=page_num
             )
@@ -507,9 +500,7 @@ def rag_pipeline(question, qdrant_client, session_id, generation_model=None, top
             existing_pages.update(page_num)
             seen[key].page = sorted(existing_pages)            
 
-    # Filter out unused sources based on retrieved_context_ids
-    used_ids = set(answer.retrieved_context_ids)
-    unique_sources = [s for s in unique_sources if s.id in used_ids]
+    # Only cited chunks were grouped, so uncited pages cannot enter these sources.
     logger.info(f"Unique sources after filtering: {unique_sources}")
 
     # Extract Used Images (NEW LOGIC)
@@ -536,7 +527,8 @@ def rag_pipeline(question, qdrant_client, session_id, generation_model=None, top
     }
 
 
-def rag_pipeline_wrapper(question, session_id, generation_model=None, top_k=5):
+def rag_pipeline_wrapper(question, session_id, generation_model=None, top_k=5,
+                         mode=None, collection=None, scope=None):
     
     qdrant_client = QdrantClient(
         url=config.QDRANT_URL, # QDRANT_URL=http://qdrant:6333 when local, or web URL for Qdrant Cloud
@@ -544,7 +536,11 @@ def rag_pipeline_wrapper(question, session_id, generation_model=None, top_k=5):
         api_key=config.QDRANT_API_KEY  # For Qdrant Cloud only, empty otherwise
     )
         
-    result = rag_pipeline(question, qdrant_client, session_id, generation_model, top_k)
+    try:
+        result = rag_pipeline(question, qdrant_client, session_id, generation_model, top_k,
+                              mode=mode, collection=collection, scope=scope)
+    finally:
+        qdrant_client.close()
 
     return {
         "answer": result["answer"],

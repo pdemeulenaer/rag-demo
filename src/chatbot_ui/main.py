@@ -1,6 +1,7 @@
 # src/chatbot_ui/main.py
 import os
 import re
+from html import escape
 from io import BytesIO
 import streamlit as st
 from pathlib import Path
@@ -44,7 +45,8 @@ def get_app_version() -> str:
 # Function to get document titles from the backend API
 def get_document_titles():
     try:
-        response = requests.get(f"{API_URL}/documents")
+        endpoint = "papers" if st.session_state.get("corpus") == "arxiv" else "documents"
+        response = requests.get(f"{API_URL}/{endpoint}", timeout=30)
         response.raise_for_status()
         return response.json()
     except requests.exceptions.RequestException as e:
@@ -85,10 +87,16 @@ def ask_question_to_backend(question):
         # response = requests.post(f"{API_URL}/rag2", json={"query": question}, headers=headers)
         payload = {
             "query": question,
-            "generation_model": st.session_state.generation_model
+            "generation_model": st.session_state.generation_model,
+            "mode": st.session_state.rag_mode,
+            "corpus": st.session_state.corpus,
+            "corpus_snapshot": st.session_state.get("corpus_snapshot") if st.session_state.corpus == "arxiv" else None,
         }
 
-        response = requests.post(f"{API_URL}/rag2", json=payload, headers=headers)
+        response = requests.post(f"{API_URL}/rag2", json=payload, headers=headers, timeout=180)
+        if response.status_code in (409, 503):
+            st.warning(response.json().get("detail", "Corpus unavailable"))
+            return None
         response.raise_for_status()
         
         # Check if the backend set a new session_id and store it
@@ -96,7 +104,10 @@ def ask_question_to_backend(question):
         if new_session_id:
             st.session_state.session_id = new_session_id
 
-        return response.json()
+        result = response.json()
+        if result.get("corpus_snapshot"):
+            st.session_state.corpus_snapshot = result["corpus_snapshot"]
+        return result
     except Exception as e:
         st.error(f"❌ Failed to get response: {e}")
         return None            
@@ -123,8 +134,21 @@ def main():
 
     with st.sidebar:
         st.subheader("📚 Knowledge Base")
-        st.success("🟢 Connected to Knowledge Base") # TODO: make a connection test for this
-        st.info("Pre-loaded with 10 astronomy PDF papers.")
+        st.selectbox("Corpus", ["uploads", "arxiv"], key="corpus",
+                     format_func=lambda value: "Uploaded PDFs" if value == "uploads" else "arXiv star clusters")
+        st.radio("Retrieval mode", ["vanilla", "hybrid"], key="rag_mode",
+                 format_func=lambda value: "Vanilla — dense retrieval" if value == "vanilla" else "Hybrid — fusion + reranking")
+        st.caption("Both presets retrieve evidence directly; neither uses the intent router or a knowledge graph.")
+        if st.session_state.corpus == "arxiv":
+            st.caption("Default scope: astro-ph.GA + star-cluster terms. Change scope in backend configuration.")
+            if st.button("Refresh arXiv corpus / reset comparison"):
+                st.session_state.pop("corpus_snapshot", None)
+                st.session_state.session_id = ""
+                st.session_state.full_conversation = []
+                st.session_state.backend_memory = []
+            if st.session_state.get("corpus_snapshot"):
+                st.caption(f"Corpus fingerprint: {st.session_state.corpus_snapshot}")
+        st.caption("PDF uploads below are added only to the Uploaded PDFs corpus.")
 
         # st.markdown("---")
         # st.subheader("📊 Database Content")
@@ -264,13 +288,22 @@ def main():
         st.caption(f"App version: {get_app_version()}")
 
 
-    question = st.text_input(
-        "💬 Ask a question:",
-        placeholder="e.g. How to derive the parameters of star clusters using broad-band photometry?",
-        key="user_question"
-    )
+    comparison_key = (st.session_state.corpus, st.session_state.rag_mode, st.session_state.generation_model)
+    if st.session_state.get("comparison_key") != comparison_key:
+        st.session_state.full_conversation = []
+        st.session_state.backend_memory = []
+        st.session_state.session_id = ""
+        st.session_state.comparison_key = comparison_key
 
-    if question:
+    with st.form("question_form"):
+        question = st.text_input(
+            "💬 Ask a question:",
+            placeholder="e.g. Compare methods for measuring star-cluster ages across papers.",
+            key="user_question"
+        )
+        submitted = st.form_submit_button("Ask")
+
+    if submitted and question.strip():
         result = ask_question_to_backend(question)
         if result:
             # Update frontend full conversation (append user + assistant)
@@ -319,7 +352,12 @@ def main():
                             # sources_list.append(f"- {authors} ({year}). *{title}*")
                             pages = src.get("page")  # this is a list of ints
                             pages_str = f" pp. {', '.join(map(str, pages))}" if pages else ""
-                            sources_list.append(f"- {authors} ({year}). *{title}*{pages_str}")
+                            reference = f"- {escape(authors)} ({escape(str(year))}). <em>{escape(title)}</em>{pages_str}"
+                            source_url = src.get("source_url") or ""
+                            if source_url.startswith("https://arxiv.org/abs/"):
+                                label = f"arXiv:{src.get('arxiv_id')}v{src.get('paper_version')}"
+                                reference += f' — <a href="{escape(source_url, quote=True)}" target="_blank" rel="noopener noreferrer">{escape(label)}</a>'
+                            sources_list.append(reference)
 
                         
                         # sources_md = "\n\n---\n**Sources:**\n" + "\n".join(sources_list)                   

@@ -12,6 +12,7 @@ from src.api.api.middleware import RequestIDMiddleware
 from src.api.api.rag_router import rag_router
 from src.api.api.ingestion_router import router as ingestion_router
 from src.api.api.system_router import router as system_router
+from src.api.api.papers_router import router as papers_router
 from src.api.core.config import config
 
 # This must be the first thing your app does!
@@ -48,8 +49,8 @@ app = FastAPI(lifespan=lifespan)
 # This links the physical folder to the URL path /api/images
 # app.mount("/api/images", StaticFiles(directory=config.IMAGES_FOLDER), name="images")
 
-IMAGE_PATH_IN_CONTAINER = "/app/src/api/data/images"
-app.mount("/api/images", StaticFiles(directory=IMAGE_PATH_IN_CONTAINER), name="images")
+os.makedirs(config.IMAGES_FOLDER, exist_ok=True)
+app.mount("/api/images", StaticFiles(directory=config.IMAGES_FOLDER), name="images")
 
 app.add_middleware(RequestIDMiddleware)
 app.add_middleware(
@@ -64,6 +65,7 @@ app.add_middleware(
 app.include_router(system_router, tags=["system"])
 app.include_router(rag_router, tags=["rag"])
 app.include_router(ingestion_router, tags=["ingestion"])
+app.include_router(papers_router, tags=["papers"])
 
 @app.get("/")
 async def root():

@@ -246,6 +246,34 @@ async def rag(
     logger.info(f"Session ID: {session_id}")
     logger.info(f"Generation model: {gen_model}")
 
+    # Explicit demo presets bypass intent routing. Omitted mode keeps legacy API behavior.
+    if payload.mode is not None or payload.corpus == "arxiv":
+        from qdrant_client.models import Filter, FieldCondition, MatchAny
+        from src.api.api.papers_router import active_corpus
+        from starlette.concurrency import run_in_threadpool
+
+        mode = payload.mode or "hybrid"
+        collection, scope, snapshot = None, None, None
+        if payload.corpus == "arxiv":
+            settings, active, snapshot = await run_in_threadpool(active_corpus)
+            if payload.corpus_snapshot and payload.corpus_snapshot != snapshot:
+                raise HTTPException(409, "Corpus changed. Refresh the corpus before comparing modes.")
+            if not active:
+                raise HTTPException(409, "No ready arXiv papers. Run backfill and process first.")
+            collection = settings.PAPERS_COLLECTION
+            scope = Filter(must=[FieldCondition(key="build_id", match=MatchAny(any=[b["id"] for b in active]))])
+        # Keep conversation memories separate by mode, corpus, model and active versions.
+        memory_id = f"{session_id}:{payload.corpus}:{mode}:{gen_model}:{snapshot or 'live'}"
+        result = await run_in_threadpool(rag_pipeline_wrapper, payload.query, memory_id,
+            generation_model=gen_model, mode=mode, collection=collection, scope=scope)
+        await run_in_threadpool(add_message, memory_id, "user", payload.query)
+        await run_in_threadpool(add_message, memory_id, "assistant", result["answer"])
+        memory = await run_in_threadpool(get_memory, memory_id)
+        history = ([{"role": "system", "content": memory.summary}] if memory.summary else []) + memory.recent_messages
+        return RAGResponse(request_id=request.state.request_id, answer=result["answer"],
+            chat_history=history, sources=result.get("sources", []),
+            images=_process_images(result.get("images", []), request), mode=mode, corpus_snapshot=snapshot)
+
     # 2. Intent Classification
 
     # Retrieve chat memory
@@ -353,4 +381,4 @@ async def rag(
         chat_history=full_history,
         sources=sources,
         images=rag_images
-    )    
+    )

@@ -44,7 +44,7 @@ lint:
 	pylint src
 
 test:
-	behave tests/features/
+	uv run --group dev pytest tests/unit -q
 
 docs:
 	uv run --group dev mkdocs serve -a 127.0.0.1:$(PORT)

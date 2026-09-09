@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-from typing import List, Any, Optional, Dict, Union
+from typing import List, Any, Optional, Dict, Union, Literal
 
 
 class ChatMessage(BaseModel):
@@ -8,6 +8,9 @@ class ChatMessage(BaseModel):
 
 class RAGRequest(BaseModel):
     query: str = Field(..., description="The query to be used in the RAG pipeline")
+    mode: Literal["vanilla", "hybrid"] | None = None
+    corpus: Literal["uploads", "arxiv"] = "uploads"
+    corpus_snapshot: str | None = None
     generation_model: Optional[str] = Field(
         None,
         description="Optional override for the generation model (e.g. gpt-4-nano, gpt-4-mini, gpt-5-nano)"
@@ -26,6 +29,10 @@ class RAGImage(BaseModel):
 
 class Source(BaseModel):
     id: str
+    paper_id: str | None = None
+    arxiv_id: str | None = None
+    paper_version: int | None = None
+    source_url: str | None = None
     title: Optional[str] = None
     authors: list[str] = []
     year: Optional[int] = None
@@ -33,6 +40,8 @@ class Source(BaseModel):
 
 
 class RAGResponse(BaseModel):
+    mode: str | None = None
+    corpus_snapshot: str | None = None
     request_id: str = Field(..., description="The request ID")
     answer: str = Field(..., description="The content of the RAG response")
     chat_history: List[ChatMessage] = Field(..., description="The full conversation history")

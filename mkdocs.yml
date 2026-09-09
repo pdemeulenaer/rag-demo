@@ -34,6 +34,7 @@ nav:
       - Overview: getting-started/index.md
       - Installation: getting-started/installation.md
       - Configuration: getting-started/configuration.md
+      - arXiv milestone: getting-started/arxiv.md
   - Architecture:
       - Overview: architecture/index.md
       - RAG Pipeline: architecture/rag-pipeline.md
