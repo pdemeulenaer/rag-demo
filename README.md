@@ -106,6 +106,36 @@ The application is composed of several key components:
 
 ---
 
+## arXiv ingestion and PostgreSQL
+
+The [arXiv setup and operation guide](docs/getting-started/arxiv.md) covers the
+star-cluster scope, PostgreSQL catalogue, PDF processing, daily scheduling and
+Vanilla/Hybrid comparison. Run `make papers-help` to see the command shortcuts.
+
+Merge the paper settings from `.env.sample` into your existing `.env` first; do not
+overwrite your keys. These targets run the Python CLI on your host and PostgreSQL
+in its own Docker container. Use `localhost` in the host `PAPERS_DATABASE_URL`.
+
+```bash
+make papers-preview DAYS=7    # Metadata preview only: does NOT populate PostgreSQL
+make papers-db-up             # Start PostgreSQL and wait until healthy
+make papers-init-db           # Create catalogue tables
+make papers-backfill DAYS=7   # Save matching metadata and queue processing
+make papers-status            # Matching papers should now be pending
+
+# Opt-in: downloads PDFs and incurs embedding API usage
+make papers-process LIMIT=2
+make papers-status            # Successfully indexed papers are ready to query
+```
+
+PostgreSQL data persists in the Docker volume `papers_postgres`. PDF/text artifacts
+use `data/paper_artifacts/` by default (or Azure Blob when configured); embeddings
+go to the separate `PAPERS_COLLECTION` in Qdrant. Select the arXiv corpus in Streamlit
+after papers become `ready`.
+
+Later, use `make papers-sync` for metadata updates only, or `make papers-daily LIMIT=10`
+for one discovery-and-processing run. Neither command installs a schedule.
+
 ## 🌐 Deployment to Azure (Multi-Container)
 
 This project uses **`docker-compose.prod.yml`** for deployment. The CI/CD pipeline:

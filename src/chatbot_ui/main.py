@@ -152,7 +152,8 @@ def main():
 
         # st.markdown("---")
         # st.subheader("📊 Database Content")
-        if st.button("Currently in database", use_container_width=True):
+        if st.button("Currently in database", use_container_width=True,
+                     help="Lists the selected corpus: Uploaded PDFs or ready arXiv papers."):
             titles_data = get_document_titles()
             if titles_data:
                 titles_list = titles_data.get("titles", [])

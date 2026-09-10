@@ -94,6 +94,46 @@ limits bound work, but are not a dollar budget. Backfill refuses category window
 with more than 1,000 records; use shorter windows and `--until YYYY-MM-DD` for older
 intervals. arXiv APIs do not require a personal API key.
 
+### Make shortcuts
+
+Run `make papers-help` for the command summary. These targets wrap the host-side
+commands above; they do not run the Python CLI inside a container. PostgreSQL itself
+runs in the separate Compose `postgres` service, enabled by the `papers` profile.
+
+| Command | Effect | Embedding API usage |
+| --- | --- | --- |
+| `make papers-scope` | Print configured categories and topic phrases | No |
+| `make papers-preview DAYS=7` | Fetch and print matching metadata; no DB connection or writes | No |
+| `make papers-db-up` | Start PostgreSQL and wait for its health check | No |
+| `make papers-init-db` | Create catalogue tables in the configured database | No |
+| `make papers-backfill DAYS=7` | Save matching metadata and queue processing | No |
+| `make papers-status` | Inspect processing states | No |
+| `make papers-process LIMIT=2` | Download/index up to two pending PDFs | Yes |
+| `make papers-sync` | Discover metadata changes and queue work | No |
+| `make papers-daily LIMIT=10` | Run metadata sync and process up to ten PDFs, once | Yes |
+
+For the first run, use preview → database start → table initialization → backfill →
+status → processing → status. After backfill, matching records are `pending`, not
+yet searchable; successful processing makes them `ready` for the arXiv corpus in
+Streamlit. If no metadata matches, there is nothing to queue.
+
+`DAYS` and `LIMIT` are optional overrides. When omitted, the CLI uses
+`ARXIV_BACKFILL_DAYS` and `ARXIV_DAILY_LIMIT` from configuration. Preview and backfill
+also accept an end date, for example:
+
+```bash
+make papers-preview DAYS=3 UNTIL=2026-09-01
+```
+
+Only `papers-db-up` starts a container. Other targets use the configured
+`PAPERS_DATABASE_URL` and do not start PostgreSQL implicitly. From the host, use
+`localhost:5432`; from Compose containers, the hostname is `postgres`. Database
+`papers` persists in the Docker named volume `papers_postgres` across container
+restarts/recreation. These targets do not remove volumes, overwrite `.env`, or
+install a daily schedule. Keep cost-bearing processing as a separate, explicit step.
+
+### Containerized CLI alternative
+
 For containerized processing, create the bind mount as your host user before using
 the non-root CLI container:
 
@@ -120,6 +160,8 @@ runs both with `ARXIV_DAILY_LIMIT`. Run a small backfill before enabling a sched
 ```bash
 uv run python -m src.api.papers daily --limit 10
 ```
+
+Alternatively, run `make papers-daily LIMIT=10` for the same one-shot operation.
 
 Schedule that one-shot command once per day with cron or an Azure Container Apps
 scheduled Job. For example, a cron entry (replace paths with your checkout and uv
