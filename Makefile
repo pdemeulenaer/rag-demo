@@ -55,6 +55,60 @@ docs-build:
 docs-deploy:
 	uv run mkdocs gh-deploy --force
 
+# Opt-in arXiv workflow. The CLI runs on the host; PostgreSQL runs in Compose.
+# Omitted DAYS/LIMIT preserve the CLI/.env defaults. UNTIL is for backfills only.
+PAPERS_CLI := uv run python -m src.api.papers
+PAPERS_BACKFILL_ARGS = $(if $(DAYS),--days "$(DAYS)") $(if $(UNTIL),--until "$(UNTIL)")
+PAPERS_PROCESS_ARGS = $(if $(LIMIT),--limit "$(LIMIT)")
+
+.PHONY: papers-help papers-scope papers-preview papers-db-up papers-init-db \
+        papers-backfill papers-process papers-sync papers-daily papers-status
+
+papers-help:
+	@printf '%s\n' \
+	  'arXiv workflow (host CLI, separate PostgreSQL container):' \
+	  '  make papers-scope                    Show category/topic configuration' \
+	  '  make papers-preview DAYS=7           Preview metadata only; no DB writes' \
+	  '  make papers-db-up                    Start PostgreSQL and wait for health' \
+	  '  make papers-init-db                  Create catalogue tables' \
+	  '  make papers-backfill DAYS=7          Save metadata and queue papers' \
+	  '  make papers-status                   Inspect processing states' \
+	  '  make papers-process LIMIT=2          Download/index pending PDFs (paid embeddings)' \
+	  '  make papers-sync                     Discover metadata updates only' \
+	  '  make papers-daily LIMIT=10           Sync + process once (paid embeddings)' \
+	  'DAYS/LIMIT are optional; omitted values use CLI/.env defaults.' \
+	  'Preview/backfill also accept UNTIL=YYYY-MM-DD. No target installs a schedule.' \
+	  'Guide: docs/getting-started/arxiv.md'
+
+papers-scope:
+	$(PAPERS_CLI) scope
+
+papers-preview:
+	$(PAPERS_CLI) backfill --dry-run $(PAPERS_BACKFILL_ARGS)
+
+papers-db-up:
+	docker compose --profile papers up -d --wait postgres
+
+papers-init-db:
+	$(PAPERS_CLI) init-db
+
+papers-backfill:
+	$(PAPERS_CLI) backfill $(PAPERS_BACKFILL_ARGS)
+
+# Explicit opt-in to PDF downloads and embedding API usage.
+papers-process:
+	$(PAPERS_CLI) process $(PAPERS_PROCESS_ARGS)
+
+papers-sync:
+	$(PAPERS_CLI) sync
+
+# One invocation only; does not install or enable a daily schedule.
+papers-daily:
+	$(PAPERS_CLI) daily $(PAPERS_PROCESS_ARGS)
+
+papers-status:
+	$(PAPERS_CLI) status
+
 # quality: black lint test
 
 # quality-ci: lint test
