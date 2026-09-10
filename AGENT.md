@@ -146,6 +146,8 @@ make papers-help
 make papers-scope
 make papers-preview DAYS=7    # Metadata only; no DB connection/writes or embeddings
 make papers-db-up             # Start PostgreSQL
+make papers-backup            # Start local PostgreSQL if needed, dump and check its papers DB
+make papers-backups           # List completed archives in ~/rag-demo-backups
 make papers-init-db           # Create catalogue tables, not paper records
 make papers-backfill DAYS=7   # Save matching metadata and queue pending builds
 make papers-status
@@ -154,12 +156,21 @@ make papers-status
 make papers-audit             # Read-only SQL/Qdrant consistency report; no repair/model calls
 ```
 
-For an upgrade, back up PostgreSQL, quiesce ingestion/finish old Redis batches with the
+For an upgrade, quiesce ingestion and use `make papers-backup`; finish old Redis batches with the
 previous worker, stop API/worker/UI, run `papers-init-db`, then
 `make papers-import-uploads LEGACY_MODEL=text-embedding-3-small` (confirm the actual old
 embedding model). Adoption records observed legacy vectors in SQL without touching
 Qdrant or re-embedding. Run the audit and recreate API/worker/UI to apply new environment
 and artifact-volume settings. Full rollout instructions are in the catalogue guide.
+
+Backup helpers use host Python 3 (`scripts/papers_backup.py`) and Compose PostgreSQL
+tools, not app/model dependencies. Default directory is outside the repo; override with
+`BACKUP_DIR=...`. `papers-backup-check FILE=...` decodes the archive without executing SQL.
+New archives are private, uniquely named and only published after a successful check;
+failed attempts retain `.partial` files. These commands target local `postgres/papers`,
+not `PAPERS_DATABASE_URL`, Qdrant, artifacts or Airflow state. No live restore, scheduled
+backups, retention deletion or off-site copying is implicit. Archive checks are not
+full restore rehearsals. See `docs/operations/catalogue.md#backup-commands`.
 
 `pending` means catalogued but not yet searchable; `ready` means processing/indexing
 succeeded. Inspect current status instead of assuming that "fetched" means embedded
@@ -213,3 +224,35 @@ parsing or graph extraction. Existing uploaded-PDF figure processing remains sep
 Migration v1→v2 is implemented; a general migration framework, operator retry/reset,
 ambiguous remote-Batch submission recovery, interrupted-upload recovery, stale-build cleanup and
 historical snapshot serving remain follow-ups; see the guide for detailed limitations.
+
+## Optional daily orchestration
+
+- `src/api/papers/schedule.py` is scheduler-independent; `schedule_store.py` persists
+  daily state in additive `paper_daily_runs` (created by `papers-init-db`; schema v2
+  remains compatible). One immutable plan per actual UTC day, fixed build IDs and
+  persisted per-build attempt reservations before paid work. No refilling on retries.
+- `make papers-scheduled LIMIT=10` explicitly runs discovery/process/audit/report once;
+  `make papers-run-status [RUN_DATE=YYYY-MM-DD]` only reads state. Legacy `papers-daily`
+  and `papers-process` remain outside this scheduled budget. Do not run both schedulers.
+- `dags/arxiv_daily.py` targets Airflow 3: 07:15 UTC, catchup false, one active run/task,
+  paused on creation, one retry/task, two-hour task timeouts. Audit/report use all_done;
+  report fails on unsuccessful upstream stages, so an audit cannot mask ingestion failure.
+- `PAPERS_RUN_MAX_ATTEMPTS` defaults to two per selected build/day, also bounded by the
+  lifetime build attempt budget. Interrupted attempts count. No exact dollar/token cap.
+  Paid daily stages reject historical dates; retries crossing midnight fail for review.
+- Monitoring is optional locally by explicit user choice: `PAPERS_REQUIRE_MONITORING`
+  defaults false. Empty `PAPERS_ALERT_WEBHOOK_URL` / `PAPERS_HEARTBEAT_URL` log warnings
+  and persist notification status `skipped`, never `sent`. Missing optional endpoints
+  do not block successful ingestion/reporting; actual ingestion/audit failures still fail.
+  Configured HTTPS endpoints are used (failure JSON POST / success GET); delivery errors
+  still fail reporting. Set the strict flag true to require both URLs before processing.
+  Without an external heartbeat monitor there are no missed-run/host-outage alerts.
+  Notifications are at-least-once; URLs are secrets. Strict-mode errors name the required
+  settings without exposing values. Rebuild/recreate Airflow to apply code/env changes.
+- Optional Compose `airflow` profile uses a pinned Airflow image, an isolated app venv,
+  and separate orchestration PostgreSQL. `make airflow-up` never unpauses a new DAG;
+  restarting a previously enabled DAG preserves its enabled state. Do not enable live
+  schedules, send test alerts or invoke paid ingestion implicitly as implementation tests.
+- The standalone service is localhost-only development infrastructure, not production
+  Airflow. Docs: `docs/operations/daily-ingestion.md`. Tests use offline DAG/API doubles;
+  `make airflow-check` inspects actual import errors after building without running tasks.

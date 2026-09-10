@@ -7,8 +7,8 @@ independent of **Query source**, which still selects uploads or arXiv for answer
 
 ## Upgrade an existing installation
 
-Take a PostgreSQL backup first, pause scheduled ingestion and new uploads, and let
-in-flight uploads finish before upgrading. This release migrates schema version 1 to
+Pause scheduled ingestion and new uploads, and let in-flight uploads finish before
+upgrading. Use `make papers-backup` for the PostgreSQL backup. This release migrates schema version 1 to
 2: `papers.arxiv_id` becomes `source_id`, and a `source` column distinguishes `arxiv`
 from `uploads`. Existing paper/version/build IDs and manifests are preserved. The
 old API/worker code must not keep running against the new schema.
@@ -21,6 +21,7 @@ Its normal jobs are now tracked durably in PostgreSQL, not expiring Redis metada
 Once ingestion is quiescent:
 
 ```bash
+make papers-backup
 docker compose stop api ingestion-worker streamlit-app
 make papers-db-up
 make papers-init-db
@@ -47,6 +48,32 @@ The existing thesis and active arXiv papers should appear together after success
 legacy import. No fixed document count is assumed: inspect your current inventory.
 Inventory refresh preserves your chat. **Start new conversation** clears it and lets
 your next question use the latest ready documents.
+
+## Backup commands
+
+```bash
+make papers-backup                    # Create and check a timestamped backup
+make papers-backups                   # List completed backups, newest first
+make papers-backup-check FILE="/path/to/papers-....dump"  # Check again; no restore
+```
+
+Backups go to **`~/rag-demo-backups`**, outside the repo. To use another folder, add
+`BACKUP_DIR="/your/backup/folder"` to the backup/list command. Only Python 3 and Docker
+Compose are needed; no host PostgreSQL tools or app dependencies are required.
+
+`papers-backup` starts/waits for the local Compose `postgres` service, dumps its
+**`papers` database** as user `rag`, checks the full archive can be decoded, then
+prints the filename. Files have owner-only permissions and unique UTC names. A failed
+dump/check exits nonzero and leaves a `.partial` file, never a completed backup.
+
+The check uses [pg_restore](https://www.postgresql.org/docs/16/app-pgrestore.html) to
+generate SQL into `/dev/null`; it **does not execute SQL or restore a database**.
+Archive readability is not a substitute for a restore rehearsal into a separate database.
+
+These commands cover the **local paper catalogue only**, not a remote database selected
+by `PAPERS_DATABASE_URL`, Airflow's database, Qdrant, or PDF/image files. No automatic
+backup schedule, retention/deletion, or off-machine copy is installed. Keep an off-machine
+copy for disaster recovery; keep sensitive archives out of Git. Existing backups are never overwritten.
 
 ## Existing-vector adoption is not re-ingestion
 

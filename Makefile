@@ -60,6 +60,47 @@ docs-deploy:
 PAPERS_CLI := uv run python -m src.api.papers
 PAPERS_BACKFILL_ARGS = $(if $(DAYS),--days "$(DAYS)") $(if $(UNTIL),--until "$(UNTIL)")
 PAPERS_PROCESS_ARGS = $(if $(LIMIT),--limit "$(LIMIT)")
+PAPERS_SCHEDULE_CLI := uv run python -m src.api.papers.schedule
+PAPERS_RUN_ARGS = $(if $(RUN_DATE),--run-date "$(RUN_DATE)") $(PAPERS_PROCESS_ARGS)
+
+BACKUP_DIR ?= $(HOME)/rag-demo-backups
+.PHONY: papers-backup papers-backups papers-backup-check
+# Export paths as values, never interpolate user paths into shell commands.
+papers-backup papers-backups papers-backup-check: export PAPERS_BACKUP_DIR := $(BACKUP_DIR)
+papers-backup-check: export PAPERS_BACKUP_FILE := $(FILE)
+
+papers-backup:
+	python3 scripts/papers_backup.py backup
+
+papers-backups:
+	python3 scripts/papers_backup.py list
+
+papers-backup-check:
+	python3 scripts/papers_backup.py check
+
+.PHONY: papers-scheduled papers-run-status airflow-up airflow-stop airflow-logs airflow-check
+
+# Explicit paid run; fixes today's selection across retries, audits and reports.
+papers-scheduled:
+	$(PAPERS_SCHEDULE_CLI) all $(PAPERS_RUN_ARGS)
+
+papers-run-status:
+	$(PAPERS_SCHEDULE_CLI) status $(if $(RUN_DATE),--run-date "$(RUN_DATE)")
+
+# New DAGs start PAUSED. Previously unpaused DAGs retain their state on restart.
+airflow-up:
+	mkdir -p data/paper_artifacts
+	LOCAL_UID="$(LOCAL_UID)" docker compose --profile airflow up -d --build airflow
+
+airflow-stop:
+	docker compose --profile airflow stop airflow
+
+airflow-logs:
+	docker compose --profile airflow logs --tail=100 -f airflow
+
+# Inspect the output: it must contain no DAG import errors. Does not trigger tasks.
+airflow-check:
+	docker compose --profile airflow exec airflow airflow dags list-import-errors --output json
 
 .PHONY: papers-help papers-scope papers-preview papers-db-up papers-init-db \
         papers-backfill papers-process papers-sync papers-daily papers-status papers-audit papers-import-uploads
@@ -70,6 +111,9 @@ papers-help:
 	  '  make papers-scope                    Show category/topic configuration' \
 	  '  make papers-preview DAYS=7           Preview metadata only; no DB writes' \
 	  '  make papers-db-up                    Start PostgreSQL and wait for health' \
+	  '  make papers-backup                   Create/check a timestamped local PostgreSQL backup' \
+	  '  make papers-backups                  List backups (default: ~/rag-demo-backups)' \
+	  '  make papers-backup-check FILE=...    Recheck an archive without restoring it' \
 	  '  make papers-init-db                  Create catalogue tables' \
 	  '  make papers-backfill DAYS=7          Save metadata and queue papers' \
 	  '  make papers-status                   Inspect processing states' \
@@ -79,6 +123,10 @@ papers-help:
 	  '  make papers-process LIMIT=2          Download/index pending PDFs (paid embeddings)' \
 	  '  make papers-sync                     Discover metadata updates only' \
 	  '  make papers-daily LIMIT=10           Sync + process once (paid embeddings)' \
+	  '  make papers-scheduled LIMIT=10       Durable daily budget + audit + notifications (paid)' \
+	  '  make papers-run-status              Read saved daily run summary/state' \
+	  '  make airflow-up                     Start optional Airflow; new DAG is paused' \
+	  '  make airflow-logs / airflow-stop     Inspect / stop scheduler' \
 	  'DAYS/LIMIT are optional; omitted values use CLI/.env defaults.' \
 	  'Preview/backfill also accept UNTIL=YYYY-MM-DD. No target installs a schedule.' \
 	  'Guide: docs/getting-started/arxiv.md'

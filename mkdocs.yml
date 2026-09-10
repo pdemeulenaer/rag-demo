@@ -43,6 +43,7 @@ nav:
   - Operations:
       - Overview: operations/index.md
       - Catalogue and consistency: operations/catalogue.md
+      - Daily ingestion and Airflow: operations/daily-ingestion.md
       - Deployment: operations/deployment.md
       - Evaluation: operations/evaluation.md
       - Benchmarks: operations/benchmarks.md

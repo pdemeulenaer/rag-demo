@@ -136,6 +136,57 @@ services:
         condition: service_healthy
     restart: "no"
 
+  # Optional LOCAL Airflow demo. Never starts with the normal stack.
+  # Separate orchestration DB; document status remains in postgres/papers.
+  airflow-postgres:
+    profiles: [airflow]
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: airflow
+      POSTGRES_USER: airflow
+      POSTGRES_PASSWORD: ${AIRFLOW_DB_PASSWORD:-airflow-local-only}
+    volumes:
+      - airflow_postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U airflow -d airflow"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+
+  airflow:
+    profiles: [airflow]
+    build:
+      context: .
+      dockerfile: Dockerfile.airflow
+    image: rag-demo-airflow:3.3.1
+    # Official Airflow images support arbitrary UIDs with group 0.
+    user: "${LOCAL_UID:-1000}:0"
+    command: standalone
+    env_file: [.env]
+    environment:
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:${AIRFLOW_DB_PASSWORD:-airflow-local-only}@airflow-postgres:5432/airflow
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
+      AIRFLOW__CORE__LOAD_EXAMPLES: "false"
+      AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: "true"
+      AIRFLOW__CORE__DAGS_FOLDER: /opt/airflow/dags
+      AIRFLOW__CORE__DEFAULT_TIMEZONE: utc
+      AIRFLOW__LOGGING__LOGGING_LEVEL: INFO
+      PAPERS_DATABASE_URL: postgresql+psycopg://rag:${PAPERS_DB_PASSWORD:-rag}@postgres:5432/papers
+      PAPERS_ARTIFACT_DIR: /opt/rag/paper_artifacts
+    ports:
+      - "127.0.0.1:8080:8080"
+    volumes:
+      - airflow_home:/opt/airflow
+      - ./dags:/opt/airflow/dags:ro
+      - ./data/paper_artifacts:/opt/rag/paper_artifacts
+    depends_on:
+      postgres:
+        condition: service_healthy
+      airflow-postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
   # Redis database service
   redis:
     image: redis:7.0-alpine # Using a lightweight Redis image
@@ -151,6 +202,8 @@ services:
       retries: 5      
 
 volumes:
+  airflow_postgres: {}
+  airflow_home: {}
   papers_postgres: {}
   redis_data: {}  
   shared_uploads: {}  # For sharing PDFs between API and worker

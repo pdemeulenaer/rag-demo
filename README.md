@@ -116,18 +116,26 @@ Both manual uploads and arXiv papers now share the PostgreSQL catalogue. Streaml
 to migrate the schema and register existing upload vectors without re-embedding:
 
 ```bash
+make papers-backup
 make papers-init-db
 make papers-import-uploads LEGACY_MODEL=text-embedding-3-small
 make papers-audit
 ```
 
-Back up PostgreSQL and quiesce ingestion before migration; the guide includes service
+Quiesce ingestion before backup/migration; the guide includes service
 stop/recreation and legacy Batch-job precautions. PostgreSQL is now required for both
 ingestion paths. `papers-audit` is read-only and never repairs or re-embeds automatically.
+`make papers-backup` creates and checks a local catalogue archive in `~/rag-demo-backups`;
+`make papers-backups` lists them. It does not back up Qdrant or PDF/image files.
 
 The [arXiv setup and operation guide](docs/getting-started/arxiv.md) covers the
 star-cluster scope, PostgreSQL catalogue, PDF processing, daily scheduling and
 Vanilla/Hybrid comparison. Run `make papers-help` to see the command shortcuts.
+
+For monitored daily automation, see the [short Airflow setup guide](docs/operations/daily-ingestion.md).
+`make airflow-up` starts the optional local scheduler with a **new DAG paused**;
+alerts are optional locally. Explicitly unpause the DAG to authorize paid daily ingestion.
+`make papers-run-status` displays the durable run summary.
 
 Merge the paper settings from `.env.sample` into your existing `.env` first; do not
 overwrite your keys. These targets run the Python CLI on your host and PostgreSQL

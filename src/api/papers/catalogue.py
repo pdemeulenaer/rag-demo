@@ -60,6 +60,8 @@ class Catalogue:
                 if "source" not in columns:
                     connection.execute(text("ALTER TABLE papers ADD COLUMN source VARCHAR NOT NULL DEFAULT 'arxiv'"))
         schema.create_all(self.engine)
+        from .schedule_store import run_schema
+        run_schema.create_all(self.engine)  # Additive; existing v2 API/worker remain compatible.
         self.set_checkpoint("schema_version", "2")
 
     def require_schema(self):

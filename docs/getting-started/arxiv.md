@@ -167,12 +167,16 @@ uv run python -m src.api.papers daily --limit 10
 
 Alternatively, run `make papers-daily LIMIT=10` for the same one-shot operation.
 
-Schedule that one-shot command once per day with cron or an Azure Container Apps
-scheduled Job. For example, a cron entry (replace paths with your checkout and uv
-location; shell redirection creates an operational log):
+For automation, prefer the [durable daily runner and optional Airflow DAG](../operations/daily-ingestion.md).
+It freezes the day's paper selection, audits afterward and sends monitoring signals.
+The DAG starts paused; monitoring is optional locally. Set `PAPERS_REQUIRE_MONITORING=true`
+and configure both endpoints when external alerts are required.
+
+The same durable runner can instead be scheduled with cron or an Azure Container Apps
+Job. For example (replace paths; **do not also enable Airflow**):
 
 ```cron
-15 7 * * * cd /absolute/path/rag-demo && /absolute/path/to/uv run python -m src.api.papers daily --limit 10 >> /absolute/path/arxiv-daily.log 2>&1
+15 7 * * * cd /absolute/path/rag-demo && /absolute/path/to/uv run python -m src.api.papers.schedule all --limit 10 >> /absolute/path/arxiv-daily.log 2>&1
 ```
 
 The schedule uses the host timezone. No cron entry, cloud job, download or paid API
@@ -222,7 +226,8 @@ For ephemeral containers set `PAPERS_STORAGE_MODE=AZURE`, `PAPERS_AZURE_CONTAINE
 `AZURE_STORAGE_CONNECTION_STRING` through deployment secrets. Provision the container
 beforehand. This artifact configuration is separate from the legacy figure-storage
 settings. Run `init-db` as an explicit release step and use the backend image with
-command `python -m src.api.papers daily` in your scheduled job. The local Compose
+command `python -m src.api.papers.schedule all` in your scheduled job, with the monitoring
+settings from the [daily ingestion guide](../operations/daily-ingestion.md). The local Compose
 PostgreSQL service is not a production deployment template.
 
 This first text-only arXiv extractor does not perform OCR, figure description, table

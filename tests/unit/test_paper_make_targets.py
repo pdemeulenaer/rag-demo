@@ -56,3 +56,25 @@ def test_import_requires_explicit_model_confirmation():
         "uv", "run", "python", "-m", "src.api.papers", "import-uploads",
         "--legacy-embedding-model", "text-embedding-3-small",
     ]
+
+
+def test_scheduled_runner_and_read_only_status():
+    assert dry_run("papers-scheduled", "LIMIT=2", "RUN_DATE=2026-09-10") == [
+        "uv", "run", "python", "-m", "src.api.papers.schedule", "all",
+        "--run-date", "2026-09-10", "--limit", "2",
+    ]
+    assert dry_run("papers-run-status", "RUN_DATE=2026-09-10") == [
+        "uv", "run", "python", "-m", "src.api.papers.schedule", "status", "--run-date", "2026-09-10",
+    ]
+
+
+def test_airflow_start_does_not_unpause_or_trigger_dag():
+    command = dry_run("airflow-up")
+    assert "--profile" in command and "airflow" in command
+    assert "unpause" not in command and "trigger" not in command
+
+
+@pytest.mark.parametrize("target,action", [("papers-backup", "backup"), ("papers-backups", "list"),
+                                         ("papers-backup-check", "check")])
+def test_backup_commands_need_no_app_dependencies(target, action):
+    assert dry_run(target) == ["python3", "scripts/papers_backup.py", action]

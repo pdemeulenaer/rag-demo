@@ -99,9 +99,9 @@ class PaperIndexer:
             raise ValueError(f"Index verification failed: expected {len(chunks)}, got {count}")
 
 
-def process_pending(client, catalogue, settings, store, indexer, limit):
+def process_pending(client, catalogue, settings, store, indexer, limit, selected_builds=None):
     completed, failed = 0, 0
-    for build in catalogue.pending(settings, limit):
+    for build in (catalogue.pending(settings, limit) if selected_builds is None else selected_builds):
         catalogue.start(build["id"])
         try:
             paper = Paper(**build["metadata"])

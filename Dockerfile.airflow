@@ -1,0 +1,17 @@
+# Keep the app's SQLAlchemy/LLM dependencies out of Airflow's Python environment.
+FROM ghcr.io/astral-sh/uv:python3.12-bookworm-slim AS app-deps
+WORKDIR /opt/rag
+ENV UV_LINK_MODE=copy UV_PYTHON=/usr/local/bin/python UV_PYTHON_DOWNLOADS=never
+COPY pyproject.toml uv.lock ./
+RUN uv sync --frozen --no-dev
+
+FROM apache/airflow:3.3.1-python3.12
+COPY --from=app-deps --chown=airflow:root /opt/rag/.venv /opt/rag/.venv
+COPY --chown=airflow:root src/api /opt/rag/src/api
+COPY --chown=airflow:root config.yaml /opt/rag/config.yaml
+COPY --chown=airflow:root dags /opt/rag/dags
+WORKDIR /opt/rag
+# Fail the build if the isolated interpreter or required Airflow provider is absent.
+RUN /opt/rag/.venv/bin/python -c "import sqlalchemy, psycopg, pymupdf; import src.api.papers.schedule" \
+    && python -c "import runpy; dag = runpy.run_path('/opt/rag/dags/arxiv_daily.py')['dag']; assert len(dag.tasks) == 4; assert dag.catchup is False; assert dag.max_active_runs == 1"
+ENV PAPERS_PYTHON=/opt/rag/.venv/bin/python PAPERS_APP_DIR=/opt/rag
