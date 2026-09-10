@@ -43,10 +43,9 @@ def get_app_version() -> str:
 
 
 # Function to get document titles from the backend API
-def get_document_titles():
+def get_document_titles(source="all"):
     try:
-        endpoint = "papers" if st.session_state.get("corpus") == "arxiv" else "documents"
-        response = requests.get(f"{API_URL}/{endpoint}", timeout=30)
+        response = requests.get(f"{API_URL}/catalogue", params={"source": source}, timeout=30)
         response.raise_for_status()
         return response.json()
     except requests.exceptions.RequestException as e:
@@ -90,7 +89,7 @@ def ask_question_to_backend(question):
             "generation_model": st.session_state.generation_model,
             "mode": st.session_state.rag_mode,
             "corpus": st.session_state.corpus,
-            "corpus_snapshot": st.session_state.get("corpus_snapshot") if st.session_state.corpus == "arxiv" else None,
+            "corpus_snapshot": st.session_state.get("corpus_snapshot"),
         }
 
         response = requests.post(f"{API_URL}/rag2", json=payload, headers=headers, timeout=180)
@@ -134,46 +133,38 @@ def main():
 
     with st.sidebar:
         st.subheader("📚 Knowledge Base")
-        st.selectbox("Corpus", ["uploads", "arxiv"], key="corpus",
+        st.selectbox("Query source", ["uploads", "arxiv"], key="corpus",
                      format_func=lambda value: "Uploaded PDFs" if value == "uploads" else "arXiv star clusters")
         st.radio("Retrieval mode", ["vanilla", "hybrid"], key="rag_mode",
                  format_func=lambda value: "Vanilla — dense retrieval" if value == "vanilla" else "Hybrid — fusion + reranking")
         st.caption("Both presets retrieve evidence directly; neither uses the intent router or a knowledge graph.")
         if st.session_state.corpus == "arxiv":
             st.caption("Default scope: astro-ph.GA + star-cluster terms. Change scope in backend configuration.")
-            if st.button("Refresh arXiv corpus / reset comparison"):
-                st.session_state.pop("corpus_snapshot", None)
-                st.session_state.session_id = ""
-                st.session_state.full_conversation = []
-                st.session_state.backend_memory = []
-            if st.session_state.get("corpus_snapshot"):
-                st.caption(f"Corpus fingerprint: {st.session_state.corpus_snapshot}")
-        st.caption("PDF uploads below are added only to the Uploaded PDFs corpus.")
+        if st.button("Start new conversation", help="Clears chat history. Your next question uses the latest ready documents from the selected source."):
+            st.session_state.pop("corpus_snapshot", None)
+            st.session_state.session_id = ""
+            st.session_state.full_conversation = []
+            st.session_state.backend_memory = []
+        if st.session_state.get("corpus_snapshot"):
+            st.caption(f"Corpus fingerprint: {st.session_state.corpus_snapshot}")
+        st.caption("Queries use only ready documents from the selected source. Inventory below can show all sources.")
 
         # st.markdown("---")
         # st.subheader("📊 Database Content")
-        if st.button("Currently in database", use_container_width=True,
-                     help="Lists the selected corpus: Uploaded PDFs or ready arXiv papers."):
-            titles_data = get_document_titles()
-            if titles_data:
-                titles_list = titles_data.get("titles", [])
-                total = titles_data.get("total_documents", 0)
-
-                # Build the response string
-                response_str = f"📚 **Total Documents:** {total}\n\n**Titles:**\n"
-                if titles_list:
-                    # Using a numbered list for better readability
-                    for i, title in enumerate(titles_list, 1):
-                        response_str += f"{i}. {title}\n"
-                else:
-                    response_str += "No documents found in the database."
-
-                # Append the response to the conversation history
-                st.session_state.full_conversation.append({
-                    "role": "assistant",
-                    "content": response_str,
-                    "sources": [] # No sources for this type of response
-                })
+        st.subheader("Document inventory")
+        inventory_source = st.selectbox("Inventory source", ["all", "uploads", "arxiv"],
+            format_func=lambda source: {"all": "All sources", "uploads": "Uploaded PDFs", "arxiv": "arXiv"}[source])
+        if st.button("Refresh document inventory", use_container_width=True,
+                     help="Updates document titles and processing states without clearing your conversation."):
+            st.session_state.inventory = get_document_titles(inventory_source)
+        inventory = st.session_state.get("inventory")
+        if inventory and inventory.get("source") == inventory_source:
+            st.write(f"Catalogued: {inventory['total_documents']} · Active indexed: {inventory['queryable_documents']}")
+            st.caption("Latest processing states: " + ", ".join(
+                f"{state}: {count}" for state, count in inventory["status_counts"].items()))
+            st.dataframe([{key: row.get(key) for key in ("title", "source", "status", "queryable", "active_version", "collection", "error")}
+                          for row in inventory["documents"]], hide_index=True)
+            st.caption("A failed replacement may still have an older ready version. Run make papers-audit to check live index consistency.")
 
         st.markdown("---")
         st.subheader("➕ Ingest Your Own PDFs")
@@ -219,7 +210,7 @@ def main():
                     try:
                         response = requests.post(f"{API_URL}/ingest", files=files_to_send, timeout=300)
                         response.raise_for_status()
-                        st.success("✅ Documents ingested successfully!")
+                        st.info("Upload accepted for processing. Refresh the inventory; documents are searchable only when ready.")
                     except requests.exceptions.RequestException as e:
                         st.error(f"❌ Failed to ingest documents: {e}")
 
@@ -253,7 +244,7 @@ def main():
                         )
                         backend_response.raise_for_status()
 
-                        st.success("✅ Document ingested successfully from URL!")
+                        st.info("Upload accepted for processing. Refresh the inventory to check readiness.")
                     except requests.exceptions.RequestException as e:
                         st.error(f"❌ Failed to ingest URL: {e}")
 
@@ -291,6 +282,9 @@ def main():
 
     comparison_key = (st.session_state.corpus, st.session_state.rag_mode, st.session_state.generation_model)
     if st.session_state.get("comparison_key") != comparison_key:
+        previous = st.session_state.get("comparison_key")
+        if previous is None or previous[0] != comparison_key[0]:
+            st.session_state.pop("corpus_snapshot", None)
         st.session_state.full_conversation = []
         st.session_state.backend_memory = []
         st.session_state.session_id = ""

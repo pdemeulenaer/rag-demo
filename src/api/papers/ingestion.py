@@ -2,6 +2,7 @@ from datetime import datetime, timedelta, timezone
 from uuid import NAMESPACE_URL, uuid5
 
 from .arxiv import Paper, matches_scope
+from .consistency import activate_verified
 
 
 def discover_daily(client, catalogue, settings):
@@ -114,7 +115,7 @@ def process_pending(client, catalogue, settings, store, indexer, limit):
                 "chunk_count": len(chunks), "pipeline_id": settings.pipeline_id,
                 "embedding_model": settings.EMBEDDING_MODEL, "collection": settings.PAPERS_COLLECTION}
             manifest["artifact"] = store.put_json(build["id"], "manifest.json", manifest)
-            catalogue.activate(build, manifest)
+            activate_verified(catalogue, indexer.qdrant, build, manifest)
             completed += 1
         except Exception as exc:
             # Do not store credentials/HTTP request details in status responses.

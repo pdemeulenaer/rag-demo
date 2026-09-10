@@ -1,17 +1,35 @@
 import os
 import shutil
 import logging
+import tempfile
+from pathlib import Path
 from typing import List
 from fastapi import APIRouter, UploadFile, File, BackgroundTasks, HTTPException, Query
 
 from src.api.core.config import config
 # We now import the central orchestrator from the worker
 from src.api.ingestion.worker import start_smart_ingestion
+from src.api.papers.catalogue import Catalogue
+from src.api.papers.settings import PaperSettings
+from src.api.papers.uploads import register_upload
+from starlette.concurrency import run_in_threadpool
 
 # Setup logging
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
+
+
+def register_paths(paths):
+    catalogue = Catalogue(PaperSettings().PAPERS_DATABASE_URL)
+    try:
+        with catalogue.writer_lock():
+            catalogue.require_schema()
+            mode = "sync" if len(paths) < config.INGESTION_BATCH_THRESHOLD else "batch"
+            return [register_upload(catalogue, path, mode)["id"] for path in paths]
+    finally:
+        catalogue.close()
+
 
 @router.post("/ingest", summary="Ingest PDF documents (Smart Batching)")
 async def ingest_documents_endpoint(
@@ -34,17 +52,19 @@ async def ingest_documents_endpoint(
     
     # Ensure temp directory exists
     # Make sure this path is accessible by BOTH the API and the Worker containers
-    temp_dir = "/app/temp_uploads" 
+    temp_dir = "temp_uploads"
     os.makedirs(temp_dir, exist_ok=True)
 
     try:
         # 2. Save uploaded files to disk (so the worker can access them)
         for file in files:
-            if not file.filename.lower().endswith(".pdf"):
+            if not file.filename or not file.filename.lower().endswith(".pdf"):
                 logger.warning(f"Skipping non-PDF file: {file.filename}")
                 continue
                 
-            file_path = os.path.join(temp_dir, file.filename)
+            # Isolate simultaneous uploads and never trust client-provided path components.
+            folder = tempfile.mkdtemp(prefix="upload-", dir=temp_dir)
+            file_path = os.path.join(folder, Path(file.filename.replace("\\", "/")).name)
             
             with open(file_path, "wb") as buffer:
                 shutil.copyfileobj(file.file, buffer)
@@ -55,6 +75,11 @@ async def ingest_documents_endpoint(
         if not saved_file_paths:
             raise HTTPException(status_code=400, detail="No valid PDF files found.")
 
+        try:
+            build_ids = await run_in_threadpool(register_paths, saved_file_paths)
+        except Exception as exc:
+            raise HTTPException(503, "Catalogue unavailable or ingestion busy; run papers-init-db and retry.") from exc
+
         # 3. Trigger the Smart Worker
         # We pass the paths and configuration needed for the worker to take over
         background_tasks.add_task(
@@ -64,12 +89,15 @@ async def ingest_documents_endpoint(
 
         return {
             "status": "processing_started",
+            "build_ids": build_ids,
             "message": f"Received {len(saved_file_paths)} files.",
             "mode": "auto_detect",
             "threshold": config.INGESTION_BATCH_THRESHOLD,
             "note": "Check worker logs for Batch vs Real-time decision."
         }
 
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Error in ingestion endpoint: {e}")
         # Clean up files if initial startup failed

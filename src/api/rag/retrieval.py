@@ -139,6 +139,13 @@ def get_embedding(text, model=config.EMBEDDING_MODEL):
     run_type="retriever"
 )
 def retrieve_context(query, qdrant_client, top_k=5, mode="hybrid", collection=None, scope=None):
+    if scope is None:
+        from src.api.api.papers_router import active_corpus
+        from src.api.papers.consistency import active_filter
+        _, active, _ = active_corpus("uploads")
+        if not active:
+            return []
+        scope = active_filter(active)
     query_embedding = get_embedding(query)
 
     results = search_points(qdrant_client, collection or config.QDRANT_COLLECTION_NAME,

@@ -1,8 +1,10 @@
 # arXiv star-cluster milestone
 
-This opt-in path adds a PostgreSQL catalogue, versioned artifacts, bounded paper
-processing and a Vanilla/Hybrid query-time switch. Existing PDF uploads remain in
-their existing Qdrant collection. No knowledge graph or autonomous agent is added.
+arXiv discovery is opt-in. PostgreSQL now catalogues both arXiv papers and manually
+uploaded PDFs, with versioned artifacts, bounded processing and a Vanilla/Hybrid
+query-time switch. Existing uploads retain their Qdrant collection. No knowledge
+graph or autonomous agent is added. Existing installations must follow the
+[catalogue upgrade and consistency guide](../operations/catalogue.md) first.
 
 ## Scientific scope
 
@@ -98,7 +100,7 @@ intervals. arXiv APIs do not require a personal API key.
 
 Run `make papers-help` for the command summary. These targets wrap the host-side
 commands above; they do not run the Python CLI inside a container. PostgreSQL itself
-runs in the separate Compose `postgres` service, enabled by the `papers` profile.
+runs in the separate Compose `postgres` service, now part of the normal stack.
 
 | Command | Effect | Embedding API usage |
 | --- | --- | --- |
@@ -108,6 +110,8 @@ runs in the separate Compose `postgres` service, enabled by the `papers` profile
 | `make papers-init-db` | Create catalogue tables in the configured database | No |
 | `make papers-backfill DAYS=7` | Save matching metadata and queue processing | No |
 | `make papers-status` | Inspect processing states | No |
+| `make papers-audit` | Read-only SQL/Qdrant consistency check | No |
+| `make papers-import-uploads LEGACY_MODEL=text-embedding-3-small` | Register existing upload vectors; confirm their original model first | No |
 | `make papers-process LIMIT=2` | Download/index up to two pending PDFs | Yes |
 | `make papers-sync` | Discover metadata changes and queue work | No |
 | `make papers-daily LIMIT=10` | Run metadata sync and process up to ten PDFs, once | Yes |
@@ -178,7 +182,9 @@ creating a new processing build; an operator retry/reset command is a follow-up.
 
 ## Query-time comparison
 
-Open Streamlit, select **arXiv star clusters**, then **Vanilla** or **Hybrid**.
+Open Streamlit, select **arXiv star clusters** under **Query source**, then **Vanilla**
+or **Hybrid**. **Document inventory** independently defaults to **All sources**;
+refresh it to see uploads and arXiv together, including pending/failed builds.
 
 - Vanilla: dense retrieval, five chunks, no reranker.
 - Hybrid: dense candidates plus full-text-constrained dense candidates, reciprocal
@@ -187,14 +193,16 @@ Open Streamlit, select **arXiv star clusters**, then **Vanilla** or **Hybrid**.
   and active-build filter. Explicit presets bypass intent routing. API clients that
   omit `mode` and select uploads retain the existing routed behavior.
 
-The first arXiv query pins a corpus fingerprint in the GUI. If ingestion changes the
+The first query pins a corpus fingerprint in the GUI. If ingestion changes the
 active builds, subsequent comparisons return a refresh warning instead of silently
-comparing different corpora. **Refresh arXiv corpus / reset comparison** starts a new
-comparison. This is a change detector, not an archival snapshot/query-history system.
+comparing different corpora. **Start new conversation** clears chat and the fingerprint
+so the next question uses the latest active corpus. **Refresh document inventory**
+only updates the listing, preserving the conversation. This is a change detector,
+not an archival snapshot/query-history system.
 Changing mode/model/corpus clears chat context; changing a sidebar setting does not
 resubmit a question. For a fair initial comparison, submit the same standalone
-question with the same generation model in both modes. Legacy uploaded PDFs are live
-and do not have catalogue/fingerprint guarantees.
+question with the same generation model in both modes. Uploaded PDFs must be registered
+in the catalogue and now use active-build filtering/fingerprints too.
 
 `GET /papers` lists ready papers and the current fingerprint. Example request:
 

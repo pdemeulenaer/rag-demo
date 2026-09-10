@@ -1,7 +1,6 @@
 import asyncio
-from contextlib import closing
-from fastapi import APIRouter, HTTPException, status, Response
-from qdrant_client import AsyncQdrantClient, QdrantClient
+from fastapi import APIRouter, status, Response
+from qdrant_client import AsyncQdrantClient
 import redis.asyncio as redis
 from src.api.core.config import config
 
@@ -10,41 +9,10 @@ router = APIRouter()
 
 @router.get("/documents")
 def list_documents():
-    """List uploaded PDFs, not the separate SQL-backed arXiv corpus."""
-    try:
-        with closing(QdrantClient(
-            url=config.QDRANT_URL, port=config.qdrant_port,
-            api_key=config.QDRANT_API_KEY or None, timeout=10,
-            check_compatibility=False,
-        )) as client:
-            collection = config.QDRANT_COLLECTION_NAME
-            if not client.collection_exists(collection):
-                return {"titles": [], "total_documents": 0}
-            documents = {}
-            offset = None
-            while True:
-                points, offset = client.scroll(
-                    collection_name=collection, offset=offset, limit=1000,
-                    with_payload=["file_hash", "file_name", "file_title", "title"],
-                    with_vectors=False,
-                )
-                for point in points:
-                    payload = point.payload or {}
-                    title = payload.get("file_title") or payload.get("title") or payload.get("file_name")
-                    if not isinstance(title, str) or not title.strip():
-                        continue
-                    title = title.strip()
-                    # Text chunks, summaries and figures belong to the same PDF.
-                    identity = ("hash", payload["file_hash"]) if payload.get("file_hash") else (
-                        ("name", payload["file_name"]) if payload.get("file_name") else ("title", title)
-                    )
-                    documents.setdefault(identity, title)
-                if offset is None:
-                    break
-            titles = sorted(documents.values())
-            return {"titles": titles, "total_documents": len(titles)}
-    except Exception as exc:
-        raise HTTPException(503, "Uploaded-PDF catalogue unavailable; check the backend Qdrant connection.") from exc
+    """Compatibility listing of ready uploads, now sourced from the shared catalogue."""
+    from src.api.api.papers_router import inventory_response
+    result = inventory_response("uploads")
+    return {"titles": result["titles"], "total_documents": result["queryable_documents"]}
 
 
 @router.get("/health", status_code=status.HTTP_200_OK)

@@ -9,8 +9,9 @@ The FastAPI application is served on port 8000. Interactive documentation is ava
 | --- | --- | --- | --- |
 | `GET` | `/` | — | Welcome message |
 | `GET` | `/health` | `system` | Liveness probe, used by the Compose healthcheck |
-| `GET` | `/documents` | `system` | List uploaded PDFs from the legacy Qdrant collection |
+| `GET` | `/documents` | `system` | List ready uploads from the shared SQL catalogue |
 | `GET` | `/papers` | `papers` | List ready arXiv papers and the current corpus fingerprint |
+| `GET` | `/catalogue?source=all` | `papers` | Unified inventory with processing states; source may be all, uploads or arxiv |
 | `POST` | `/rag2` | `rag` | Ask a question and get a cited answer |
 | `GET` | `/images/{image_name}` | `rag` | Serve a figure referenced by an answer |
 | `POST` | `/ingest` | `ingestion` | Ingest PDF documents with smart batching |
@@ -37,13 +38,14 @@ real-time and OpenAI Batch processing. See [Ingestion](ingestion.md).
 
 ## Corpus listings
 
-Streamlit's **Currently in database** button follows the **Corpus** selection:
-**Uploaded PDFs** calls `GET /documents`; **arXiv star clusters** calls `GET /papers`.
-Both return `titles` and `total_documents`. `/documents` paginates through the upload
-collection and groups chunks/figures by file hash (falling back to filename/title
-for older payloads). A missing upload collection returns an empty list; connectivity
-failures return HTTP 503. `/papers` lists only SQL-active, ready builds—not pending
-metadata discoveries. The two listings intentionally remain separate.
+Streamlit's **Refresh document inventory** button calls `GET /catalogue`, defaulting
+to **All sources** independently of **Query source**. It returns total registered
+documents, active indexed documents, latest-state counts, and per-document source,
+state, active version and collection. A failed replacement can coexist with an older
+active version. `/documents` remains a ready-upload compatibility listing and `/papers`
+remains a scoped ready-arXiv listing; both now use PostgreSQL. Catalogue/schema failures
+return HTTP 503. These endpoints do not themselves verify live vectors: use
+`make papers-audit`. See [Catalogue and consistency](../operations/catalogue.md).
 
 If `/documents` returns HTTP 404, the running backend is missing this route. Restart
 the API after updating its code (rebuild the image if code is not bind-mounted).

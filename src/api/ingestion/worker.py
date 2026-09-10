@@ -193,6 +193,12 @@ def start_smart_ingestion(file_paths: list[str]):
 #     else:
 #         logger.info("No images found to process in this batch.")
 def trigger_batch_ingestion(file_paths: list[str]):
+    """Use the shared catalogue lifecycle; text stays hidden until figures complete."""
+    from src.api.papers.uploads import run_uploads
+    return run_uploads(file_paths, mode="batch")
+
+
+def _trigger_batch_ingestion_legacy(file_paths: list[str]):
     """
     Hybrid ingestion used when the number of uploaded PDFs exceeds the
     ``config.INGESTION_BATCH_THRESHOLD``.

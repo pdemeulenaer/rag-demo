@@ -14,18 +14,20 @@ flowchart TD
     U[Upload PDFs] --> C{count < threshold?}
     C -->|yes| SYNC[Real-time<br/>ingest_documents per file]
     C -->|no| BATCH[trigger_batch_ingestion<br/>OpenAI Batch API]
-    BATCH --> RD[(Redis<br/>batch_meta:batch_id)]
+    BATCH --> RD[(PostgreSQL<br/>waiting_batch manifest)]
     BATCH --> POLL[poller.py]
     RD --> POLL
-    POLL --> QD[(Qdrant)]
+    POLL --> QD[(Qdrant staged points)]
     SYNC --> QD
+    QD --> V[Verify expected IDs and vectors]
+    V --> A[Activate build in PostgreSQL]
 ```
 
 - **Real-time path** — each file goes straight through `ingest_documents`, blocking until
   done. Suitable for a handful of uploads.
 - **Batch path** — figure analysis is offloaded to the OpenAI Batch API, which has a 24-hour
-  completion window but costs substantially less. The mapping from batch request to source
-  document is stored in Redis under `batch_meta:{batch_id}`.
+  completion window. The mapping from batch request to source document is stored durably
+  in PostgreSQL. Text is staged but not queryable until all figures complete and verify.
 
 ## The poller
 
@@ -35,16 +37,18 @@ flowchart TD
 | --- | --- |
 | Check | Query OpenAI for the batch ID to see whether the window has closed |
 | Download | Fetch the `.jsonl` result file with the generated figure descriptions |
-| Map | Match `custom_id` against the Redis metadata to recover the source PDF |
+| Map | Match `custom_id` against the SQL build manifest to recover the source PDF |
 | Embed | Call the embedding API so descriptions are searchable semantically |
 | Upsert | Write the points into Qdrant |
+| Verify/activate | Check the full expected point set before making the build queryable |
 
 It has its own healthcheck (`python -m src.api.healthcheck`) so Compose can restart it if it
 wedges.
 
 ## Document processing
 
-`src/api/ingestion/ingest_documents.py` does the actual work per file:
+`src/api/papers/uploads.py` coordinates registration, artifacts, indexing and activation.
+It reuses processing helpers from `src/api/ingestion/ingest_documents.py`:
 
 - `get_file_hash` — content hash, used to build stable point IDs and avoid duplicates.
 - `extract_raw_content` — text and page structure extraction (PyMuPDF).
@@ -66,8 +70,9 @@ Figures become their own Qdrant points with `type: "figure"`, an `image_path`, a
 make ingest     # uv run python -m ingestion_batch.ingest_to_qdrant_oai
 ```
 
-This bypasses the API entirely and is the fastest way to seed a fresh collection from a local
-directory of PDFs.
+This legacy script bypasses the shared catalogue and is not the supported ingestion
+workflow. Use the upload API or arXiv CLI; existing uncatalogued vectors require explicit
+adoption. See [Catalogue upgrade and audit](../operations/catalogue.md).
 
 ## Docling
 

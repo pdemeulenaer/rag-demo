@@ -108,6 +108,23 @@ The application is composed of several key components:
 
 ## arXiv ingestion and PostgreSQL
 
+Both manual uploads and arXiv papers now share the PostgreSQL catalogue. Streamlit's
+**Document inventory → All sources** lists them together with their processing states;
+**Query source** independently controls which corpus answers your question.
+
+**Existing installations:** follow the [catalogue upgrade guide](docs/operations/catalogue.md)
+to migrate the schema and register existing upload vectors without re-embedding:
+
+```bash
+make papers-init-db
+make papers-import-uploads LEGACY_MODEL=text-embedding-3-small
+make papers-audit
+```
+
+Back up PostgreSQL and quiesce ingestion before migration; the guide includes service
+stop/recreation and legacy Batch-job precautions. PostgreSQL is now required for both
+ingestion paths. `papers-audit` is read-only and never repairs or re-embeds automatically.
+
 The [arXiv setup and operation guide](docs/getting-started/arxiv.md) covers the
 star-cluster scope, PostgreSQL catalogue, PDF processing, daily scheduling and
 Vanilla/Hybrid comparison. Run `make papers-help` to see the command shortcuts.

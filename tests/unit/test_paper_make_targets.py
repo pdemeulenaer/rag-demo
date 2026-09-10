@@ -25,6 +25,7 @@ def dry_run(target, *overrides):
     ("papers-sync", "sync"),
     ("papers-daily", "daily"),
     ("papers-status", "status"),
+    ("papers-audit", "audit"),
 ])
 def test_host_commands_preserve_cli_defaults(target, command):
     assert dry_run(target) == ["uv", "run", "python", "-m", "src.api.papers", command]
@@ -47,4 +48,11 @@ def test_processing_limit_is_forwarded(target, command):
 def test_db_start_is_separate_and_waits_for_health():
     assert dry_run("papers-db-up") == [
         "docker", "compose", "--profile", "papers", "up", "-d", "--wait", "postgres",
+    ]
+
+
+def test_import_requires_explicit_model_confirmation():
+    assert dry_run("papers-import-uploads", "LEGACY_MODEL=text-embedding-3-small") == [
+        "uv", "run", "python", "-m", "src.api.papers", "import-uploads",
+        "--legacy-embedding-model", "text-embedding-3-small",
     ]

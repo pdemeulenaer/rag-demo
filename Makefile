@@ -44,7 +44,7 @@ lint:
 	pylint src
 
 test:
-	uv run --group dev pytest tests/unit -q
+	uv run --group dev --group frontend pytest tests/unit -q
 
 docs:
 	uv run --group dev mkdocs serve -a 127.0.0.1:$(PORT)
@@ -62,7 +62,7 @@ PAPERS_BACKFILL_ARGS = $(if $(DAYS),--days "$(DAYS)") $(if $(UNTIL),--until "$(U
 PAPERS_PROCESS_ARGS = $(if $(LIMIT),--limit "$(LIMIT)")
 
 .PHONY: papers-help papers-scope papers-preview papers-db-up papers-init-db \
-        papers-backfill papers-process papers-sync papers-daily papers-status
+        papers-backfill papers-process papers-sync papers-daily papers-status papers-audit papers-import-uploads
 
 papers-help:
 	@printf '%s\n' \
@@ -73,6 +73,9 @@ papers-help:
 	  '  make papers-init-db                  Create catalogue tables' \
 	  '  make papers-backfill DAYS=7          Save metadata and queue papers' \
 	  '  make papers-status                   Inspect processing states' \
+	  '  make papers-audit                    Read-only SQL/Qdrant consistency audit' \
+	  '  make papers-import-uploads LEGACY_MODEL=text-embedding-3-small' \
+	  '                                       Register existing upload vectors in SQL; no re-embedding' \
 	  '  make papers-process LIMIT=2          Download/index pending PDFs (paid embeddings)' \
 	  '  make papers-sync                     Discover metadata updates only' \
 	  '  make papers-daily LIMIT=10           Sync + process once (paid embeddings)' \
@@ -108,6 +111,12 @@ papers-daily:
 
 papers-status:
 	$(PAPERS_CLI) status
+
+papers-audit:
+	$(PAPERS_CLI) audit
+
+papers-import-uploads:
+	$(PAPERS_CLI) import-uploads $(if $(LEGACY_MODEL),--legacy-embedding-model "$(LEGACY_MODEL)")
 
 # quality: black lint test
 
@@ -188,6 +197,7 @@ push-fastapi:
 
 
 compose:
+	mkdir -p data/paper_artifacts temp_uploads
 	@echo "Running docker-compose up"
 	@LOCAL_UID="$(LOCAL_UID)" LOCAL_GID="$(LOCAL_GID)" docker compose up -d --build
 	@api_container="$$(docker compose ps -q api)"; \

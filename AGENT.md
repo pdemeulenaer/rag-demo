@@ -20,14 +20,16 @@ two ingestion modes. MkDocs documentation is in `docs/`; start at
 - **Memory:** pickled `ConversationMemory` objects in Redis, per `session_id`, 10-message
   recent window plus a Groq summary; TTL is refreshed to one hour on every message.
 - **Uploaded-PDF ingestion:** PDF text/figures are extracted with PyMuPDF. Text chunks, a document summary,
-  and figure descriptions become Qdrant points. Small uploads run synchronously; uploads of
-  `INGESTION_BATCH_THRESHOLD` files or more submit figure analysis to OpenAI Batch. The poller
-  (`src/api/ingestion/poller.py`) finishes those jobs from Redis metadata.
+  and figure descriptions become staged Qdrant points. Small uploads run synchronously;
+  uploads of `INGESTION_BATCH_THRESHOLD` files or more submit figure analysis to OpenAI
+  Batch. `src/api/papers/uploads.py` owns their shared catalogue lifecycle. The poller
+  (`src/api/ingestion/poller.py`) finishes jobs from durable PostgreSQL manifests.
 - **Storage:** local figures live under `src/api/data/images`; Azure Blob storage is selectable
   with `STORAGE_MODE=AZURE`. Local image URLs use `EXTERNAL_API_URL`.
 - **Deployment:** `docker-compose.yml` runs UI, API, ingestion worker, and Redis. Qdrant is
   normally external (Cloud); the local Compose service is intentionally commented out.
-  PostgreSQL and the one-shot arXiv CLI are opt-in services under the `papers` profile.
+  PostgreSQL is required by both ingestion paths and starts with the normal stack;
+  only the one-shot arXiv CLI remains under the `papers` profile.
 
 ## Configuration and decisions
 
@@ -39,8 +41,9 @@ two ingestion modes. MkDocs documentation is in `docs/`; start at
   the code is changed to consume it; do not assume its collection or model settings are active.
 - Generation provider is inferred from the model name (`gpt-*`/`o1-*` => OpenAI; Groq for
   `openai/gpt-oss-*` and other names), not from `GENERATION_MODEL_PROVIDER`.
-- The uploaded-PDF ingestion implementation is `ingest_documents.py` plus `worker.py` and
-  `poller.py`. `ingest_documents_old.py`, `ingest_documents_now.py`, `src/api/utils.py`,
+- Public `ingest_documents.py`/`worker.py` entry points delegate to `papers/uploads.py`;
+  the old implementations are retained as `_..._legacy` reference functions, not the
+  app's ingestion path. `ingest_documents_old.py`, `ingest_documents_now.py`, `src/api/utils.py`,
   `evals/old/`, notebooks, and `docling_trial/` are experiments/legacy references.
 - Preserve both corpora: arXiv uses `PAPERS_COLLECTION`, distinct from the uploaded-PDF
   `QDRANT_COLLECTION_NAME`. Ingestion may create collections, not a Qdrant Cloud cluster;
@@ -49,9 +52,8 @@ two ingestion modes. MkDocs documentation is in `docs/`; start at
 ## Important current caveats
 
 - `retrieval.py` uses the configured Redis host/port/database for local and Compose runs.
-- The Batch poller does not yet write the same figure payload schema as synchronous ingestion
-  (`page` vs `page_number`, and caption/year omissions). Batch-ingested figure citations can
-  therefore lack page/caption metadata.
+- New sync/Batch uploads share figure payloads (`page_number`, caption, year, build identity).
+  Old indexed figures may still lack those fields; legacy adoption does not rewrite payloads.
 - `ALLOW_ORIGINS` is documented but CORS is currently hard-coded to `*` in `main.py`.
 - `main.py` mounts `config.IMAGES_FOLDER`, creating it if absent.
 - The Makefile's `FRONTEND_IMAGE_NAME`/`BACKEND_IMAGE_NAME` values are reversed, so confirm
@@ -65,7 +67,7 @@ two ingestion modes. MkDocs documentation is in `docs/`; start at
 make compose       # local stack (recommended runtime path)
 make docs-build    # validate/render MkDocs
 make docs PORT=8001
-make ingest        # standalone ingestion_batch script
+make ingest        # legacy script: bypasses catalogue; do not use for the current workflow
 make run-evals     # retriever evaluation; needs configured external services
 ```
 
@@ -92,19 +94,20 @@ not the same topic. Keep scope changes explicit and reviewable.
 
 ## Opt-in arXiv milestone: implementation and operations
 
-`src/api/papers/` adds a separate PostgreSQL catalogue, versioned artifacts and a
+`src/api/papers/` owns the unified PostgreSQL catalogue, versioned artifacts and a
 text-only arXiv processing CLI. Default scope: `astro-ph.GA` AND star-cluster phrases
 in titles/abstracts. See `docs/getting-started/arxiv.md` for commands and limitations.
 Metadata settings are isolated in `PaperSettings` so discovery needs no model keys.
 Use `python -m src.api.papers scope`, `init-db`, `backfill`, `sync`, `process`, `daily`,
-or `status`. Nothing schedules paid ingestion automatically. PostgreSQL and the CLI
-are in the Compose `papers` profile; existing uploads use the legacy collection.
+or `status`. Nothing schedules paid ingestion automatically. Only the one-shot CLI
+is in the Compose `papers` profile; existing uploads retain the legacy collection
+but must be registered in PostgreSQL before they are queryable.
 
 Explicit `/rag2` modes `vanilla`/`hybrid` bypass intent routing. `corpus=arxiv` filters
-Qdrant to SQL-active builds and supports a corpus-change fingerprint. Streamlit
+Qdrant to SQL-active builds; both sources support a corpus-change fingerprint. Streamlit
 exposes these presets with isolated chat context. Neither preset is agentic/graph RAG.
 Hybrid is dense + full-text-constrained dense RRF with Cohere rerank, not sparse BM25.
-Tests: `uv run --group dev pytest tests/unit -q` (offline, no paid calls).
+Tests: `make test` (offline, including the frontend test; no paid calls).
 
 ### Storage and activation guarantees
 
@@ -112,14 +115,19 @@ Tests: `uv run --group dev pytest tests/unit -q` (offline, no paid calls).
   `paper_builds` (also the processing queue), and `paper_checkpoints`. Canonical paper,
   arXiv version and processing build IDs are distinct. Abstracts are source metadata,
   not generated summaries.
+- Schema v2 renames `papers.arxiv_id` to `source_id` and adds `source` (`arxiv`/`uploads`).
+  `papers-init-db` performs an idempotent migration preserving existing IDs/manifests.
+  Upload identity is content-addressed: same bytes deduplicate, changed bytes are a new
+  document, not a filename-based replacement. See `docs/operations/catalogue.md`.
 - Build manifests record processing/model identity, artifact hashes/locations and
-  verified chunk counts. Only successful builds become active; failed replacements
+  verified point IDs/counts, vectors and payload identity. Only successful builds become active; failed replacements
   leave the previous active version queryable. Qdrant queries filter to SQL-active
   builds; old points are retained, not automatically deleted.
 - `backfill` uses bounded submission-date Search API queries; `sync` uses incremental
   OAI-PMH metadata updates with pagination/checkpoints and overlap. Discovery queues
   work independently of PDF limits, preserving the backlog. Writes are serialized by
-  a PostgreSQL advisory lock; retries are bounded by `ARXIV_MAX_ATTEMPTS`.
+  a PostgreSQL advisory lock; retries are bounded by `ARXIV_MAX_ATTEMPTS`. Upload batches
+  remain `waiting_batch` and unqueryable until all expected figures verify.
 - Local PostgreSQL runs in its own `postgres` container, database `papers`, with
   persistent Docker volume `papers_postgres`. Host CLI: `localhost:5432`; Compose
   clients: `postgres:5432`. Do not treat container recreation as a database reset.
@@ -137,13 +145,21 @@ which starts PostgreSQL and waits for its health check. Merge settings into an e
 make papers-help
 make papers-scope
 make papers-preview DAYS=7    # Metadata only; no DB connection/writes or embeddings
-make papers-db-up             # Start the opt-in PostgreSQL service
+make papers-db-up             # Start PostgreSQL
 make papers-init-db           # Create catalogue tables, not paper records
 make papers-backfill DAYS=7   # Save matching metadata and queue pending builds
 make papers-status
 make papers-process LIMIT=2   # Explicit PDF download + paid embedding/indexing step
 make papers-status
+make papers-audit             # Read-only SQL/Qdrant consistency report; no repair/model calls
 ```
+
+For an upgrade, back up PostgreSQL, quiesce ingestion/finish old Redis batches with the
+previous worker, stop API/worker/UI, run `papers-init-db`, then
+`make papers-import-uploads LEGACY_MODEL=text-embedding-3-small` (confirm the actual old
+embedding model). Adoption records observed legacy vectors in SQL without touching
+Qdrant or re-embedding. Run the audit and recreate API/worker/UI to apply new environment
+and artifact-volume settings. Full rollout instructions are in the catalogue guide.
 
 `pending` means catalogued but not yet searchable; `ready` means processing/indexing
 succeeded. Inspect current status instead of assuming that "fetched" means embedded
@@ -155,20 +171,23 @@ are in `docs/getting-started/arxiv.md`; the README links the quick-start sequenc
 
 ### Streamlit corpus selection and troubleshooting
 
-- **Currently in database** follows **Corpus**: Uploaded PDFs calls `GET /documents`
-  (`system_router.py`); arXiv star clusters calls `GET /papers` (`papers_router.py`).
-  Both return `titles` and `total_documents`; `/papers` lists only ready, active papers.
-- `/documents` paginates Qdrant and groups chunks/figures by file hash, with legacy
-  filename/title fallbacks. Missing collection: empty listing; unavailable Qdrant: 503.
-  This route was added after a reported 404. A 404 is a route/deployment problem, not
-  evidence that embeddings are missing. Do not re-ingest papers to repair a listing.
+- **Document inventory** defaults to **All sources** and calls `GET /catalogue?source=all`.
+  It shows registered totals, latest states and whether an active indexed build exists.
+  Inventory source selection is independent of **Query source**. Upload acceptance is
+  no longer displayed as completed ingestion. A failed replacement may retain an older
+  ready build; latest-state counts and active-build counts can therefore overlap.
+- `/documents` is a compatibility ready-upload listing backed by SQL; `/papers` lists
+  active scoped arXiv builds. PostgreSQL/schema failure returns 503. The old ambiguous
+  **Currently in database** button was removed. A 404 indicates stale/missing routes,
+  not lost embeddings. Do not re-ingest papers to repair a listing.
 - If a running bind-mounted API lacks a newly added route, `docker compose restart api`
   loads it; image-only deployments need a rebuild/redeploy. Refresh Streamlit and check
-  corpus selection if an arXiv listing unexpectedly calls `/documents`.
+  the UI if you still see the old **Currently in database** button.
 - Vanilla retrieves densely without reranking; Hybrid fuses dense and full-text-filtered
   dense candidates, then reranks. Both use the same active corpus and grounding prompt.
-  The arXiv fingerprint detects corpus changes; it is not a historical snapshot store.
-  Use **Refresh arXiv corpus / reset comparison** after ingestion changes active papers.
+  The corpus fingerprint detects changes; it is not a historical snapshot store.
+  Use **Start new conversation** after ingestion changes active papers; it clears chat
+  and the corpus fingerprint. **Refresh document inventory** only updates the listing.
   Corpus/mode/model changes isolate chat context; form submission prevents sidebar
   changes from silently repeating model calls.
 
@@ -176,13 +195,21 @@ are in `docs/getting-started/arxiv.md`; the README links the quick-start sequenc
 
 Use `make test` and `make docs-build`. The unit suite includes offline ingestion,
 activation/citation/mode regressions, corpus-listing HTTP tests with mocked clients,
-and Make dry-run tests that do not execute ingestion. Some HTTP tests run handlers
+schema migration, legacy adoption, equal-count/wrong-ID drift, sync/Batch failure paths,
+a Streamlit all-source inventory test, and Make dry-run tests. Some HTTP tests run handlers
 inline because sandbox worker threads can stall; do not equate mocked HTTP coverage
 with a real deployment smoke test. Never run paid ingestion as an implicit test.
 
-Check live PostgreSQL readiness, `/papers` and the selected Qdrant collection separately
+`make papers-audit` compares active manifests to Qdrant, reports unregistered points,
+and distinguishes retained old builds from incomplete jobs. It never repairs/deletes
+or calls models. Nonzero can mean drift, concurrent changes or an operational error;
+rerun in a quiet window before repair. Legacy adoption establishes an observed baseline,
+not proof of complete historical PDF extraction or the original embedding model.
+
+Check live PostgreSQL readiness, `/catalogue`, `/papers` and the Qdrant collections separately
 when debugging a deployment; `/health` currently checks Redis/Qdrant, not PostgreSQL.
 The arXiv path is text-only: no OCR, automated figure enrichment, equation/table-aware
 parsing or graph extraction. Existing uploaded-PDF figure processing remains separate.
-General schema migrations, operator retry/reset tooling, stale-build cleanup and
+Migration v1→v2 is implemented; a general migration framework, operator retry/reset,
+ambiguous remote-Batch submission recovery, interrupted-upload recovery, stale-build cleanup and
 historical snapshot serving remain follow-ups; see the guide for detailed limitations.

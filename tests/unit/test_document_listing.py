@@ -1,6 +1,5 @@
 import asyncio
 import importlib
-from types import SimpleNamespace
 from unittest.mock import Mock
 
 from fastapi import FastAPI
@@ -21,10 +20,11 @@ def listing(monkeypatch):
     monkeypatch.setenv("QDRANT_API_KEY", "")
     monkeypatch.setenv("LANGSMITH_TRACING", "false")
     module = importlib.import_module("src.api.api.system_router")
-    client = Mock()
-    client.collection_exists.return_value = True
-    monkeypatch.setattr(module, "QdrantClient", Mock(return_value=client))
-    return module, client
+    import src.api.api.papers_router as papers_router
+    catalogue = Mock()
+    catalogue.inventory.return_value = []
+    monkeypatch.setattr(papers_router, "Catalogue", Mock(return_value=catalogue))
+    return module, catalogue
 
 
 def get_documents(module):
@@ -37,51 +37,46 @@ def get_documents(module):
     return asyncio.run(request())
 
 
-def point(**payload):
-    return SimpleNamespace(payload=payload)
-
-
-def test_documents_route_paginates_and_groups_pdf_chunks(listing):
-    module, client = listing
-    client.scroll.side_effect = [
-        ([point(file_hash="a", file_title="Paper A"), point(file_hash="a", file_title="Paper A")], "next"),
-        ([point(file_hash="b", file_title="Paper B"), point(file_hash="a", file_title="Paper A")], None),
+def test_documents_route_uses_sql_ready_uploads(listing):
+    module, catalogue = listing
+    catalogue.inventory.return_value = [
+        {"title": "Ready", "status": "ready", "queryable": True},
+        {"title": "Pending", "status": "pending", "queryable": False},
     ]
     response = get_documents(module)
     assert response.status_code == 200
-    assert response.json() == {"titles": ["Paper A", "Paper B"], "total_documents": 2}
-    assert client.scroll.call_args_list[1].kwargs["offset"] == "next"
-    assert client.scroll.call_args.kwargs["collection_name"] == module.config.QDRANT_COLLECTION_NAME
-    assert client.scroll.call_args.kwargs["with_vectors"] is False
-    client.close.assert_called_once()
+    assert response.json() == {"titles": ["Ready"], "total_documents": 1}
+    catalogue.inventory.assert_called_once_with("uploads")
+    catalogue.close.assert_called_once()
 
 
-def test_documents_supports_legacy_metadata_and_distinct_same_title_pdfs(listing):
-    module, client = listing
-    client.scroll.return_value = ([
-        point(file_hash="a", file_title="Same title"), point(file_hash="b", file_title="Same title"),
-        point(file_name="legacy.pdf"), point(file_name="legacy.pdf"),
-        point(title="Old title"), point(title="Old title"), point(),
-    ], None)
-    assert get_documents(module).json() == {
-        "titles": ["Old title", "Same title", "Same title", "legacy.pdf"], "total_documents": 4,
-    }
+def test_global_inventory_reports_all_processing_states(listing):
+    _, catalogue = listing
+    from src.api.api.papers_router import inventory_response
+    catalogue.inventory.return_value = [
+        {"title": "Upload", "status": "waiting_batch", "queryable": False},
+        {"title": "arXiv", "status": "ready", "queryable": True},
+        {"title": "Replacement", "status": "failed", "queryable": True},
+    ]
+    result = inventory_response()
+    assert result["total_documents"] == 3
+    assert result["queryable_documents"] == 2
+    assert result["status_counts"] == {"waiting_batch": 1, "ready": 1, "failed": 1}
+    catalogue.inventory.assert_called_once_with("all")
 
 
-def test_missing_upload_collection_is_empty_not_404(listing):
-    module, client = listing
-    client.collection_exists.return_value = False
+def test_empty_upload_catalogue_is_empty_not_404(listing):
+    module, catalogue = listing
     response = get_documents(module)
     assert response.status_code == 200
     assert response.json() == {"titles": [], "total_documents": 0}
-    client.scroll.assert_not_called()
-    client.close.assert_called_once()
+    catalogue.close.assert_called_once()
 
 
-def test_qdrant_failure_is_503_without_leaking_connection_details(listing):
-    module, client = listing
-    client.scroll.side_effect = RuntimeError("sensitive connection details")
+def test_catalogue_failure_is_503_without_leaking_connection_details(listing):
+    module, catalogue = listing
+    catalogue.require_schema.side_effect = RuntimeError("sensitive connection details")
     response = get_documents(module)
     assert response.status_code == 503
     assert "sensitive" not in response.text
-    client.close.assert_called_once()
+    catalogue.close.assert_called_once()

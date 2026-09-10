@@ -42,14 +42,18 @@ services:
       - ./src/api:/app/src/api 
       # - shared_uploads:/app/temp_uploads  # for sharing PDFs between API and worker   
       - ./temp_uploads:/app/temp_uploads  # Change to a local folder mapping  
+      - ./data/paper_artifacts:/app/paper_artifacts
     environment:
       - ALLOW_ORIGINS=*  
       - REDIS_HOST=redis  # Use the service name for Redis
       - REDIS_PORT=6379     
       - PAPERS_DATABASE_URL=postgresql+psycopg://rag:${PAPERS_DB_PASSWORD:-rag}@postgres:5432/papers
+      - PAPERS_ARTIFACT_DIR=/app/paper_artifacts
       # - QDRANT_URL=http://qdrant:6333   
     depends_on:
       redis:
+        condition: service_healthy
+      postgres:
         condition: service_healthy
       # - qdrant
     # (Optional) You can add a healthcheck for FastAPI too
@@ -73,10 +77,13 @@ services:
     environment:
       - REDIS_HOST=redis
       - REDIS_PORT=6379
+      - PAPERS_DATABASE_URL=postgresql+psycopg://rag:${PAPERS_DB_PASSWORD:-rag}@postgres:5432/papers
+      - PAPERS_ARTIFACT_DIR=/app/paper_artifacts
     volumes:
       - ./src/api:/app/src/api
       # - shared_uploads:/app/temp_uploads  # for sharing PDFs between API and worker      
       - ./temp_uploads:/app/temp_uploads  # Change to a local folder mapping   
+      - ./data/paper_artifacts:/app/paper_artifacts
     depends_on:
       redis:
         condition: service_healthy
@@ -90,10 +97,9 @@ services:
       timeout: 10s
       retries: 3     
 
-  # Opt-in catalogue. Existing uploads do not require PostgreSQL.
+  # Shared catalogue required for uploaded and arXiv documents.
   postgres:
     image: postgres:16-alpine
-    profiles: [papers]
     environment:
       POSTGRES_DB: papers
       POSTGRES_USER: rag

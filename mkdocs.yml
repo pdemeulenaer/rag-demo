@@ -42,6 +42,7 @@ nav:
       - API Surface: architecture/api.md
   - Operations:
       - Overview: operations/index.md
+      - Catalogue and consistency: operations/catalogue.md
       - Deployment: operations/deployment.md
       - Evaluation: operations/evaluation.md
       - Benchmarks: operations/benchmarks.md

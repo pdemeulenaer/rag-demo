@@ -612,6 +612,13 @@ def extract_raw_content(filepath: str, file_hash: str):
 
 # === Main Ingestion ===
 def ingest_documents(file_path: str, verbose: bool = False):
+    """Public upload entry point; registration and verified activation are mandatory."""
+    from src.api.papers.uploads import run_uploads
+    return run_uploads([file_path], mode="sync")
+
+
+def _ingest_documents_legacy(file_path: str, verbose: bool = False):
+    """Historical implementation, retained for reference; not called by the app."""
     start_time = datetime.now()
     
     # --- Setup ---

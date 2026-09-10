@@ -15,6 +15,20 @@ qc = QdrantClient(
 )
 COLL = config.QDRANT_COLLECTION_NAME
 
+
+def _scroll_active(**kwargs):
+    from src.api.api.papers_router import active_corpus
+    from src.api.papers.consistency import active_filter
+    from qdrant_client.models import Filter
+    _, active, _ = active_corpus("uploads")
+    if not active:
+        return [], None
+    scope = active_filter(active)
+    extra = kwargs.pop("scroll_filter", None)
+    if extra:
+        scope = Filter(must=[scope, Filter.model_validate(extra) if isinstance(extra, dict) else extra])
+    return qc.scroll(scroll_filter=scope, **kwargs)
+
 def _normalize(s: str) -> str:
     if not s:
         return ""
@@ -30,13 +44,13 @@ def _last_name(s: str) -> str:
 
 def list_titles():
     logger.debug("Fetching list of titles from Qdrant")
-    r, _ = qc.scroll(collection_name=COLL, limit=10000)
+    r, _ = _scroll_active(collection_name=COLL, limit=10000)
     titles = sorted({p.payload.get("file_title") for p in r if p.payload.get("file_title")})
     logger.info("Found %d unique titles", len(titles))
     return titles
 
 def list_authors():
-    r, _ = qc.scroll(collection_name=COLL, limit=10000)
+    r, _ = _scroll_active(collection_name=COLL, limit=10000)
     authors = set()
     for p in r:
         for a in p.payload.get("authors", []):
@@ -88,14 +102,14 @@ def titles_by_author(author: str | None, year: str | None = None):
     if year:
         must.append({"key": "year", "match": {"value": str(year)}})
     try:
-        r, _ = qc.scroll(collection_name=COLL, scroll_filter={"must": must}, limit=10_000)
+        r, _ = _scroll_active(collection_name=COLL, scroll_filter={"must": must}, limit=10_000)
         matched |= {fmt for p in r if (fmt := format_entry(p))}
     except Exception as e:
         logger.warning("strict scroll failed: %s", e)
 
     # --- fallback scan for last-name + optional first-name/initial ---
     try:
-        r, _ = qc.scroll(collection_name=COLL, limit=10_000)
+        r, _ = _scroll_active(collection_name=COLL, limit=10_000)
     except Exception as e:
         logger.warning("full scan failed: %s", e)
         return sorted(matched)
@@ -123,7 +137,7 @@ def titles_by_author(author: str | None, year: str | None = None):
 
 
 def author_of_title(title):
-    r, _ = qc.scroll(collection_name=COLL,
+    r, _ = _scroll_active(collection_name=COLL,
                      scroll_filter={"must":[{"key":"file_title","match":{"value":title}}]},
                      limit=1)
     return r[0].payload.get("authors") if r else []
@@ -159,7 +173,7 @@ def summarize_paper(title):
     
     try:
         # We only need one point (the document summary point)
-        r, _ = qc.scroll(
+        r, _ = _scroll_active(
             collection_name=COLL,
             scroll_filter={"must": must_filter},
             limit=1

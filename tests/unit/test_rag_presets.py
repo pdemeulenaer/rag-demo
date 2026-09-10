@@ -87,7 +87,7 @@ def test_router_presets_bypass_intent(runtime, monkeypatch, mode):
     assert result.mode == mode
     assert result.corpus_snapshot == "snapshot-1"
     assert f":arxiv:{mode}:" in pipeline.call_args.args[1]
-    assert pipeline.call_args.kwargs["scope"].must[0].match.any == ["ready-1"]
+    assert pipeline.call_args.kwargs["scope"].should[0].must[0].match.value == "ready-1"
     classify.assert_not_called()
 
 

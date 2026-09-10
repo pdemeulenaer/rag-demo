@@ -38,7 +38,7 @@ q_client = QdrantClient(
 logger.debug(f"🔧 Redis connection: {config.REDIS_HOST}:{config.REDIS_PORT}/{config.REDIS_DB}")
 
 # Initialize embeddings inside poller or globally
-embedding_model = OpenAIEmbeddings()
+embedding_model = OpenAIEmbeddings(model_name=config.EMBEDDING_MODEL)
 
 def process_completed_batch(batch_id, output_file_id):
     # 1. Use the key matching worker.py
@@ -123,6 +123,28 @@ def process_completed_batch(batch_id, output_file_id):
     r.srem("pending_openai_batches", batch_id)
 
 def main_loop():
+    """Poll durable PostgreSQL jobs. Do not silently finish uncatalogued legacy jobs."""
+    from src.api.papers.catalogue import Catalogue
+    from src.api.papers.settings import PaperSettings
+    from src.api.papers.uploads import poll_batches
+    from src.api.papers.artifacts import ArtifactStore
+    catalogue = Catalogue(PaperSettings().PAPERS_DATABASE_URL)
+    try:
+        while True:
+            try:
+                with catalogue.writer_lock():
+                    catalogue.require_schema()
+                    poll_batches(catalogue, q_client, client, embedding_model.embed_documents, ArtifactStore(PaperSettings()))
+                if r.scard("pending_openai_batches"):
+                    logger.warning("Legacy Redis batches require operator review before catalogue adoption; see arxiv.md")
+            except Exception as exc:
+                logger.error("Catalogue batch poll failed (%s)", type(exc).__name__)
+            time.sleep(30)
+    finally:
+        catalogue.close()
+
+
+def _main_loop_legacy():
     logger.info("Starting poller loop...")
     while True:
         try:
