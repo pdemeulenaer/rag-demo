@@ -151,6 +151,7 @@ make papers-status            # Matching papers should now be pending
 # Opt-in: downloads PDFs and incurs embedding API usage
 make papers-process LIMIT=2
 make papers-status            # Successfully indexed papers are ready to query
+make papers-count             # Total ready documents across arXiv and uploads
 ```
 
 PostgreSQL data persists in the Docker volume `papers_postgres`. PDF/text artifacts

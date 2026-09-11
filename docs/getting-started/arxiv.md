@@ -110,6 +110,7 @@ runs in the separate Compose `postgres` service, now part of the normal stack.
 | `make papers-init-db` | Create catalogue tables in the configured database | No |
 | `make papers-backfill DAYS=7` | Save matching metadata and queue processing | No |
 | `make papers-status` | Inspect processing states | No |
+| `make papers-count` | Count documents with an active ready build, across arXiv and uploads | No |
 | `make papers-audit` | Read-only SQL/Qdrant consistency check | No |
 | `make papers-import-uploads LEGACY_MODEL=text-embedding-3-small` | Register existing upload vectors; confirm their original model first | No |
 | `make papers-process LIMIT=2` | Download/index up to two pending PDFs | Yes |

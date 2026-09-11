@@ -49,8 +49,13 @@ make papers-run-status                      # Today's saved run; no writes/model
 make papers-run-status RUN_DATE=2026-09-10  # Historical run
 make airflow-logs                           # Scheduler/task troubleshooting
 make papers-audit                           # Independent read-only consistency check
+make papers-count                           # Total ready documents (arXiv + uploads)
 make airflow-stop                           # Stop Airflow, leaving the app running
 ```
+
+`papers-count` prints one integer from the PostgreSQL catalogue: documents with an
+active ready build, not chunks or pending papers. A failed replacement does not
+exclude a still-active ready version. Use `papers-audit` to verify Qdrant consistency.
 
 To run the same workflow manually **with paid processing**, use
 `make papers-scheduled LIMIT=10`. It runs once; repeat with the same settings to retry

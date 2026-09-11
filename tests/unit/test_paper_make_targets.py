@@ -25,6 +25,7 @@ def dry_run(target, *overrides):
     ("papers-sync", "sync"),
     ("papers-daily", "daily"),
     ("papers-status", "status"),
+    ("papers-count", "count"),
     ("papers-audit", "audit"),
 ])
 def test_host_commands_preserve_cli_defaults(target, command):

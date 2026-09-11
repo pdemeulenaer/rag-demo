@@ -11,7 +11,7 @@ from .settings import PaperSettings
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("command", choices=["scope", "init-db", "backfill", "sync", "process", "daily", "status", "audit", "import-uploads"])
+    parser.add_argument("command", choices=["scope", "init-db", "backfill", "sync", "process", "daily", "status", "count", "audit", "import-uploads"])
     parser.add_argument("--legacy-embedding-model", help="Required for import-uploads: explicitly confirm the model used for existing vectors")
     parser.add_argument("--days", type=int, help="Backfill lookback; default ARXIV_BACKFILL_DAYS")
     parser.add_argument("--until", type=datetime.fromisoformat, help="Backfill end in ISO format (UTC)")
@@ -31,11 +31,15 @@ def main():
         print(json.dumps({"categories": settings.categories, "topic_terms": settings.terms,
                           "scope_id": settings.scope_id}, indent=2))
         return
-    if args.command == "status":
+    if args.command in {"status", "count"}:
         catalogue = Catalogue(settings.PAPERS_DATABASE_URL)
         try:
             catalogue.require_schema()
-            print(json.dumps({"documents": catalogue.inventory(), "builds": catalogue.status()}, indent=2))
+            documents = catalogue.inventory()
+            if args.command == "count":
+                print(sum(1 for document in documents if document["queryable"]))
+            else:
+                print(json.dumps({"documents": documents, "builds": catalogue.status()}, indent=2))
         finally:
             catalogue.close()
         return

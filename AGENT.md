@@ -154,6 +154,7 @@ make papers-status
 make papers-process LIMIT=2   # Explicit PDF download + paid embedding/indexing step
 make papers-status
 make papers-audit             # Read-only SQL/Qdrant consistency report; no repair/model calls
+make papers-count             # Count documents with an active ready build (arXiv + uploads)
 ```
 
 For an upgrade, quiesce ingestion and use `make papers-backup`; finish old Redis batches with the

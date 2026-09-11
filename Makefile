@@ -103,7 +103,7 @@ airflow-check:
 	docker compose --profile airflow exec airflow airflow dags list-import-errors --output json
 
 .PHONY: papers-help papers-scope papers-preview papers-db-up papers-init-db \
-        papers-backfill papers-process papers-sync papers-daily papers-status papers-audit papers-import-uploads
+        papers-backfill papers-process papers-sync papers-daily papers-status papers-count papers-audit papers-import-uploads
 
 papers-help:
 	@printf '%s\n' \
@@ -117,6 +117,7 @@ papers-help:
 	  '  make papers-init-db                  Create catalogue tables' \
 	  '  make papers-backfill DAYS=7          Save metadata and queue papers' \
 	  '  make papers-status                   Inspect processing states' \
+	  '  make papers-count                    Count ready documents across arXiv and uploads' \
 	  '  make papers-audit                    Read-only SQL/Qdrant consistency audit' \
 	  '  make papers-import-uploads LEGACY_MODEL=text-embedding-3-small' \
 	  '                                       Register existing upload vectors in SQL; no re-embedding' \
@@ -159,6 +160,9 @@ papers-daily:
 
 papers-status:
 	$(PAPERS_CLI) status
+
+papers-count:
+	@$(PAPERS_CLI) count
 
 papers-audit:
 	$(PAPERS_CLI) audit
