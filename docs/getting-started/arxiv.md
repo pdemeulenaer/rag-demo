@@ -74,13 +74,31 @@ information. See [arXiv API terms](https://info.arxiv.org/help/api/tou.html).
 Both arXiv and GUI uploads now use **PyMuPDF4LLM → per-page Markdown →
 structure-aware chunks**. Chunking preserves section breadcrumbs and PDF page numbers,
 uses a 512-token cap with up to 64 tokens of paragraph overlap, and splits large tables
-by complete rows with repeated headers. OCR is disabled. Oversized table rows fail for
-review rather than being silently truncated. This improves reading order, but does not
-guarantee correct equations, tables or scientific meaning.
+by complete rows with repeated headers. OCR is disabled. If a table cannot fit while
+preserving a complete row (or the PDF layout produced malformed table Markdown), its text
+is retained in `table_unstructured` chunks rather than silently dropped or treated as a
+reliable table. This improves reading order, but does not guarantee correct equations,
+tables or scientific meaning.
 
 New builds save `document.md`, `pages.json`, `chunks.json` and extraction settings as
 content-addressed artifacts. Existing PDFs/vectors are **not upgraded automatically**.
 Changing extraction changes the build fingerprint, not the paper's identity.
+
+#### Extraction artifacts and provenance
+
+`document.md` is the page-aware Markdown used for chunking. `pages.json` records each
+PDF page as `{page_number, text}`. Each `chunks.json` entry contains:
+
+| Field | Meaning |
+| --- | --- |
+| `page_number` | Original one-based PDF page number |
+| `section_header` | Markdown heading breadcrumb, for example `Methods > Data` |
+| `text` / `token_count` | Indexed evidence and its `cl100k_base` token count |
+| `content_kind` | `text`, a structure-preserved `table`, or `table_unstructured` |
+
+`table_unstructured` is still searchable evidence with page and section provenance; only
+its table row/column structure should not be relied on. Inspect these artifacts with
+`make papers-extract-preview` before a paid re-index when extraction quality matters.
 
 For an existing installation, pause the Airflow DAG and let running ingestion/figure
 batches finish before rebuilding workers. Do not run old and new ingestion workers

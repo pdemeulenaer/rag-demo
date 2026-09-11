@@ -226,8 +226,8 @@ when debugging a deployment; `/health` currently checks Redis/Qdrant, not Postgr
 Both arXiv and uploads use `papers/extraction.py`: pinned PyMuPDF/PyMuPDF4LLM 1.27.2.3,
 OCR disabled, per-page Markdown, section-aware chunks capped at 512 cl100k_base tokens,
 up to 64 tokens of whole-paragraph overlap, complete table rows and repeated headers.
-Oversized table rows fail for review; no silent truncation. Mathematical fidelity is not
-guaranteed. Figures remain handled separately on the upload path; arXiv has no figure
+Tables that cannot retain complete rows become explicitly labelled `table_unstructured`
+evidence rather than being dropped. Mathematical fidelity is not guaranteed. Figures remain handled separately on the upload path; arXiv has no figure
 enrichment or graph extraction. Versioned artifacts include Markdown/pages/chunks and SPEC.
 Extraction/chunking changes must bump SPEC and therefore pipeline identity. New upload
 registration only deduplicates an active build of the current pipeline, so the same PDF
