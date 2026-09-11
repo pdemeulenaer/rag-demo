@@ -39,7 +39,6 @@ class EvaluationSettings(BaseSettings):
 class Citation(BaseModel):
     model_config = ConfigDict(extra="forbid")
     evidence_id: str
-    quote: str
 
 
 class Question(BaseModel):
@@ -63,15 +62,18 @@ about its title/authors. Vary methods, quantitative findings, assumptions and li
 For cross_paper: require substantive synthesis/comparison of BOTH supplied papers on a
 shared scientific topic. Name the papers or their distinct studies unambiguously in the
 question. Cite evidence from both. Do not invent agreement, conflict or causal connections.
-For unanswerable_candidate: ask a plausible specific question whose answer is absent from
-these excerpts. The reference answer must abstain, not invent a missing value. Citations
-must be empty. Explain what evidence is missing; this is NOT a corpus-wide absence claim.
+For unanswerable_candidate: ALWAYS return a non-null candidate containing a plausible,
+specific question whose answer is absent from these excerpts. The reference answer must
+abstain, not invent a missing value. Citations must be empty. Explain what evidence is
+missing; this is NOT a corpus-wide absence claim. Set skip_reason=null.
 For answerable kinds, write a concise reference answer supported entirely by the excerpts.
-Cite each needed excerpt using its evidence_id and a short exact verbatim substring as quote.
+Cite each needed excerpt using its evidence_id only. The cited frozen excerpt will be saved
+with the candidate for human review.
 support_summary is a brief evidence justification, not a chain of thought.
 Make questions standalone: never say 'the context above' or refer to internal evidence IDs.
-If the excerpts cannot support a useful question of the requested kind, return candidate=null
-and a skip_reason. Otherwise skip_reason=null. Never force an unsupported comparison.
+For single_paper or cross_paper only, return candidate=null and a skip_reason if the
+excerpts cannot support a useful question. Otherwise skip_reason=null. Never force an
+unsupported comparison.
 All output is a draft for human review, not verified ground truth.
 """
 
@@ -200,7 +202,8 @@ def prepare(args):
         "corpus_fingerprint": snapshot_id(active), "active_build_ids": [b["id"] for b in active],
         "excluded_no_text_build_ids": excluded, "seed": args.seed, "papers": papers, "evidence": evidence}
     plan = {"schema_version": 1, "snapshot_hash": digest(snapshot), "model": args.model,
-            "prompt": SYSTEM_PROMPT, "max_completion_tokens": args.max_completion_tokens, "jobs": jobs}
+            "reasoning_effort": getattr(args, "reasoning_effort", None), "prompt": SYSTEM_PROMPT,
+            "max_completion_tokens": args.max_completion_tokens, "jobs": jobs}
     args.output.mkdir(parents=True, mode=0o700, exist_ok=False)
     write_json(args.output / "snapshot.json", snapshot)
     write_json(args.output / "plan.json", plan)
@@ -227,8 +230,6 @@ def validate_candidate(proposal, job, evidence, seen):
         if citation.evidence_id not in supplied:
             raise EvaluationError("unknown_evidence_id")
         chunk = supplied[citation.evidence_id]
-        if not citation.quote.strip() or citation.quote not in chunk["text"]:
-            raise EvaluationError("quote_not_in_evidence")
         cited_papers.add(chunk["paper_id"])
     required = {"single_paper": 1, "cross_paper": 2, "unanswerable_candidate": 0}[job["kind"]]
     if len(cited_papers) != required or (required == 0 and candidate.citations):
@@ -280,6 +281,8 @@ def generate(output, client_factory=None, *, wait_seconds=600, retry_job=None):
                             "text": {"format": {"type": "json_schema", "name": "Proposal", "strict": True,
                                                  "schema": Proposal.model_json_schema()}},
                             "max_output_tokens": plan["max_completion_tokens"]}
+                        if plan.get("reasoning_effort"):
+                            request["reasoning"] = {"effort": plan["reasoning_effort"]}
                         response = obtain_response(client, job["id"], request, state,
                             lambda: write_json(results_path, state), wait_seconds=wait_seconds, retry_job=retry_job)
                     except Exception as error:
@@ -354,6 +357,9 @@ def main():
     preview.add_argument("--chunks-per-paper", type=int, default=4)
     preview.add_argument("--seed", type=int, default=42)
     preview.add_argument("--model", default="gpt-4.1-mini")
+    preview.add_argument("--reasoning-effort",
+                         choices=["none", "minimal", "low", "medium", "high", "xhigh", "max"],
+                         help="Optional Responses API reasoning effort; saved in the plan")
     preview.add_argument("--max-completion-tokens", type=int, default=2500,
                          help="Per-call token cap including reasoning; saved in the plan (default: 2500)")
     args = parser.parse_args()

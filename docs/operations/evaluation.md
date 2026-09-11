@@ -22,8 +22,8 @@ Look in `data/evaluation/star-clusters/`:
 - `plan.json`: frozen question types, evidence groups, prompt, model and limits.
 - `results.json`: submission journal, saved background response IDs/statuses and terminal
   outputs, plus completed candidates/rejections and token usage.
-- `questions.json`: candidate questions, reference answers, source excerpts, exact
-  supporting quotes and `review_status: needs_review`.
+- `questions.json`: candidate questions, reference answers, cited source excerpts,
+  evidence IDs and `review_status: needs_review`.
 
 The snapshot is a **sample of indexed text**, not a full corpus backup. Preview respects
 the configured arXiv category/topic scope and embedding model, so its paper count may
@@ -45,6 +45,24 @@ The CLI `python -m evals.generate_questions prepare --help` exposes all options.
 At least two papers with usable text are required. Preview never overwrites an existing
 directory: choose a new `EVAL_DIR` for a new sample, model or question count.
 Sampling is deterministic for unchanged inputs and seed; model responses need not be.
+
+### Fast GPT-5 Mini pilot
+
+For this bounded, excerpt-grounded JSON task, start with a small `gpt-5-mini` pilot and
+minimal reasoning before paying for a full dataset:
+
+```bash
+make eval-preview EVAL_DIR=data/evaluation/markdown-mini-pilot \
+  EVAL_MODEL=gpt-5-mini EVAL_REASONING_EFFORT=minimal \
+  EVAL_MAX_TOKENS=4000 QUESTIONS=10 PAPERS=20
+make eval-check EVAL_DIR=data/evaluation/markdown-mini-pilot
+make create-eval-dataset EVAL_DIR=data/evaluation/markdown-mini-pilot EVAL_WAIT_SECONDS=600
+```
+
+`EVAL_REASONING_EFFORT` is optional and is sent only when set. It is saved in `plan.json`,
+so it cannot be changed after generation begins; use a new directory to compare models or
+effort. Choose only an effort supported by the selected model. `gpt-5-mini` is designed
+for well-defined, precise, high-volume work; see the [official model documentation](https://developers.openai.com/api/docs/models/gpt-5-mini).
 
 For GPT-5, allow more room for reasoning and the answer:
 
@@ -68,8 +86,14 @@ The saved token cap is sent as `max_output_tokens`.
 Cross-paper partners are chosen by title/abstract word overlap without embeddings.
 This is a simple starting heuristic, not a knowledge graph or a guarantee of meaningful
 scientific overlap. Unsupported pairs can be skipped; duplicate questions, unknown
-evidence IDs, non-verbatim quotes and invalid paper counts are rejected. Thus **50
+evidence IDs and invalid paper counts are rejected. Thus **50
 planned questions can yield fewer than 50 candidates**. Inspect the rejection entries.
+
+The generator validates cited evidence IDs against the frozen snapshot and saves the full
+cited excerpts in `reference_evidence`. It deliberately does not ask the model to reproduce
+an “exact quote”: PDF-derived Markdown makes that brittle and a copied substring would not
+prove the reference answer is correct. Human review verifies that the answer follows from
+the saved evidence.
 
 ### Costs and resuming
 
@@ -154,8 +178,9 @@ Error classification follows [OpenAI's error documentation](https://developers.o
 
 ## Review before benchmarking
 
-All generated answers are **synthetic drafts, not verified ground truth**. Exact quote
-validation proves that quoted text exists, not that the answer follows from it.
+All generated answers are **synthetic drafts, not verified ground truth**. Evidence-ID
+validation proves that the cited frozen excerpts were selected, not that the answer follows
+from them.
 
 1. Verify every answer against the excerpts and original paper; correct units, conditions
    and scientific claims. Reject trivial, ambiguous or near-duplicate questions.

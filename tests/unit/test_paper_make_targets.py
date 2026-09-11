@@ -51,6 +51,12 @@ def test_evaluation_make_forwards_custom_model_and_token_budget():
     assert command[-4:] == ["--model", "gpt-5", "--max-completion-tokens", "25000"]
 
 
+def test_evaluation_make_forwards_optional_reasoning_effort():
+    command = dry_run("eval-preview", "EVAL_MODEL=gpt-5-mini", "EVAL_REASONING_EFFORT=minimal")
+    assert command[-6:] == ["--model", "gpt-5-mini", "--reasoning-effort", "minimal",
+                            "--max-completion-tokens", "2500"]
+
+
 def test_evaluation_connectivity_check_is_not_generation():
     assert dry_run("eval-check", "EVAL_DIR=data/evaluation/gpt5") == [
         "uv", "run", "python", "-m", "evals.generate_questions", "check",

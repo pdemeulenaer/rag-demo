@@ -20,7 +20,7 @@ def chunk(eid="e1", paper="p1"):
 def proposal(eids=("e1",), question="What mass was estimated?"):
     return gen.Proposal(candidate=gen.Question(question=question,
         reference_answer="100 solar masses.", support_summary="The excerpt states the mass.",
-        citations=[gen.Citation(evidence_id=eid, quote="100 solar masses") for eid in eids]), skip_reason=None)
+        citations=[gen.Citation(evidence_id=eid) for eid in eids]), skip_reason=None)
 
 
 def test_plan_balanced_deterministic_and_two_distinct_papers():
@@ -106,7 +106,7 @@ def test_uploaded_chunk_payload_is_supported():
     assert len(result) == 1 and result[0]["source"] == "uploads"
 
 
-def test_validation_exact_quotes_refs_dedup_and_review_status():
+def test_validation_evidence_ids_refs_dedup_and_review_status():
     evidence = {"e1": chunk()}
     job = {"id": "q1", "kind": "single_paper", "evidence_ids": ["e1"]}
     seen = set()
@@ -117,10 +117,6 @@ def test_validation_exact_quotes_refs_dedup_and_review_status():
         gen.validate_candidate(proposal(), job, evidence, seen)
     with pytest.raises(ValueError, match="unknown_evidence"):
         gen.validate_candidate(proposal(["made-up"]), job, evidence, set())
-    bad_quote = proposal()
-    bad_quote.candidate.citations[0].quote = "999 solar masses"
-    with pytest.raises(ValueError, match="quote_not_in_evidence"):
-        gen.validate_candidate(bad_quote, job, evidence, set())
 
 
 def test_cross_paper_needs_two_papers_not_two_chunks():
@@ -140,6 +136,10 @@ def test_negative_has_no_positive_evidence_and_is_not_corpus_ground_truth():
     assert result["generation_evidence_ids"] == ["e1"]
     with pytest.raises(ValueError, match="wrong_number"):
         gen.validate_candidate(proposal(), job, {"e1": chunk()}, set())
+
+
+def test_prompt_requires_a_candidate_for_unanswerable_jobs():
+    assert "ALWAYS return a non-null candidate" in gen.SYSTEM_PROMPT
 
 
 @pytest.fixture
@@ -182,6 +182,7 @@ def test_generation_checkpoints_and_completed_rerun_is_free(prepared):
         assert call.kwargs["background"] is True
         assert call.kwargs["store"] is False
         assert call.kwargs["max_output_tokens"] == 2500
+        assert "reasoning" not in call.kwargs
     factory = Mock(side_effect=AssertionError("Completed run must not create a client"))
     gen.generate(prepared, factory)
     factory.assert_not_called()
@@ -289,6 +290,7 @@ def test_prepare_freezes_active_only_and_does_not_overwrite(tmp_path, monkeypatc
     assert len(snapshot["papers"]) == 2
     assert len(plan["jobs"]) == 50
     assert plan["max_completion_tokens"] == 25000
+    assert plan["reasoning_effort"] is None
     assert plan["snapshot_hash"] == gen.digest(snapshot)
     assert not (args.output / "questions.json").exists()
     assert catalogue.method_calls[0][0] == "require_schema"
@@ -340,6 +342,16 @@ def test_real_openai_sdk_structured_output_contract_without_network(prepared, to
     assert len(json.loads((prepared / "questions.json").read_text())["questions"]) == 3
 
 
+def test_generation_forwards_plan_frozen_reasoning_effort(prepared):
+    plan = json.loads((prepared / "plan.json").read_text())
+    plan["reasoning_effort"] = "minimal"
+    gen.write_json(prepared / "plan.json", plan)
+    client = fake_client()
+    gen.generate(prepared, lambda: client)
+    assert all(call.kwargs["reasoning"] == {"effort": "minimal"}
+               for call in client.responses.create.call_args_list)
+
+
 @pytest.mark.parametrize("value", ["0", "-1", "255", "128001", "not-an-integer"])
 def test_cli_rejects_invalid_token_limit_before_service_access(monkeypatch, value):
     prepare = Mock(side_effect=AssertionError("No service access expected"))
@@ -358,6 +370,14 @@ def test_cli_token_limit_default_and_override(monkeypatch, arguments, expected):
     monkeypatch.setattr("sys.argv", ["generate_questions", "prepare", *arguments])
     gen.main()
     assert prepare.call_args.args[0].max_completion_tokens == expected
+
+
+def test_cli_forwards_reasoning_effort_to_preview(monkeypatch):
+    prepare = Mock()
+    monkeypatch.setattr(gen, "prepare", prepare)
+    monkeypatch.setattr("sys.argv", ["generate_questions", "prepare", "--reasoning-effort", "minimal"])
+    gen.main()
+    assert prepare.call_args.args[0].reasoning_effort == "minimal"
 
 
 def test_read_only_connectivity_check_uses_saved_model_without_writes(prepared, capsys):

@@ -214,6 +214,7 @@ redis-chat:
 
 EVAL_DIR ?= data/evaluation/star-clusters
 EVAL_MODEL ?= gpt-4.1-mini
+EVAL_REASONING_EFFORT ?=
 EVAL_MAX_TOKENS ?= 2500
 EVAL_SOURCE ?= arxiv
 QUESTIONS ?= 50
@@ -224,7 +225,7 @@ EVAL_SEED ?= 42
 
 # Freeze active paper evidence locally. No model calls or database writes.
 eval-preview:
-	uv run python -m evals.generate_questions prepare --output "$(EVAL_DIR)" --source "$(EVAL_SOURCE)" --questions "$(QUESTIONS)" --papers "$(PAPERS)" --seed "$(EVAL_SEED)" --model "$(EVAL_MODEL)" --max-completion-tokens "$(EVAL_MAX_TOKENS)"
+	uv run python -m evals.generate_questions prepare --output "$(EVAL_DIR)" --source "$(EVAL_SOURCE)" --questions "$(QUESTIONS)" --papers "$(PAPERS)" --seed "$(EVAL_SEED)" --model "$(EVAL_MODEL)" $(if $(EVAL_REASONING_EFFORT),--reasoning-effort "$(EVAL_REASONING_EFFORT)") --max-completion-tokens "$(EVAL_MAX_TOKENS)"
 
 # Explicit paid generation; resumes completed calls, never uploads to LangSmith.
 create-eval-dataset:
