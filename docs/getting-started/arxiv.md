@@ -69,6 +69,71 @@ information. See [arXiv API terms](https://info.arxiv.org/help/api/tou.html).
 
 ## Local quick start
 
+### Upgrade existing PDFs to Markdown extraction
+
+Both arXiv and GUI uploads now use **PyMuPDF4LLM → per-page Markdown →
+structure-aware chunks**. Chunking preserves section breadcrumbs and PDF page numbers,
+uses a 512-token cap with up to 64 tokens of paragraph overlap, and splits large tables
+by complete rows with repeated headers. OCR is disabled. Oversized table rows fail for
+review rather than being silently truncated. This improves reading order, but does not
+guarantee correct equations, tables or scientific meaning.
+
+New builds save `document.md`, `pages.json`, `chunks.json` and extraction settings as
+content-addressed artifacts. Existing PDFs/vectors are **not upgraded automatically**.
+Changing extraction changes the build fingerprint, not the paper's identity.
+
+For an existing installation, pause the Airflow DAG and let running ingestion/figure
+batches finish before rebuilding workers. Do not run old and new ingestion workers
+against the same catalogue during the upgrade.
+
+```bash
+make airflow-stop
+make papers-backup
+uv sync --group dev --group frontend
+make papers-extractor-setup       # Cache public tokenizer vocabulary; no model calls
+docker compose up -d --build api ingestion-worker streamlit-app
+make papers-reindex-preview       # Read-only list of active arXiv papers needing upgrade
+make papers-reindex LIMIT=2       # Pilot: download exact PDF versions + paid embeddings
+make papers-audit
+make papers-reindex LIMIT=50      # After inspecting pilot quality: upgrade up to 50 remaining
+make papers-audit
+make papers-reindex-preview       # Check remaining/blocked replacements
+```
+
+Run commands separately and stop on failure. `papers-reindex` targets **existing active
+arXiv papers in the configured scope/collection/model**, not unrelated discovery backlog.
+Each old build remains searchable until its replacement passes vector/identity checks.
+Re-running skips current-pipeline active papers and resumes failed replacements within
+the attempt budget; it does not delete old points or bypass exhausted attempts. Interrupted
+embedding calls may still incur charges. `LIMIT` defaults to `ARXIV_DAILY_LIMIT`.
+This manual command is separate from Airflow's daily budget.
+
+`papers-count` includes uploads, so 50 total documents need not mean 50 arXiv upgrades.
+For existing **GUI uploads**, re-upload the same PDF bytes after rebuilding the API.
+Old-extractor builds now produce a replacement under the same content identity; already
+current builds are skipped. Upload replacement also reruns metadata/summary/figure work
+and may incur those costs. Legacy-adopted documents without a matching SHA-256 content
+identity may need operator review; do not assume a filename proves identical content.
+
+To inspect extraction locally before any embeddings:
+
+```bash
+make papers-extract-preview PDF="/path/to/paper.pdf" EXTRACT_DIR=data/extraction-pilot
+```
+
+This saves Markdown/pages/chunks under the new inspection directory, never overwrites
+an existing directory, and does not access databases or call a model. The tokenizer
+cache must be prepared first for offline use. Containers bundle that cache at build time.
+
+After verifying the upgraded corpus, use `make airflow-up` / `make airflow-check` to
+rebuild Airflow too, then explicitly unpause the DAG when ready. Existing daily run plans
+are immutable: a plan created under the old pipeline cannot be retried under the new one;
+use the next day's scheduled run or the manual re-index workflow.
+Create a **new evaluation preview directory** after re-indexing; old snapshots still
+contain the old extracted text. Retain them for comparison rather than editing hashes.
+
+### Fresh installation
+
 Merge the new settings from `.env.sample` into your existing `.env`; do **not**
 overwrite your API keys. Default PostgreSQL credentials are for local development
 only. Qdrant Cloud must already exist; these commands create a **collection**, not a
@@ -231,8 +296,9 @@ command `python -m src.api.papers.schedule all` in your scheduled job, with the 
 settings from the [daily ingestion guide](../operations/daily-ingestion.md). The local Compose
 PostgreSQL service is not a production deployment template.
 
-This first text-only arXiv extractor does not perform OCR, figure description, table
-reconstruction, equation-aware parsing, references/entity extraction or graph building.
+The arXiv extractor does not perform OCR, figure description, semantic equation parsing,
+references/entity extraction or graph building. Markdown table reconstruction is supported,
+but complex tables and mathematical glyphs still need quality review.
 Scanned PDFs fail explicitly. Metadata-only corrections are refreshed in the catalogue;
 already-ready build metadata/embeddings remain the indexed revision until rebuilt.
 No automatic stale-build garbage collection, general schema migration framework,

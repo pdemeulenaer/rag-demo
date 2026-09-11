@@ -4,6 +4,7 @@ WORKDIR /opt/rag
 ENV UV_LINK_MODE=copy UV_PYTHON=/usr/local/bin/python UV_PYTHON_DOWNLOADS=never
 COPY pyproject.toml uv.lock ./
 RUN uv sync --frozen --no-dev
+RUN TIKTOKEN_CACHE_DIR=/opt/rag/.venv/tokenizer-cache .venv/bin/python -c "import tiktoken; tiktoken.get_encoding('cl100k_base')"
 
 FROM apache/airflow:3.3.1-python3.12
 COPY --from=app-deps --chown=airflow:root /opt/rag/.venv /opt/rag/.venv

@@ -22,6 +22,7 @@ def dry_run(target, *overrides):
     ("papers-init-db", "init-db"),
     ("papers-backfill", "backfill"),
     ("papers-process", "process"),
+    ("papers-reindex", "reindex"),
     ("papers-sync", "sync"),
     ("papers-daily", "daily"),
     ("papers-status", "status"),
@@ -67,6 +68,14 @@ def test_preview_is_always_metadata_only():
         "uv", "run", "python", "-m", "src.api.papers", "backfill", "--dry-run",
         "--days", "3", "--until", "2026-09-01",
     ]
+
+
+def test_reindex_preview_and_paid_limit():
+    assert dry_run("papers-reindex-preview") == ["uv", "run", "python", "-m", "src.api.papers", "reindex", "--dry-run"]
+    assert dry_run("papers-reindex", "LIMIT=50")[-3:] == ["reindex", "--limit", "50"]
+    assert dry_run("papers-extract-preview", "PDF=paper with spaces.pdf", "EXTRACT_DIR=data/new preview") == [
+        "uv", "run", "python", "-m", "src.api.papers.extraction", "--pdf", "paper with spaces.pdf",
+        "--output", "data/new preview"]
 
 
 @pytest.mark.parametrize("target,command", [("papers-process", "process"), ("papers-daily", "daily")])

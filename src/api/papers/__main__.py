@@ -11,16 +11,16 @@ from .settings import PaperSettings
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("command", choices=["scope", "init-db", "backfill", "sync", "process", "daily", "status", "count", "audit", "import-uploads"])
+    parser.add_argument("command", choices=["scope", "init-db", "backfill", "sync", "process", "daily", "status", "count", "audit", "import-uploads", "reindex"])
     parser.add_argument("--legacy-embedding-model", help="Required for import-uploads: explicitly confirm the model used for existing vectors")
     parser.add_argument("--days", type=int, help="Backfill lookback; default ARXIV_BACKFILL_DAYS")
     parser.add_argument("--until", type=datetime.fromisoformat, help="Backfill end in ISO format (UTC)")
     parser.add_argument("--limit", type=int, help="Maximum PDFs processed in this invocation")
-    parser.add_argument("--dry-run", action="store_true", help="Backfill only: display matching metadata without database writes")
+    parser.add_argument("--dry-run", action="store_true", help="Backfill/reindex: preview without database writes or model calls")
     args = parser.parse_args()
     settings = PaperSettings()
-    if args.dry_run and args.command != "backfill":
-        parser.error("--dry-run is supported only for backfill")
+    if args.dry_run and args.command not in {"backfill", "reindex"}:
+        parser.error("--dry-run is supported only for backfill/reindex")
     if args.days is not None and not 1 <= args.days <= 365:
         parser.error("--days must be between 1 and 365")
     if args.limit is not None and not 1 <= args.limit <= 100:
@@ -30,6 +30,14 @@ def main():
     if args.command == "scope":
         print(json.dumps({"categories": settings.categories, "topic_terms": settings.terms,
                           "scope_id": settings.scope_id}, indent=2))
+        return
+    if args.command == "reindex" and args.dry_run:
+        from .reindex import preview
+        with closing(Catalogue(settings.PAPERS_DATABASE_URL)) as catalogue:
+            catalogue.require_schema()
+            targets = preview(catalogue, settings)
+            print(json.dumps({"source": "arxiv", "pipeline_id": settings.pipeline_id,
+                              "needs_upgrade": len(targets), "papers": targets}, indent=2))
         return
     if args.command in {"status", "count"}:
         catalogue = Catalogue(settings.PAPERS_DATABASE_URL)
@@ -95,7 +103,7 @@ def main():
             if args.command in {"sync", "daily"}:
                 from .ingestion import discover_daily
                 print(json.dumps({"discovered": discover_daily(client, catalogue, settings)}))
-            if args.command in {"process", "daily"}:
+            if args.command in {"process", "daily", "reindex"}:
                 from openai import OpenAI
                 from qdrant_client import QdrantClient
                 from src.api.core.config import config
@@ -103,6 +111,14 @@ def main():
                 from .ingestion import PaperIndexer, process_pending
                 if settings.PAPERS_COLLECTION == config.QDRANT_COLLECTION_NAME:
                     raise ValueError("PAPERS_COLLECTION must differ from the legacy upload collection")
+                selected = None
+                if args.command == "reindex":
+                    from .reindex import select_replacements
+                    selected = select_replacements(catalogue, settings, args.limit or settings.ARXIV_DAILY_LIMIT)
+                    if not selected:
+                        print(json.dumps({"completed": 0, "failed": 0,
+                                          "hint": "No eligible replacements; check papers-reindex-preview for blocked builds"}))
+                        return
                 with OpenAI(api_key=config.OPENAI_API_KEY) as embeddings, closing(QdrantClient(
                     url=config.QDRANT_URL, port=config.qdrant_port, api_key=config.QDRANT_API_KEY or None,
                 )) as qdrant:
@@ -110,7 +126,8 @@ def main():
                         result = embeddings.embeddings.create(input=texts, model=settings.EMBEDDING_MODEL)
                         return [item.embedding for item in sorted(result.data, key=lambda item: item.index)]
                     result = process_pending(client, catalogue, settings, ArtifactStore(settings),
-                        PaperIndexer(settings, qdrant, embed), args.limit or settings.ARXIV_DAILY_LIMIT)
+                        PaperIndexer(settings, qdrant, embed), args.limit or settings.ARXIV_DAILY_LIMIT,
+                        selected_builds=selected)
                     print(json.dumps(result))
                     if result["failed"]:
                         raise SystemExit(1)

@@ -24,9 +24,10 @@ def qdrant_client():
 
 def pipeline_id(mode):
     from src.api.core.config import config
-    spec = ["upload-v2", mode, config.EMBEDDING_MODEL, config.IMAGE_DESCRIPTION_MODEL,
+    from .extraction import SPEC
+    spec = ["upload-v3", mode, config.EMBEDDING_MODEL, config.IMAGE_DESCRIPTION_MODEL,
             config.SUMMARIZATION_MODEL,
-            "metadata:openai/gpt-oss-20b", "pymupdf:4000/400",
+            "metadata:openai/gpt-oss-20b", SPEC,
             sha256(Path(config.IMAGE_DESCRIPTION_PROMPT_TEMPLATE_PATH).read_bytes()).hexdigest()]
     return sha256(json.dumps(spec).encode()).hexdigest()[:16]
 
@@ -34,11 +35,13 @@ def pipeline_id(mode):
 def register_upload(catalogue, path, mode):
     from src.api.core.config import config
     digest = sha256(Path(path).read_bytes()).hexdigest()
-    # Already adopted/indexed content needs neither another model call nor new vectors.
+    # Same bytes keep paper identity, but old extraction must not bypass upgrades.
+    current_pipelines = {pipeline_id("sync"), pipeline_id("batch")}
     for build in catalogue.all_builds():
         if (build["source"] == "uploads" and build["source_id"] == f"upload:{digest}"
                 and build["active_build"] == build["id"] and build["status"] == "ready"
                 and build["collection"] == config.QDRANT_COLLECTION_NAME
+                and build["pipeline_id"] in current_pipelines
                 and build["embedding_model"] == config.EMBEDDING_MODEL and not build["deleted"]):
             return build
     meta = {"title": Path(path).name, "file_name": Path(path).name,
@@ -85,7 +88,7 @@ def process_upload(catalogue, qdrant, build, path, mode, store, extract, metadat
         if sha256(data).hexdigest() != build["metadata"]["file_hash"]:
             raise ValueError("Upload content changed after registration")
         source = store.put(build["id"], "source.pdf", data)
-        chunks, images, first_pages, _ = extract(path, build["metadata"]["file_hash"])
+        chunks, images, first_pages, extraction_metadata = extract(path, build["metadata"]["file_hash"])
         if not chunks:
             raise ValueError("PDF has no extractable text")
         meta = metadata(first_pages)
@@ -95,6 +98,10 @@ def process_upload(catalogue, qdrant, build, path, mode, store, extract, metadat
             searchable = f"Title: {meta.title}\nAuthors: {', '.join(meta.authors)}\nSummary: {summary}\nContent: {text}"
             payload = make_payload(build, meta, searchable, "chunk", page)
             payload["summary"] = summary
+            if extraction_metadata.get("structured_chunks"):
+                chunk = extraction_metadata["structured_chunks"][i]
+                payload.update({key: chunk[key] for key in ("section_header", "token_count", "content_kind")})
+                payload["source_text"] = text
             payloads.append({"id": point_id(build, f"text:{i}"), "payload": payload})
         payloads.append({"id": point_id(build, "summary"),
                          "payload": make_payload(build, meta, meta.summary, "summary", 0)})
@@ -132,6 +139,14 @@ def process_upload(catalogue, qdrant, build, path, mode, store, extract, metadat
             "figure_tasks": {key: {k: v for k, v in task.items() if k != "request"} for key, task in image_tasks.items()}}
         updated_metadata = {**build["metadata"], "title": meta.title, "authors": meta.authors,
                             "year": meta.publication_year, "summary": meta.summary}
+        if extraction_metadata.get("extracted_pages"):
+            from .extraction import markdown_document
+            pages = extraction_metadata["extracted_pages"]
+            manifest.update(
+                extraction=extraction_metadata["extraction"],
+                pages=store.put_json(build["id"], "pages.json", pages),
+                markdown=store.put(build["id"], "document.md", markdown_document(pages).encode()),
+                text=store.put_json(build["id"], "chunks.json", extraction_metadata["structured_chunks"]))
         catalogue.update_build(build["id"], manifest=manifest, metadata=updated_metadata)
         upsert_payloads(qdrant, build, payloads, embed)
         if image_tasks:

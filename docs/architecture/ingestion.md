@@ -51,8 +51,10 @@ wedges.
 It reuses processing helpers from `src/api/ingestion/ingest_documents.py`:
 
 - `get_file_hash` — content hash, used to build stable point IDs and avoid duplicates.
-- `extract_raw_content` — text and page structure extraction (PyMuPDF).
-- `get_text_chunks_recursive` — recursive character chunking.
+- `extract_raw_content` — shared PyMuPDF4LLM text extraction plus existing figure workers.
+- `src/api/papers/extraction.py` — page-aware Markdown, heading/paragraph-aware token
+  chunking, complete table rows with repeated headers, and page/section provenance.
+  Both arXiv and GUI uploads use it. `get_text_chunks_recursive` remains a legacy helper.
 - `identify_figures_on_page` / `process_single_page` — locate figures and process pages.
 - `describe_image_with_gpt4o` — generate a searchable description for an extracted figure
   from its base64 image and caption.

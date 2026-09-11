@@ -60,6 +60,7 @@ class PaperSettings(BaseSettings):
     @property
     def pipeline_id(self):
         # Bump extractor version when parsing/chunking/payload semantics change.
-        spec = ["pymupdf-text-v1", "chars=1800,overlap=200", self.EMBEDDING_MODEL,
+        from .extraction import SPEC
+        spec = [SPEC, self.EMBEDDING_MODEL,
                 self.PAPERS_COLLECTION]
         return sha256(json.dumps(spec).encode()).hexdigest()[:16]

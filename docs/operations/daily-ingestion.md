@@ -44,6 +44,10 @@ Restarting Airflow preserves the DAG's previous paused/unpaused state.
 
 ## Everyday commands
 
+For the Markdown-extraction upgrade, pause/drain ingestion and follow the
+[re-indexing instructions](../getting-started/arxiv.md#upgrade-existing-pdfs-to-markdown-extraction).
+Rebuild Airflow as well as the API: an old worker must not keep producing old-extractor builds.
+
 ```bash
 make papers-run-status                      # Today's saved run; no writes/model calls
 make papers-run-status RUN_DATE=2026-09-10  # Historical run

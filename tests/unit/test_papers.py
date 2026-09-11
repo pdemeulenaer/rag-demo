@@ -189,6 +189,9 @@ def test_process_with_local_qdrant(catalogue, settings, paper):
         active = catalogue.active(settings)
         assert active[0]["manifest"]["chunk_count"] == 1
         assert active[0]["manifest"]["source"]["sha256"]
+        assert active[0]["manifest"]["markdown"]["sha256"]
+        assert active[0]["manifest"]["pages"]["sha256"]
+        assert active[0]["manifest"]["extraction"]["version"] == "markdown-structure-v1"
         scope = m.Filter(must=[m.FieldCondition(key="build_id", match=m.MatchAny(any=[active[0]["id"]]))])
         for mode in ["vanilla", "hybrid"]:
             points = search_points(qdrant, settings.PAPERS_COLLECTION, [1., 0., 0.], "globular", 5, mode, scope).points

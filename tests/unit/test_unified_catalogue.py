@@ -163,6 +163,23 @@ def test_sync_upload_activates_only_complete_manifest(catalogue, qdrant, setting
     assert catalogue.inventory()[0]["title"] == "Scientific paper"
 
 
+def test_upload_saves_structured_evidence_and_manifest(catalogue, qdrant, settings, tmp_path):
+    from src.api.papers.extraction import SPEC
+    args = process_args(catalogue, qdrant, settings, tmp_path)
+    chunks, images, first, _ = args["extract"].return_value
+    args["extract"].return_value = (chunks, images, first, {
+        "extracted_pages": [{"page_number": 1, "text": "Paper evidence"}], "extraction": SPEC,
+        "structured_chunks": [{"text": "Paper evidence", "page_number": 1, "section_header": "Results",
+                               "token_count": 2, "content_kind": "text"}]})
+    process_upload(**args)
+    build = catalogue.get_build(args["build"]["id"])
+    assert build["manifest"]["extraction"] == SPEC
+    assert all(build["manifest"][key]["sha256"] for key in ("markdown", "pages", "text"))
+    point = next(p for p in qdrant.retrieve("uploads", expected_ids(build)) if p.payload["type"] == "chunk")
+    assert point.payload["source_text"] == "Paper evidence"
+    assert point.payload["section_header"] == "Results"
+
+
 @pytest.mark.parametrize("failure", ["storage", "describe", "embed"])
 def test_sync_failure_never_marks_ready(catalogue, qdrant, settings, tmp_path, failure):
     args = process_args(catalogue, qdrant, settings, tmp_path)

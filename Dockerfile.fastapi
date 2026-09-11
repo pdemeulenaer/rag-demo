@@ -24,6 +24,9 @@ COPY pyproject.toml uv.lock ./
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --frozen --no-dev
 
+# Public tokenizer vocabulary is bundled, avoiding a runtime download.
+RUN TIKTOKEN_CACHE_DIR=/app/.venv/tokenizer-cache .venv/bin/python -c "import tiktoken; tiktoken.get_encoding('cl100k_base')"
+
 # # Install dependencies into .venv (cached)
 # RUN --mount=type=cache,target=/root/.cache/uv \
 #     uv venv .venv && \

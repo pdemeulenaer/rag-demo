@@ -223,8 +223,25 @@ not proof of complete historical PDF extraction or the original embedding model.
 
 Check live PostgreSQL readiness, `/catalogue`, `/papers` and the Qdrant collections separately
 when debugging a deployment; `/health` currently checks Redis/Qdrant, not PostgreSQL.
-The arXiv path is text-only: no OCR, automated figure enrichment, equation/table-aware
-parsing or graph extraction. Existing uploaded-PDF figure processing remains separate.
+Both arXiv and uploads use `papers/extraction.py`: pinned PyMuPDF/PyMuPDF4LLM 1.27.2.3,
+OCR disabled, per-page Markdown, section-aware chunks capped at 512 cl100k_base tokens,
+up to 64 tokens of whole-paragraph overlap, complete table rows and repeated headers.
+Oversized table rows fail for review; no silent truncation. Mathematical fidelity is not
+guaranteed. Figures remain handled separately on the upload path; arXiv has no figure
+enrichment or graph extraction. Versioned artifacts include Markdown/pages/chunks and SPEC.
+Extraction/chunking changes must bump SPEC and therefore pipeline identity. New upload
+registration only deduplicates an active build of the current pipeline, so the same PDF
+bytes can upgrade an old extractor without changing its paper identity.
+`make papers-extractor-setup` prepares the public tokenizer vocabulary cache in the venv
+for offline operation; backend/Airflow builds bundle it. `papers-extract-preview PDF=...
+EXTRACT_DIR=...` is a local-only, no-overwrite inspection tool. `papers-reindex-preview`
+is read-only; `papers-reindex LIMIT=...` explicitly incurs PDF downloads and embeddings
+for existing active scoped arXiv papers, not discovery backlog. It preserves old active
+builds until verification, skips already upgraded papers, and honors attempt limits.
+Uploads upgrade through re-upload (including paid figure/metadata work). Never launch
+paid re-indexing as an implementation test. Pause/drain old workers and rebuild API,
+ingestion worker and Airflow together; old saved daily plans cannot cross pipeline changes.
+After re-indexing, generate a fresh evaluation snapshot; never rewrite old preview hashes.
 Migration v1→v2 is implemented; a general migration framework, operator retry/reset,
 ambiguous remote-Batch submission recovery, interrupted-upload recovery, stale-build cleanup and
 historical snapshot serving remain follow-ups; see the guide for detailed limitations.

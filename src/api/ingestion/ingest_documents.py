@@ -467,7 +467,7 @@ def identify_figures_on_page(page) -> List[Dict[str, Any]]:
 #     return text, local_text_chunks, local_images
 def process_single_page(page_data):
     """Worker function to process one page at a time."""
-    filepath, page_number, file_hash = page_data
+    filepath, page_number, file_hash, *options = page_data
     
     doc = pymupdf.open(filepath)
     page = doc[page_number - 1] 
@@ -475,7 +475,7 @@ def process_single_page(page_data):
     local_text_chunks = []
     local_images = []
     
-    text = page.get_text()
+    text = page.get_text() if not options or options[0] else ""
     
     # 1. Chunking logic
     if text.strip():
@@ -577,13 +577,17 @@ def process_single_page(page_data):
 
 #     return raw_text_chunks, raw_images, first_pages_text, metadata_fallback
 def extract_raw_content(filepath: str, file_hash: str):
+    from src.api.papers.extraction import extract_document, SPEC
+    from src.api.papers.settings import PaperSettings
+    from pathlib import Path
+    pages, structured_chunks = extract_document(Path(filepath).read_bytes(), PaperSettings().ARXIV_MAX_CHUNKS)
     doc = pymupdf.open(filepath)
     total_pages = len(doc)
     metadata_fallback = doc.metadata or {}
     doc.close() 
 
     # Prepare arguments
-    page_tasks = [(filepath, pnum, file_hash) for pnum in range(1, total_pages + 1)]
+    page_tasks = [(filepath, pnum, file_hash, False) for pnum in range(1, total_pages + 1)]
     
     # --- Parallel Execution ---
     with ProcessPoolExecutor() as executor:
@@ -604,8 +608,11 @@ def extract_raw_content(filepath: str, file_hash: str):
         raw_text_chunks.extend(chunks)
         raw_images.extend(images)
 
-    first_pages_text = "\n".join(filter(None, first_pages_text_list))
-
+    # Figures still use the existing geometry-based worker; discard its legacy
+    # plain-text chunks. Both ingestion paths now share the same text extractor.
+    first_pages_text = "\n\n".join(p["text"] for p in pages if p["page_number"] <= 5)
+    raw_text_chunks = [(c["text"], c["page_number"]) for c in structured_chunks]
+    metadata_fallback.update(extracted_pages=pages, structured_chunks=structured_chunks, extraction=SPEC)
     return raw_text_chunks, raw_images, first_pages_text, metadata_fallback
 
 

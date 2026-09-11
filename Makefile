@@ -118,6 +118,10 @@ papers-help:
 	  '  make papers-backfill DAYS=7          Save metadata and queue papers' \
 	  '  make papers-status                   Inspect processing states' \
 	  '  make papers-count                    Count ready documents across arXiv and uploads' \
+	  '  make papers-extractor-setup          Prepare tokenizer cache; no model calls' \
+	  '  make papers-extract-preview PDF=...  Inspect local Markdown/chunks; no embeddings' \
+	  '  make papers-reindex-preview          List existing arXiv papers needing extraction upgrade' \
+	  '  make papers-reindex LIMIT=2          Upgrade existing arXiv papers (paid embeddings)' \
 	  '  make papers-audit                    Read-only SQL/Qdrant consistency audit' \
 	  '  make papers-import-uploads LEGACY_MODEL=text-embedding-3-small' \
 	  '                                       Register existing upload vectors in SQL; no re-embedding' \
@@ -150,6 +154,21 @@ papers-backfill:
 # Explicit opt-in to PDF downloads and embedding API usage.
 papers-process:
 	$(PAPERS_CLI) process $(PAPERS_PROCESS_ARGS)
+
+.PHONY: papers-reindex-preview papers-reindex papers-extractor-setup papers-extract-preview
+papers-extractor-setup:
+	uv run python -c 'from src.api.papers.extraction import encoder; encoder(); print("Tokenizer cache ready (no model calls)")'
+
+EXTRACT_DIR ?= data/extraction-preview
+papers-extract-preview:
+	uv run python -m src.api.papers.extraction --pdf "$(PDF)" --output "$(EXTRACT_DIR)"
+
+papers-reindex-preview:
+	$(PAPERS_CLI) reindex --dry-run
+
+# Explicit paid upgrade of existing active arXiv papers only (not discovery backlog).
+papers-reindex:
+	$(PAPERS_CLI) reindex $(PAPERS_PROCESS_ARGS)
 
 papers-sync:
 	$(PAPERS_CLI) sync

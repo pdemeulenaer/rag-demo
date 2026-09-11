@@ -40,22 +40,8 @@ def discover_daily(client, catalogue, settings):
 
 
 def extract_chunks(pdf, max_chunks):
-    import pymupdf
-    chunks = []
-    with pymupdf.open(stream=pdf, filetype="pdf") as document:
-        if document.is_encrypted:
-            raise ValueError("Encrypted PDF is not supported")
-        for page_number, page in enumerate(document, 1):
-            content = page.get_text("text", sort=True).strip()
-            for offset in range(0, len(content), 1600):
-                chunk = content[offset:offset + 1800].strip()
-                if chunk:
-                    chunks.append({"page_number": page_number, "text": chunk})
-                if len(chunks) > max_chunks:
-                    raise ValueError("Paper exceeds configured chunk budget")
-    if not chunks:
-        raise ValueError("PDF has no extractable text; OCR is not part of this milestone")
-    return chunks
+    from .extraction import extract_document
+    return extract_document(pdf, max_chunks)[1]
 
 
 class PaperIndexer:
@@ -102,23 +88,32 @@ class PaperIndexer:
 def process_pending(client, catalogue, settings, store, indexer, limit, selected_builds=None):
     completed, failed = 0, 0
     for build in (catalogue.pending(settings, limit) if selected_builds is None else selected_builds):
+        if build["pipeline_id"] != settings.pipeline_id:
+            raise ValueError("Build belongs to a different extraction pipeline; do not process with this worker")
         catalogue.start(build["id"])
+        print(f"{build['id']}: extracting and indexing", flush=True)
         try:
             paper = Paper(**build["metadata"])
             pdf = client.download_pdf(paper, settings.ARXIV_MAX_PDF_MB * 1024 * 1024)
             source = store.put(build["id"], "source.pdf", pdf)
-            chunks = extract_chunks(pdf, settings.ARXIV_MAX_CHUNKS)
+            from .extraction import extract_document, markdown_document, SPEC
+            pages, chunks = extract_document(pdf, settings.ARXIV_MAX_CHUNKS)
+            markdown = store.put(build["id"], "document.md", markdown_document(pages).encode())
+            page_artifact = store.put_json(build["id"], "pages.json", pages)
             text = store.put_json(build["id"], "chunks.json", chunks)
             metadata = store.put_json(build["id"], "metadata.json", paper.to_dict())
             indexer.index(build, paper, chunks)
             manifest = {"source": source, "text": text, "metadata": metadata,
+                "markdown": markdown, "pages": page_artifact, "extraction": SPEC,
                 "chunk_count": len(chunks), "pipeline_id": settings.pipeline_id,
                 "embedding_model": settings.EMBEDDING_MODEL, "collection": settings.PAPERS_COLLECTION}
             manifest["artifact"] = store.put_json(build["id"], "manifest.json", manifest)
             activate_verified(catalogue, indexer.qdrant, build, manifest)
             completed += 1
+            print(f"{build['id']}: ready ({len(chunks)} chunks)", flush=True)
         except Exception as exc:
             # Do not store credentials/HTTP request details in status responses.
             catalogue.fail(build["id"], type(exc).__name__)
             failed += 1
+            print(f"{build['id']}: failed ({type(exc).__name__}); previous active build retained", flush=True)
     return {"completed": completed, "failed": failed}

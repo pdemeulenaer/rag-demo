@@ -164,6 +164,10 @@ for one discovery-and-processing run. Neither command installs a schedule.
 
 ## Evaluation questions
 
+PDF ingestion now uses page-aware Markdown and structure-aware chunks. Existing indexes
+need an explicit upgrade: see the [re-indexing guide](docs/getting-started/arxiv.md#upgrade-existing-pdfs-to-markdown-extraction).
+`make papers-reindex-preview` shows affected arXiv papers without changing anything.
+
 ```bash
 make eval-preview             # Freeze a sample of up to 50 active arXiv papers; no model calls
 make create-eval-dataset      # Generate 50 planned candidates with OpenAI (paid)
