@@ -162,6 +162,19 @@ after papers become `ready`.
 Later, use `make papers-sync` for metadata updates only, or `make papers-daily LIMIT=10`
 for one discovery-and-processing run. Neither command installs a schedule.
 
+## Evaluation questions
+
+```bash
+make eval-preview             # Freeze a sample of up to 50 active arXiv papers; no model calls
+make create-eval-dataset      # Generate 50 planned candidates with OpenAI (paid)
+```
+
+Review `data/evaluation/star-clusters/questions.json`: single-paper, cross-paper and
+insufficient-evidence candidates, with reference answers and supporting excerpts.
+All require human review; no automatic LangSmith upload. Generation runs in the background
+with short polling requests; rerun the same command to resume saved response IDs. See the
+[evaluation guide](docs/operations/evaluation.md) for customization, resuming and limits.
+
 ## 🌐 Deployment to Azure (Multi-Container)
 
 This project uses **`docker-compose.prod.yml`** for deployment. The CI/CD pipeline:

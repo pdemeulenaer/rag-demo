@@ -193,8 +193,27 @@ serve:
 redis-chat:
 	uv run python src/api/redis/inspect_redis.py 
 
+EVAL_DIR ?= data/evaluation/star-clusters
+EVAL_MODEL ?= gpt-4.1-mini
+EVAL_MAX_TOKENS ?= 2500
+EVAL_SOURCE ?= arxiv
+QUESTIONS ?= 50
+PAPERS ?= 50
+EVAL_SEED ?= 42
+
+.PHONY: eval-preview eval-check create-eval-dataset
+
+# Freeze active paper evidence locally. No model calls or database writes.
+eval-preview:
+	uv run python -m evals.generate_questions prepare --output "$(EVAL_DIR)" --source "$(EVAL_SOURCE)" --questions "$(QUESTIONS)" --papers "$(PAPERS)" --seed "$(EVAL_SEED)" --model "$(EVAL_MODEL)" --max-completion-tokens "$(EVAL_MAX_TOKENS)"
+
+# Explicit paid generation; resumes completed calls, never uploads to LangSmith.
 create-eval-dataset:
-	uv run --group eval python evals/eval_dataset_creation.py
+	uv run python -m evals.generate_questions generate --output "$(EVAL_DIR)" $(if $(EVAL_WAIT_SECONDS),--wait-seconds "$(EVAL_WAIT_SECONDS)") $(if $(RETRY_JOB),--retry-job "$(RETRY_JOB)")
+
+# Read-only model metadata request; no inference or changes to saved evaluation data.
+eval-check:
+	uv run python -m evals.generate_questions check --output "$(EVAL_DIR)"
 
 run-evals:
 	uv run --group eval python evals/eval_retriever.py

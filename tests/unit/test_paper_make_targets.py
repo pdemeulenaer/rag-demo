@@ -32,6 +32,36 @@ def test_host_commands_preserve_cli_defaults(target, command):
     assert dry_run(target) == ["uv", "run", "python", "-m", "src.api.papers", command]
 
 
+def test_evaluation_make_preview_and_paid_generation_are_separate():
+    assert dry_run("eval-preview", "EVAL_DIR=data/evaluation/my pilot", "QUESTIONS=10", "PAPERS=20") == [
+        "uv", "run", "python", "-m", "evals.generate_questions", "prepare",
+        "--output", "data/evaluation/my pilot", "--source", "arxiv", "--questions", "10",
+        "--papers", "20", "--seed", "42", "--model", "gpt-4.1-mini",
+        "--max-completion-tokens", "2500",
+    ]
+    assert dry_run("create-eval-dataset", "EVAL_DIR=data/evaluation/my pilot") == [
+        "uv", "run", "python", "-m", "evals.generate_questions", "generate",
+        "--output", "data/evaluation/my pilot",
+    ]
+
+
+def test_evaluation_make_forwards_custom_model_and_token_budget():
+    command = dry_run("eval-preview", "EVAL_MODEL=gpt-5", "EVAL_MAX_TOKENS=25000")
+    assert command[-4:] == ["--model", "gpt-5", "--max-completion-tokens", "25000"]
+
+
+def test_evaluation_connectivity_check_is_not_generation():
+    assert dry_run("eval-check", "EVAL_DIR=data/evaluation/gpt5") == [
+        "uv", "run", "python", "-m", "evals.generate_questions", "check",
+        "--output", "data/evaluation/gpt5",
+    ]
+
+
+def test_background_generation_wait_and_explicit_retry_are_forwarded():
+    command = dry_run("create-eval-dataset", "EVAL_WAIT_SECONDS=300", "RETRY_JOB=q0002")
+    assert command[-4:] == ["--wait-seconds", "300", "--retry-job", "q0002"]
+
+
 def test_preview_is_always_metadata_only():
     assert dry_run("papers-preview", "DAYS=3", "UNTIL=2026-09-01") == [
         "uv", "run", "python", "-m", "src.api.papers", "backfill", "--dry-run",

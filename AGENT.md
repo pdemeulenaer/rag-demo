@@ -69,6 +69,9 @@ make docs-build    # validate/render MkDocs
 make docs PORT=8001
 make ingest        # legacy script: bypasses catalogue; do not use for the current workflow
 make run-evals     # retriever evaluation; needs configured external services
+make eval-preview  # Freeze active arXiv evidence locally; no model calls
+make eval-check EVAL_DIR=data/evaluation/gpt5  # Read-only model metadata access check; no inference
+make create-eval-dataset  # Paid question generation from saved preview; no LangSmith upload
 ```
 
 Before changing behavior, trace the request through the router, RAG/ingestion module, and the
@@ -225,6 +228,46 @@ parsing or graph extraction. Existing uploaded-PDF figure processing remains sep
 Migration v1→v2 is implemented; a general migration framework, operator retry/reset,
 ambiguous remote-Batch submission recovery, interrupted-upload recovery, stale-build cleanup and
 historical snapshot serving remain follow-ups; see the guide for detailed limitations.
+
+## Evaluation question generation
+
+`evals/generate_questions.py` provides `prepare`/`generate`; see
+`docs/operations/evaluation.md`. The Make target `create-eval-dataset` now uses this
+local generator, not the legacy upload-only LangSmith publisher. Preview freezes
+manifest-listed active evidence with identity checks and deterministic sampling.
+Defaults: up to 50 scoped arXiv papers, four text excerpts each, 30 single-paper /
+15 cross-paper / 5 insufficient-evidence candidate jobs, `gpt-4.1-mini`.
+`EVAL_MAX_TOKENS` / `prepare --max-completion-tokens` sets the per-call reasoning +
+answer budget (default 2500, range 256–128000). It is frozen in the plan, not overridden
+at generation time. The documented GPT-5 example uses 25000 in a new `EVAL_DIR`;
+existing previews and completed checkpoints remain compatible without changing hashes.
+Generation uses Responses API background mode (`evals/background.py`), strict JSON schema,
+and the saved cap as `max_output_tokens`. Requests use `store=false`, but background mode
+still temporarily stores response data server-side (roughly ten minutes; see linked
+OpenAI guidance in the evaluation guide). HTTP timeouts are at most 20 seconds, polling
+every five seconds, with a per-job 600-second wait budget (`EVAL_WAIT_SECONDS`, 5–3600).
+An interrupted or timed-out poll does not cancel the remote job.
+`eval-check` reads the saved model's metadata with a 20-second timeout and no inference
+or local writes. It uses the same API credentials/endpoint as generation; success is
+not proof that long generation calls will succeed. Safe diagnostics expose exception
+types and numeric codes, never raw exception text/headers/URLs/keys. Failed generation
+requests also write `last_error.json` (job ID/time/elapsed/cause category), without marking
+that job complete or changing earlier checkpoints. No automatic retries were added.
+Generation is explicit paid work; never run it as an implicit implementation test.
+Persist a submitting marker before POST and the returned response ID before polling in
+`results.json`; terminal output is cached before validation. Known IDs resume through GET,
+not another paid POST. Unknown submission outcomes, expired IDs and terminal failures
+require explicit `RETRY_JOB=<id>` authorization after review; archive old attempts.
+Never promise exactly-once billing when a submission response is lost. Completed responses
+(including legacy rejections) are skipped; new results record the background transport.
+Local output defaults to git-ignored
+`data/evaluation/star-clusters`. New samples require a new `EVAL_DIR`.
+All candidates need human review; quote/ID checks do not prove scientific entailment.
+Negatives are excerpt-scoped, not proven absent from the entire corpus. Cross-paper
+pairing uses lexical metadata overlap, not KG reasoning. Do not imply `run-evals`
+consumes this format: a reviewed-dataset mode-aware runner and held-out splitting
+are follow-ups. Do not change ingestion, retrieval presets or add graph infrastructure
+as part of maintaining this generator.
 
 ## Optional daily orchestration
 
