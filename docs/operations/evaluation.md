@@ -12,8 +12,8 @@ make create-eval-dataset      # Paid OpenAI generation from that saved preview
 The default samples up to **50 active arXiv papers**, four text excerpts per paper,
 and plans **50 candidates**: 30 single-paper, 15 cross-paper comparisons, and 5
 insufficient-evidence cases. It uses `gpt-4.1-mini` and your `OPENAI_API_KEY`.
-Neither command changes PostgreSQL/Qdrant, ingests papers, or publishes to LangSmith.
-No RAGAS, Groq, Cohere or LangSmith credentials are needed for generation.
+Neither command changes PostgreSQL/Qdrant, ingests papers, or publishes an experiment.
+No RAGAS, Groq, Cohere or Langfuse credentials are needed for question generation.
 
 Look in `data/evaluation/star-clusters/`:
 
@@ -31,6 +31,38 @@ be lower than `make papers-count` (which includes uploads and all ready builds).
 It reads only manifest-listed points belonging to active builds, excludes figures and
 generated summaries, and fails on missing points or identity drift. Legacy upload
 adoption relies on its observed manifest. Use `make papers-audit` for vector validation.
+
+### Evidence and answerability checks
+
+New previews favour Methods, Results, Discussion and Conclusions, then fill remaining
+slots from other usable text. References, acknowledgments, funding text, citation-list
+dominated chunks and empty figure placeholders are excluded using headings and text
+heuristics. Substantive figure captions remain eligible. Sampling is seeded within each
+priority; snapshots retain the original excerpt text, `section_header`, `content_kind`
+and `selection_priority` (0 preferred, 1 fallback). Papers without eligible excerpts are
+listed in `excluded_no_text_build_ids`; previews may contain fewer papers than requested.
+
+The prompt first identifies a supported fact, then asks a question that the fact answers.
+Every question must include its paper's full title (both titles for a comparison).
+New plans freeze `quality_policy: fact-first-v1`. That policy rejects answerable jobs
+whose reference answers explicitly abstain or say necessary information is missing,
+and rejects questions missing paper titles or referring to supplied excerpts. These
+checks use text heuristics: inspect rejections and review accepted drafts for scientific
+correctness. They do not prove that a cited excerpt supports every claim.
+
+Older plans retain their prior validation behaviour. Keep the earlier pilot and create a
+new directory to apply these changes, for example:
+
+```bash
+make eval-preview EVAL_DIR=data/evaluation/markdown-mini-pilot-v3 \
+  EVAL_MODEL=gpt-5-mini EVAL_REASONING_EFFORT=minimal \
+  EVAL_MAX_TOKENS=4000 QUESTIONS=10 PAPERS=20
+make create-eval-dataset EVAL_DIR=data/evaluation/markdown-mini-pilot-v3
+```
+
+Review these ten drafts before creating the full set. `needs_review` means the automatic
+checks passed; it does not mean the question is verified as answerable. Abstention tests
+remain scoped to the sampled excerpts until a reviewer checks the whole corpus.
 
 ### Customize or create another set
 
@@ -195,21 +227,72 @@ from them.
    groups must stay in one split. Keep the same approved questions and corpus when
    comparing Vanilla, Hybrid and future graph/agentic modes.
 
-The generator does not run benchmarks or implement dataset splitting. A mode-aware
-evaluation runner consuming this reviewed local format is the next milestone. Daily
-ingestion can change the live corpus; the fingerprint detects changes but does not pin
-historical query serving. Retain the snapshot and use a controlled corpus for comparisons.
+## Run the reviewed benchmark
 
-## Legacy evaluation scripts
+Start with a two-question smoke run. This makes embedding and answer-generation calls;
+the optional judge adds one more model call per answer.
 
-`evals/eval_dataset_creation.py` is the old upload-only generator with automatic LangSmith
-publication; **the Make target no longer invokes it**. Existing datasets are untouched.
+```bash
+make eval-run EVAL_DIR=data/evaluation/markdown-mini-v1 EVAL_LIMIT=2
+```
 
-`make run-evals` still runs `evals/eval_retriever.py`, the legacy LangSmith/RAGAS evaluator.
-It uses a separately named remote dataset and does **not** consume the new `questions.json`
-or compare explicit Vanilla/Hybrid presets. Do not use it as the new benchmark yet.
-It requires external services and evaluation dependencies. Earlier experiments remain
-in `evals/old/` and `notebooks/`.
+Then run all approved questions through both modes with semantic scoring:
+
+```bash
+make eval-run EVAL_DIR=data/evaluation/markdown-mini-v1 EVAL_JUDGE=true
+```
+
+Each invocation creates a new directory under `data/evaluation/runs/` containing:
+
+- `manifest.json`: exact dataset, corpus build IDs, models and settings;
+- `results.json`: checkpointed per-question answers, retrieved chunks, citations and scores;
+- `summary.json` and `report.md`: aggregate Vanilla/Hybrid comparison.
+
+The runner ignores non-approved records and queries the **frozen build IDs** saved in
+`snapshot.json`, not whatever papers happen to be active after later daily ingestion.
+It fails if the reviewed file does not match that snapshot or if its embedding model
+differs from the configured query embedding model. Retained Qdrant builds must therefore
+remain available while a benchmark snapshot is in use.
+
+Without the judge, the report contains deterministic retrieval and citation measures.
+`EVAL_JUDGE=true` adds correctness, groundedness and answer-relevance scores using
+`gpt-5-mini` with minimal reasoning by default. Override with
+`EVAL_JUDGE_MODEL` or `EVAL_JUDGE_REASONING_EFFORT`. Gold-citation recall is deliberately
+strict: a valid alternative passage may support an answer but still score as a miss.
+
+| Metric | Meaning |
+| --- | --- |
+| `retrieval_hit` | At least one reviewed reference point was retrieved |
+| `retrieval_recall` | Fraction of reviewed reference points retrieved |
+| `gold_citation_recall` | Fraction of reviewed reference points selected as citations by the answer model |
+| `citation_from_retrieval` | Fraction of selected citation IDs that came from the retrieved set |
+| `answer_correctness` | Judge comparison with the reviewed reference answer/evidence |
+| `groundedness` | Judge assessment that answer claims follow from retrieved evidence |
+| `answer_relevance` | Judge assessment that the answer addresses the question |
+| `correct_abstention` | For accepted unanswerable cases, whether the answer declined to invent information |
+
+Judge metrics use `0`, `0.5`, or `1`; they are model assessments, not human ground truth.
+Errors are retained per item, processing continues, and the final manifest becomes
+`completed_with_errors`. Partial results survive a stopped process, but automatic resume
+of an interrupted benchmark run is not implemented yet; a new invocation creates a new run.
+
+`EVAL_MODES="vanilla"`, `EVAL_TOP_K=10`, `EVAL_GENERATION_MODEL=...`, and
+`EVAL_CONCURRENCY=...` are available for controlled experiments. Use concurrency 1
+until provider rate limits are understood.
+
+Dataset splitting remains future work. Until it is added, do not tune repeatedly on all
+approved questions and then describe the same scores as held-out performance.
+
+## Track runs in Langfuse
+
+Enable Langfuse as described in [Observability](observability.md). The same `make eval-run`
+then uploads the reviewed set to a content-addressed Langfuse Dataset and records Vanilla
+and Hybrid as separate Dataset Experiments. Stable dataset-item IDs make synchronization
+idempotent; changing reviewed content creates a new dataset identity. The local run files
+remain the authoritative, checkpointed record.
+
+The current runner is `make eval-run`; older experimental scripts under `evals/old/` and
+`notebooks/` are not supported runtime paths.
 
 The generator uses Pydantic-based structured responses and handles refusals following
 the [official OpenAI structured-output guidance](https://developers.openai.com/api/docs/guides/structured-outputs).

@@ -68,10 +68,11 @@ make compose       # local stack (recommended runtime path)
 make docs-build    # validate/render MkDocs
 make docs PORT=8001
 make ingest        # legacy script: bypasses catalogue; do not use for the current workflow
-make run-evals     # retriever evaluation; needs configured external services
 make eval-preview  # Freeze active arXiv evidence locally; no model calls
 make eval-check EVAL_DIR=data/evaluation/gpt5  # Read-only model metadata access check; no inference
-make create-eval-dataset  # Paid question generation from saved preview; no LangSmith upload
+make create-eval-dataset  # Paid question generation from saved preview
+make eval-run EVAL_DIR=data/evaluation/markdown-mini-v1 EVAL_LIMIT=2  # Paid RAG smoke benchmark
+make langfuse-up   # Start this repo's optional self-hosted Langfuse v4 stack
 ```
 
 Before changing behavior, trace the request through the router, RAG/ingestion module, and the
@@ -249,8 +250,8 @@ historical snapshot serving remain follow-ups; see the guide for detailed limita
 ## Evaluation question generation
 
 `evals/generate_questions.py` provides `prepare`/`generate`; see
-`docs/operations/evaluation.md`. The Make target `create-eval-dataset` now uses this
-local generator, not the legacy upload-only LangSmith publisher. Preview freezes
+`docs/operations/evaluation.md`. The Make target `create-eval-dataset` uses this local
+generator. Preview freezes
 manifest-listed active evidence with identity checks and deterministic sampling.
 Defaults: up to 50 scoped arXiv papers, four text excerpts each, 30 single-paper /
 15 cross-paper / 5 insufficient-evidence candidate jobs, `gpt-4.1-mini`.
@@ -279,12 +280,38 @@ Never promise exactly-once billing when a submission response is lost. Completed
 (including legacy rejections) are skipped; new results record the background transport.
 Local output defaults to git-ignored
 `data/evaluation/star-clusters`. New samples require a new `EVAL_DIR`.
+
+## Evaluation runner and Langfuse
+
+`evals/run_benchmark.py` consumes only `review_status=approved` records from a separate
+`questions.reviewed.json`. It validates the sibling snapshot hash and embedding model, then
+queries the exact frozen Qdrant build IDs rather than the current active catalogue. Each
+invocation creates a unique checkpointed directory under `data/evaluation/runs/` with a
+manifest, per-item results, aggregate JSON and Markdown report. Vanilla and Hybrid use the
+same questions, generation model, top-k and frozen scope. `EVAL_JUDGE=true` adds explicit
+paid Responses API judge calls. Partial item results survive interruption, but benchmark
+resume is not implemented; a retry is a new run. Never run a benchmark implicitly during tests.
+
+Langfuse v4 is the sole supported observability integration and runs as an opt-in,
+repository-owned Docker stack in `docker-compose.langfuse.yaml`. Host processes use
+`LANGFUSE_BASE_URL`; application containers use `LANGFUSE_BASE_URL_CONTAINER`. All imports
+go through `src/api/observability/tracing.py`; it is a true no-op when disabled. OpenAI clients
+for the active query path come from `src/api/core/clients.py` so calls are auto-instrumented.
+With Langfuse enabled, the runner syncs a content-addressed, idempotent Dataset and records
+each mode as a Dataset Experiment, while local files remain authoritative. Use a separate
+Langfuse project for this repository. `make langfuse-stop` preserves its named volumes.
+The local Compose deployment has no high availability or automatic backup policy.
 All candidates need human review; quote/ID checks do not prove scientific entailment.
+New previews apply `evals/quality.py` evidence heuristics: exclude references, acknowledgments,
+funding, citation lists and empty placeholders; prefer Methods/Results/Discussion/Conclusions.
+New plans freeze `quality_policy: fact-first-v1`: require full paper titles and reject explicit
+missing-information answers for answerable jobs. Old plans retain prior validation; never
+rewrite their hashes or checkpoints. These gates do not establish scientific entailment.
 Negatives are excerpt-scoped, not proven absent from the entire corpus. Cross-paper
-pairing uses lexical metadata overlap, not KG reasoning. Do not imply `run-evals`
-consumes this format: a reviewed-dataset mode-aware runner and held-out splitting
-are follow-ups. Do not change ingestion, retrieval presets or add graph infrastructure
-as part of maintaining this generator.
+pairing uses lexical metadata overlap, not KG reasoning. `make eval-run` consumes the
+reviewed format. Held-out splitting remains a follow-up.
+Do not change ingestion, retrieval presets or add graph infrastructure as part of
+maintaining the question generator or benchmark runner.
 
 ## Optional daily orchestration
 

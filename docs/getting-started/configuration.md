@@ -1,7 +1,7 @@
 # Configuration
 
-Configuration comes from two places: secrets and endpoints in `.env`, and model behaviour
-in `config.yaml`.
+Runtime configuration comes from `.env` or process environment variables, loaded by the
+Pydantic settings classes.
 
 ## Environment variables
 
@@ -20,10 +20,17 @@ Copy `.env.sample` to `.env` and populate it:
 | `GENERATION_MODEL_PROVIDER` | Generation provider, e.g. `openai` |
 | `COHERE_API_KEY` | Cohere API key, used for reranking |
 | `OPENAI_API_KEY` | OpenAI API key |
-| `LANGSMITH_TRACING` | `true` or `false` |
-| `LANGSMITH_ENDPOINT` | LangSmith API endpoint |
-| `LANGSMITH_API_KEY` | LangSmith API key |
-| `LANGSMITH_PROJECT` | LangSmith project name |
+| `LANGFUSE_ENABLED` | Enable API traces and evaluation experiments |
+| `LANGFUSE_PUBLIC_KEY` | Langfuse project public key |
+| `LANGFUSE_SECRET_KEY` | Langfuse project secret key |
+| `LANGFUSE_BASE_URL` | Host URL for this repo's Langfuse container (`http://localhost:3000`) |
+| `LANGFUSE_BASE_URL_CONTAINER` | Internal Compose URL (`http://langfuse-web:3000`) |
+| `LANGFUSE_ENVIRONMENT` | Environment label such as `local` or `staging` |
+| `LANGFUSE_RELEASE` | Optional deployed application version |
+| `LANGFUSE_DATASET_PREFIX` | Prefix for content-addressed evaluation datasets |
+
+Langfuse is the only supported tracing and evaluation-experiment backend. See
+[Observability](../operations/observability.md) for its repo-owned Docker stack and setup.
 
 !!! danger "Never commit `.env`"
     `.env` is gitignored. On Azure, inject the same values through
@@ -32,9 +39,14 @@ Copy `.env.sample` to `.env` and populate it:
 Docker Compose adds two more at runtime: `REDIS_HOST` and `REDIS_PORT` point the backend
 and the ingestion worker at the `redis` service, and the frontend gets `API_URL=http://api:8000`.
 
-## `config.yaml`
+## Legacy `config.yaml`
 
-Model behaviour that is not a secret lives in `config.yaml` at the repository root:
+`config.yaml` remains from an earlier implementation, but the active `Config` class does
+**not** load it. Do not expect changes there to affect the API. Active model names and
+prompt paths come from `src/api/core/config.py` defaults overridden by `.env`; prompt text
+lives in YAML files under `src/api/rag/prompts/`.
+
+The legacy file currently contains values such as:
 
 ```yaml
 collection: 'test_collection_oai_test'
@@ -47,13 +59,7 @@ groq:
   metadata_model: 'llama-3.3-70b-versatile'
 ```
 
-- `collection` — the Qdrant collection the pipeline reads from.
-- `groq.summarization_*` — model, prompt, and sampling settings used when conversation
-  history is compacted, and when ingested chunks are summarized.
-- `groq.metadata_model` — the model used for structured metadata extraction during ingestion.
-
-Loading is handled by [`src.api.core.config`](../reference/api.md#configuration), which merges
-the YAML file with the environment.
+These values are illustrative only until explicit loading is implemented.
 
 ## Version pinning
 

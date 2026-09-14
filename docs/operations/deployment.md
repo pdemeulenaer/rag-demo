@@ -19,6 +19,10 @@ Both application services bind-mount their source directory, so code changes are
 without a rebuild. `./temp_uploads` is shared between the API and the worker so uploaded PDFs
 are visible to both.
 
+Langfuse is deliberately opt-in and lives in `docker-compose.langfuse.yaml`. Start it with
+`make langfuse-up`; its persistent services remain separate from normal application startup
+while sharing the same Compose network. See [Observability](observability.md).
+
 A local Qdrant service is present but commented out — the default configuration points at
 Qdrant Cloud via `QDRANT_URL`. Uncomment it (and the `QDRANT_URL=http://qdrant:6333`
 environment line) to run entirely offline.

@@ -64,6 +64,19 @@ def test_evaluation_connectivity_check_is_not_generation():
     ]
 
 
+def test_reviewed_evaluation_runner_forwards_modes_and_optional_limit():
+    command = dry_run("eval-run", "EVAL_DIR=data/evaluation/reviewed",
+                      "EVAL_MODES=vanilla hybrid", "EVAL_LIMIT=3", "EVAL_JUDGE=true")
+    assert command == [
+        "uv", "run", "python", "-m", "evals.run_benchmark",
+        "--dataset", "data/evaluation/reviewed/questions.reviewed.json",
+        "--output-root", "data/evaluation/runs", "--modes", "vanilla", "hybrid",
+        "--top-k", "5", "--judge",
+        "--judge-model", "gpt-5-mini", "--judge-reasoning-effort", "minimal",
+        "--concurrency", "1", "--limit", "3",
+    ]
+
+
 def test_background_generation_wait_and_explicit_retry_are_forwarded():
     command = dry_run("create-eval-dataset", "EVAL_WAIT_SECONDS=300", "RETRY_JOB=q0002")
     assert command[-4:] == ["--wait-seconds", "300", "--retry-job", "q0002"]
@@ -118,6 +131,21 @@ def test_airflow_start_does_not_unpause_or_trigger_dag():
     command = dry_run("airflow-up")
     assert "--profile" in command and "airflow" in command
     assert "unpause" not in command and "trigger" not in command
+
+
+def test_langfuse_start_uses_repo_compose_stack_and_waits():
+    assert dry_run("langfuse-up") == [
+        "docker", "compose", "-f", "docker-compose.yml", "-f",
+        "docker-compose.langfuse.yaml", "up", "-d", "--wait",
+        "langfuse-web", "langfuse-worker",
+    ]
+
+
+def test_langfuse_stop_preserves_volumes():
+    command = dry_run("langfuse-stop")
+    assert "-v" not in command
+    assert "down" not in command
+    assert command.count("langfuse-web") == 2
 
 
 @pytest.mark.parametrize("target,action", [("papers-backup", "backup"), ("papers-backups", "list"),

@@ -14,13 +14,7 @@ from src.api.api.ingestion_router import router as ingestion_router
 from src.api.api.system_router import router as system_router
 from src.api.api.papers_router import router as papers_router
 from src.api.core.config import config
-
-# This must be the first thing your app does!
-os.environ["LANGCHAIN_TRACING_V2"] = "true" if config.LANGSMITH_TRACING else "false"
-os.environ["LANGCHAIN_ENDPOINT"] = config.LANGSMITH_ENDPOINT
-os.environ["LANGCHAIN_API_KEY"] = config.LANGSMITH_API_KEY
-os.environ["LANGCHAIN_PROJECT"] = config.LANGSMITH_PROJECT
-
+from src.api.observability.tracing import flush as flush_traces
 
 logging.basicConfig(
     level=logging.INFO,
@@ -41,6 +35,7 @@ async def lifespan(app: FastAPI):
     yield
 
     logger.info("Application shutting down...")
+    flush_traces()
     await client.aclose()
 
 app = FastAPI(lifespan=lifespan)

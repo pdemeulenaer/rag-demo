@@ -75,5 +75,6 @@ make docs-build           # render the static site into site/
 | `make test` | Run the Behave test suite |
 | `make redis-chat` | Inspect a stored Redis chat history |
 | `make create-eval-dataset` | Build the retrieval evaluation dataset |
-| `make run-evals` | Run the retriever evaluation |
+| `make eval-run EVAL_DIR=...` | Run the reviewed Vanilla/Hybrid benchmark |
+| `make langfuse-up` | Start this repo's optional Langfuse stack |
 | `make build-ui` / `make build-fastapi` | Build the Docker images |

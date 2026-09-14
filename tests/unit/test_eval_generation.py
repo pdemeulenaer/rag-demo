@@ -290,6 +290,7 @@ def test_prepare_freezes_active_only_and_does_not_overwrite(tmp_path, monkeypatc
     assert len(snapshot["papers"]) == 2
     assert len(plan["jobs"]) == 50
     assert plan["max_completion_tokens"] == 25000
+    assert plan["quality_policy"] == gen.POLICY
     assert plan["reasoning_effort"] is None
     assert plan["snapshot_hash"] == gen.digest(snapshot)
     assert not (args.output / "questions.json").exists()

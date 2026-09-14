@@ -2,9 +2,10 @@
 from pydantic import BaseModel
 from typing import Literal, Optional
 import instructor
-import openai
 import logging
 from src.api.core.config import config
+from src.api.core.clients import openai_client
+from src.api.observability.tracing import observe
 from src.api.rag.utils.utils import prompt_template_config
 
 logger = logging.getLogger(__name__)
@@ -28,10 +29,11 @@ class MetadataIntent(BaseModel):
 
 # ---------- LLM router ----------
 router_llm = instructor.from_openai(
-    openai.OpenAI(api_key=config.OPENAI_API_KEY)   # or Groq/OpenAI as you prefer
+    openai_client()
 )
 
 # ---------- INTENT CLASSIFIER ----------
+@observe(name="classify_question")
 def classify_question(question: str, chat_history: str = "") -> MetadataIntent:
 
     prompt_template = prompt_template_config(config.RAG_PROMPT_TEMPLATE_PATH, "intent_classification")

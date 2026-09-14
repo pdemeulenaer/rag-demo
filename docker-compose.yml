@@ -49,6 +49,8 @@ services:
       - REDIS_PORT=6379     
       - PAPERS_DATABASE_URL=postgresql+psycopg://rag:${PAPERS_DB_PASSWORD:-rag}@postgres:5432/papers
       - PAPERS_ARTIFACT_DIR=/app/paper_artifacts
+      # Host commands use localhost; containers use the Langfuse service name.
+      - LANGFUSE_BASE_URL=${LANGFUSE_BASE_URL_CONTAINER:-http://langfuse-web:3000}
       # - QDRANT_URL=http://qdrant:6333   
     depends_on:
       redis:
@@ -79,6 +81,7 @@ services:
       - REDIS_PORT=6379
       - PAPERS_DATABASE_URL=postgresql+psycopg://rag:${PAPERS_DB_PASSWORD:-rag}@postgres:5432/papers
       - PAPERS_ARTIFACT_DIR=/app/paper_artifacts
+      - LANGFUSE_BASE_URL=${LANGFUSE_BASE_URL_CONTAINER:-http://langfuse-web:3000}
     volumes:
       - ./src/api:/app/src/api
       # - shared_uploads:/app/temp_uploads  # for sharing PDFs between API and worker      

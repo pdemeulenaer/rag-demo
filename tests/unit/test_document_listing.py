@@ -13,12 +13,11 @@ def listing(monkeypatch):
     async def inline(function, *args, **kwargs):
         return function(*args, **kwargs)
     monkeypatch.setattr("fastapi.routing.run_in_threadpool", inline)
-    for key in ["OPENAI_API_KEY", "GROQ_API_KEY", "COHERE_API_KEY", "LANGSMITH_API_KEY"]:
+    for key in ["OPENAI_API_KEY", "GROQ_API_KEY", "COHERE_API_KEY"]:
         monkeypatch.setenv(key, "offline-test")
     monkeypatch.setenv("QDRANT_URL", "http://localhost:6333")
     monkeypatch.setenv("QDRANT_PORT", "6333")
     monkeypatch.setenv("QDRANT_API_KEY", "")
-    monkeypatch.setenv("LANGSMITH_TRACING", "false")
     module = importlib.import_module("src.api.api.system_router")
     import src.api.api.papers_router as papers_router
     catalogue = Mock()

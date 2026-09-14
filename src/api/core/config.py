@@ -14,7 +14,6 @@ class Config(BaseSettings):
     GROQ_API_KEY: str
     QDRANT_API_KEY: str
     COHERE_API_KEY: str
-    LANGSMITH_API_KEY: str
 
     # Qdrant Settings
     QDRANT_URL: str
@@ -34,10 +33,15 @@ class Config(BaseSettings):
     GENERATION_MODEL: str
     GENERATION_MODEL_PROVIDER: str
 
-    # Langsmith Settings
-    LANGSMITH_TRACING: bool
-    LANGSMITH_ENDPOINT: str    
-    LANGSMITH_PROJECT: str    
+    # Optional Langfuse observability. Disabled means a true no-op: the SDK is
+    # not imported by the application tracing shim.
+    LANGFUSE_ENABLED: bool = False
+    LANGFUSE_PUBLIC_KEY: str = ""
+    LANGFUSE_SECRET_KEY: str = ""
+    LANGFUSE_BASE_URL: str = "http://localhost:3000"
+    LANGFUSE_ENVIRONMENT: str = "local"
+    LANGFUSE_RELEASE: str = ""
+    LANGFUSE_DATASET_PREFIX: str = "scientific-paper-rag"
     # EMBEDDING_API_URL: str
     
 
@@ -55,11 +59,6 @@ class Config(BaseSettings):
     GENERATION_MODEL_TEMPERATURE: float = 0.5
     GENERATION_MODEL_MAX_TOKENS: int = 4096 # previously 1024 but too small for complex answers
     RAG_PROMPT_TEMPLATE_PATH: str = "src/api/rag/prompts/rag_generation.yaml"    
-
-    # Langsmith settings
-    LANGSMITH_TRACING=False #false for testing, true in production
-    LANGSMITH_ENDPOINT='https://api.smith.langchain.com'
-    LANGSMITH_PROJECT='rag-tracing'
 
     # Ingestion settings
     QDRANT_COLLECTION_NAME: str = 'test_collection_oai_test_image' # 'test_collection_oai_test_summary' # test_collection_oai_prod # test_collection_oai_local2

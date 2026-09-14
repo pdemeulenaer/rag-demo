@@ -4,12 +4,13 @@ from fastapi.responses import FileResponse
 import os
 import logging
 import uuid
-import openai
 import instructor
 from typing import List
 from pydantic import BaseModel
 
 from src.api.core.config import config
+from src.api.core.clients import openai_client
+from src.api.observability.tracing import observe, update_span
 from src.api.rag.intent_router import classify_question
 from src.api.rag import metadata_handlers as mh
 from src.api.rag.retrieval import rag_pipeline_wrapper, get_memory, add_message
@@ -37,6 +38,7 @@ class QuestionRequest(BaseModel):
 
 # --- Helper Functions ---
 
+@observe(name="answer_from_chat_context")
 def answer_from_chat_context(question: str, chat_history: str, model="gpt-4o-mini") -> str:
     """
     Use the chat history alone to answer the user's follow-up question.
@@ -46,7 +48,7 @@ def answer_from_chat_context(question: str, chat_history: str, model="gpt-4o-min
     """
 
     llm = instructor.from_openai(
-        openai.OpenAI(api_key=config.OPENAI_API_KEY)
+        openai_client()
     )
 
     system_prompt = (
@@ -221,6 +223,7 @@ async def get_image(image_name: str, request: Request):
 
 
 @rag_router.post("/rag2")
+@observe(name="rag_request", capture_input=False, capture_output=False)
 async def rag(
     request: Request,
     payload: RAGRequest,
@@ -242,6 +245,9 @@ async def rag(
 
     # Determine generation model (user-selected or default)
     gen_model = payload.generation_model or config.GENERATION_MODEL
+    update_span(input={"query": payload.query}, metadata={"session_id": session_id,
+        "mode": payload.mode or "intent-routed", "corpus": payload.corpus,
+        "generation_model": gen_model})
     
     logger.info(f"Session ID: {session_id}")
     logger.info(f"Generation model: {gen_model}")
@@ -274,9 +280,11 @@ async def rag(
         await run_in_threadpool(add_message, memory_id, "assistant", result["answer"])
         memory = await run_in_threadpool(get_memory, memory_id)
         history = ([{"role": "system", "content": memory.summary}] if memory.summary else []) + memory.recent_messages
-        return RAGResponse(request_id=request.state.request_id, answer=result["answer"],
+        response_payload = RAGResponse(request_id=request.state.request_id, answer=result["answer"],
             chat_history=history, sources=result.get("sources", []),
             images=_process_images(result.get("images", []), request), mode=mode, corpus_snapshot=snapshot)
+        update_span(output={"answer": result["answer"], "source_count": len(result.get("sources", []))})
+        return response_payload
 
     # 2. Intent Classification
 
@@ -379,10 +387,12 @@ async def rag(
         full_history.append({"role": msg["role"], "content": msg["content"]})
 
     # Build and return the RAGResponse, including the chat_history
-    return RAGResponse(
+    response_payload = RAGResponse(
         request_id=request.state.request_id,
         answer=answer,
         chat_history=full_history,
         sources=sources,
         images=rag_images
     )
+    update_span(output={"answer": answer, "source_count": len(sources)})
+    return response_payload

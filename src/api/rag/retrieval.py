@@ -1,21 +1,20 @@
 # src/api/rag/retrieval.py
 import os
-import openai
 import instructor
-from openai import OpenAI
 from groq import Groq
 from pydantic import BaseModel
 from typing import List
 import json
 import cohere
 from qdrant_client import QdrantClient
-from langsmith import traceable, get_current_run_tree
 import logging
 import redis
 import pickle
 
 from src.api.core.config import config
-from src.api.rag.utils.utils import prompt_template_config, prompt_template_registry
+from src.api.core.clients import openai_client
+from src.api.observability.tracing import observe, observation, trace_attributes, update_span
+from src.api.rag.utils.utils import prompt_template_config
 from src.api.rag.summarize import summarize_text
 from src.api.api.models import Source
 from src.api.rag.search import search_points
@@ -40,10 +39,7 @@ class ConversationMemory:
         self.window_size = window_size
 
 
-@traceable(
-    name="summarize_conversation",
-    run_type="prompt",
-)
+@observe(name="summarize_conversation")
 def summarize_conversation(messages): #, summarizer_llm):
     """
     Summarizes the conversation history using the given LLM client (Groq in this case).
@@ -65,10 +61,6 @@ def summarize_conversation(messages): #, summarizer_llm):
     return response.summary.strip()
 
 
-@traceable(
-    name="get_memory",
-    # run_type="prompt",
-)
 def get_memory(session_id: str) -> ConversationMemory:
 
     # If in evaluation mode, return a fresh memory each time
@@ -88,10 +80,6 @@ def get_memory(session_id: str) -> ConversationMemory:
         return new_memory
 
 
-@traceable(
-    name="add_message",
-    # run_type="prompt",
-)
 def add_message(session_id: str, role: str, content: str): #, summarizer_llm):
     memory = get_memory(session_id)
 
@@ -113,32 +101,18 @@ def add_message(session_id: str, role: str, content: str): #, summarizer_llm):
     redis_client.setex(session_id, session_time_to_live, pickle.dumps(memory))        
 
 
-@traceable(
-    name="embed_query",
-    run_type="embedding",
-    metadata={"ls_provider": config.EMBEDDING_MODEL_PROVIDER, "ls_model_name": config.EMBEDDING_MODEL}
-)
 def get_embedding(text, model=config.EMBEDDING_MODEL):
-    response = openai.embeddings.create(
+    response = openai_client().embeddings.create(
         input=[text],
         model=model,
     )
-
-    current_run = get_current_run_tree()
-    if current_run:
-        current_run.metadata["usage_metadata"] = {
-            "input_tokens": response.usage.prompt_tokens,
-            "total_tokens": response.usage.total_tokens,
-        }
-
     return response.data[0].embedding
 
 
-@traceable(
-    name="retrieve_top_n",
-    run_type="retriever"
-)
+@observe(name="retrieve_context", as_type="retriever", capture_input=False, capture_output=False)
 def retrieve_context(query, qdrant_client, top_k=5, mode="hybrid", collection=None, scope=None):
+    update_span(input={"query": query}, metadata={"mode": mode, "top_k": top_k,
+        "collection": collection or config.QDRANT_COLLECTION_NAME})
     if scope is None:
         from src.api.api.papers_router import active_corpus
         from src.api.papers.consistency import active_filter
@@ -175,14 +149,12 @@ def retrieve_context(query, qdrant_client, top_k=5, mode="hybrid", collection=No
             "caption": payload.get("caption")        # Important for UI display
         })        
 
-    return retrieved_context    
+    update_span(output={"point_ids": [row["id"] for row in retrieved_context]},
+                metadata={"result_count": len(retrieved_context)})
+    return retrieved_context
 
 
-@traceable(
-    name="rerank_context",
-    run_type="reranker",
-    metadata={"ls_provider": "Cohere", "ls_model_name": "rerank-english-v3.0"}
-)
+@observe(name="rerank_context", as_type="reranker", capture_input=False, capture_output=False)
 def rerank_context(query: str, retrieved_context: list, top_n: int = 5):
     """
     Reranks the retrieved context chunks using Cohere's reranker.
@@ -210,6 +182,9 @@ def rerank_context(query: str, retrieved_context: list, top_n: int = 5):
             "rerank_score": doc_score
         })
 
+    update_span(input={"query": query, "candidate_ids": [row["id"] for row in retrieved_context]},
+                output={"point_ids": [row["id"] for row in reranked]},
+                metadata={"model": "rerank-english-v3.0", "top_n": top_n})
     return reranked
 
 
@@ -225,10 +200,6 @@ def optional_int(value: object) -> int | None:
         return None
 
 
-@traceable(
-    name="format_retrieved_context",
-    run_type="prompt"
-)
 def process_context(context):
     lines = []
     for id, chunk in zip(context["retrieved_context_ids"], context["retrieved_context"]):
@@ -250,10 +221,6 @@ OUTPUT_SCHEMA = {
 }
 
 
-# @traceable(
-#     name="render_prompt",
-#     run_type="prompt"
-# )
 def build_prompt(context, question, session_id):
     memory = get_memory(session_id)
 
@@ -266,7 +233,6 @@ def build_prompt(context, question, session_id):
     processed_context = process_context(context)
 
     # Extract the prompt template
-    # prompt_template = prompt_template_registry("rag-prompt")
     prompt_template = prompt_template_config(config.RAG_PROMPT_TEMPLATE_PATH, "rag_generation")
 
     system_prompt = prompt_template["system"].render(
@@ -291,16 +257,6 @@ def build_prompt(context, question, session_id):
         {"role": "user", "content": user_prompt}
     ]
 
-    # For LangSmith trace: return a string instead of the messages list
-    traced_prompt = f"[SYSTEM]\n{system_prompt}\n\n[USER]\n{user_prompt}"
-
-    @traceable(name="render_prompt", run_type="prompt")
-    def traced():
-        return traced_prompt
-
-    traced()  # just logs the prompt
-
-    # Return messages for actual LLM call
     return messages
 
 
@@ -343,11 +299,7 @@ def is_openai_model(model_name: str) -> bool:
     )
 
 
-@traceable(
-    name="generate_answer",
-    run_type="llm",
-    metadata={"ls_provider": config.GENERATION_MODEL_PROVIDER, "ls_model_name": config.GENERATION_MODEL}
-)
+@observe(name="generate_answer", capture_input=False, capture_output=False)
 # def generate_answer(prompt: List[Dict[str, str]], generation_model: str = None):
 def generate_answer(prompt, generation_model=None):
     """
@@ -367,7 +319,7 @@ def generate_answer(prompt, generation_model=None):
 
     if is_openai_model(generation_model):
         # --------- OpenAI branch ----------
-        client = OpenAI(api_key=config.OPENAI_API_KEY)
+        client = openai_client()
         response_json = client.chat.completions.create(
             model=generation_model,
             messages=prompt,
@@ -392,42 +344,39 @@ def generate_answer(prompt, generation_model=None):
 
     else:
         # --------- Groq branch ----------
-        groq_client = Groq(api_key=config.GROQ_API_KEY)
-        # instr_client = instructor.from_groq(groq_client)
-        instr_client = instructor.from_groq(
-                    groq_client, 
-                    mode=instructor.Mode.JSON 
-                )        
+        with observation(name="groq_generation", as_type="generation",
+                         model=generation_model, input=prompt) as generation:
+            groq_client = Groq(api_key=config.GROQ_API_KEY)
+            instr_client = instructor.from_groq(groq_client, mode=instructor.Mode.JSON)
+            response, raw_response = instr_client.chat.completions.create_with_completion(
+                model=generation_model,
+                response_model=RAGGenerationResponse,
+                messages=prompt,
+                temperature=0,
+                max_tokens=config.GENERATION_MODEL_MAX_TOKENS,
+                max_retries=5,
+            )
+            usage = {
+                "input_tokens": raw_response.usage.prompt_tokens,
+                "output_tokens": raw_response.usage.completion_tokens,
+                "total_tokens": raw_response.usage.total_tokens,
+            }
+            if generation is not None:
+                generation.update(output=response.model_dump(), usage_details=usage)
 
-        response, raw_response = instr_client.chat.completions.create_with_completion(
-            model=generation_model,
-            response_model=RAGGenerationResponse,
-            messages=prompt,
-            temperature=0,
-            max_tokens=config.GENERATION_MODEL_MAX_TOKENS,
-            max_retries=5,
-        )
-
-        usage = {
-            "input_tokens": raw_response.usage.prompt_tokens,
-            "output_tokens": raw_response.usage.completion_tokens,
-            "total_tokens": raw_response.usage.total_tokens,
-        }
-
-    # attach token usage to LangSmith run if present
-    current_run = get_current_run_tree()
-    if current_run:
-        current_run.metadata["usage_metadata"] = usage
+    update_span(input={"messages": prompt}, output=response.model_dump(),
+                metadata={"provider": "openai" if is_openai_model(generation_model) else "groq",
+                          "model": generation_model, "usage": usage})
 
     return response
 
 
-@traceable(
-    name="rag_pipeline",
-    run_type="chain"
-)
+@observe(name="rag_pipeline", capture_input=False, capture_output=False)
 def rag_pipeline(question, qdrant_client, session_id, generation_model=None, top_k=5,
                  mode=None, collection=None, scope=None):
+    update_span(input={"question": question}, metadata={"mode": mode or "legacy",
+        "collection": collection or config.QDRANT_COLLECTION_NAME,
+        "generation_model": generation_model or config.GENERATION_MODEL, "top_k": top_k})
 
     # If in evaluation mode, return a fresh memory each time
     if mode is not None:
@@ -448,8 +397,11 @@ def rag_pipeline(question, qdrant_client, session_id, generation_model=None, top
         retrieved_context = rerank_context(question, retrieved_context, top_n=top_k)
 
     if not retrieved_context:
-        return {"answer": "I found no indexed evidence for this question in the selected corpus.",
-                "sources": [], "images": [], "question": question, "retrieved_context": []}
+        result = {"answer": "I found no indexed evidence for this question in the selected corpus.",
+                  "sources": [], "images": [], "question": question, "retrieved_context": [],
+                  "retrieved_chunks": [], "cited_context_ids": []}
+        update_span(output={"answer": result["answer"], "retrieved_ids": [], "cited_ids": []})
+        return result
 
     prompt = build_prompt(
         {
@@ -525,13 +477,21 @@ def rag_pipeline(question, qdrant_client, session_id, generation_model=None, top
     # Extract just the text content from the retrieved_context objects
     retrieved_context_texts = [c["text"] for c in retrieved_context]
 
-    return {
+    result = {
         "answer": answer.answer,
         "sources": unique_sources, # Text sources
         "images": used_images,     # Image sources
         "question": question,
         "retrieved_context": retrieved_context_texts,
+        # Internal evaluation/observability detail. The public API wrapper below
+        # deliberately does not expose full chunks or model-selected point IDs.
+        "retrieved_chunks": retrieved_context,
+        "cited_context_ids": sorted(used_ids.intersection(c["id"] for c in retrieved_context)),
     }
+    update_span(output={"answer": result["answer"],
+        "retrieved_ids": [row["id"] for row in retrieved_context],
+        "cited_ids": result["cited_context_ids"]})
+    return result
 
 
 def rag_pipeline_wrapper(question, session_id, generation_model=None, top_k=5,
@@ -544,8 +504,11 @@ def rag_pipeline_wrapper(question, session_id, generation_model=None, top_k=5,
     )
         
     try:
-        result = rag_pipeline(question, qdrant_client, session_id, generation_model, top_k,
-                              mode=mode, collection=collection, scope=scope)
+        with trace_attributes(session_id=session_id,
+                tags=["rag", f"mode:{mode or 'legacy'}"],
+                metadata={"mode": mode or "legacy", "collection": collection or config.QDRANT_COLLECTION_NAME}):
+            result = rag_pipeline(question, qdrant_client, session_id, generation_model, top_k,
+                                  mode=mode, collection=collection, scope=scope)
     finally:
         qdrant_client.close()
 

@@ -102,6 +102,26 @@ airflow-logs:
 airflow-check:
 	docker compose --profile airflow exec airflow airflow dags list-import-errors --output json
 
+# Langfuse is opt-in, but uses the normal Compose project/network so the API can
+# address it as http://langfuse-web:3000. Stop removes containers, not data volumes.
+LANGFUSE_COMPOSE := docker compose -f docker-compose.yml -f docker-compose.langfuse.yaml
+LANGFUSE_SERVICES := langfuse-web langfuse-worker langfuse-postgres langfuse-clickhouse langfuse-redis langfuse-minio
+
+.PHONY: langfuse-up langfuse-stop langfuse-status langfuse-logs
+
+langfuse-up:
+	$(LANGFUSE_COMPOSE) up -d --wait langfuse-web langfuse-worker
+
+langfuse-stop:
+	$(LANGFUSE_COMPOSE) stop $(LANGFUSE_SERVICES)
+	$(LANGFUSE_COMPOSE) rm -f $(LANGFUSE_SERVICES)
+
+langfuse-status:
+	$(LANGFUSE_COMPOSE) ps $(LANGFUSE_SERVICES)
+
+langfuse-logs:
+	$(LANGFUSE_COMPOSE) logs --tail=100 -f langfuse-web langfuse-worker
+
 .PHONY: papers-help papers-scope papers-preview papers-db-up papers-init-db \
         papers-backfill papers-process papers-sync papers-daily papers-status papers-count papers-audit papers-import-uploads
 
@@ -220,14 +240,24 @@ EVAL_SOURCE ?= arxiv
 QUESTIONS ?= 50
 PAPERS ?= 50
 EVAL_SEED ?= 42
+EVAL_REVIEWED ?= $(EVAL_DIR)/questions.reviewed.json
+EVAL_RUNS_DIR ?= data/evaluation/runs
+EVAL_MODES ?= vanilla hybrid
+EVAL_TOP_K ?= 5
+EVAL_LIMIT ?=
+EVAL_GENERATION_MODEL ?=
+EVAL_JUDGE ?= false
+EVAL_JUDGE_MODEL ?= gpt-5-mini
+EVAL_JUDGE_REASONING_EFFORT ?= minimal
+EVAL_CONCURRENCY ?= 1
 
-.PHONY: eval-preview eval-check create-eval-dataset
+.PHONY: eval-preview eval-check create-eval-dataset eval-run
 
 # Freeze active paper evidence locally. No model calls or database writes.
 eval-preview:
 	uv run python -m evals.generate_questions prepare --output "$(EVAL_DIR)" --source "$(EVAL_SOURCE)" --questions "$(QUESTIONS)" --papers "$(PAPERS)" --seed "$(EVAL_SEED)" --model "$(EVAL_MODEL)" $(if $(EVAL_REASONING_EFFORT),--reasoning-effort "$(EVAL_REASONING_EFFORT)") --max-completion-tokens "$(EVAL_MAX_TOKENS)"
 
-# Explicit paid generation; resumes completed calls, never uploads to LangSmith.
+# Explicit paid generation; resumes completed calls and writes local drafts.
 create-eval-dataset:
 	uv run python -m evals.generate_questions generate --output "$(EVAL_DIR)" $(if $(EVAL_WAIT_SECONDS),--wait-seconds "$(EVAL_WAIT_SECONDS)") $(if $(RETRY_JOB),--retry-job "$(RETRY_JOB)")
 
@@ -235,9 +265,10 @@ create-eval-dataset:
 eval-check:
 	uv run python -m evals.generate_questions check --output "$(EVAL_DIR)"
 
-run-evals:
-	uv run --group eval python evals/eval_retriever.py
-
+# Run the reviewed benchmark against one or more explicit retrieval modes.
+# This performs paid embedding/generation calls; EVAL_JUDGE=true adds a paid judge call.
+eval-run:
+	uv run python -m evals.run_benchmark --dataset "$(EVAL_REVIEWED)" --output-root "$(EVAL_RUNS_DIR)" --modes $(EVAL_MODES) --top-k "$(EVAL_TOP_K)" $(if $(EVAL_GENERATION_MODEL),--generation-model "$(EVAL_GENERATION_MODEL)") $(if $(filter true 1 yes,$(EVAL_JUDGE)),--judge,--no-judge) --judge-model "$(EVAL_JUDGE_MODEL)" --judge-reasoning-effort "$(EVAL_JUDGE_REASONING_EFFORT)" --concurrency "$(EVAL_CONCURRENCY)" $(if $(EVAL_LIMIT),--limit "$(EVAL_LIMIT)")
 
 .PHONY: build run docs docs-build docs-deploy
 

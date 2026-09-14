@@ -21,11 +21,11 @@ flowchart LR
 | Frontend | Streamlit chat interface |
 | Backend | FastAPI, orchestrating the RAG pipeline |
 | Embeddings | OpenAI `text-embedding-3-small` |
-| Vector store | Qdrant Cloud (dense + sparse hybrid search) |
+| Vector store | Qdrant Cloud (dense + full-text-constrained fusion) |
 | Reranking | Cohere Rerank |
 | Generation | Groq (`llama-3.3-70b-versatile`) or OpenAI (`gpt-4.1-*`, `gpt-5-nano`) |
 | Memory | Redis, sliding window with summarization |
-| Tracing | LangSmith |
+| Tracing and experiment tracking | Repo-owned Langfuse Docker stack (optional) |
 
 ## Key features
 

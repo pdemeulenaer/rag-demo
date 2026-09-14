@@ -17,7 +17,8 @@ flowchart LR
 ## 1. Embedding
 
 `get_embedding` calls the OpenAI embeddings endpoint with `EMBEDDING_MODEL`
-(`text-embedding-3-small` by default) and records token usage on the current LangSmith run.
+(`text-embedding-3-small` by default). When enabled, the Langfuse OpenAI wrapper records
+latency and token usage.
 
 ## 2. Hybrid retrieval
 
@@ -25,8 +26,8 @@ flowchart LR
 fused with Reciprocal Rank Fusion:
 
 - a **dense** branch querying the embedding vector, limit 20;
-- a **sparse/keyword** branch filtering on a full-text `MatchText` condition over the `text`
-  payload field, limit 20.
+- a **full-text-constrained dense** branch applying `MatchText` to the `text` payload while
+  querying with the same dense vector, limit 20.
 
 Each returned point is flattened into a dict carrying `id`, `text`, `title`, `authors`,
 `year`, `page`, `score`, `type`, `image_path`, and `caption`.
@@ -36,10 +37,10 @@ Each returned point is flattened into a dict carrying `id`, `text`, `title`, `au
 `rerank_context` sends the candidate texts to Cohere's `rerank-english-v3.0` and keeps the
 top `top_n`, attaching a `rerank_score` to each surviving chunk.
 
-!!! note "Evaluation mode"
-    When `EVALUATION_MODE=true`, the pipeline retrieves `top_k=5` directly and **skips
-    reranking**, so evaluation measures the retriever rather than the reranker. In normal
-    mode it retrieves 20 candidates and reranks down to `top_k`.
+!!! note "Explicit comparison modes"
+    Vanilla retrieves `top_k` dense results without reranking. Hybrid retrieves 20 fused
+    candidates and reranks to `top_k`. The reviewed benchmark invokes these explicit modes;
+    the old `EVALUATION_MODE` behavior applies only to the legacy evaluator.
 
 ## 4. Prompt construction
 

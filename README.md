@@ -14,6 +14,7 @@ The application is composed of several key components:
 - **Vector Database**: A **Qdrant Cloud** vector database stores document embeddings and metadata for hybrid (semantic + exact keyword matching) search.
 - **Reranker**: **Cohere's Rerank API** improves relevance of retrieved chunks before LLM generation.- 
 - **LLM for Generation**: Groq (`llama-3.3-70b-versatile`) or OpenAI (`gpt-4.1-nano`, `gpt-4.1-mini`, `gpt-5-nano`) LLMs can be selected to generate answers based on retrieved context.
+- **Observability**: An optional repository-owned Langfuse v4 Docker stack traces RAG and LLM calls and tracks evaluation experiments. LangSmith is not used by the active application.
 
 ---
 
@@ -66,10 +67,10 @@ The application is composed of several key components:
     - `EMBEDDING_MODEL_PROVIDER`: Embedding model provider (e.g., `openai`)
     - `GENERATION_MODEL`: Generation model name (e.g., `gpt-4.1`)
     - `GENERATION_MODEL_PROVIDER`: Generation model provider (e.g., `openai`)
-    - `LANGSMITH_TRACING`: Enable LangSmith tracing (`true` or `false`)
-    - `LANGSMITH_ENDPOINT`: LangSmith API endpoint
-    - `LANGSMITH_API_KEY`: LangSmith API key
-    - `LANGSMITH_PROJECT`: LangSmith project name
+    - `LANGFUSE_ENABLED`: Enable optional tracing and evaluation experiments
+    - `LANGFUSE_PUBLIC_KEY` / `LANGFUSE_SECRET_KEY`: Langfuse project keys
+    - `LANGFUSE_BASE_URL`: Host URL for this repo's Langfuse container
+    - `LANGFUSE_BASE_URL_CONTAINER`: Internal Compose URL for the API
 
 
 4. **Install Dependencies**
@@ -175,9 +176,21 @@ make create-eval-dataset      # Generate 50 planned candidates with OpenAI (paid
 
 Review `data/evaluation/star-clusters/questions.json`: single-paper, cross-paper and
 insufficient-evidence candidates, with reference answers and supporting excerpts.
-All require human review; no automatic LangSmith upload. Generation runs in the background
+All require human review; question generation does not publish experiments. It runs in the background
 with short polling requests; rerun the same command to resume saved response IDs. See the
 [evaluation guide](docs/operations/evaluation.md) for customization, resuming and limits.
+
+After marking accepted records `review_status: approved` in `questions.reviewed.json`,
+run a small Vanilla/Hybrid benchmark and then the complete judged comparison:
+
+```bash
+make eval-run EVAL_DIR=data/evaluation/markdown-mini-v1 EVAL_LIMIT=2
+make eval-run EVAL_DIR=data/evaluation/markdown-mini-v1 EVAL_JUDGE=true
+```
+
+Every run is retained under `data/evaluation/runs/`. This repository's optional Langfuse
+Docker stack records traces and Dataset Experiments; setup is in the
+[observability guide](docs/operations/observability.md).
 
 ## 🌐 Deployment to Azure (Multi-Container)
 
@@ -219,8 +232,8 @@ This project uses **`docker-compose.prod.yml`** for deployment. The CI/CD pipeli
 
 ### Functionalities to add
 
-* [ ] Use Langfuse in container
-* [ ] Add (Airflow pipeline) daily ingest for a particular topic
+* [x] Add optional Langfuse tracing and evaluation experiments
+* [x] Add Airflow-based daily ingestion for a particular topic
 
 ### Functionalities to correct/improve
 

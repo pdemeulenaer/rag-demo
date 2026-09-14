@@ -70,10 +70,11 @@ Holds chunk embeddings and payload metadata — `text`, `file_title`, `authors`,
 
 ## Observability
 
-Every meaningful step is decorated with LangSmith's `@traceable`, tagged by run type
-(`retriever`, `reranker`, `embedding`, `prompt`, `llm`). Tracing is toggled through
-`LANGSMITH_TRACING`; the environment variables are exported at the top of `main.py` before
-anything else imports LangChain.
+The optional repository-owned Langfuse v4 Docker stack records the request, retrieval,
+reranking and generation hierarchy. Its OpenAI SDK wrapper captures model latency and token
+usage. All integration calls pass through a no-op-capable local shim, so
+`LANGFUSE_ENABLED=false` avoids importing Langfuse at runtime. LangSmith is not an active
+component. See [Observability](../operations/observability.md).
 
 ## Repository layout
 

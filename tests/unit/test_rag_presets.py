@@ -12,17 +12,16 @@ from src.api.api.models import RAGRequest
 @pytest.fixture
 def runtime(monkeypatch):
     # Imports in the legacy app create provider clients; never read/use real keys.
-    for key in ["OPENAI_API_KEY", "GROQ_API_KEY", "COHERE_API_KEY", "LANGSMITH_API_KEY"]:
+    for key in ["OPENAI_API_KEY", "GROQ_API_KEY", "COHERE_API_KEY"]:
         monkeypatch.setenv(key, "offline-test")
     monkeypatch.setenv("QDRANT_URL", "http://localhost:6333")
     monkeypatch.setenv("QDRANT_PORT", "6333")
     monkeypatch.setenv("QDRANT_API_KEY", "")
-    monkeypatch.setenv("LANGSMITH_TRACING", "false")
     monkeypatch.setenv("LANGCHAIN_TRACING_V2", "false")
     monkeypatch.setenv("STORAGE_MODE", "LOCAL")
     monkeypatch.setenv("EVALUATION_MODE", "true")
     # Prevent the legacy metadata client's import-time server-version request.
-    with patch("qdrant_client.QdrantClient", Mock()), patch("langsmith.Client", Mock()):
+    with patch("qdrant_client.QdrantClient", Mock()):
         retrieval = importlib.import_module("src.api.rag.retrieval")
         router = importlib.import_module("src.api.api.rag_router")
     return retrieval, router
