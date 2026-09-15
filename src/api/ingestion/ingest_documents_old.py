@@ -21,7 +21,7 @@ from pydantic import BaseModel, Field
 
 from src.api.core.config import config
 from src.api.rag.summarize import summarize_text
-from src.api.rag.utils.utils import prompt_template_config, prompt_template_registry
+from src.api.rag.utils.utils import prompt_template_config
 from src.api.core.storage import get_storage_provider
 
 

@@ -4,12 +4,13 @@ from fastapi.responses import FileResponse
 import os
 import logging
 import uuid
-import openai
 import instructor
 from typing import List
 from pydantic import BaseModel
 
 from src.api.core.config import config
+from src.api.core.clients import openai_client
+from src.api.observability.tracing import observe, update_span
 from src.api.rag.intent_router import classify_question
 from src.api.rag import metadata_handlers as mh
 from src.api.rag.retrieval import rag_pipeline_wrapper, get_memory, add_message
@@ -37,6 +38,7 @@ class QuestionRequest(BaseModel):
 
 # --- Helper Functions ---
 
+@observe(name="answer_from_chat_context")
 def answer_from_chat_context(question: str, chat_history: str, model="gpt-4o-mini") -> str:
     """
     Use the chat history alone to answer the user's follow-up question.
@@ -46,7 +48,7 @@ def answer_from_chat_context(question: str, chat_history: str, model="gpt-4o-min
     """
 
     llm = instructor.from_openai(
-        openai.OpenAI(api_key=config.OPENAI_API_KEY)
+        openai_client()
     )
 
     system_prompt = (
@@ -221,6 +223,7 @@ async def get_image(image_name: str, request: Request):
 
 
 @rag_router.post("/rag2")
+@observe(name="rag_request", capture_input=False, capture_output=False)
 async def rag(
     request: Request,
     payload: RAGRequest,
@@ -242,9 +245,46 @@ async def rag(
 
     # Determine generation model (user-selected or default)
     gen_model = payload.generation_model or config.GENERATION_MODEL
+    update_span(input={"query": payload.query}, metadata={"session_id": session_id,
+        "mode": payload.mode or "intent-routed", "corpus": payload.corpus,
+        "generation_model": gen_model})
     
     logger.info(f"Session ID: {session_id}")
     logger.info(f"Generation model: {gen_model}")
+
+    # Explicit demo presets bypass intent routing. Omitted mode keeps legacy API behavior.
+    if payload.mode is not None or payload.corpus == "arxiv":
+        from qdrant_client.models import Filter, FieldCondition, MatchAny
+        from src.api.api.papers_router import active_corpus
+        from src.api.papers.consistency import active_filter
+        from starlette.concurrency import run_in_threadpool
+
+        mode = payload.mode or "hybrid"
+        collection, scope, snapshot = None, None, None
+        if payload.corpus == "arxiv":
+            settings, active, snapshot = await run_in_threadpool(active_corpus)
+            collection = settings.PAPERS_COLLECTION
+        else:
+            settings, active, snapshot = await run_in_threadpool(active_corpus, "uploads")
+            collection = config.QDRANT_COLLECTION_NAME
+        if payload.corpus_snapshot and payload.corpus_snapshot != snapshot:
+            raise HTTPException(409, "Corpus changed. Select 'Start new conversation' before comparing modes (API clients: clear corpus_snapshot and start a new session).")
+        if not active:
+            raise HTTPException(409, "No ready papers in this source. Process pending documents or import legacy uploads first.")
+        scope = active_filter(active)
+        # Keep conversation memories separate by mode, corpus, model and active versions.
+        memory_id = f"{session_id}:{payload.corpus}:{mode}:{gen_model}:{snapshot or 'live'}"
+        result = await run_in_threadpool(rag_pipeline_wrapper, payload.query, memory_id,
+            generation_model=gen_model, mode=mode, collection=collection, scope=scope)
+        await run_in_threadpool(add_message, memory_id, "user", payload.query)
+        await run_in_threadpool(add_message, memory_id, "assistant", result["answer"])
+        memory = await run_in_threadpool(get_memory, memory_id)
+        history = ([{"role": "system", "content": memory.summary}] if memory.summary else []) + memory.recent_messages
+        response_payload = RAGResponse(request_id=request.state.request_id, answer=result["answer"],
+            chat_history=history, sources=result.get("sources", []),
+            images=_process_images(result.get("images", []), request), mode=mode, corpus_snapshot=snapshot)
+        update_span(output={"answer": result["answer"], "source_count": len(result.get("sources", []))})
+        return response_payload
 
     # 2. Intent Classification
 
@@ -347,10 +387,12 @@ async def rag(
         full_history.append({"role": msg["role"], "content": msg["content"]})
 
     # Build and return the RAGResponse, including the chat_history
-    return RAGResponse(
+    response_payload = RAGResponse(
         request_id=request.state.request_id,
         answer=answer,
         chat_history=full_history,
         sources=sources,
         images=rag_images
-    )    
+    )
+    update_span(output={"answer": answer, "source_count": len(sources)})
+    return response_payload

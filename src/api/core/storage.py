@@ -42,28 +42,11 @@ class AzureStorageProvider(StorageProvider):
         # We will generate the temporary SAS token later in the RAG router
         return filename
 
-    # def generate_signed_url(self, filename: str) -> str:
-    #     """Generates a temporary URL valid for 1 hour."""
-
-    #     # Use rstrip to avoid double slashes if the url ends in /
-    #     base = self.container_client.url.rstrip('/') 
-    #     # filename should not have a leading /
-    #     clean_name = filename.lstrip('/')
-
-    #     sas_token = generate_blob_sas(
-    #         account_name=self.blob_service_client.account_name,
-    #         container_name=self.container_name,
-    #         blob_name=filename,
-    #         account_key=self.blob_service_client.credential.account_key,
-    #         permission=BlobSasPermissions(read=True),
-    #         expiry=datetime.now(timezone.utc) + timedelta(hours=1)
-    #     )
-        
-    #     # return f"{self.container_client.url}/{filename}?{sas_token}"
-    #     return f"{base}/{clean_name}?{sas_token}"
-
-    def generate_signed_url(self, filename: str) -> str:
-        """Generates a temporary URL for a specific blob."""
+    def generate_signed_url(self, filename: str, expiry_hours: int = 1) -> str:
+        """
+        Generates a temporary URL for a specific blob.
+        expiry_hours: defaults to 1 for UI, but can be set to 24 for Batch API.
+        """
         
         # 1. Strip any leading slashes or paths from the filename just in case
         # This turns "/api/images/fig.png" into "fig.png"
@@ -78,7 +61,7 @@ class AzureStorageProvider(StorageProvider):
             permission=BlobSasPermissions(read=True),
             # Backdate start by 5 mins to avoid clock sync issues
             start=datetime.now(timezone.utc) - timedelta(minutes=5),
-            expiry=datetime.now(timezone.utc) + timedelta(hours=1)
+            expiry=datetime.now(timezone.utc) + timedelta(hours=expiry_hours)
         )
 
         # 3. Build the URL correctly

@@ -14,6 +14,7 @@ The application is composed of several key components:
 - **Vector Database**: A **Qdrant Cloud** vector database stores document embeddings and metadata for hybrid (semantic + exact keyword matching) search.
 - **Reranker**: **Cohere's Rerank API** improves relevance of retrieved chunks before LLM generation.- 
 - **LLM for Generation**: Groq (`llama-3.3-70b-versatile`) or OpenAI (`gpt-4.1-nano`, `gpt-4.1-mini`, `gpt-5-nano`) LLMs can be selected to generate answers based on retrieved context.
+- **Observability**: An optional repository-owned Langfuse v4 Docker stack traces RAG and LLM calls and tracks evaluation experiments. LangSmith is not used by the active application.
 
 ---
 
@@ -66,10 +67,10 @@ The application is composed of several key components:
     - `EMBEDDING_MODEL_PROVIDER`: Embedding model provider (e.g., `openai`)
     - `GENERATION_MODEL`: Generation model name (e.g., `gpt-4.1`)
     - `GENERATION_MODEL_PROVIDER`: Generation model provider (e.g., `openai`)
-    - `LANGSMITH_TRACING`: Enable LangSmith tracing (`true` or `false`)
-    - `LANGSMITH_ENDPOINT`: LangSmith API endpoint
-    - `LANGSMITH_API_KEY`: LangSmith API key
-    - `LANGSMITH_PROJECT`: LangSmith project name
+    - `LANGFUSE_ENABLED`: Enable optional tracing and evaluation experiments
+    - `LANGFUSE_PUBLIC_KEY` / `LANGFUSE_SECRET_KEY`: Langfuse project keys
+    - `LANGFUSE_BASE_URL`: Host URL for this repo's Langfuse container
+    - `LANGFUSE_BASE_URL_CONTAINER`: Internal Compose URL for the API
 
 
 4. **Install Dependencies**
@@ -89,7 +90,15 @@ The application is composed of several key components:
 - Start backend API and Streamlit frontend with Docker Compose:
 
   ```bash
-  docker-compose up --build
+  make compose
+  ```
+
+  `make compose` runs the API and ingestion worker with your host UID/GID, so their
+  shared `temp_uploads` directory is writable without manually changing ownership.
+  If you run Docker Compose directly, supply the same values explicitly:
+
+  ```bash
+  LOCAL_UID=$(id -u) LOCAL_GID=$(id -g) docker compose up --build
   ```
 
 - Access UI: [http://localhost:8501](http://localhost:8501)
@@ -97,6 +106,91 @@ The application is composed of several key components:
 - Both frontend and backend logs can be investigated in the Docker Desktop containers
 
 ---
+
+## arXiv ingestion and PostgreSQL
+
+Both manual uploads and arXiv papers now share the PostgreSQL catalogue. Streamlit's
+**Document inventory → All sources** lists them together with their processing states;
+**Query source** independently controls which corpus answers your question.
+
+**Existing installations:** follow the [catalogue upgrade guide](docs/operations/catalogue.md)
+to migrate the schema and register existing upload vectors without re-embedding:
+
+```bash
+make papers-backup
+make papers-init-db
+make papers-import-uploads LEGACY_MODEL=text-embedding-3-small
+make papers-audit
+```
+
+Quiesce ingestion before backup/migration; the guide includes service
+stop/recreation and legacy Batch-job precautions. PostgreSQL is now required for both
+ingestion paths. `papers-audit` is read-only and never repairs or re-embeds automatically.
+`make papers-backup` creates and checks a local catalogue archive in `~/rag-demo-backups`;
+`make papers-backups` lists them. It does not back up Qdrant or PDF/image files.
+
+The [arXiv setup and operation guide](docs/getting-started/arxiv.md) covers the
+star-cluster scope, PostgreSQL catalogue, PDF processing, daily scheduling and
+Vanilla/Hybrid comparison. Run `make papers-help` to see the command shortcuts.
+
+For monitored daily automation, see the [short Airflow setup guide](docs/operations/daily-ingestion.md).
+`make airflow-up` starts the optional local scheduler with a **new DAG paused**;
+alerts are optional locally. Explicitly unpause the DAG to authorize paid daily ingestion.
+`make papers-run-status` displays the durable run summary.
+
+Merge the paper settings from `.env.sample` into your existing `.env` first; do not
+overwrite your keys. These targets run the Python CLI on your host and PostgreSQL
+in its own Docker container. Use `localhost` in the host `PAPERS_DATABASE_URL`.
+
+```bash
+make papers-preview DAYS=7    # Metadata preview only: does NOT populate PostgreSQL
+make papers-db-up             # Start PostgreSQL and wait until healthy
+make papers-init-db           # Create catalogue tables
+make papers-backfill DAYS=7   # Save matching metadata and queue processing
+make papers-status            # Matching papers should now be pending
+
+# Opt-in: downloads PDFs and incurs embedding API usage
+make papers-process LIMIT=2
+make papers-status            # Successfully indexed papers are ready to query
+make papers-count             # Total ready documents across arXiv and uploads
+```
+
+PostgreSQL data persists in the Docker volume `papers_postgres`. PDF/text artifacts
+use `data/paper_artifacts/` by default (or Azure Blob when configured); embeddings
+go to the separate `PAPERS_COLLECTION` in Qdrant. Select the arXiv corpus in Streamlit
+after papers become `ready`.
+
+Later, use `make papers-sync` for metadata updates only, or `make papers-daily LIMIT=10`
+for one discovery-and-processing run. Neither command installs a schedule.
+
+## Evaluation questions
+
+PDF ingestion now uses page-aware Markdown and structure-aware chunks. Existing indexes
+need an explicit upgrade: see the [re-indexing guide](docs/getting-started/arxiv.md#upgrade-existing-pdfs-to-markdown-extraction).
+`make papers-reindex-preview` shows affected arXiv papers without changing anything.
+
+```bash
+make eval-preview             # Freeze a sample of up to 50 active arXiv papers; no model calls
+make create-eval-dataset      # Generate 50 planned candidates with OpenAI (paid)
+```
+
+Review `data/evaluation/star-clusters/questions.json`: single-paper, cross-paper and
+insufficient-evidence candidates, with reference answers and supporting excerpts.
+All require human review; question generation does not publish experiments. It runs in the background
+with short polling requests; rerun the same command to resume saved response IDs. See the
+[evaluation guide](docs/operations/evaluation.md) for customization, resuming and limits.
+
+After marking accepted records `review_status: approved` in `questions.reviewed.json`,
+run a small Vanilla/Hybrid benchmark and then the complete judged comparison:
+
+```bash
+make eval-run EVAL_DIR=data/evaluation/markdown-mini-v1 EVAL_LIMIT=2
+make eval-run EVAL_DIR=data/evaluation/markdown-mini-v1 EVAL_JUDGE=true
+```
+
+Every run is retained under `data/evaluation/runs/`. This repository's optional Langfuse
+Docker stack records traces and Dataset Experiments; setup is in the
+[observability guide](docs/operations/observability.md).
 
 ## 🌐 Deployment to Azure (Multi-Container)
 
@@ -136,9 +230,33 @@ This project uses **`docker-compose.prod.yml`** for deployment. The CI/CD pipeli
 
 ## 📌 TODOs
 
-* [ ] Add monitoring/logging in Azure deployment.
+### Functionalities to add
+
+* [x] Add optional Langfuse tracing and evaluation experiments
+* [x] Add Airflow-based daily ingestion for a particular topic
+
+### Functionalities to correct/improve
+
+Rag FastAPI:
+
+Streamlit/frontend:
+
+
+Qdrant:
 * [ ] Improve error handling when backend cannot connect to Qdrant.
+* [ ] Save Qdrant content into local/cloud based storage for backup & fast re-enablement if Qdrant Cloud cluster goes down after inactivity
+* [ ] Allow local Qdrant cluster for testing
+
+Context retrieval:
+* [ ] Add question rephrasing
+
+Observability:
 * [ ] Add support for authentication in Streamlit UI.
+
+Deployment & setup monitoring:
+* [ ] Add monitoring/logging in Azure deployment.
+
+
 
 ## License
 

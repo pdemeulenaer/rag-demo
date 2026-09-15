@@ -1,3 +1,4 @@
+# src/api/ingestion/ingest_documents.py
 import os
 import hashlib
 import uuid
@@ -29,6 +30,8 @@ from src.api.core.config import config
 from src.api.rag.summarize import summarize_text
 from src.api.rag.utils.utils import prompt_template_config
 from src.api.core.storage import get_storage_provider
+from src.api.ingestion.common import build_point_payload
+
 
 # === Config ===
 # Limit concurrent calls to Groq/OpenAI to 15 (safe for most tiers)
@@ -100,29 +103,44 @@ class AdditionalMetadata(BaseModel):
 
 @retry(retry=retry_if_exception_type((RateLimitError, APIError)), wait=wait_exponential(multiplier=1, min=2, max=20), stop=stop_after_attempt(5))
 def describe_image_with_gpt4o(base64_image: str, caption: str = "") -> str:
-    """Sends image to GPT-4o for description."""
-    prompt = (
-        "You are a scientific research assistant. Analyze this figure.\n"
-        f"Caption: \"{caption}\"\n\n"
-        "1. Identify figure type.\n"
-        "2. Describe data trends/relationships.\n"
-        "3. Summarize key insight.\n"
-        "Provide a dense, searchable description."
+    """Sends image to LLM for description using YAML templates."""
+
+    # 1. Load the template
+    template = prompt_template_config(
+        config.IMAGE_DESCRIPTION_PROMPT_TEMPLATE_PATH, 
+        "image_description_generation"
     )
-    # Use gpt-4o-mini if cost/speed is a priority, otherwise gpt-4o
+
+    # 2. Render the prompts with variables
+    system_prompt = template["system"].render()
+    user_prompt = template["user"].render(caption=caption)    
+
+    # 3. Format messages for OpenAI
+    # Note: Vision models accept text + image_url objects in the USER message
+    messages = [
+        {"role": "system", "content": system_prompt},
+        {
+            "role": "user",
+            "content": [
+                {"type": "text", "text": user_prompt},
+                {
+                    "type": "image_url", 
+                    "image_url": {
+                        "url": f"data:image/jpeg;base64,{base64_image}", 
+                        "detail": "high"
+                    }
+                },
+            ],
+        }
+    ]
+
+    # 4. API Call
     response = client.chat.completions.create(
-        model="gpt-4.1-mini", #"gpt-4o-mini", #"gpt-4o", 
-        messages=[
-            {
-                "role": "user",
-                "content": [
-                    {"type": "text", "text": prompt},
-                    {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{base64_image}", "detail": "high"}},
-                ],
-            }
-        ],
+        model=config.IMAGE_DESCRIPTION_MODEL,
+        messages=messages,
         max_tokens=300
-    )
+    )    
+
     return response.choices[0].message.content
 
 # In your Config or constants
@@ -449,7 +467,7 @@ def identify_figures_on_page(page) -> List[Dict[str, Any]]:
 #     return text, local_text_chunks, local_images
 def process_single_page(page_data):
     """Worker function to process one page at a time."""
-    filepath, page_number, file_hash = page_data
+    filepath, page_number, file_hash, *options = page_data
     
     doc = pymupdf.open(filepath)
     page = doc[page_number - 1] 
@@ -457,7 +475,7 @@ def process_single_page(page_data):
     local_text_chunks = []
     local_images = []
     
-    text = page.get_text()
+    text = page.get_text() if not options or options[0] else ""
     
     # 1. Chunking logic
     if text.strip():
@@ -559,13 +577,17 @@ def process_single_page(page_data):
 
 #     return raw_text_chunks, raw_images, first_pages_text, metadata_fallback
 def extract_raw_content(filepath: str, file_hash: str):
+    from src.api.papers.extraction import extract_document, SPEC
+    from src.api.papers.settings import PaperSettings
+    from pathlib import Path
+    pages, structured_chunks = extract_document(Path(filepath).read_bytes(), PaperSettings().ARXIV_MAX_CHUNKS)
     doc = pymupdf.open(filepath)
     total_pages = len(doc)
     metadata_fallback = doc.metadata or {}
     doc.close() 
 
     # Prepare arguments
-    page_tasks = [(filepath, pnum, file_hash) for pnum in range(1, total_pages + 1)]
+    page_tasks = [(filepath, pnum, file_hash, False) for pnum in range(1, total_pages + 1)]
     
     # --- Parallel Execution ---
     with ProcessPoolExecutor() as executor:
@@ -586,19 +608,33 @@ def extract_raw_content(filepath: str, file_hash: str):
         raw_text_chunks.extend(chunks)
         raw_images.extend(images)
 
-    first_pages_text = "\n".join(filter(None, first_pages_text_list))
-
+    # Figures still use the existing geometry-based worker; discard its legacy
+    # plain-text chunks. Both ingestion paths now share the same text extractor.
+    first_pages_text = "\n\n".join(p["text"] for p in pages if p["page_number"] <= 5)
+    raw_text_chunks = [(c["text"], c["page_number"]) for c in structured_chunks]
+    metadata_fallback.update(extracted_pages=pages, structured_chunks=structured_chunks, extraction=SPEC)
     return raw_text_chunks, raw_images, first_pages_text, metadata_fallback
 
 
 
 # === Main Ingestion ===
-def ingest_documents(file_path: str, qdrant_url: str, qdrant_api_key: str, collection_name: str, verbose: bool = False):
+def ingest_documents(file_path: str, verbose: bool = False):
+    """Public upload entry point; registration and verified activation are mandatory."""
+    from src.api.papers.uploads import run_uploads
+    return run_uploads([file_path], mode="sync")
+
+
+def _ingest_documents_legacy(file_path: str, verbose: bool = False):
+    """Historical implementation, retained for reference; not called by the app."""
     start_time = datetime.now()
     
     # --- Setup ---
     embedding_model = OpenAIEmbeddings()
-    qdrant_client = QdrantClient(url=qdrant_url, api_key=qdrant_api_key)
+    qdrant_client = QdrantClient(
+        url=config.QDRANT_URL,
+        port=config.qdrant_port,
+        api_key=config.QDRANT_API_KEY,
+    )
     
     # 1. Rate Limiter: Limit concurrent Groq/OpenAI calls to 15 to prevent 429 Errors
     api_semaphore = Semaphore(15)
@@ -609,20 +645,20 @@ def ingest_documents(file_path: str, qdrant_url: str, qdrant_api_key: str, colle
             return summarize_text(text, provider='groq', model='llama-3.1-8b-instant', template_name="document_chunk_summarization")
 
     # --- Collection Check (Idempotent) ---
-    if not qdrant_client.collection_exists(collection_name=collection_name):
+    if not qdrant_client.collection_exists(collection_name=config.QDRANT_COLLECTION_NAME):
         qdrant_client.create_collection(
-            collection_name=collection_name,
+            collection_name=config.QDRANT_COLLECTION_NAME,
             vectors_config=models.VectorParams(size=embedding_model.dimensions, distance=models.Distance.COSINE)
         )
-        for field in ["file_hash", "file_name", "type"]:
-            qdrant_client.create_payload_index(collection_name, field, models.PayloadSchemaType.KEYWORD)
-        qdrant_client.create_payload_index(collection_name, "text", models.PayloadSchemaType.TEXT)
+        for field in ["file_hash", "file_name", "type", "file_title", "year", "page_number"]:
+            qdrant_client.create_payload_index(config.QDRANT_COLLECTION_NAME, field, models.PayloadSchemaType.KEYWORD)
+        qdrant_client.create_payload_index(config.QDRANT_COLLECTION_NAME, "text", models.PayloadSchemaType.TEXT)
 
     file_hash = get_file_hash(file_path)
     filename = os.path.basename(file_path)
 
     existing = qdrant_client.scroll(
-        collection_name=collection_name,
+        collection_name=config.QDRANT_COLLECTION_NAME,
         scroll_filter={"must": [{"key": "file_hash", "match": {"value": file_hash}}]},
         limit=1
     )
@@ -693,12 +729,42 @@ def ingest_documents(file_path: str, qdrant_url: str, qdrant_api_key: str, colle
         for (txt, pnum), summary in zip(text_chunks, summarized_chunks):
             content = f"{base_info}Summary: {summary}\nContent: {txt}"
             embed_inputs.append(content)
-            points_metadata.append({"payload": {"type": "chunk", "text": content, "page_number": str(pnum), "summary": summary, "image_path": None}})
+            # points_metadata.append({"payload": {"type": "chunk", "text": content, "page_number": str(pnum), "summary": summary, "image_path": None}})
+
+            payload = build_point_payload(
+                file_name=filename,
+                file_hash=file_hash,
+                doc_meta=doc_metadata_result,
+                text=content,
+                point_type="chunk",
+                img_page=pnum,                 # page number of this chunk
+            )
+
+            # The helper does not know about the per‑chunk summary, so we add it manually.
+            payload["summary"] = summary
+            payload["page_number"] = str(pnum)   # keep the legacy key that the rest of the code expects
+
+            points_metadata.append({"payload": payload})           
         
         # Add Doc Summary
         final_sum = f"{base_info}Full Summary: {doc_metadata_result.summary}"
         embed_inputs.append(final_sum)
-        points_metadata.append({"payload": {"type": "summary", "text": final_sum, "page_number": "0", "summary": "FULL_DOC", "image_path": None}})
+        # points_metadata.append({"payload": {"type": "summary", "text": final_sum, "page_number": "0", "summary": "FULL_DOC", "image_path": None}})
+
+        summary_payload = build_point_payload(
+            file_name=filename,
+            file_hash=file_hash,
+            doc_meta=doc_metadata_result,
+            text=final_sum,
+            point_type="summary",
+        )
+
+        # Keep the legacy keys that downstream code may read.
+        summary_payload["page_number"] = "0"
+        summary_payload["summary"] = "FULL_DOC"
+        summary_payload["image_path"] = None
+
+        points_metadata.append({"payload": summary_payload})        
 
         # Fire Text Embedding (Hides Latency)
         text_vectors = embedding_model.embed_documents(embed_inputs) if embed_inputs else []
@@ -721,7 +787,23 @@ def ingest_documents(file_path: str, qdrant_url: str, qdrant_api_key: str, colle
     for img in processed_images:
         content = f"{base_info}Figure: {img['caption']}\nDescription: {img['description']}"
         image_embed_inputs.append(content)
-        image_points_metadata.append({"payload": {"type": "figure", "text": content, "page_number": str(img['page_number']), "summary": "FIGURE", "image_path": img['filename']}})
+        # image_points_metadata.append({"payload": {"type": "figure", "text": content, "page_number": str(img['page_number']), "summary": "FIGURE", "image_path": img['filename']}})
+
+        figure_payload = build_point_payload(
+            file_name=filename,
+            file_hash=file_hash,
+            doc_meta=doc_metadata_result,
+            text=content,
+            point_type="figure",
+            img_caption=img["caption"],
+            img_page=img["page_number"],
+            img_path=img["filename"],
+        )
+
+        # Preserve the legacy “summary” field that the old code stored.
+        figure_payload["summary"] = "FIGURE"
+
+        image_points_metadata.append({"payload": figure_payload})        
 
     image_vectors = embedding_model.embed_documents(image_embed_inputs) if image_embed_inputs else []
     
@@ -751,7 +833,7 @@ def ingest_documents(file_path: str, qdrant_url: str, qdrant_api_key: str, colle
                 payload={**common_payload, **meta["payload"]}
             ))
         try:
-            qdrant_client.upsert(collection_name=collection_name, points=points_batch)
+            qdrant_client.upsert(collection_name=config.QDRANT_COLLECTION_NAME, points=points_batch)
         except Exception as e:
             print(f"     ! Batch failed: {e}")
 

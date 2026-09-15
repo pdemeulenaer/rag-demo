@@ -7,6 +7,8 @@ import instructor
 from pydantic import BaseModel
 
 from src.api.core.config import config
+from src.api.core.clients import openai_client
+from src.api.observability.tracing import observation
 from src.api.rag.utils.utils import prompt_template_config
 
 logger = logging.getLogger(__name__)
@@ -62,7 +64,7 @@ def summarize_text(
     # --- 2️⃣ Handle provider-specific calls ---
     try:
         if provider.lower() == "openai":
-            client = instructor.from_openai(OpenAI(api_key=config.OPENAI_API_KEY))
+            client = instructor.from_openai(openai_client())
 
         elif provider.lower() == "groq":
             if not config.GROQ_API_KEY:
@@ -78,14 +80,24 @@ def summarize_text(
         else:
             raise ValueError(f"Unsupported provider: {provider}")
 
-        response = client.chat.completions.create(
-            model=model,
-            messages=messages,
-            temperature=temperature,
-            max_tokens=max_tokens,
-            response_model=SummarizationResponse,
-            response_format={"type": "json_object"},
-        )
+        if provider.lower() == "groq":
+            with observation(name="groq_summarization", as_type="generation",
+                             model=model, input=messages) as generation:
+                response = client.chat.completions.create(
+                    model=model, messages=messages, temperature=temperature,
+                    max_tokens=max_tokens, response_model=SummarizationResponse,
+                    response_format={"type": "json_object"})
+                if generation is not None:
+                    generation.update(output=response.model_dump())
+        else:
+            response = client.chat.completions.create(
+                model=model,
+                messages=messages,
+                temperature=temperature,
+                max_tokens=max_tokens,
+                response_model=SummarizationResponse,
+                response_format={"type": "json_object"},
+            )
 
         # Instructor automatically parses JSON into your Pydantic model
         logger.debug(f"Output summary length: {len(response.summary)}")

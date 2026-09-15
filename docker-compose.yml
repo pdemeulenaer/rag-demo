@@ -31,21 +31,164 @@ services:
       context: .
       dockerfile: Dockerfile.fastapi
     image: pdemeulenaer/rag-backend:0.2.1
+    # Match the host user so the bind-mounted upload directory is writable.
+    user: "${LOCAL_UID:-1000}:${LOCAL_GID:-1000}"
     ports:
       - 8000:8000
     env_file:
       - .env
     restart: unless-stopped
     volumes:
-      - ./src/api:/app/src/api
+      - ./src/api:/app/src/api 
+      # - shared_uploads:/app/temp_uploads  # for sharing PDFs between API and worker   
+      - ./temp_uploads:/app/temp_uploads  # Change to a local folder mapping  
+      - ./data/paper_artifacts:/app/paper_artifacts
     environment:
       - ALLOW_ORIGINS=*  
       - REDIS_HOST=redis  # Use the service name for Redis
       - REDIS_PORT=6379     
+      - PAPERS_DATABASE_URL=postgresql+psycopg://rag:${PAPERS_DB_PASSWORD:-rag}@postgres:5432/papers
+      - PAPERS_ARTIFACT_DIR=/app/paper_artifacts
+      # Host commands use localhost; containers use the Langfuse service name.
+      - LANGFUSE_BASE_URL=${LANGFUSE_BASE_URL_CONTAINER:-http://langfuse-web:3000}
       # - QDRANT_URL=http://qdrant:6333   
     depends_on:
-      - redis
+      redis:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
       # - qdrant
+    # (Optional) You can add a healthcheck for FastAPI too
+    healthcheck:
+      test: ["CMD", "/app/.venv/bin/python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health', timeout=4)"]
+      interval: 10s
+      timeout: 5s
+      retries: 3      
+
+  # Ingestion worker
+  ingestion-worker:
+    build:
+      context: .
+      dockerfile: Dockerfile.fastapi # Reuse the same environment
+    image: pdemeulenaer/rag-backend:0.2.1
+    # Must match the API user because both services access temp_uploads.
+    user: "${LOCAL_UID:-1000}:${LOCAL_GID:-1000}"
+    command: python -m src.api.ingestion.poller # Override start command
+    env_file:
+      - .env
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - PAPERS_DATABASE_URL=postgresql+psycopg://rag:${PAPERS_DB_PASSWORD:-rag}@postgres:5432/papers
+      - PAPERS_ARTIFACT_DIR=/app/paper_artifacts
+      - LANGFUSE_BASE_URL=${LANGFUSE_BASE_URL_CONTAINER:-http://langfuse-web:3000}
+    volumes:
+      - ./src/api:/app/src/api
+      # - shared_uploads:/app/temp_uploads  # for sharing PDFs between API and worker      
+      - ./temp_uploads:/app/temp_uploads  # Change to a local folder mapping   
+      - ./data/paper_artifacts:/app/paper_artifacts
+    depends_on:
+      redis:
+        condition: service_healthy
+      api:
+        condition: service_healthy
+    restart: unless-stopped     
+    # The worker uses our custom script for its own health check
+    healthcheck:
+      test: ["CMD", "python", "-m", "src.api.healthcheck"]
+      interval: 30s
+      timeout: 10s
+      retries: 3     
+
+  # Shared catalogue required for uploaded and arXiv documents.
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: papers
+      POSTGRES_USER: rag
+      POSTGRES_PASSWORD: ${PAPERS_DB_PASSWORD:-rag}
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - papers_postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U rag -d papers"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+
+  # One-shot CLI, NEVER automatic ingestion on `compose up`.
+  papers-cli:
+    profiles: [papers]
+    build:
+      context: .
+      dockerfile: Dockerfile.fastapi
+    image: pdemeulenaer/rag-backend:0.2.1
+    user: "${LOCAL_UID:-1000}:${LOCAL_GID:-1000}"
+    entrypoint: ["/app/.venv/bin/python", "-m", "src.api.papers"]
+    command: ["scope"]
+    env_file: [.env]
+    environment:
+      PAPERS_DATABASE_URL: postgresql+psycopg://rag:${PAPERS_DB_PASSWORD:-rag}@postgres:5432/papers
+      PAPERS_ARTIFACT_DIR: /app/paper_artifacts
+    volumes:
+      - ./data/paper_artifacts:/app/paper_artifacts
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: "no"
+
+  # Optional LOCAL Airflow demo. Never starts with the normal stack.
+  # Separate orchestration DB; document status remains in postgres/papers.
+  airflow-postgres:
+    profiles: [airflow]
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: airflow
+      POSTGRES_USER: airflow
+      POSTGRES_PASSWORD: ${AIRFLOW_DB_PASSWORD:-airflow-local-only}
+    volumes:
+      - airflow_postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U airflow -d airflow"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+
+  airflow:
+    profiles: [airflow]
+    build:
+      context: .
+      dockerfile: Dockerfile.airflow
+    image: rag-demo-airflow:3.3.1
+    # Official Airflow images support arbitrary UIDs with group 0.
+    user: "${LOCAL_UID:-1000}:0"
+    command: standalone
+    env_file: [.env]
+    environment:
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:${AIRFLOW_DB_PASSWORD:-airflow-local-only}@airflow-postgres:5432/airflow
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
+      AIRFLOW__CORE__LOAD_EXAMPLES: "false"
+      AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: "true"
+      AIRFLOW__CORE__DAGS_FOLDER: /opt/airflow/dags
+      AIRFLOW__CORE__DEFAULT_TIMEZONE: utc
+      AIRFLOW__LOGGING__LOGGING_LEVEL: INFO
+      PAPERS_DATABASE_URL: postgresql+psycopg://rag:${PAPERS_DB_PASSWORD:-rag}@postgres:5432/papers
+      PAPERS_ARTIFACT_DIR: /opt/rag/paper_artifacts
+    ports:
+      - "127.0.0.1:8080:8080"
+    volumes:
+      - airflow_home:/opt/airflow
+      - ./dags:/opt/airflow/dags:ro
+      - ./data/paper_artifacts:/opt/rag/paper_artifacts
+    depends_on:
+      postgres:
+        condition: service_healthy
+      airflow-postgres:
+        condition: service_healthy
+    restart: unless-stopped
 
   # Redis database service
   redis:
@@ -54,6 +197,17 @@ services:
       - "6379:6379"
     volumes:
       - redis_data:/data # Use a named volume for persistent data
+    restart: unless-stopped 
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5      
 
 volumes:
+  airflow_postgres: {}
+  airflow_home: {}
+  papers_postgres: {}
   redis_data: {}  
+  shared_uploads: {}  # For sharing PDFs between API and worker
+  # qdrant_data: {}  

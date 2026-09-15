@@ -10,6 +10,11 @@ BACKEND_IMAGE_NAME := rag-frontend
 VERSION := $(shell cat version.txt)
 
 DOCKER_FOLDER := pdemeulenaer
+LOCAL_UID := $(shell id -u)
+LOCAL_GID := $(shell id -g)
+
+# Port for the MkDocs development server
+PORT ?= 8000
 
 # 0. General local commands
 
@@ -39,10 +44,170 @@ lint:
 	pylint src
 
 test:
-	behave tests/features/
+	uv run --group dev --group frontend pytest tests/unit -q
 
-# doc: 
-# 	mkdocs build	
+docs:
+	uv run --group dev mkdocs serve -a 127.0.0.1:$(PORT)
+
+docs-build:
+	uv run --group dev mkdocs build
+
+docs-deploy:
+	uv run mkdocs gh-deploy --force
+
+# Opt-in arXiv workflow. The CLI runs on the host; PostgreSQL runs in Compose.
+# Omitted DAYS/LIMIT preserve the CLI/.env defaults. UNTIL is for backfills only.
+PAPERS_CLI := uv run python -m src.api.papers
+PAPERS_BACKFILL_ARGS = $(if $(DAYS),--days "$(DAYS)") $(if $(UNTIL),--until "$(UNTIL)")
+PAPERS_PROCESS_ARGS = $(if $(LIMIT),--limit "$(LIMIT)")
+PAPERS_SCHEDULE_CLI := uv run python -m src.api.papers.schedule
+PAPERS_RUN_ARGS = $(if $(RUN_DATE),--run-date "$(RUN_DATE)") $(PAPERS_PROCESS_ARGS)
+
+BACKUP_DIR ?= $(HOME)/rag-demo-backups
+.PHONY: papers-backup papers-backups papers-backup-check
+# Export paths as values, never interpolate user paths into shell commands.
+papers-backup papers-backups papers-backup-check: export PAPERS_BACKUP_DIR := $(BACKUP_DIR)
+papers-backup-check: export PAPERS_BACKUP_FILE := $(FILE)
+
+papers-backup:
+	python3 scripts/papers_backup.py backup
+
+papers-backups:
+	python3 scripts/papers_backup.py list
+
+papers-backup-check:
+	python3 scripts/papers_backup.py check
+
+.PHONY: papers-scheduled papers-run-status airflow-up airflow-stop airflow-logs airflow-check
+
+# Explicit paid run; fixes today's selection across retries, audits and reports.
+papers-scheduled:
+	$(PAPERS_SCHEDULE_CLI) all $(PAPERS_RUN_ARGS)
+
+papers-run-status:
+	$(PAPERS_SCHEDULE_CLI) status $(if $(RUN_DATE),--run-date "$(RUN_DATE)")
+
+# New DAGs start PAUSED. Previously unpaused DAGs retain their state on restart.
+airflow-up:
+	mkdir -p data/paper_artifacts
+	LOCAL_UID="$(LOCAL_UID)" docker compose --profile airflow up -d --build airflow
+
+airflow-stop:
+	docker compose --profile airflow stop airflow
+
+airflow-logs:
+	docker compose --profile airflow logs --tail=100 -f airflow
+
+# Inspect the output: it must contain no DAG import errors. Does not trigger tasks.
+airflow-check:
+	docker compose --profile airflow exec airflow airflow dags list-import-errors --output json
+
+# Langfuse is opt-in, but uses the normal Compose project/network so the API can
+# address it as http://langfuse-web:3000. Stop removes containers, not data volumes.
+LANGFUSE_COMPOSE := docker compose -f docker-compose.yml -f docker-compose.langfuse.yaml
+LANGFUSE_SERVICES := langfuse-web langfuse-worker langfuse-postgres langfuse-clickhouse langfuse-redis langfuse-minio
+
+.PHONY: langfuse-up langfuse-stop langfuse-status langfuse-logs
+
+langfuse-up:
+	$(LANGFUSE_COMPOSE) up -d --wait langfuse-web langfuse-worker
+
+langfuse-stop:
+	$(LANGFUSE_COMPOSE) stop $(LANGFUSE_SERVICES)
+	$(LANGFUSE_COMPOSE) rm -f $(LANGFUSE_SERVICES)
+
+langfuse-status:
+	$(LANGFUSE_COMPOSE) ps $(LANGFUSE_SERVICES)
+
+langfuse-logs:
+	$(LANGFUSE_COMPOSE) logs --tail=100 -f langfuse-web langfuse-worker
+
+.PHONY: papers-help papers-scope papers-preview papers-db-up papers-init-db \
+        papers-backfill papers-process papers-sync papers-daily papers-status papers-count papers-audit papers-import-uploads
+
+papers-help:
+	@printf '%s\n' \
+	  'arXiv workflow (host CLI, separate PostgreSQL container):' \
+	  '  make papers-scope                    Show category/topic configuration' \
+	  '  make papers-preview DAYS=7           Preview metadata only; no DB writes' \
+	  '  make papers-db-up                    Start PostgreSQL and wait for health' \
+	  '  make papers-backup                   Create/check a timestamped local PostgreSQL backup' \
+	  '  make papers-backups                  List backups (default: ~/rag-demo-backups)' \
+	  '  make papers-backup-check FILE=...    Recheck an archive without restoring it' \
+	  '  make papers-init-db                  Create catalogue tables' \
+	  '  make papers-backfill DAYS=7          Save metadata and queue papers' \
+	  '  make papers-status                   Inspect processing states' \
+	  '  make papers-count                    Count ready documents across arXiv and uploads' \
+	  '  make papers-extractor-setup          Prepare tokenizer cache; no model calls' \
+	  '  make papers-extract-preview PDF=...  Inspect local Markdown/chunks; no embeddings' \
+	  '  make papers-reindex-preview          List existing arXiv papers needing extraction upgrade' \
+	  '  make papers-reindex LIMIT=2          Upgrade existing arXiv papers (paid embeddings)' \
+	  '  make papers-audit                    Read-only SQL/Qdrant consistency audit' \
+	  '  make papers-import-uploads LEGACY_MODEL=text-embedding-3-small' \
+	  '                                       Register existing upload vectors in SQL; no re-embedding' \
+	  '  make papers-process LIMIT=2          Download/index pending PDFs (paid embeddings)' \
+	  '  make papers-sync                     Discover metadata updates only' \
+	  '  make papers-daily LIMIT=10           Sync + process once (paid embeddings)' \
+	  '  make papers-scheduled LIMIT=10       Durable daily budget + audit + notifications (paid)' \
+	  '  make papers-run-status              Read saved daily run summary/state' \
+	  '  make airflow-up                     Start optional Airflow; new DAG is paused' \
+	  '  make airflow-logs / airflow-stop     Inspect / stop scheduler' \
+	  'DAYS/LIMIT are optional; omitted values use CLI/.env defaults.' \
+	  'Preview/backfill also accept UNTIL=YYYY-MM-DD. No target installs a schedule.' \
+	  'Guide: docs/getting-started/arxiv.md'
+
+papers-scope:
+	$(PAPERS_CLI) scope
+
+papers-preview:
+	$(PAPERS_CLI) backfill --dry-run $(PAPERS_BACKFILL_ARGS)
+
+papers-db-up:
+	docker compose --profile papers up -d --wait postgres
+
+papers-init-db:
+	$(PAPERS_CLI) init-db
+
+papers-backfill:
+	$(PAPERS_CLI) backfill $(PAPERS_BACKFILL_ARGS)
+
+# Explicit opt-in to PDF downloads and embedding API usage.
+papers-process:
+	$(PAPERS_CLI) process $(PAPERS_PROCESS_ARGS)
+
+.PHONY: papers-reindex-preview papers-reindex papers-extractor-setup papers-extract-preview
+papers-extractor-setup:
+	uv run python -c 'from src.api.papers.extraction import encoder; encoder(); print("Tokenizer cache ready (no model calls)")'
+
+EXTRACT_DIR ?= data/extraction-preview
+papers-extract-preview:
+	uv run python -m src.api.papers.extraction --pdf "$(PDF)" --output "$(EXTRACT_DIR)"
+
+papers-reindex-preview:
+	$(PAPERS_CLI) reindex --dry-run
+
+# Explicit paid upgrade of existing active arXiv papers only (not discovery backlog).
+papers-reindex:
+	$(PAPERS_CLI) reindex $(PAPERS_PROCESS_ARGS)
+
+papers-sync:
+	$(PAPERS_CLI) sync
+
+# One invocation only; does not install or enable a daily schedule.
+papers-daily:
+	$(PAPERS_CLI) daily $(PAPERS_PROCESS_ARGS)
+
+papers-status:
+	$(PAPERS_CLI) status
+
+papers-count:
+	@$(PAPERS_CLI) count
+
+papers-audit:
+	$(PAPERS_CLI) audit
+
+papers-import-uploads:
+	$(PAPERS_CLI) import-uploads $(if $(LEGACY_MODEL),--legacy-embedding-model "$(LEGACY_MODEL)")
 
 # quality: black lint test
 
@@ -58,7 +223,7 @@ run-api:
 
 serve:
 # 	uv run streamlit run src/rag_demo/app.py
-	uv run streamlit run src/chatbot_ui/main.py	
+	uv run --group frontend streamlit run src/chatbot_ui/main.py
 
 # evaluate: # TODO: take from other repo
 # 	uv run python src/rag_demo/evaluation_ragas.py	
@@ -67,14 +232,45 @@ serve:
 redis-chat:
 	uv run python src/api/redis/inspect_redis.py 
 
+EVAL_DIR ?= data/evaluation/star-clusters
+EVAL_MODEL ?= gpt-4.1-mini
+EVAL_REASONING_EFFORT ?=
+EVAL_MAX_TOKENS ?= 2500
+EVAL_SOURCE ?= arxiv
+QUESTIONS ?= 50
+PAPERS ?= 50
+EVAL_SEED ?= 42
+EVAL_REVIEWED ?= $(EVAL_DIR)/questions.reviewed.json
+EVAL_RUNS_DIR ?= data/evaluation/runs
+EVAL_MODES ?= vanilla hybrid
+EVAL_TOP_K ?= 5
+EVAL_LIMIT ?=
+EVAL_GENERATION_MODEL ?=
+EVAL_JUDGE ?= false
+EVAL_JUDGE_MODEL ?= gpt-5-mini
+EVAL_JUDGE_REASONING_EFFORT ?= minimal
+EVAL_CONCURRENCY ?= 1
+
+.PHONY: eval-preview eval-check create-eval-dataset eval-run
+
+# Freeze active paper evidence locally. No model calls or database writes.
+eval-preview:
+	uv run python -m evals.generate_questions prepare --output "$(EVAL_DIR)" --source "$(EVAL_SOURCE)" --questions "$(QUESTIONS)" --papers "$(PAPERS)" --seed "$(EVAL_SEED)" --model "$(EVAL_MODEL)" $(if $(EVAL_REASONING_EFFORT),--reasoning-effort "$(EVAL_REASONING_EFFORT)") --max-completion-tokens "$(EVAL_MAX_TOKENS)"
+
+# Explicit paid generation; resumes completed calls and writes local drafts.
 create-eval-dataset:
-	uv run python evals/eval_dataset_creation.py
+	uv run python -m evals.generate_questions generate --output "$(EVAL_DIR)" $(if $(EVAL_WAIT_SECONDS),--wait-seconds "$(EVAL_WAIT_SECONDS)") $(if $(RETRY_JOB),--retry-job "$(RETRY_JOB)")
 
-run-evals:
-	uv run python evals/eval_retriever.py	
+# Read-only model metadata request; no inference or changes to saved evaluation data.
+eval-check:
+	uv run python -m evals.generate_questions check --output "$(EVAL_DIR)"
 
+# Run the reviewed benchmark against one or more explicit retrieval modes.
+# This performs paid embedding/generation calls; EVAL_JUDGE=true adds a paid judge call.
+eval-run:
+	uv run python -m evals.run_benchmark --dataset "$(EVAL_REVIEWED)" --output-root "$(EVAL_RUNS_DIR)" --modes $(EVAL_MODES) --top-k "$(EVAL_TOP_K)" $(if $(EVAL_GENERATION_MODEL),--generation-model "$(EVAL_GENERATION_MODEL)") $(if $(filter true 1 yes,$(EVAL_JUDGE)),--judge,--no-judge) --judge-model "$(EVAL_JUDGE_MODEL)" --judge-reasoning-effort "$(EVAL_JUDGE_REASONING_EFFORT)" --concurrency "$(EVAL_CONCURRENCY)" $(if $(EVAL_LIMIT),--limit "$(EVAL_LIMIT)")
 
-.PHONY: build run
+.PHONY: build run docs docs-build docs-deploy
 
 # Frontend
 build-ui:
@@ -123,7 +319,17 @@ push-fastapi:
 
 
 compose:
+	mkdir -p data/paper_artifacts temp_uploads
 	@echo "Running docker-compose up"
-	@docker compose up -d --build
-	@echo "Docker Compose is running. Access the Streamlit frontend at http://localhost:8501, the RAG backend at http://localhost:8000, and the Qdrant UI at http://localhost:6333/dashboard"
-
+	@LOCAL_UID="$(LOCAL_UID)" LOCAL_GID="$(LOCAL_GID)" docker compose up -d --build
+	@api_container="$$(docker compose ps -q api)"; \
+	api_health="$$(docker inspect --format='{{if .State.Health}}{{.State.Health.Status}}{{else}}{{.State.Status}}{{end}}' "$$api_container")"; \
+	if [ "$$api_health" = "healthy" ]; then \
+		echo "Docker Compose is healthy on this Docker host."; \
+		echo "From this host: Streamlit http://127.0.0.1:8501 | API http://127.0.0.1:8000"; \
+		echo "From another device or remote IDE, localhost points to that client; use the Docker host address or a forwarded port instead."; \
+	else \
+		echo "Docker Compose started, but the API is $$api_health. Check 'docker compose logs api' and your Qdrant configuration." >&2; \
+		docker compose ps >&2; \
+		exit 1; \
+	fi

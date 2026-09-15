@@ -1,3 +1,5 @@
+# Dockerfile.fastapi
+
 # ===========================
 #  🚀 Stage 1: Builder
 # ===========================
@@ -20,7 +22,10 @@ COPY pyproject.toml uv.lock ./
 
 # Install dependencies
 RUN --mount=type=cache,target=/root/.cache/uv \
-    uv sync --frozen
+    uv sync --frozen --no-dev
+
+# Public tokenizer vocabulary is bundled, avoiding a runtime download.
+RUN TIKTOKEN_CACHE_DIR=/app/.venv/tokenizer-cache .venv/bin/python -c "import tiktoken; tiktoken.get_encoding('cl100k_base')"
 
 # # Install dependencies into .venv (cached)
 # RUN --mount=type=cache,target=/root/.cache/uv \
@@ -44,15 +49,6 @@ FROM python:3.12-slim
 # Set working directory
 WORKDIR /app
 ENV PYTHONPATH=/app
-
-# # Install only required system dependencies
-RUN apt-get update && apt-get install -y \
-    libmagic1 \
-    # libgl1-mesa-glx \
-    libgl1 \
-    libglx-mesa0 \    
-    libglib2.0-0 \
-    && rm -rf /var/lib/apt/lists/*
 
 # Create non-root user and group
 RUN addgroup --system app && \
@@ -82,9 +78,9 @@ COPY --from=builder /app/.venv /app/.venv
 
 # Copy the rest of the application code
 # COPY . .
-COPY src/ ./src/
-COPY config.yaml ./config.yaml
-COPY run_with_env.py ./run_with_env.py
+COPY --chown=app:app src/api/ ./src/api/
+COPY --chown=app:app config.yaml ./config.yaml
+COPY --chown=app:app run_with_env.py ./run_with_env.py
 
 # Pre-compile Python files to bytecode for startup performance
 RUN python -m compileall ./src
@@ -93,9 +89,6 @@ RUN python -m compileall ./src
 # RUN addgroup --system app && \
 #     adduser --system --ingroup app app && \
 #     chown -R app:app /app
-# Set permissions for /app
-RUN chown -R app:app /app
-
 # Switch to non-root user
 USER app
 
@@ -108,4 +101,3 @@ EXPOSE 8000
 # CMD ["/app/.venv/bin/uvicorn", "src.api.main:app", "--host", "0.0.0.0", "--port", "8000"]
 # CMD ["/app/.venv/bin/uvicorn", "src.api.main:app", "--host", "0.0.0.0", "--port", "${PORT:-8000}"]
 CMD /app/.venv/bin/uvicorn src.api.main:app --host 0.0.0.0 --port ${PORT:-8000}
-

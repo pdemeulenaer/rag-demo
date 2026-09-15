@@ -10,15 +10,11 @@ from contextlib import asynccontextmanager
 from src.api.core.config import settings
 from src.api.api.middleware import RequestIDMiddleware
 from src.api.api.rag_router import rag_router
-from src.api.api.ingestion_router import ingestion_router
+from src.api.api.ingestion_router import router as ingestion_router
+from src.api.api.system_router import router as system_router
+from src.api.api.papers_router import router as papers_router
 from src.api.core.config import config
-
-# This must be the first thing your app does!
-os.environ["LANGCHAIN_TRACING_V2"] = "true" if config.LANGSMITH_TRACING else "false"
-os.environ["LANGCHAIN_ENDPOINT"] = config.LANGSMITH_ENDPOINT
-os.environ["LANGCHAIN_API_KEY"] = config.LANGSMITH_API_KEY
-os.environ["LANGCHAIN_PROJECT"] = config.LANGSMITH_PROJECT
-
+from src.api.observability.tracing import flush as flush_traces
 
 logging.basicConfig(
     level=logging.INFO,
@@ -30,11 +26,16 @@ client = AsyncClient(timeout=settings.DEFAULT_TIMEOUT)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    """
+    Middleware to handle the lifecycle of the FastAPI app.
+    It is called when the application starts up and shuts down.
+    """    
     logger.info("Application starting up...")
 
     yield
 
     logger.info("Application shutting down...")
+    flush_traces()
     await client.aclose()
 
 app = FastAPI(lifespan=lifespan)
@@ -43,8 +44,8 @@ app = FastAPI(lifespan=lifespan)
 # This links the physical folder to the URL path /api/images
 # app.mount("/api/images", StaticFiles(directory=config.IMAGES_FOLDER), name="images")
 
-IMAGE_PATH_IN_CONTAINER = "/app/src/api/data/images"
-app.mount("/api/images", StaticFiles(directory=IMAGE_PATH_IN_CONTAINER), name="images")
+os.makedirs(config.IMAGES_FOLDER, exist_ok=True)
+app.mount("/api/images", StaticFiles(directory=config.IMAGES_FOLDER), name="images")
 
 app.add_middleware(RequestIDMiddleware)
 app.add_middleware(
@@ -55,9 +56,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Include both routers in the main application instance
+# Include all routers in the main application instance
+app.include_router(system_router, tags=["system"])
 app.include_router(rag_router, tags=["rag"])
 app.include_router(ingestion_router, tags=["ingestion"])
+app.include_router(papers_router, tags=["papers"])
 
 @app.get("/")
 async def root():

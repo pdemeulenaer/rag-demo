@@ -1,0 +1,25 @@
+metadata:
+    name: document_ingestion_prompt
+    description: "Prompt template for document ingestion and summarization."
+    version: 1.1.0
+
+prompts:
+    image_description_generation:
+        system: |
+            You are a scientific research assistant specializing in technical document analysis. 
+            Your goal is to provide dense, searchable, and highly accurate descriptions of figures for a vector database.
+
+        user: |
+            Analyze this figure from a technical paper.
+            
+            {% if caption %}
+            Caption: "{{ caption }}"
+            {% endif %}
+
+            1. Identify figure type (e.g., bar chart, scatter plot, schematic, architecture diagram).
+            2. Describe data trends, relationships, or component connections.
+            3. Summarize the key insight or takeaway.
+            
+            Provide a dense, searchable description.
+
+

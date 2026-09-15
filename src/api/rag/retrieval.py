@@ -1,31 +1,30 @@
 # src/api/rag/retrieval.py
 import os
-import openai
 import instructor
-from openai import OpenAI
 from groq import Groq
 from pydantic import BaseModel
 from typing import List
 import json
 import cohere
 from qdrant_client import QdrantClient
-from qdrant_client.models import Prefetch, Filter, FieldCondition, MatchText, FusionQuery
-from langsmith import traceable, get_current_run_tree
 import logging
 import redis
 import pickle
 
 from src.api.core.config import config
-from src.api.rag.utils.utils import prompt_template_config, prompt_template_registry
+from src.api.core.clients import openai_client
+from src.api.observability.tracing import observe, observation, trace_attributes, update_span
+from src.api.rag.utils.utils import prompt_template_config
 from src.api.rag.summarize import summarize_text
 from src.api.api.models import Source
+from src.api.rag.search import search_points
 
 
 logger = logging.getLogger(__name__)
 cohere_client = cohere.Client(config.COHERE_API_KEY)
 
 # Initialize the conversation memory
-redis_client = redis.Redis(host='redis', port=6379, db=0)
+redis_client = redis.Redis(host=config.REDIS_HOST, port=config.REDIS_PORT, db=config.REDIS_DB)
 
 
 def titles_by_author(author, year=None):
@@ -40,10 +39,7 @@ class ConversationMemory:
         self.window_size = window_size
 
 
-@traceable(
-    name="summarize_conversation",
-    run_type="prompt",
-)
+@observe(name="summarize_conversation")
 def summarize_conversation(messages): #, summarizer_llm):
     """
     Summarizes the conversation history using the given LLM client (Groq in this case).
@@ -65,10 +61,6 @@ def summarize_conversation(messages): #, summarizer_llm):
     return response.summary.strip()
 
 
-@traceable(
-    name="get_memory",
-    # run_type="prompt",
-)
 def get_memory(session_id: str) -> ConversationMemory:
 
     # If in evaluation mode, return a fresh memory each time
@@ -88,10 +80,6 @@ def get_memory(session_id: str) -> ConversationMemory:
         return new_memory
 
 
-@traceable(
-    name="add_message",
-    # run_type="prompt",
-)
 def add_message(session_id: str, role: str, content: str): #, summarizer_llm):
     memory = get_memory(session_id)
 
@@ -113,82 +101,33 @@ def add_message(session_id: str, role: str, content: str): #, summarizer_llm):
     redis_client.setex(session_id, session_time_to_live, pickle.dumps(memory))        
 
 
-@traceable(
-    name="embed_query",
-    run_type="embedding",
-    metadata={"ls_provider": config.EMBEDDING_MODEL_PROVIDER, "ls_model_name": config.EMBEDDING_MODEL}
-)
 def get_embedding(text, model=config.EMBEDDING_MODEL):
-    response = openai.embeddings.create(
+    response = openai_client().embeddings.create(
         input=[text],
         model=model,
     )
-
-    current_run = get_current_run_tree()
-    if current_run:
-        current_run.metadata["usage_metadata"] = {
-            "input_tokens": response.usage.prompt_tokens,
-            "total_tokens": response.usage.total_tokens,
-        }
-
     return response.data[0].embedding
 
 
-@traceable(
-    name="retrieve_top_n",
-    run_type="retriever"
-)
-def retrieve_context(query, qdrant_client, top_k=5):
+@observe(name="retrieve_context", as_type="retriever", capture_input=False, capture_output=False)
+def retrieve_context(query, qdrant_client, top_k=5, mode="hybrid", collection=None, scope=None):
+    update_span(input={"query": query}, metadata={"mode": mode, "top_k": top_k,
+        "collection": collection or config.QDRANT_COLLECTION_NAME})
+    if scope is None:
+        from src.api.api.papers_router import active_corpus
+        from src.api.papers.consistency import active_filter
+        _, active, _ = active_corpus("uploads")
+        if not active:
+            return []
+        scope = active_filter(active)
     query_embedding = get_embedding(query)
 
-    # # SIMPLE SEARCH
-    # results = qdrant_client.query_points(
-    #     collection_name=config.QDRANT_COLLECTION_NAME,
-    #     query=query_embedding,
-    #     limit=5,
-    # )    
-
-    # HYBRID SEARCH
-    results = qdrant_client.query_points(
-        collection_name=config.QDRANT_COLLECTION_NAME,
-        prefetch=[
-            Prefetch(
-                query=query_embedding,
-                limit=20
-            ),
-            Prefetch(
-                filter=Filter(
-                    must=[
-                        # still search the main chunk text
-                        FieldCondition(key="text", match=MatchText(text=query)),
-                        # add metadata fields you’d like to search
-                        # FieldCondition(key="authors", match=MatchText(text=query)),
-                        # FieldCondition(key="file_title", match=MatchText(text=query)),
-                        # FieldCondition(key="year", match=MatchText(text=query)),
-                        # FieldCondition(key="keywords", match=MatchText(text=query)),                                                                 
-                    ]
-                    
-                ),
-                limit=20
-            )
-        ],
-        query=FusionQuery(fusion="rrf"),
-        limit=top_k
-    )
+    results = search_points(qdrant_client, collection or config.QDRANT_COLLECTION_NAME,
+                           query_embedding, query, top_k, mode, scope)
 
     retrieved_context = []
     for result in results.points:
         logger.info("Qdrant payload keys: %s", result.payload.keys())
-        # logger.info("Qdrant payload sample: %s", result.payload)     
-        # retrieved_context.append({
-        #     "id": result.id,
-        #     "text": result.payload["text"],
-        #     "title": result.payload.get("file_title"),
-        #     "authors": result.payload.get("authors"),
-        #     "year": result.payload.get("year"),
-        #     "page": result.payload.get("page_number"),
-        #     "score": result.score            
-        # })
 
         # payload is a dict, so we can use .get() safely
         payload = result.payload
@@ -197,29 +136,32 @@ def retrieve_context(query, qdrant_client, top_k=5):
             "id": str(result.id),
             "text": payload["text"],
             "title": payload.get("file_title"),
+            "paper_id": payload.get("paper_id"),
+            "arxiv_id": payload.get("arxiv_id"),
+            "paper_version": payload.get("paper_version"),
+            "source_url": payload.get("source_url"),
             "authors": payload.get("authors"),
             "year": payload.get("year"),
             "page": payload.get("page_number"),
             "score": result.score,
-            # --- NEW FIELDS PRESERVED ---
             "type": payload.get("type", "text"),  # 'text' or 'figure'
             "image_path": payload.get("image_path"), # Only present if type='figure'
             "caption": payload.get("caption")        # Important for UI display
         })        
 
-    return retrieved_context    
+    update_span(output={"point_ids": [row["id"] for row in retrieved_context]},
+                metadata={"result_count": len(retrieved_context)})
+    return retrieved_context
 
 
-@traceable(
-    name="rerank_context",
-    run_type="reranker",
-    metadata={"ls_provider": "Cohere", "ls_model_name": "rerank-english-v3.0"}
-)
+@observe(name="rerank_context", as_type="reranker", capture_input=False, capture_output=False)
 def rerank_context(query: str, retrieved_context: list, top_n: int = 5):
     """
     Reranks the retrieved context chunks using Cohere's reranker.
     """
 
+    if not retrieved_context:
+        return []
     docs = [c["text"] for c in retrieved_context]
 
     response = cohere_client.rerank(
@@ -240,13 +182,24 @@ def rerank_context(query: str, retrieved_context: list, top_n: int = 5):
             "rerank_score": doc_score
         })
 
+    update_span(input={"query": query, "candidate_ids": [row["id"] for row in retrieved_context]},
+                output={"point_ids": [row["id"] for row in reranked]},
+                metadata={"model": "rerank-english-v3.0", "top_n": top_n})
     return reranked
 
 
-@traceable(
-    name="format_retrieved_context",
-    run_type="prompt"
-)
+def optional_int(value: object) -> int | None:
+    """Return an integer metadata value, or None for absent/non-numeric values."""
+    if value is None or isinstance(value, bool):
+        return None
+    if isinstance(value, int):
+        return value
+    try:
+        return int(str(value).strip())
+    except (TypeError, ValueError):
+        return None
+
+
 def process_context(context):
     lines = []
     for id, chunk in zip(context["retrieved_context_ids"], context["retrieved_context"]):
@@ -268,10 +221,6 @@ OUTPUT_SCHEMA = {
 }
 
 
-# @traceable(
-#     name="render_prompt",
-#     run_type="prompt"
-# )
 def build_prompt(context, question, session_id):
     memory = get_memory(session_id)
 
@@ -284,7 +233,6 @@ def build_prompt(context, question, session_id):
     processed_context = process_context(context)
 
     # Extract the prompt template
-    # prompt_template = prompt_template_registry("rag-prompt")
     prompt_template = prompt_template_config(config.RAG_PROMPT_TEMPLATE_PATH, "rag_generation")
 
     system_prompt = prompt_template["system"].render(
@@ -309,16 +257,6 @@ def build_prompt(context, question, session_id):
         {"role": "user", "content": user_prompt}
     ]
 
-    # For LangSmith trace: return a string instead of the messages list
-    traced_prompt = f"[SYSTEM]\n{system_prompt}\n\n[USER]\n{user_prompt}"
-
-    @traceable(name="render_prompt", run_type="prompt")
-    def traced():
-        return traced_prompt
-
-    traced()  # just logs the prompt
-
-    # Return messages for actual LLM call
     return messages
 
 
@@ -335,20 +273,33 @@ class RAGSummarizationResponse(BaseModel):
     summary: str    
 
 
+# def is_openai_model(model_name: str) -> bool:
+#     """
+#     Decide provider by simple naming convention.
+#     Adjust if you add custom prefixes.
+#     """
+#     model_name = model_name.lower()
+#     return model_name.startswith("gpt-") or model_name.startswith("o1-") or model_name.startswith("openai-")
+
 def is_openai_model(model_name: str) -> bool:
     """
     Decide provider by simple naming convention.
-    Adjust if you add custom prefixes.
+    Excludes OSS variants (openai/gpt-oss-...) hosted on Groq.
     """
     model_name = model_name.lower()
-    return model_name.startswith("gpt-") or model_name.startswith("o1-") or model_name.startswith("openai-")
+    
+    # Check for the exclusion prefix first
+    if model_name.startswith("openai/gpt-oss-"):
+        return False
+        
+    return (
+        model_name.startswith("gpt-") or 
+        model_name.startswith("o1-") or 
+        model_name.startswith("openai-")
+    )
 
 
-@traceable(
-    name="generate_answer",
-    run_type="llm",
-    metadata={"ls_provider": config.GENERATION_MODEL_PROVIDER, "ls_model_name": config.GENERATION_MODEL}
-)
+@observe(name="generate_answer", capture_input=False, capture_output=False)
 # def generate_answer(prompt: List[Dict[str, str]], generation_model: str = None):
 def generate_answer(prompt, generation_model=None):
     """
@@ -368,7 +319,7 @@ def generate_answer(prompt, generation_model=None):
 
     if is_openai_model(generation_model):
         # --------- OpenAI branch ----------
-        client = OpenAI(api_key=config.OPENAI_API_KEY)
+        client = openai_client()
         response_json = client.chat.completions.create(
             model=generation_model,
             messages=prompt,
@@ -393,40 +344,47 @@ def generate_answer(prompt, generation_model=None):
 
     else:
         # --------- Groq branch ----------
-        groq_client = Groq(api_key=config.GROQ_API_KEY)
-        instr_client = instructor.from_groq(groq_client)
+        with observation(name="groq_generation", as_type="generation",
+                         model=generation_model, input=prompt) as generation:
+            groq_client = Groq(api_key=config.GROQ_API_KEY)
+            instr_client = instructor.from_groq(groq_client, mode=instructor.Mode.JSON)
+            response, raw_response = instr_client.chat.completions.create_with_completion(
+                model=generation_model,
+                response_model=RAGGenerationResponse,
+                messages=prompt,
+                temperature=0,
+                max_tokens=config.GENERATION_MODEL_MAX_TOKENS,
+                max_retries=5,
+            )
+            usage = {
+                "input_tokens": raw_response.usage.prompt_tokens,
+                "output_tokens": raw_response.usage.completion_tokens,
+                "total_tokens": raw_response.usage.total_tokens,
+            }
+            if generation is not None:
+                generation.update(output=response.model_dump(), usage_details=usage)
 
-        response, raw_response = instr_client.chat.completions.create_with_completion(
-            model=generation_model,
-            response_model=RAGGenerationResponse,
-            messages=prompt,
-            temperature=0,
-            max_tokens=config.GENERATION_MODEL_MAX_TOKENS,
-            max_retries=5,
-        )
-
-        usage = {
-            "input_tokens": raw_response.usage.prompt_tokens,
-            "output_tokens": raw_response.usage.completion_tokens,
-            "total_tokens": raw_response.usage.total_tokens,
-        }
-
-    # attach token usage to LangSmith run if present
-    current_run = get_current_run_tree()
-    if current_run:
-        current_run.metadata["usage_metadata"] = usage
+    update_span(input={"messages": prompt}, output=response.model_dump(),
+                metadata={"provider": "openai" if is_openai_model(generation_model) else "groq",
+                          "model": generation_model, "usage": usage})
 
     return response
 
 
-@traceable(
-    name="rag_pipeline",
-    run_type="chain"
-)
-def rag_pipeline(question, qdrant_client, session_id, generation_model=None, top_k=5):
+@observe(name="rag_pipeline", capture_input=False, capture_output=False)
+def rag_pipeline(question, qdrant_client, session_id, generation_model=None, top_k=5,
+                 mode=None, collection=None, scope=None):
+    update_span(input={"question": question}, metadata={"mode": mode or "legacy",
+        "collection": collection or config.QDRANT_COLLECTION_NAME,
+        "generation_model": generation_model or config.GENERATION_MODEL, "top_k": top_k})
 
     # If in evaluation mode, return a fresh memory each time
-    if os.getenv("EVALUATION_MODE") == "true":
+    if mode is not None:
+        retrieved_context = retrieve_context(question, qdrant_client,
+            top_k=top_k if mode == "vanilla" else 20, mode=mode, collection=collection, scope=scope)
+        if mode == "hybrid":
+            retrieved_context = rerank_context(question, retrieved_context, top_n=top_k)
+    elif os.getenv("EVALUATION_MODE") == "true":
         
         # just use hybrid retrieval without reranking
         retrieved_context = retrieve_context(question, qdrant_client, top_k=5)
@@ -438,10 +396,19 @@ def rag_pipeline(question, qdrant_client, session_id, generation_model=None, top
         # Rerank with Cohere
         retrieved_context = rerank_context(question, retrieved_context, top_n=top_k)
 
+    if not retrieved_context:
+        result = {"answer": "I found no indexed evidence for this question in the selected corpus.",
+                  "sources": [], "images": [], "question": question, "retrieved_context": [],
+                  "retrieved_chunks": [], "cited_context_ids": []}
+        update_span(output={"answer": result["answer"], "retrieved_ids": [], "cited_ids": []})
+        return result
+
     prompt = build_prompt(
         {
             "retrieved_context_ids": [c["id"] for c in retrieved_context],
-            "retrieved_context": [c["text"] for c in retrieved_context]
+            "retrieved_context": [f"Title: {c.get('title')}; arXiv: {c.get('arxiv_id')}; "
+                                  f"version: {c.get('paper_version')}; page: {c.get('page')}\n{c['text']}"
+                                  for c in retrieved_context]
         },
         question,
         session_id
@@ -454,8 +421,11 @@ def rag_pipeline(question, qdrant_client, session_id, generation_model=None, top
     seen = {}
     unique_sources = []
 
+    used_ids = set(answer.retrieved_context_ids)
     for c in retrieved_context:
-        key = (tuple(c.get("authors", [])), c.get("title"), c.get("year"))
+        if c["id"] not in used_ids:
+            continue
+        key = (c.get("paper_id"), c.get("paper_version"), tuple(c.get("authors") or []), c.get("title"), c.get("year"))
         page_num = c.get("page")
 
         # Ensure page_num is always an integer if present
@@ -471,8 +441,12 @@ def rag_pipeline(question, qdrant_client, session_id, generation_model=None, top
             s = Source(
                 id=str(c["id"]),
                 title=c.get("title"),
-                authors=c.get("authors", []),
-                year=c.get("year"),
+                authors=c.get("authors") or [],
+                paper_id=c.get("paper_id"),
+                arxiv_id=c.get("arxiv_id"),
+                paper_version=c.get("paper_version"),
+                source_url=c.get("source_url"),
+                year=optional_int(c.get("year")),
                 page=page_num
             )
             seen[key] = s
@@ -485,9 +459,7 @@ def rag_pipeline(question, qdrant_client, session_id, generation_model=None, top
             existing_pages.update(page_num)
             seen[key].page = sorted(existing_pages)            
 
-    # Filter out unused sources based on retrieved_context_ids
-    used_ids = set(answer.retrieved_context_ids)
-    unique_sources = [s for s in unique_sources if s.id in used_ids]
+    # Only cited chunks were grouped, so uncited pages cannot enter these sources.
     logger.info(f"Unique sources after filtering: {unique_sources}")
 
     # Extract Used Images (NEW LOGIC)
@@ -505,23 +477,40 @@ def rag_pipeline(question, qdrant_client, session_id, generation_model=None, top
     # Extract just the text content from the retrieved_context objects
     retrieved_context_texts = [c["text"] for c in retrieved_context]
 
-    return {
+    result = {
         "answer": answer.answer,
         "sources": unique_sources, # Text sources
         "images": used_images,     # Image sources
         "question": question,
         "retrieved_context": retrieved_context_texts,
+        # Internal evaluation/observability detail. The public API wrapper below
+        # deliberately does not expose full chunks or model-selected point IDs.
+        "retrieved_chunks": retrieved_context,
+        "cited_context_ids": sorted(used_ids.intersection(c["id"] for c in retrieved_context)),
     }
+    update_span(output={"answer": result["answer"],
+        "retrieved_ids": [row["id"] for row in retrieved_context],
+        "cited_ids": result["cited_context_ids"]})
+    return result
 
 
-def rag_pipeline_wrapper(question, session_id, generation_model=None, top_k=5):
+def rag_pipeline_wrapper(question, session_id, generation_model=None, top_k=5,
+                         mode=None, collection=None, scope=None):
     
     qdrant_client = QdrantClient(
         url=config.QDRANT_URL, # QDRANT_URL=http://qdrant:6333 when local, or web URL for Qdrant Cloud
+        port=config.qdrant_port,
         api_key=config.QDRANT_API_KEY  # For Qdrant Cloud only, empty otherwise
     )
         
-    result = rag_pipeline(question, qdrant_client, session_id, generation_model, top_k)
+    try:
+        with trace_attributes(session_id=session_id,
+                tags=["rag", f"mode:{mode or 'legacy'}"],
+                metadata={"mode": mode or "legacy", "collection": collection or config.QDRANT_COLLECTION_NAME}):
+            result = rag_pipeline(question, qdrant_client, session_id, generation_model, top_k,
+                                  mode=mode, collection=collection, scope=scope)
+    finally:
+        qdrant_client.close()
 
     return {
         "answer": result["answer"],
