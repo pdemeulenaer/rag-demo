@@ -1,5 +1,7 @@
 # Evaluation
 
+Recorded benchmark outcomes are kept in [Evaluation results](evaluation-results.md).
+
 ## Generate a first question set
 
 From the repository root, with PostgreSQL and Qdrant reachable using your host `.env`:

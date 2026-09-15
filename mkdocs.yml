@@ -46,6 +46,7 @@ nav:
       - Daily ingestion and Airflow: operations/daily-ingestion.md
       - Deployment: operations/deployment.md
       - Evaluation: operations/evaluation.md
+      - Evaluation results: operations/evaluation-results.md
       - Observability: operations/observability.md
       - Benchmarks: operations/benchmarks.md
   - Code Reference:

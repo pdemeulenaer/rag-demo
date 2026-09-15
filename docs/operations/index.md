@@ -4,6 +4,7 @@ Running, shipping, and measuring the system.
 
 - [Deployment](deployment.md) — local Docker Compose and the Azure multi-container pipeline.
 - [Evaluation](evaluation.md) — reviewed, frozen-corpus Vanilla/Hybrid benchmarks.
+- [Evaluation results](evaluation-results.md) — recorded comparison baselines and interpretation.
 - [Observability](observability.md) — repo-owned Langfuse stack, traces and Dataset Experiments.
 - [Benchmarks](benchmarks.md) — Docling PDF parsing throughput on CPU versus GPU.
 
