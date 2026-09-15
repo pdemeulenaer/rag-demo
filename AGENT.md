@@ -88,6 +88,32 @@ The separate procurement RAG repository is an architectural reference, not the t
 domain. PostgreSQL here serves paper identity, provenance and ingestion lifecycle;
 it is not a reason to introduce procurement-style text-to-SQL tools.
 
+### Next implementation milestone: bounded Agentic RAG
+
+`docs/architecture/rag-evolution-roadmap.md` is the source of truth for the next RAG
+milestones. Read it together with `docs/operations/evaluation-results.md` before planning
+or changing retrieval. Follow its order rather than jumping directly to graph storage.
+
+The next implementation must first add typed, framework-independent, read-only retrieval
+tools for PostgreSQL paper discovery, scoped Qdrant search, section expansion and neighbour
+expansion. Neighbour expansion requires a stable chunk ordinal in artifacts, manifests and
+Qdrant; do not infer order from UUIDs, and treat pipeline-version/reindex impact explicitly.
+
+Then add a distinct `agentic` API mode with structured planning, decomposition, evidence
+sufficiency checks and at most three retrieval rounds by default. Preserve Vanilla and
+Hybrid as unchanged controls. The agent must respect SQL-active builds and evaluation-frozen
+build IDs, keep chunk/page/section provenance, detect repeated evidence, stop on budgets and
+abstain when evidence is insufficient. Give it no ingestion or mutation tools. A model that
+only chooses between the existing retrievers is not sufficient.
+
+Expose the mode in Streamlit, trace plans/tools/budgets in Langfuse, and add it to the frozen-
+corpus evaluator. Add cross-paper, human-written and corpus-level unanswerable questions and
+paper-group development/held-out splits before final claims. Only afterward define and
+prototype the scientific graph schema; expose deterministic KG retrieval separately before
+combining it with the agent as `kg_agentic`. Do not run paid evaluations as implementation
+tests. Implement and validate one roadmap slice at a time unless the user explicitly expands
+the scope.
+
 The user selected **star-cluster papers within `astro-ph.GA`**, not the whole category
 and not an automatic expansion to `astro-ph.SR`. arXiv has no dedicated star-cluster
 category. `ARXIV_CATEGORIES` AND any `ARXIV_TOPIC_TERMS` phrase in title/abstract define

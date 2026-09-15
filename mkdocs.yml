@@ -38,6 +38,7 @@ nav:
   - Architecture:
       - Overview: architecture/index.md
       - RAG Pipeline: architecture/rag-pipeline.md
+      - RAG evolution roadmap: architecture/rag-evolution-roadmap.md
       - Ingestion: architecture/ingestion.md
       - API Surface: architecture/api.md
   - Operations:

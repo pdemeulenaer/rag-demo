@@ -192,6 +192,10 @@ Every run is retained under `data/evaluation/runs/`. This repository's optional 
 Docker stack records traces and Dataset Experiments; setup is in the
 [observability guide](docs/operations/observability.md).
 
+The planned progression from Vanilla/Hybrid to bounded Agentic RAG, deterministic KG-RAG
+and KG-Agentic RAG is documented in the
+[RAG evolution roadmap](docs/architecture/rag-evolution-roadmap.md).
+
 ## 🌐 Deployment to Azure (Multi-Container)
 
 This project uses **`docker-compose.prod.yml`** for deployment. The CI/CD pipeline:
@@ -234,6 +238,8 @@ This project uses **`docker-compose.prod.yml`** for deployment. The CI/CD pipeli
 
 * [x] Add optional Langfuse tracing and evaluation experiments
 * [x] Add Airflow-based daily ingestion for a particular topic
+* [ ] Add bounded Agentic RAG with reusable retrieval tools
+* [ ] Add provenance-preserving KG-RAG and KG-Agentic comparison modes
 
 ### Functionalities to correct/improve
 
