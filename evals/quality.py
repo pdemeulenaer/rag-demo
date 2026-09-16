@@ -46,12 +46,18 @@ def evidence_priority(text, section="", kind="text"):
     return 0 if PREFERRED_SECTION.search(section + " " + headings) else 1
 
 
-def candidate_issue(candidate, kind, supplied):
+def candidate_issue(candidate, kind, supplied, *, profile=None):
     if kind != "unanswerable_candidate" and MISSING_ANSWER.search(candidate.reference_answer):
         return "answerable_candidate_missing_information"
     named = words(candidate.question)
     papers = {row["paper_id"]: row["title"] for row in supplied.values()}
-    if any(not words(title) or f" {words(title)} " not in f" {named} " for title in papers.values()):
+    if profile == "metadata_discovery":
+        answer = words(candidate.reference_answer)
+        if any(f" {words(title)} " in f" {named} " for title in papers.values()):
+            return "metadata_question_reveals_paper_title"
+        if any(not words(title) or f" {words(title)} " not in f" {answer} " for title in papers.values()):
+            return "metadata_answer_missing_paper_title"
+    elif any(not words(title) or f" {words(title)} " not in f" {named} " for title in papers.values()):
         return "question_missing_paper_title"
     if re.search(r"\b(?:provided|supplied) excerpts?\b|\bcontext (?:above|below)\b|\bevidence_ids?\b", candidate.question, re.I):
         return "question_not_standalone"

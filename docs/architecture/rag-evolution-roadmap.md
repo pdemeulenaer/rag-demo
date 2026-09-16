@@ -114,6 +114,9 @@ improvement from judge scores alone; inspect per-question regressions and retrie
 
 Before tuning or presenting final comparisons:
 
+- use the profiled v3 plan in the evaluation guide to distinguish direct facts,
+  within-paper synthesis, cross-paper comparisons, cross-paper multihop, metadata
+  discovery and unanswerable cases;
 - add more genuinely multi-paper questions;
 - approve corpus-level unanswerable questions that test abstention;
 - include several human-written research questions to reduce synthetic bias;

@@ -177,8 +177,10 @@ cython_debug/
 .cursorignore
 .cursorindexingignore
 
-data/
+# data/
 qdrant_storage/
 postgres_data/
 temp_uploads/
 data/paper_artifacts/
+data/folder/
+data/all/

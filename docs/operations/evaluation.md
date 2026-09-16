@@ -12,8 +12,10 @@ make create-eval-dataset      # Paid OpenAI generation from that saved preview
 ```
 
 The default samples up to **50 active arXiv papers**, four text excerpts per paper,
-and plans **50 candidates**: 30 single-paper, 15 cross-paper comparisons, and 5
-insufficient-evidence cases. It uses `gpt-4.1-mini` and your `OPENAI_API_KEY`.
+and plans **50 candidates**: 30 single-paper, 15 cross-paper, and 5
+insufficient-evidence cases. Within those broad kinds, new plans label direct facts,
+within-paper synthesis, cross-paper comparison, cross-paper multihop and unanswerable
+profiles. It uses `gpt-4.1-mini` and your `OPENAI_API_KEY`.
 Neither command changes PostgreSQL/Qdrant, ingests papers, or publishes an experiment.
 No RAGAS, Groq, Cohere or Langfuse credentials are needed for question generation.
 
@@ -45,7 +47,8 @@ and `selection_priority` (0 preferred, 1 fallback). Papers without eligible exce
 listed in `excluded_no_text_build_ids`; previews may contain fewer papers than requested.
 
 The prompt first identifies a supported fact, then asks a question that the fact answers.
-Every question must include its paper's full title (both titles for a comparison).
+Every question must include its paper's full title (both titles for a comparison), except
+the `metadata_discovery` profile: its question hides the title while its answer names it.
 New plans freeze `quality_policy: fact-first-v1`. That policy rejects answerable jobs
 whose reference answers explicitly abstain or say necessary information is missing,
 and rejects questions missing paper titles or referring to supplied excerpts. These
@@ -79,6 +82,57 @@ The CLI `python -m evals.generate_questions prepare --help` exposes all options.
 At least two papers with usable text are required. Preview never overwrites an existing
 directory: choose a new `EVAL_DIR` for a new sample, model or question count.
 Sampling is deterministic for unchanged inputs and seed; model responses need not be.
+
+### Agentic-ready v3 set
+
+For the next Agentic RAG milestone, create a **new** 70-question plan over the current
+50-paper corpus. This deliberately increases questions that require synthesis, iterative
+retrieval and abstention:
+
+```bash
+make eval-preview \
+  EVAL_DIR=data/evaluation/markdown-mini-v3 \
+  QUESTIONS=70 PAPERS=50 \
+  EVAL_MODEL=gpt-5-mini EVAL_REASONING_EFFORT=minimal \
+  EVAL_MAX_TOKENS=4000 \
+  EVAL_SINGLE_FACT=20 \
+  EVAL_SINGLE_SYNTHESIS=10 \
+  EVAL_CROSS_COMPARISON=15 \
+  EVAL_CROSS_MULTIHOP=10 \
+  EVAL_METADATA_DISCOVERY=5 \
+  EVAL_UNANSWERABLE=10
+```
+
+This preview makes no model calls. Its planned aggregate is 35 single-paper questions,
+25 cross-paper questions and 10 unanswerable candidates. The profiles mean:
+
+| Profile | Count | Retrieval challenge |
+| --- | ---: | --- |
+| `single_fact` | 20 | One precise fact from one paper |
+| `single_synthesis` | 10 | Combine at least two excerpts from one paper |
+| `cross_comparison` | 15 | Compare supported findings or methods from two papers |
+| `cross_multihop` | 10 | Retrieve from both papers and perform an explicit synthesis step |
+| `metadata_discovery` | 5 | Identify a study from metadata/topic clues, then answer from it |
+| `unanswerable` | 10 | Detect missing evidence and abstain |
+
+Cross-paper jobs use topical title/abstract overlap and disjoint pairs before any pair is
+reused. With 50 eligible papers and 25 cross-paper jobs, this creates 25 two-paper
+components, making a later paper-group development/test split feasible.
+
+Inspect `plan.json` and `snapshot.json`, then explicitly start the paid generation:
+
+```bash
+make create-eval-dataset \
+  EVAL_DIR=data/evaluation/markdown-mini-v3 \
+  EVAL_WAIT_SECONDS=600
+```
+
+Generated profile labels flow into the reviewed dataset, benchmark result records,
+Langfuse items/traces and the run manifest's `question_profiles` counts. They let reports
+be broken down by retrieval challenge instead of only `single_paper`/`cross_paper`.
+The generator still cannot create independent human-authored questions: add 5–10 real
+research questions during review, either replacing weaker synthetic drafts or expanding
+the set. Every generated item remains `needs_review`.
 
 ### Fast GPT-5 Mini pilot
 
@@ -117,7 +171,8 @@ cap permits more spending per question; it does not force the model to use all t
 The model must support your chosen limit and Responses API background generation.
 The saved token cap is sent as `max_output_tokens`.
 
-Cross-paper partners are chosen by title/abstract word overlap without embeddings.
+Cross-paper partners are chosen greedily by title/abstract word overlap without embeddings;
+new profiled plans keep pairs disjoint until all eligible papers have been paired.
 This is a simple starting heuristic, not a knowledge graph or a guarantee of meaningful
 scientific overlap. Unsupported pairs can be skipped; duplicate questions, unknown
 evidence IDs and invalid paper counts are rejected. Thus **50
@@ -219,13 +274,18 @@ from them.
 1. Verify every answer against the excerpts and original paper; correct units, conditions
    and scientific claims. Reject trivial, ambiguous or near-duplicate questions.
 2. Check that cross-paper questions genuinely require both papers. A citation to each
-   paper alone does not prove a multi-step reasoning requirement.
-3. Treat `unanswerable_candidate` as unanswerable **only in the supplied excerpts**.
+   paper alone does not prove a multi-step reasoning requirement. For `cross_multihop`,
+   verify that one-paper evidence cannot answer the question and that the answer actually
+   performs the requested synthesis.
+3. For `single_synthesis`, verify that the cited excerpts contribute distinct necessary
+   facts. For `metadata_discovery`, verify that the clues are sufficient without leaking
+   the title and that the answer identifies the correct paper.
+4. Treat `unanswerable_candidate` as unanswerable **only in the supplied excerpts**.
    Search the full frozen corpus before accepting it as a corpus-level abstention test.
    Its reference evidence is empty; its generation evidence remains in the snapshot.
-4. In a separate reviewed copy, mark accepted records `review_status: approved` and
+5. In a separate reviewed copy, mark accepted records `review_status: approved` and
    rejected records `rejected`. Add a few real questions of your own to reduce synthetic bias.
-5. Separate development and held-out test papers **before tuning**; connected cross-paper
+6. Separate development and held-out test papers **before tuning**; connected cross-paper
    groups must stay in one split. Keep the same approved questions and corpus when
    comparing Vanilla, Hybrid and future graph/agentic modes.
 
@@ -327,10 +387,16 @@ Judge metrics use `0`, `0.5`, or `1`; they are model assessments, not human grou
 Errors are retained per item, processing continues, and the final manifest becomes
 `completed_with_errors`. Partial results survive a stopped process, but automatic resume
 of an interrupted benchmark run is not implemented yet; a new invocation creates a new run.
+OpenAI answer generation and judge calls each make at most one additional call when a
+structured model response fails local validation. Judge metadata records both response IDs
+and combined usage when that recovery occurs. Other service failures are not retried by the
+runner.
 
 `EVAL_MODES="vanilla"`, `EVAL_SPLIT=development`, `EVAL_TOP_K=10`,
 `EVAL_GENERATION_MODEL=...`, and `EVAL_CONCURRENCY=...` are available for controlled experiments. Use concurrency 1
 until provider rate limits are understood.
+Use `EVAL_QUESTION_ID=q0033` to reproduce one approved item from the selected split without
+rerunning the whole benchmark; this still performs paid generation and optional judge calls.
 
 Schema-v1 datasets have no split metadata. Do not tune repeatedly on all of their approved
 questions and then describe the same scores as held-out performance.

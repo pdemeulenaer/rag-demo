@@ -57,6 +57,18 @@ def test_evaluation_make_forwards_optional_reasoning_effort():
                             "--max-completion-tokens", "2500"]
 
 
+def test_evaluation_make_forwards_agentic_question_profiles():
+    command = dry_run("eval-preview", "QUESTIONS=70", "EVAL_SINGLE_FACT=20",
+                      "EVAL_SINGLE_SYNTHESIS=10", "EVAL_CROSS_COMPARISON=15",
+                      "EVAL_CROSS_MULTIHOP=10", "EVAL_METADATA_DISCOVERY=5",
+                      "EVAL_UNANSWERABLE=10")
+    assert command[-12:] == [
+        "--single-fact", "20", "--single-synthesis", "10",
+        "--cross-comparison", "15", "--cross-multihop", "10",
+        "--metadata-discovery", "5", "--unanswerable", "10",
+    ]
+
+
 def test_evaluation_connectivity_check_is_not_generation():
     assert dry_run("eval-check", "EVAL_DIR=data/evaluation/gpt5") == [
         "uv", "run", "python", "-m", "evals.generate_questions", "check",
@@ -75,6 +87,11 @@ def test_reviewed_evaluation_runner_forwards_modes_and_optional_limit():
         "--judge-model", "gpt-5-mini", "--judge-reasoning-effort", "minimal",
         "--concurrency", "1", "--limit", "3",
     ]
+
+
+def test_evaluation_runner_forwards_question_id_filter():
+    command = dry_run("eval-run", "EVAL_QUESTION_ID=q0033")
+    assert command[-2:] == ["--question-id", "q0033"]
 
 
 def test_evaluation_review_validation_and_split_are_local_commands():

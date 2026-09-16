@@ -2,8 +2,7 @@
 import os
 import instructor
 from groq import Groq
-from pydantic import BaseModel
-from typing import List
+from pydantic import BaseModel, ConfigDict, ValidationError
 import json
 import cohere
 from qdrant_client import QdrantClient
@@ -207,18 +206,19 @@ def process_context(context):
     return "\n".join(lines)
 
 
-OUTPUT_SCHEMA = {
-    "type": "object",
-    "properties": {
-        "answer": {"type": "string"},
-        "retrieved_context_ids": {
-            "type": "array",
-            "items": {"type": "string"}
-        },
-        "used_chunks_rationale": {"type": "string"} # NEW 2025-11-15: field explaining why certain chunks were used
-    },
-    "required": ["answer", "retrieved_context_ids"]
-}
+class InvalidCitationIdsError(ValueError):
+    """The answer cited an unavailable or duplicate retrieved context ID."""
+
+
+class RAGGenerationResponse(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    answer: str
+    retrieved_context_ids: list[str]
+
+
+# Keep the prompt, provider request and local parser on one schema.
+OUTPUT_SCHEMA = RAGGenerationResponse.model_json_schema()
 
 
 def build_prompt(context, question, session_id):
@@ -264,11 +264,6 @@ class RAGUsedContext(BaseModel):
     id: str #int # changed from Aurimas' code since here we use uuid as strings
     description: str
 
-class RAGGenerationResponse(BaseModel):
-    answer: str
-    # retrieved_context_ids: List[RAGUsedContext]
-    retrieved_context_ids: List[str]  # changed from Aurimas' code since we don't need description here
-
 class RAGSummarizationResponse(BaseModel):
     summary: str    
 
@@ -299,9 +294,18 @@ def is_openai_model(model_name: str) -> bool:
     )
 
 
+def _validate_context_ids(response, allowed_context_ids):
+    if allowed_context_ids is None:
+        return response
+    allowed = {str(value) for value in allowed_context_ids}
+    selected = response.retrieved_context_ids
+    if len(selected) != len(set(selected)) or not set(selected).issubset(allowed):
+        raise InvalidCitationIdsError
+    return response
+
+
 @observe(name="generate_answer", capture_input=False, capture_output=False)
-# def generate_answer(prompt: List[Dict[str, str]], generation_model: str = None):
-def generate_answer(prompt, generation_model=None):
+def generate_answer(prompt, generation_model=None, allowed_context_ids=None):
     """
     Unified generation for OpenAI & Groq.
 
@@ -320,27 +324,36 @@ def generate_answer(prompt, generation_model=None):
     if is_openai_model(generation_model):
         # --------- OpenAI branch ----------
         client = openai_client()
-        response_json = client.chat.completions.create(
-            model=generation_model,
-            messages=prompt,
-            response_format={
-                "type": "json_schema",
-                "json_schema": {
-                    "name": "RAGGenerationResponse",
-                    "schema": OUTPUT_SCHEMA
+        usage = {"input_tokens": 0, "output_tokens": 0, "total_tokens": 0,
+                 "attempts": 0}
+        for attempt in range(2):
+            response_json = client.chat.completions.create(
+                model=generation_model,
+                messages=prompt,
+                response_format={
+                    "type": "json_schema",
+                    "json_schema": {
+                        "name": "RAGGenerationResponse",
+                        "strict": True,
+                        "schema": OUTPUT_SCHEMA,
+                    }
                 }
-            }
-        )
-
-        raw_content = response_json.choices[0].message.content
-        parsed_content = json.loads(raw_content)
-        response = RAGGenerationResponse(**parsed_content)
-
-        usage = {
-            "input_tokens": response_json.usage.prompt_tokens,
-            "output_tokens": response_json.usage.completion_tokens,
-            "total_tokens": response_json.usage.total_tokens,
-        }
+            )
+            usage["attempts"] += 1
+            if response_json.usage is not None:
+                usage["input_tokens"] += response_json.usage.prompt_tokens
+                usage["output_tokens"] += response_json.usage.completion_tokens
+                usage["total_tokens"] += response_json.usage.total_tokens
+            try:
+                response = RAGGenerationResponse.model_validate_json(
+                    response_json.choices[0].message.content
+                )
+                _validate_context_ids(response, allowed_context_ids)
+                break
+            except (ValidationError, InvalidCitationIdsError):
+                if attempt == 1:
+                    raise
+                logger.warning("Retrying one malformed structured RAG response")
 
     else:
         # --------- Groq branch ----------
@@ -356,6 +369,7 @@ def generate_answer(prompt, generation_model=None):
                 max_tokens=config.GENERATION_MODEL_MAX_TOKENS,
                 max_retries=5,
             )
+            _validate_context_ids(response, allowed_context_ids)
             usage = {
                 "input_tokens": raw_response.usage.prompt_tokens,
                 "output_tokens": raw_response.usage.completion_tokens,
@@ -415,7 +429,8 @@ def rag_pipeline(question, qdrant_client, session_id, generation_model=None, top
     )
 
     # Generate answer using LLM
-    answer = generate_answer(prompt, generation_model)
+    answer = generate_answer(prompt, generation_model,
+                             allowed_context_ids={str(c["id"]) for c in retrieved_context})
 
     # Deduplicate sources and aggregate page numbers
     seen = {}
@@ -423,7 +438,7 @@ def rag_pipeline(question, qdrant_client, session_id, generation_model=None, top
 
     used_ids = set(answer.retrieved_context_ids)
     for c in retrieved_context:
-        if c["id"] not in used_ids:
+        if str(c["id"]) not in used_ids:
             continue
         key = (c.get("paper_id"), c.get("paper_version"), tuple(c.get("authors") or []), c.get("title"), c.get("year"))
         page_num = c.get("page")

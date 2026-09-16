@@ -16,8 +16,18 @@ from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
 
 QuestionKind = Literal["single_paper", "cross_paper", "unanswerable_candidate"]
+QuestionProfile = Literal["single_fact", "single_synthesis", "cross_comparison",
+                          "cross_multihop", "metadata_discovery", "unanswerable"]
 ReviewStatus = Literal["needs_review", "approved", "rejected"]
 DatasetSplit = Literal["development", "test"]
+PROFILE_KIND = {
+    "single_fact": "single_paper",
+    "single_synthesis": "single_paper",
+    "cross_comparison": "cross_paper",
+    "cross_multihop": "cross_paper",
+    "metadata_discovery": "single_paper",
+    "unanswerable": "unanswerable_candidate",
+}
 
 
 class ReviewDatasetError(ValueError):
@@ -40,6 +50,7 @@ class ReviewedQuestionV2(BaseModel):
 
     id: str = Field(min_length=1)
     kind: QuestionKind
+    profile: QuestionProfile | None = None
     question: str = Field(min_length=1)
     reference_answer: str = Field(min_length=1)
     review_status: ReviewStatus
@@ -190,6 +201,10 @@ def validate_v2(reviewed: dict, snapshot: dict, *, require_splits: bool = True,
     active_build_ids = {str(value) for value in snapshot.get("active_build_ids", [])}
     approved: list[ReviewedQuestionV2] = []
     for question in dataset.questions:
+        if question.profile is not None and PROFILE_KIND[question.profile] != question.kind:
+            raise ReviewDatasetError(
+                f"Question {question.id} profile does not match its question kind"
+            )
         papers = _paper_ids(question, snapshot)
         question.paper_ids = papers
         if question.review_status == "needs_review":

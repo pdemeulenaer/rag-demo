@@ -60,6 +60,27 @@ def test_empty_evidence_does_not_generate(runtime, monkeypatch):
     generate.assert_not_called()
 
 
+def test_openai_generation_uses_model_schema_and_retries_invalid_citations(runtime, monkeypatch):
+    retrieval, _ = runtime
+    usage = SimpleNamespace(prompt_tokens=10, completion_tokens=2, total_tokens=12)
+    invalid = SimpleNamespace(usage=usage, choices=[SimpleNamespace(message=SimpleNamespace(
+        content='{"answer":"Unsupported","retrieved_context_ids":["unknown"]}'))])
+    valid = SimpleNamespace(usage=usage, choices=[SimpleNamespace(message=SimpleNamespace(
+        content='{"answer":"Grounded","retrieved_context_ids":["allowed"]}'))])
+    create = Mock(side_effect=[invalid, valid])
+    client = SimpleNamespace(chat=SimpleNamespace(completions=SimpleNamespace(create=create)))
+    monkeypatch.setattr(retrieval, "openai_client", Mock(return_value=client))
+
+    response = retrieval.generate_answer([], "gpt-4.1-nano", {"allowed"})
+
+    assert response.answer == "Grounded"
+    assert create.call_count == 2
+    schema = create.call_args.kwargs["response_format"]["json_schema"]
+    assert schema["strict"] is True
+    assert schema["schema"] == retrieval.RAGGenerationResponse.model_json_schema()
+    assert "used_chunks_rationale" not in schema["schema"]["properties"]
+
+
 def request():
     return Request({"type": "http", "headers": [(b"cookie", b"session_id=test-session")],
                     "state": {"request_id": "request-1"}})

@@ -30,12 +30,42 @@ def test_plan_balanced_deterministic_and_two_distinct_papers():
     assert jobs == gen.plan_jobs(list(reversed(papers)), 50, 42)
     assert Counter(j["kind"] for j in jobs) == {
         "single_paper": 30, "cross_paper": 15, "unanswerable_candidate": 5}
+    assert Counter(j["profile"] for j in jobs) == {
+        "single_fact": 20, "single_synthesis": 10, "cross_comparison": 10,
+        "cross_multihop": 5, "unanswerable": 5}
     assert len({eid for job in jobs for eid in job["evidence_ids"]}) == 50
     for job in jobs:
         if job["kind"] == "cross_paper":
             assert len(set(job["evidence_ids"])) == 2
     with pytest.raises(ValueError, match="At least two"):
         gen.plan_jobs(papers[:1], 50, 42)
+
+
+def test_agentic_profile_plan_has_requested_mix_and_split_friendly_pairs():
+    papers = [{"paper_id": f"p{i}", "build_id": f"b{i}", "title": f"Cluster study {i}",
+               "abstract": f"Stellar dynamics topic {i % 5}", "evidence_ids": [f"e{i}"]}
+              for i in range(50)]
+    counts = {"single_fact": 20, "single_synthesis": 10, "cross_comparison": 15,
+              "cross_multihop": 10, "metadata_discovery": 5, "unanswerable": 10}
+    jobs = gen.plan_jobs(papers, 70, 42, counts)
+    assert Counter(job["profile"] for job in jobs) == counts
+    assert Counter(job["kind"] for job in jobs) == {
+        "single_paper": 35, "cross_paper": 25, "unanswerable_candidate": 10}
+    cross = [job for job in jobs if job["kind"] == "cross_paper"]
+    pairs = [tuple(sorted(job["evidence_ids"])) for job in cross]
+    assert len(pairs) == len(set(pairs)) == 25
+    assert len({evidence_id for pair in pairs for evidence_id in pair}) == 50
+
+
+def test_profile_counts_must_be_complete_non_negative_and_match_total():
+    papers = [{"paper_id": f"p{i}", "build_id": f"b{i}", "title": "Clusters",
+               "abstract": "Dynamics", "evidence_ids": [f"e{i}"]} for i in range(4)]
+    with pytest.raises(gen.EvaluationError, match="every profile"):
+        gen.plan_jobs(papers, 10, 42, {"single_fact": 10})
+    counts = {profile: 0 for profile in gen.PROFILE_KIND}
+    counts["single_fact"] = 9
+    with pytest.raises(gen.EvaluationError, match="add up"):
+        gen.plan_jobs(papers, 10, 42, counts)
 
 
 def test_active_sources_delegate_to_scoped_model_compatible_catalogue():
@@ -126,6 +156,16 @@ def test_cross_paper_needs_two_papers_not_two_chunks():
         gen.validate_candidate(proposal(["e1", "e2"]), job, evidence, set())
     evidence["e2"]["paper_id"] = "p2"
     assert len(gen.validate_candidate(proposal(["e1", "e2"]), job, evidence, set())["reference_evidence"]) == 2
+
+
+def test_single_synthesis_requires_two_distinct_excerpts():
+    evidence = {"e1": chunk(), "e2": chunk("e2")}
+    job = {"id": "q2", "kind": "single_paper", "profile": "single_synthesis",
+           "evidence_ids": list(evidence)}
+    with pytest.raises(gen.EvaluationError, match="needs_two_excerpts"):
+        gen.validate_candidate(proposal(["e1"]), job, evidence, set())
+    result = gen.validate_candidate(proposal(["e1", "e2"]), job, evidence, set())
+    assert result["profile"] == "single_synthesis"
 
 
 def test_negative_has_no_positive_evidence_and_is_not_corpus_ground_truth():
@@ -437,6 +477,21 @@ def test_error_diagnostics_handle_cycles():
     first, second = RuntimeError("private"), RuntimeError("private")
     first.__cause__, second.__cause__ = second, first
     assert len(error_details(first)["causes"]) == 2
+
+
+def test_error_diagnostics_report_safe_validation_fields():
+    from pydantic import BaseModel, ValidationError
+    from evals.diagnostics import error_details
+
+    class Result(BaseModel):
+        score: int
+
+    with pytest.raises(ValidationError) as caught:
+        Result.model_validate({"score": "private-paper-text"})
+    details = error_details(caught.value)
+    assert details["category"] == "response_validation"
+    assert details["causes"][0]["fields"] == [{"location": "score", "type": "int_parsing"}]
+    assert "private-paper-text" not in json.dumps(details)
 
 
 def test_legacy_checkpoint_is_preserved_and_new_results_use_background(prepared):

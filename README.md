@@ -179,6 +179,9 @@ insufficient-evidence candidates, with reference answers and supporting excerpts
 All require human review; question generation does not publish experiments. It runs in the background
 with short polling requests; rerun the same command to resume saved response IDs. See the
 [evaluation guide](docs/operations/evaluation.md) for customization, resuming and limits.
+The guide also defines the Agentic-ready v3 mix: direct facts, within-paper synthesis,
+cross-paper comparisons, cross-paper multihop, metadata discovery and verified
+unanswerable cases.
 
 After marking accepted records `review_status: approved` in `questions.reviewed.json`,
 validate the reviewed file. New schema-v2 datasets can assign leakage-safe splits that keep

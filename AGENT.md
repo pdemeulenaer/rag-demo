@@ -16,7 +16,9 @@ two ingestion modes. MkDocs documentation is in `docs/`; start at
   classification and retrieve evidence directly.
 - **RAG:** `src/api/rag/retrieval.py`: OpenAI embedding -> Qdrant RRF fusion of dense and
   full-text retrieval -> Cohere rerank -> structured OpenAI/Groq response. The model selects
-  cited chunk IDs; only those sources/figures are returned.
+  cited chunk IDs; only those sources/figures are returned. The Pydantic response model owns
+  the strict OpenAI schema; duplicate/unavailable citation IDs are rejected, with one bounded
+  retry for malformed structured generation. Evaluation judges use the same one-retry bound.
 - **Memory:** pickled `ConversationMemory` objects in Redis, per `session_id`, 10-message
   recent window plus a Groq summary; TTL is refreshed to one hour on every message.
 - **Uploaded-PDF ingestion:** PDF text/figures are extracted with PyMuPDF. Text chunks, a document summary,
@@ -281,6 +283,12 @@ generator. Preview freezes
 manifest-listed active evidence with identity checks and deterministic sampling.
 Defaults: up to 50 scoped arXiv papers, four text excerpts each, 30 single-paper /
 15 cross-paper / 5 insufficient-evidence candidate jobs, `gpt-4.1-mini`.
+New plans also carry a retrieval profile (`single_fact`, `single_synthesis`,
+`cross_comparison`, `cross_multihop`, `metadata_discovery`, or `unanswerable`). The
+Agentic-ready v3 recommendation is a new 70-question directory over 50 papers with
+counts 20/10/15/10/5/10 respectively. Configure these through the corresponding
+`EVAL_*` Make variables documented in the evaluation guide. Cross-paper planning uses
+topic-related disjoint pairs before reuse so paper-group splits remain feasible.
 `EVAL_MAX_TOKENS` / `prepare --max-completion-tokens` sets the per-call reasoning +
 answer budget (default 2500, range 256–128000). It is frozen in the plan, not overridden
 at generation time. The documented GPT-5 example uses 25000 in a new `EVAL_DIR`;
@@ -306,6 +314,11 @@ Never promise exactly-once billing when a submission response is lost. Completed
 (including legacy rejections) are skipped; new results record the background transport.
 Local output defaults to git-ignored
 `data/evaluation/star-clusters`. New samples require a new `EVAL_DIR`.
+Profile labels must remain attached through review, local results, Langfuse and run
+manifests. They are evaluation strata, not proof that a generated question truly has
+the claimed difficulty; human review must verify synthesis/multihop requirements.
+Generated unanswerable items remain excerpt-scoped until a reviewer searches the frozen
+corpus, and independent human-written questions must be added manually.
 
 ## Evaluation runner and Langfuse
 

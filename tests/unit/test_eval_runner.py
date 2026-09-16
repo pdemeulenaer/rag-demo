@@ -19,7 +19,8 @@ def reviewed_dataset(tmp_path: Path) -> Path:
     reviewed = {
         "schema_version": 1, "snapshot_hash": runner.canonical_hash(snapshot), "plan_hash": "plan",
         "questions": [
-            {"id": "q1", "kind": "single_paper", "question": "What happened?",
+            {"id": "q1", "kind": "single_paper", "profile": "single_fact",
+             "question": "What happened?",
              "reference_answer": "A result.", "review_status": "approved",
              "reference_evidence": [{"point_id": "gold-1"}]},
             {"id": "q2", "kind": "single_paper", "question": "Rejected?",
@@ -95,13 +96,37 @@ def test_deterministic_metrics_uses_qdrant_point_ids():
     assert metrics["citation_from_retrieval"] == 1.0
 
 
+def test_judge_retries_one_invalid_structured_response(monkeypatch):
+    invalid = SimpleNamespace(id="response-1", model="judge", output_text="{}",
+                              usage=SimpleNamespace(model_dump=lambda: {"input_tokens": 10}))
+    valid = SimpleNamespace(id="response-2", model="judge", _request_id="request-2",
+                            output_text=json.dumps({"correctness": 1, "groundedness": 1,
+                                "answer_relevance": 1, "abstention": "not_applicable",
+                                "reason": "Supported."}),
+                            usage=SimpleNamespace(model_dump=lambda: {"input_tokens": 11}))
+    create = Mock(side_effect=[invalid, valid])
+    client = SimpleNamespace(responses=SimpleNamespace(create=create))
+    monkeypatch.setattr("src.api.core.clients.openai_client", Mock(return_value=client))
+
+    result, metadata = runner.judge(
+        {"kind": "single_paper", "question": "Question?", "reference_answer": "Answer.",
+         "reference_evidence": []}, "Answer.", [], "gpt-5-mini", "minimal")
+
+    assert result["correctness"] == 1
+    assert create.call_count == 2
+    assert metadata["attempts"] == 2
+    assert metadata["response_ids"] == ["response-1", "response-2"]
+    assert metadata["usage"]["input_tokens"] == 21
+
+
 def test_local_run_checkpoints_both_modes(tmp_path, monkeypatch):
     dataset = reviewed_dataset(tmp_path / "dataset")
     qdrant = Mock()
     monkeypatch.setattr(runner, "QdrantClient", Mock(return_value=qdrant))
 
     def fake_evaluate(question, mode, **kwargs):
-        return {"question_id": question["id"], "kind": question["kind"], "mode": mode,
+        return {"question_id": question["id"], "kind": question["kind"],
+                "profile": question.get("profile"), "mode": mode,
                 "question": question["question"], "reference_answer": question["reference_answer"],
                 "answer": mode, "retrieved_chunks": [], "cited_context_ids": [],
                 "metrics": {"retrieval_recall": 1.0}, "judge": None, "judge_request": None,
@@ -116,7 +141,10 @@ def test_local_run_checkpoints_both_modes(tmp_path, monkeypatch):
     output = runner.run(args)
     results = json.loads((output / "results.json").read_text())["results"]
     manifest = json.loads((output / "manifest.json").read_text())
+    summary = json.loads((output / "summary.json").read_text())
     assert [row["mode"] for row in results] == ["vanilla", "hybrid"]
     assert manifest["status"] == "complete"
+    assert manifest["question_profiles"] == {"single_fact": 1}
+    assert summary["vanilla"]["profiles"]["single_fact"]["questions"] == 1
     assert (output / "report.md").exists()
     qdrant.close.assert_called_once()

@@ -7,6 +7,7 @@ as a separate Dataset Experiment over the exact same items.
 from __future__ import annotations
 
 import argparse
+from collections import Counter
 from datetime import datetime, timezone
 from hashlib import sha256
 import json
@@ -19,7 +20,7 @@ from time import monotonic
 from typing import Literal
 from uuid import uuid4
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, ValidationError
 from qdrant_client import QdrantClient
 from qdrant_client.models import FieldCondition, Filter, MatchAny
 
@@ -121,7 +122,8 @@ def judge(question: dict, answer: str, retrieved: list[dict], model: str,
     request = {
         "model": model,
         "instructions": JUDGE_INSTRUCTIONS,
-        "input": json.dumps({"kind": question["kind"], "question": question["question"],
+        "input": json.dumps({"kind": question["kind"], "profile": question.get("profile"),
+                             "question": question["question"],
                              "reference_answer": question["reference_answer"],
                              "reference_evidence": reference, "actual_answer": answer,
                              "retrieved_evidence": evidence}, ensure_ascii=False),
@@ -132,10 +134,23 @@ def judge(question: dict, answer: str, retrieved: list[dict], model: str,
     }
     if reasoning_effort != "none":
         request["reasoning"] = {"effort": reasoning_effort}
-    response = openai_client().responses.create(**request)
-    parsed = JudgeResult.model_validate_json(response.output_text)
-    usage = response.usage.model_dump() if response.usage else {}
+    responses, usage = [], {}
+    for attempt in range(2):
+        response = openai_client().responses.create(**request)
+        responses.append(response)
+        current_usage = response.usage.model_dump() if response.usage else {}
+        for name, value in current_usage.items():
+            if isinstance(value, (int, float)):
+                usage[name] = usage.get(name, 0) + value
+        try:
+            parsed = JudgeResult.model_validate_json(response.output_text)
+            break
+        except ValidationError:
+            if attempt == 1:
+                raise
     return parsed.model_dump(), {"response_id": response.id,
+                                 "response_ids": [item.id for item in responses],
+                                 "attempts": len(responses),
                                  "request_id": getattr(response, "_request_id", None),
                                  "model": response.model, "usage": usage}
 
@@ -162,7 +177,8 @@ def evaluate_item(question: dict, mode: str, *, qdrant: QdrantClient, collection
 
     started = monotonic()
     with trace_attributes(session_id=run_id, tags=["evaluation", f"mode:{mode}"],
-            metadata={"evaluation_run_id": run_id, "question_id": question["id"], "mode": mode}):
+            metadata={"evaluation_run_id": run_id, "question_id": question["id"],
+                      "question_profile": question.get("profile"), "mode": mode}):
         with observation(name="evaluate_rag_question", input={"question_id": question["id"],
                          "question": question["question"], "mode": mode}) as span:
             try:
@@ -184,7 +200,8 @@ def evaluate_item(question: dict, mode: str, *, qdrant: QdrantClient, collection
                             judge_result["abstention"])),
                     })
                 record = {
-                    "question_id": question["id"], "kind": question["kind"], "mode": mode,
+                    "question_id": question["id"], "kind": question["kind"],
+                    "profile": question.get("profile"), "mode": mode,
                     "question": question["question"], "reference_answer": question["reference_answer"],
                     "answer": result["answer"], "retrieved_chunks": chunks,
                     "cited_context_ids": cited_ids, "metrics": metrics,
@@ -201,25 +218,38 @@ def evaluate_item(question: dict, mode: str, *, qdrant: QdrantClient, collection
                 details = error_details(error)
                 if span is not None:
                     span.update(level="ERROR", status_message=details.get("category", type(error).__name__))
-                return {"question_id": question["id"], "kind": question["kind"], "mode": mode,
+                return {"question_id": question["id"], "kind": question["kind"],
+                        "profile": question.get("profile"), "mode": mode,
                         "question": question["question"], "reference_answer": question["reference_answer"],
                         "answer": None, "retrieved_chunks": [], "cited_context_ids": [], "metrics": {},
                         "judge": None, "judge_request": None,
                         "elapsed_seconds": round(monotonic() - started, 3), "error": details}
 
 
+def _summarize_rows(rows: list[dict]) -> dict:
+    names = sorted({name for row in rows for name, value in row.get("metrics", {}).items()
+                    if isinstance(value, (int, float)) and name not in {"retrieved_count", "cited_count"}})
+    return {"questions": len(rows), "errors": sum(row["error"] is not None for row in rows),
+            "mean_latency_seconds": round(fmean(row["elapsed_seconds"] for row in rows), 3)
+            if rows else None,
+            "metrics": {name: round(fmean(row["metrics"][name] for row in rows
+                                 if isinstance(row.get("metrics", {}).get(name), (int, float))), 4)
+                        for name in names}}
+
+
 def summarize(records: list[dict], modes: list[str]) -> dict:
     result = {}
     for mode in modes:
         rows = [row for row in records if row["mode"] == mode]
-        names = sorted({name for row in rows for name, value in row.get("metrics", {}).items()
-                        if isinstance(value, (int, float)) and name not in {"retrieved_count", "cited_count"}})
-        result[mode] = {"questions": len(rows), "errors": sum(row["error"] is not None for row in rows),
-                        "mean_latency_seconds": round(fmean(row["elapsed_seconds"] for row in rows), 3)
-                        if rows else None,
-                        "metrics": {name: round(fmean(row["metrics"][name] for row in rows
-                                             if isinstance(row.get("metrics", {}).get(name), (int, float))), 4)
-                                    for name in names}}
+        aggregate = _summarize_rows(rows)
+        profiles = sorted({row.get("profile") or row["kind"] for row in rows})
+        aggregate["profiles"] = {
+            profile: _summarize_rows(
+                [row for row in rows if (row.get("profile") or row["kind"]) == profile]
+            )
+            for profile in profiles
+        }
+        result[mode] = aggregate
     return result
 
 
@@ -236,6 +266,19 @@ def report_markdown(manifest: dict, summary: dict) -> str:
         lines.append(f"| {mode} | {row['questions']} | {row['errors']} | {row['mean_latency_seconds']} | "
                      f"{show('retrieval_recall')} | {show('answer_correctness')} | "
                      f"{show('groundedness')} | {show('answer_relevance')} |")
+    for mode in manifest["modes"]:
+        profiles = summary[mode].get("profiles", {})
+        if not profiles:
+            continue
+        lines.extend(["", f"## {mode} by question profile", "",
+                      "| Profile | Questions | Errors | Retrieval recall | Correctness | Groundedness | Relevance |",
+                      "| --- | ---: | ---: | ---: | ---: | ---: | ---: |"])
+        for profile, row in profiles.items():
+            metrics = row["metrics"]
+            show = lambda name: "—" if metrics.get(name) is None else f"{metrics[name]:.3f}"
+            lines.append(f"| {profile} | {row['questions']} | {row['errors']} | "
+                         f"{show('retrieval_recall')} | {show('answer_correctness')} | "
+                         f"{show('groundedness')} | {show('answer_relevance')} |")
     lines.extend(["", "See `results.json` for per-question answers, evidence, citations and scores.", ""])
     return "\n".join(lines)
 
@@ -249,10 +292,12 @@ def sync_langfuse_dataset(client, questions: list[dict], dataset_name: str,
     for row in questions:
         client.create_dataset_item(dataset_name=dataset_name,
             id=sha256(f"{dataset_hash}:{row['id']}".encode()).hexdigest()[:32],
-            input={"id": row["id"], "kind": row["kind"], "question": row["question"]},
+            input={"id": row["id"], "kind": row["kind"], "profile": row.get("profile"),
+                   "question": row["question"]},
             expected_output={"reference_answer": row["reference_answer"],
                 "gold_point_ids": [e["point_id"] for e in row.get("reference_evidence", [])]},
             metadata={"review_status": "approved",
+                      "question_profile": row.get("profile"),
                       "split": row.get("split", "all"), "group_id": row.get("group_id"),
                       "corpus_fingerprint": snapshot.get("corpus_fingerprint")})
     dataset = client.get_dataset(dataset_name)
@@ -263,6 +308,13 @@ def sync_langfuse_dataset(client, questions: list[dict], dataset_name: str,
 def run(args) -> Path:
     os.environ["EVALUATION_MODE"] = "true"
     reviewed, snapshot, questions, dataset_hash = load_reviewed(args.dataset, args.split)
+    question_id = getattr(args, "question_id", None)
+    if question_id:
+        questions = [row for row in questions if row["id"] == question_id]
+        if not questions:
+            raise BenchmarkError(
+                f"Question {question_id} is not approved in split={args.split}"
+            )
     if args.limit:
         questions = questions[:args.limit]
     evaluation_set_hash = canonical_hash([row["id"] for row in questions])
@@ -282,6 +334,7 @@ def run(args) -> Path:
         "started_at": datetime.now(timezone.utc).isoformat(), "completed_at": None,
         "dataset_path": str(args.dataset), "dataset_hash": dataset_hash,
         "dataset_schema_version": reviewed["schema_version"], "split": args.split,
+        "question_id_filter": question_id,
         "evaluation_set_hash": evaluation_set_hash,
         "snapshot_hash": reviewed["snapshot_hash"],
         "corpus_fingerprint": snapshot.get("corpus_fingerprint"),
@@ -291,6 +344,7 @@ def run(args) -> Path:
         "judge_model": args.judge_model if args.judge else None,
         "judge_reasoning_effort": args.judge_reasoning_effort if args.judge else None,
         "langfuse_enabled": use_langfuse, "langfuse_dataset": None, "langfuse_runs": {},
+        "question_profiles": dict(Counter(row.get("profile") or row["kind"] for row in questions)),
     }
     write_json(run_dir / "manifest.json", manifest)
     state = {"schema_version": 1, "run_id": run_id, "results": []}
@@ -379,6 +433,7 @@ def main() -> None:
     parser.add_argument("--run-id", help="Optional unique run directory name")
     parser.add_argument("--modes", nargs="+", default=["vanilla", "hybrid"])
     parser.add_argument("--limit", type=int)
+    parser.add_argument("--question-id", help="Run one approved question from the selected split")
     parser.add_argument("--split", choices=["all", "development", "test"], default="all")
     parser.add_argument("--top-k", type=int, default=5)
     parser.add_argument("--generation-model", default=config.GENERATION_MODEL)

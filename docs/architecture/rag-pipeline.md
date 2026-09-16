@@ -63,7 +63,10 @@ the session's conversation memory.
 
 `generate_answer` dispatches to OpenAI or Groq — `is_openai_model` decides — and returns a
 structured `RAGGenerationResponse` containing the answer text and the
-`retrieved_context_ids` the model actually used.
+`retrieved_context_ids` the model actually used. The Pydantic response model is also the
+single source for the provider JSON schema. OpenAI generation uses strict structured output,
+rejects duplicate or unavailable context IDs, and makes at most one additional model call
+when the first structured response is malformed.
 
 ## 6. Source and figure resolution
 

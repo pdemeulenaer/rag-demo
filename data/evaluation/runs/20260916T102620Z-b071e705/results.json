@@ -1,0 +1,696 @@
+{
+  "schema_version": 1,
+  "run_id": "20260916T102620Z-b071e705",
+  "results": [
+    {
+      "question_id": "q0001",
+      "kind": "single_paper",
+      "profile": "single_fact",
+      "mode": "vanilla",
+      "question": "According to the proceedings in \"IAU Symposium 405: Traversing the Galactic Center in Space and Time\", what happens to most of the gas that the Galactic bar channels toward the inner Galaxy—does most of it reach and accrete onto Sgr A* or follow a different fate?",
+      "reference_answer": "Most of the gas channeled inward by the Galactic bar does not reach and accrete onto Sgr A*. Instead, only a tiny fraction reaches Sgr A*; the majority is converted into stars, dispersed by stellar winds and supernova explosions, or expelled through outflows from the hot accretion flow surrounding Sgr A* (evidence_id 8f89309050d61336c355c0fb).",
+      "answer": "Most of the gas channeled toward the inner Galaxy by the Galactic bar does not directly reach and accrete onto Sgr A*. Instead, only a tiny fraction of this inflowing material ultimately reaches the black hole, while much of it is converted into stars, dispersed by stellar winds and supernova explosions, or expelled through outflows from the hot accretion flow surrounding Sgr A*. This feedback mechanism regulates the Galactic Center's activity and reshapes our understanding of star formation and gas dynamics in the region.",
+      "retrieved_chunks": [
+        {
+          "id": "229af5b0-02da-5fe7-b3cf-9ede4f4132cc",
+          "text": "## **From the Central Molecular Zone to the event horizon** \n\nOne of the central questions discussed at the symposium concerned the striking contrast between the vast molecular gas reservoir of the CMZ and the extremely low luminosity of Sgr A* (talks by Steven Longmore and Mark Morris). Although the Galactic bar efficiently channels gas towards the inner Galaxy, only a tiny fraction ultimately reaches the black hole. Instead, much of the inflowing material is converted into stars, dispersed by stellar winds and supernova explosions, or expelled through outflows from the hot accretion flow surrounding Sgr A* [2]. The Galactic Center therefore appears to regulate itself through feedback operating across many spatial scales (Zixuan Feng). This perspective also reshapes our understanding of star formation. The CMZ provides a nearby laboratory for studying star formation under conditions resembling those in high-redshift starburst galaxies, with unusually high gas densities, turbulence and magnetic fields. Yet fundamental questions remain unresolved. Young massive stars are observed within the central parsec (Zo¨e Haggard) despite the intense tidal field of Sgr A* and the extreme physical conditions of the surrounding circumnuclear medium [the “paradox of youth”; 3]. Furthermore, the evolutionary connection between \n\nPage 1",
+          "title": "IAU Symposium 405: Traversing the Galactic Center in Space and Time",
+          "paper_id": "eaa6f430-3a14-5866-a0f6-c47eac37603d",
+          "arxiv_id": "2606.24706",
+          "paper_version": 2,
+          "source_url": "https://arxiv.org/abs/2606.24706v2",
+          "authors": [
+            "Michal Zajaček",
+            "Bożena Czerny",
+            "Martin Mondek",
+            "Samik Mitra",
+            "Matúš Labaj",
+            "Tomáš Ondro",
+            "Jan Janík",
+            "Jiří Dušek"
+          ],
+          "year": 2026,
+          "page": 1,
+          "score": 0.6529711,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        },
+        {
+          "id": "78373a6c-7b0c-5208-8670-622b41e4df1f",
+          "text": "These themes were at the heart of the International Astronomical Union Symposium 405, “Traversing the Galactic Center in Space and Time”, the 15th edition of the Galactic Center workshop series [1]. More than 200 researchers gathered in Brno, Czech Republic, to discuss observational and theoretical advances spanning the event horizon of Sgr A* to large molecular complexes in the CMZ; see Fig. 1 for the multiscale Galactic Center region illustration including the participant group photo. A recurring message throughout the meeting was that the Galactic Center should no longer be viewed as a collection of individual phenomena, but as an interconnected ecosystem in which black-hole accretion, star formation, stellar feedback, gas dynamics and magnetic fields continuously influence one another.",
+          "title": "IAU Symposium 405: Traversing the Galactic Center in Space and Time",
+          "paper_id": "eaa6f430-3a14-5866-a0f6-c47eac37603d",
+          "arxiv_id": "2606.24706",
+          "paper_version": 2,
+          "source_url": "https://arxiv.org/abs/2606.24706v2",
+          "authors": [
+            "Michal Zajaček",
+            "Bożena Czerny",
+            "Martin Mondek",
+            "Samik Mitra",
+            "Matúš Labaj",
+            "Tomáš Ondro",
+            "Jan Janík",
+            "Jiří Dušek"
+          ],
+          "year": 2026,
+          "page": 1,
+          "score": 0.61014235,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        },
+        {
+          "id": "2b065989-b40e-5cc5-bd71-3b7913d6280a",
+          "text": "## **IAU Symposium 405: Traversing the Galactic Center in Space and**",
+          "title": "IAU Symposium 405: Traversing the Galactic Center in Space and Time",
+          "paper_id": "eaa6f430-3a14-5866-a0f6-c47eac37603d",
+          "arxiv_id": "2606.24706",
+          "paper_version": 2,
+          "source_url": "https://arxiv.org/abs/2606.24706v2",
+          "authors": [
+            "Michal Zajaček",
+            "Bożena Czerny",
+            "Martin Mondek",
+            "Samik Mitra",
+            "Matúš Labaj",
+            "Tomáš Ondro",
+            "Jan Janík",
+            "Jiří Dušek"
+          ],
+          "year": 2026,
+          "page": 1,
+          "score": 0.604872,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        },
+        {
+          "id": "96d8e5f4-523a-52de-a9a4-42a972c0f293",
+          "text": "**==> picture [426 x 552] intentionally omitted <==**\n\nFigure 1: **Complex dynamics in the Galactic Center.** Panel a) shows the innermost region of the CMZ, including the non-thermal supernova remnant Sgr A East, the thermal Sgr A West with the three Minispiral streamers, the Nuclear Star Cluster, the Central Cavity, and the Circumnuclear disc at _∼_ 2–5 pc from Sgr A*. Panel b) (top right inset) illustrates the innermost Galactic bar, where gas is channelled inward along the dust lanes ( _x_ 1 orbits) into the _∼_ 100 pc CMZ on _x_ 2 orbits, highlighting the main molecular complexes (Sgr B1, Sgr B2, 20 and 50 km s _[−]_[1] clouds, and Sgr C). The blue circle marks the _∼_ 10 pc region shown in Panel a. Panel c) shows the participants of IAU Symposium 405 with the 6-meter black-hole model displaying the polarized _Event Horizon Telescope_ image of Sgr A* (photo credit: Lea Szakszonov´a). \n\nPage 2",
+          "title": "IAU Symposium 405: Traversing the Galactic Center in Space and Time",
+          "paper_id": "eaa6f430-3a14-5866-a0f6-c47eac37603d",
+          "arxiv_id": "2606.24706",
+          "paper_version": 2,
+          "source_url": "https://arxiv.org/abs/2606.24706v2",
+          "authors": [
+            "Michal Zajaček",
+            "Bożena Czerny",
+            "Martin Mondek",
+            "Samik Mitra",
+            "Matúš Labaj",
+            "Tomáš Ondro",
+            "Jan Janík",
+            "Jiří Dušek"
+          ],
+          "year": 2026,
+          "page": 2,
+          "score": 0.5931127,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        },
+        {
+          "id": "d9181ed6-d444-5550-935a-718eb8d49cde",
+          "text": "Addressing these questions will rely on increasingly multi-wavelength and multi-messenger observations, together with next-generation facilities such as the Extremely Large Telescope, the Square Kilometre Array Observatory [12], and continued observations with the James Webb Space Telescope [13]. \n\nMore broadly, the symposium underscored a conceptual shift in the field. Rather than treating Sgr A*, the stellar populations and the CMZ as separate systems, researchers increasingly view the Galactic Center as an interconnected ecosystem in which gas inflow, star formation, stellar feedback, magnetic fields and black-hole accretion regulate one another across many orders of magnitude in scale and time. As new observational facilities extend our view of the Galactic nucleus, they are expected to resolve long-standing questions while uncovering entirely new ones.",
+          "title": "IAU Symposium 405: Traversing the Galactic Center in Space and Time",
+          "paper_id": "eaa6f430-3a14-5866-a0f6-c47eac37603d",
+          "arxiv_id": "2606.24706",
+          "paper_version": 2,
+          "source_url": "https://arxiv.org/abs/2606.24706v2",
+          "authors": [
+            "Michal Zajaček",
+            "Bożena Czerny",
+            "Martin Mondek",
+            "Samik Mitra",
+            "Matúš Labaj",
+            "Tomáš Ondro",
+            "Jan Janík",
+            "Jiří Dušek"
+          ],
+          "year": 2026,
+          "page": 4,
+          "score": 0.579613,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        }
+      ],
+      "cited_context_ids": [
+        "229af5b0-02da-5fe7-b3cf-9ede4f4132cc"
+      ],
+      "metrics": {
+        "retrieval_hit": 1.0,
+        "retrieval_recall": 1.0,
+        "gold_citation_recall": 1.0,
+        "citation_from_retrieval": 1.0,
+        "retrieved_count": 5,
+        "cited_count": 1,
+        "answer_correctness": 1.0,
+        "groundedness": 1.0,
+        "answer_relevance": 1.0,
+        "correct_abstention": null
+      },
+      "judge": {
+        "correctness": 1.0,
+        "groundedness": 1.0,
+        "answer_relevance": 1.0,
+        "abstention": "not_applicable",
+        "reason": "The actual answer accurately restates the retrieved symposium text: only a tiny fraction of bar-channeled gas reaches Sgr A*, while most is converted to stars, dispersed by winds/supernovae, or expelled in outflows. All substantive claims are directly supported by the provided evidence."
+      },
+      "judge_request": {
+        "response_id": "resp_0580a27e6af22fbd016aaa6ed3259087d291d8e0de75f1d8be",
+        "request_id": "req_6688dfa5aa31449d81775ad83028df3e",
+        "model": "gpt-5-mini-2025-08-07",
+        "usage": {
+          "input_tokens": 2034,
+          "input_tokens_details": {
+            "cached_tokens": 0,
+            "cache_write_tokens": 0
+          },
+          "output_tokens": 110,
+          "output_tokens_details": {
+            "reasoning_tokens": 0
+          },
+          "total_tokens": 2144
+        }
+      },
+      "elapsed_seconds": 8.634,
+      "error": null
+    },
+    {
+      "question_id": "q0002",
+      "kind": "single_paper",
+      "profile": "single_fact",
+      "mode": "vanilla",
+      "question": "In \"Constraints on the fuzzy dark matter mass using globular clusters in dwarf galaxies from Euclid ERO data\", what quantitative upper limits on the fuzzy dark matter mass parameter m_22 does the paper report for (a) the Fornax galaxy cluster, (b) the Perseus galaxy cluster, and (c) the Fornax dwarf spheroidal galaxy?",
+      "reference_answer": "The paper reports the following upper limits on m_22: (a) Fornax galaxy cluster: m_22 ≤ 1.46 (+0.00 −0.51); (b) Perseus galaxy cluster: m_22 ≤ 1.09 (+0.00 −0.14); (c) Fornax dSph: m_22 ≤ 1.38 (+0.00 −0.48). (Evidence: ddf71676ff9029e4c5534bca; 88d3700173b37b816de96731; c3d05f2f045b4bdbcb084059)",
+      "answer": "The paper reports the following quantitative upper limits on the fuzzy dark matter mass parameter _m_ 22: (a) for the Fornax galaxy cluster, an upper limit of approximately 1.46; (b) for the Perseus galaxy cluster, approximately 1.09; and (c) for the Fornax dwarf spheroidal galaxy, an upper limit of approximately 2.24. These limits are based on the 5th percentile of the distributions of _m_ 22 for each system, indicating the maximum particle mass consistent with the data to prevent globular clusters from falling into the center within a 10 Gyr timeframe.",
+      "retrieved_chunks": [
+        {
+          "id": "c92c4767-3048-5da6-a107-2cd1d75d4598",
+          "text": "## **ABSTRACT** \n\nWe constrain the particle mass of the fuzzy dark matter model using globular cluster candidates in dwarf galaxies, from the Euclid Early Release Observations, within the Fornax and Perseus galaxy clusters. We model the orbital evolution of globular clusters by combining fuzzy dark matter density profiles with the corresponding dynamical friction formalism, and integrate their orbits using `galpy` . In the fuzzy dark matter framework, both the halo density profile and the dynamical friction force are modified by the wave-like nature of the ultra-light dark matter particle, whose mass is parameterized as _m_ 22 = _m_ χ/10[−][22] , eV and explored over the range 0.1 ≤ _m_ 22 ≤ 100. This framework naturally alleviates the long-standing globular cluster timing problem originally identified in the Fornax dSph. We find that globular clusters no longer experience orbital decay toward the centers of their host galaxies for _m_ 22 ≤ 1.46[+] −[0] 0[.] .[51] 32[in the Fornax cluster and] _[ m]_[22][≤][1][.][09][+] −[0] 0[.] .[14] 21[in the Perseus cluster. Future Euclid data releases, providing substantially] larger samples of globular cluster candidates, will enable significantly tighter constraints on the dark matter particle mass within the fuzzy dark matter scenario. \n\n**Key words.** Dark matter - Galaxy dynamics - Globular clusters - Euclid - Methods: Orbital integrations",
+          "title": "Constraints on the fuzzy dark matter mass using globular clusters in dwarf galaxies from Euclid ERO data",
+          "paper_id": "d8b1a37d-8307-5790-bbeb-6246d2343374",
+          "arxiv_id": "2609.11328",
+          "paper_version": 1,
+          "source_url": "https://arxiv.org/abs/2609.11328v1",
+          "authors": [
+            "Lisa Besnard",
+            "Pierre Boldrini",
+            "Paola Di Matteo",
+            "Chervin Laporte",
+            "Teymoor Saifollahi"
+          ],
+          "year": 2026,
+          "page": 1,
+          "score": 0.7671293,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        },
+        {
+          "id": "f7df898c-8b8a-5c89-ae3e-9b478ebde271",
+          "text": "We then determine, for each galaxy of the Fornax and Perseus galaxy clusters, the maximum value of _m_ 22 (between 0.1 and 100) for which FDM effects are sufficient to ensure that none of the galaxy’s GCs fall into the central region. This value corresponds to the most constraining GC in each galaxy, which has the minimum _m_ 22. This results in a distribution of _m_ 22 values, with each value corresponding to one dwarf galaxy. The value of _m_ 22 computed for the Fornax dSph and the distributions of _m_ 22 obtained for the Fornax and Perseus galaxy clusters are represented in Figure 5. The values of _m_ 22 are computed using only the corrected radius _R_ 3D and the eccentricity _e_ = 0.5. ",
+          "title": "Constraints on the fuzzy dark matter mass using globular clusters in dwarf galaxies from Euclid ERO data",
+          "paper_id": "d8b1a37d-8307-5790-bbeb-6246d2343374",
+          "arxiv_id": "2609.11328",
+          "paper_version": 1,
+          "source_url": "https://arxiv.org/abs/2609.11328v1",
+          "authors": [
+            "Lisa Besnard",
+            "Pierre Boldrini",
+            "Paola Di Matteo",
+            "Chervin Laporte",
+            "Teymoor Saifollahi"
+          ],
+          "year": 2026,
+          "page": 5,
+          "score": 0.7583907,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        },
+        {
+          "id": "a9992f6a-9c92-50f0-877c-b0f886b175c8",
+          "text": "Besnard et al.: Constraints on the fuzzy dark matter mass using globular clusters in dwarf galaxies from Euclid ERO data",
+          "title": "Constraints on the fuzzy dark matter mass using globular clusters in dwarf galaxies from Euclid ERO data",
+          "paper_id": "d8b1a37d-8307-5790-bbeb-6246d2343374",
+          "arxiv_id": "2609.11328",
+          "paper_version": 1,
+          "source_url": "https://arxiv.org/abs/2609.11328v1",
+          "authors": [
+            "Lisa Besnard",
+            "Pierre Boldrini",
+            "Paola Di Matteo",
+            "Chervin Laporte",
+            "Teymoor Saifollahi"
+          ],
+          "year": 2026,
+          "page": 7,
+          "score": 0.75287676,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        },
+        {
+          "id": "fd828f49-733e-5455-8092-4ed91257ab4a",
+          "text": "We constrain _m_ 22, respectively for the Fornax and Perseus galaxy clusters, by computing the 5 _[th]_ percentile of their corresponding distribution. We do not constrain _m_ 22 with the minimum value of the distribution to avoid a final constraint driven by only a single GC. Thus, we give an upper constraint on _m_ 22 determined by the lowest 5% of the distribution, below which we consider that the FDM model provides a solution to the timing problem. In Figure 5, the constraints of _m_ 22 for the Fornax and Perseus galaxy clusters are shown as tick marks. They are based on the distributions computed using only the corrected radius _R_ 3D and the eccentricity _e_ = 0.5. To account for the impact of the different orbital configurations on the constraint (with or without eccentricity, and with _R_ 2 _D_ or _R_ 3 _D_ , see Section 3.1), we compute four separate distributions of _m_ 22, each corresponding to one orbital configuration applied to the GCs : ( _R_ 2D, e=0), ( _R_ 2D, e=0.5), ( _R_ 3D, e=0), ( _R_ 3D, e=0.5). These four distributions are then combined, and we compute the 5 _[th]_ percentile of the resulting distribution to obtain the final constraint on _m_ 22, which accounts for the impact of the different orbital configurations. This calculation is performed for the Fornax and Perseus galaxy clusters and for the Fornax dSph respectively. The resulting constraints \n\nArticle number, page 5 of 7",
+          "title": "Constraints on the fuzzy dark matter mass using globular clusters in dwarf galaxies from Euclid ERO data",
+          "paper_id": "d8b1a37d-8307-5790-bbeb-6246d2343374",
+          "arxiv_id": "2609.11328",
+          "paper_version": 1,
+          "source_url": "https://arxiv.org/abs/2609.11328v1",
+          "authors": [
+            "Lisa Besnard",
+            "Pierre Boldrini",
+            "Paola Di Matteo",
+            "Chervin Laporte",
+            "Teymoor Saifollahi"
+          ],
+          "year": 2026,
+          "page": 5,
+          "score": 0.75151,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        },
+        {
+          "id": "d3ffdd01-a8c3-5c9d-b4b6-81c89acbffe5",
+          "text": "Besnard et al.: Constraints on the fuzzy dark matter mass using globular clusters in dwarf galaxies from Euclid ERO data \n\n**==> picture [256 x 186] intentionally omitted <==**\n\nFig. 4: Orbital radius as a function of time for three GCs in dwarf galaxies in the Perseus galaxy cluster, integrated using the maximum _m_ 22 for which none of them falls below 0.2 kpc within 10 Gyr. We use eccentricity _e_ = 0.5 and the corrected radius _R_ 3D. A GC with eccentricity _e_ = 0.5 is considered to have reached the center of its host galaxy when its last apocenter (in a timescale of 10 Gyr) is below 0.2 kpc \n\nsummary, a realistic configuration of the orbits ( _R_ 3D and _e_ = 0.5) increases the infall time of the GCs, leading to a higher particle mass needed to prevent their fall ( _m_ 22 ≤ 2.24) compared to _R_ 2D and _e_ = 0 ( _m_ 22 ≤ 1.33).",
+          "title": "Constraints on the fuzzy dark matter mass using globular clusters in dwarf galaxies from Euclid ERO data",
+          "paper_id": "d8b1a37d-8307-5790-bbeb-6246d2343374",
+          "arxiv_id": "2609.11328",
+          "paper_version": 1,
+          "source_url": "https://arxiv.org/abs/2609.11328v1",
+          "authors": [
+            "Lisa Besnard",
+            "Pierre Boldrini",
+            "Paola Di Matteo",
+            "Chervin Laporte",
+            "Teymoor Saifollahi"
+          ],
+          "year": 2026,
+          "page": 5,
+          "score": 0.74848974,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        }
+      ],
+      "cited_context_ids": [
+        "c92c4767-3048-5da6-a107-2cd1d75d4598",
+        "f7df898c-8b8a-5c89-ae3e-9b478ebde271",
+        "fd828f49-733e-5455-8092-4ed91257ab4a"
+      ],
+      "metrics": {
+        "retrieval_hit": 0.0,
+        "retrieval_recall": 0.0,
+        "gold_citation_recall": 0.0,
+        "citation_from_retrieval": 1.0,
+        "retrieved_count": 5,
+        "cited_count": 3,
+        "answer_correctness": 0.5,
+        "groundedness": 0.5,
+        "answer_relevance": 1.0,
+        "correct_abstention": null
+      },
+      "judge": {
+        "correctness": 0.5,
+        "groundedness": 0.5,
+        "answer_relevance": 1.0,
+        "abstention": "not_applicable",
+        "reason": "The actual answer correctly lists Fornax cluster (≈1.46) and Perseus cluster (≈1.09) matching the paper's reported 5th-percentile constraints, but it gives 2.24 for the Fornax dwarf spheroidal whereas the reference answer and conclusion report Fornax dSph m_22 ≤ 1.38 (±) — the 2.24 value appears in the paper for a different orbital configuration (R_3D, e=0.5) as a higher-case value, not the combined 5th-percentile constraint for Fornax dSph. Thus some claims are supported by retrieved evidence (first two), but the Fornax dSph value is not supported by the cited final constraint."
+      },
+      "judge_request": {
+        "response_id": "resp_0c63486a418439ff016aaa6ed93b9c87d2aeb4f434e24dacff",
+        "request_id": "req_006c0a68484a45b4a5090ef163eac519",
+        "model": "gpt-5-mini-2025-08-07",
+        "usage": {
+          "input_tokens": 3499,
+          "input_tokens_details": {
+            "cached_tokens": 0,
+            "cache_write_tokens": 0
+          },
+          "output_tokens": 213,
+          "output_tokens_details": {
+            "reasoning_tokens": 0
+          },
+          "total_tokens": 3712
+        }
+      },
+      "elapsed_seconds": 7.447,
+      "error": null
+    },
+    {
+      "question_id": "q0001",
+      "kind": "single_paper",
+      "profile": "single_fact",
+      "mode": "hybrid",
+      "question": "According to the proceedings in \"IAU Symposium 405: Traversing the Galactic Center in Space and Time\", what happens to most of the gas that the Galactic bar channels toward the inner Galaxy—does most of it reach and accrete onto Sgr A* or follow a different fate?",
+      "reference_answer": "Most of the gas channeled inward by the Galactic bar does not reach and accrete onto Sgr A*. Instead, only a tiny fraction reaches Sgr A*; the majority is converted into stars, dispersed by stellar winds and supernova explosions, or expelled through outflows from the hot accretion flow surrounding Sgr A* (evidence_id 8f89309050d61336c355c0fb).",
+      "answer": "Most of the gas channeled towards the inner Galaxy by the Galactic bar does not reach and accrete onto Sgr A*. Instead, it undergoes processes such as star formation, dispersal by stellar winds and supernova explosions, or expulsion through outflows from the hot accretion flow surrounding Sgr A*. The Galactic Center thus regulates itself through feedback mechanisms operating across many spatial scales.",
+      "retrieved_chunks": [
+        {
+          "id": "229af5b0-02da-5fe7-b3cf-9ede4f4132cc",
+          "text": "## **From the Central Molecular Zone to the event horizon** \n\nOne of the central questions discussed at the symposium concerned the striking contrast between the vast molecular gas reservoir of the CMZ and the extremely low luminosity of Sgr A* (talks by Steven Longmore and Mark Morris). Although the Galactic bar efficiently channels gas towards the inner Galaxy, only a tiny fraction ultimately reaches the black hole. Instead, much of the inflowing material is converted into stars, dispersed by stellar winds and supernova explosions, or expelled through outflows from the hot accretion flow surrounding Sgr A* [2]. The Galactic Center therefore appears to regulate itself through feedback operating across many spatial scales (Zixuan Feng). This perspective also reshapes our understanding of star formation. The CMZ provides a nearby laboratory for studying star formation under conditions resembling those in high-redshift starburst galaxies, with unusually high gas densities, turbulence and magnetic fields. Yet fundamental questions remain unresolved. Young massive stars are observed within the central parsec (Zo¨e Haggard) despite the intense tidal field of Sgr A* and the extreme physical conditions of the surrounding circumnuclear medium [the “paradox of youth”; 3]. Furthermore, the evolutionary connection between \n\nPage 1",
+          "title": "IAU Symposium 405: Traversing the Galactic Center in Space and Time",
+          "paper_id": "eaa6f430-3a14-5866-a0f6-c47eac37603d",
+          "arxiv_id": "2606.24706",
+          "paper_version": 2,
+          "source_url": "https://arxiv.org/abs/2606.24706v2",
+          "authors": [
+            "Michal Zajaček",
+            "Bożena Czerny",
+            "Martin Mondek",
+            "Samik Mitra",
+            "Matúš Labaj",
+            "Tomáš Ondro",
+            "Jan Janík",
+            "Jiří Dušek"
+          ],
+          "year": 2026,
+          "page": 1,
+          "score": 0.5,
+          "type": "text",
+          "image_path": null,
+          "caption": null,
+          "rerank_score": 0.9999629
+        },
+        {
+          "id": "78373a6c-7b0c-5208-8670-622b41e4df1f",
+          "text": "These themes were at the heart of the International Astronomical Union Symposium 405, “Traversing the Galactic Center in Space and Time”, the 15th edition of the Galactic Center workshop series [1]. More than 200 researchers gathered in Brno, Czech Republic, to discuss observational and theoretical advances spanning the event horizon of Sgr A* to large molecular complexes in the CMZ; see Fig. 1 for the multiscale Galactic Center region illustration including the participant group photo. A recurring message throughout the meeting was that the Galactic Center should no longer be viewed as a collection of individual phenomena, but as an interconnected ecosystem in which black-hole accretion, star formation, stellar feedback, gas dynamics and magnetic fields continuously influence one another.",
+          "title": "IAU Symposium 405: Traversing the Galactic Center in Space and Time",
+          "paper_id": "eaa6f430-3a14-5866-a0f6-c47eac37603d",
+          "arxiv_id": "2606.24706",
+          "paper_version": 2,
+          "source_url": "https://arxiv.org/abs/2606.24706v2",
+          "authors": [
+            "Michal Zajaček",
+            "Bożena Czerny",
+            "Martin Mondek",
+            "Samik Mitra",
+            "Matúš Labaj",
+            "Tomáš Ondro",
+            "Jan Janík",
+            "Jiří Dušek"
+          ],
+          "year": 2026,
+          "page": 1,
+          "score": 0.33333334,
+          "type": "text",
+          "image_path": null,
+          "caption": null,
+          "rerank_score": 0.99378294
+        },
+        {
+          "id": "d9181ed6-d444-5550-935a-718eb8d49cde",
+          "text": "Addressing these questions will rely on increasingly multi-wavelength and multi-messenger observations, together with next-generation facilities such as the Extremely Large Telescope, the Square Kilometre Array Observatory [12], and continued observations with the James Webb Space Telescope [13]. \n\nMore broadly, the symposium underscored a conceptual shift in the field. Rather than treating Sgr A*, the stellar populations and the CMZ as separate systems, researchers increasingly view the Galactic Center as an interconnected ecosystem in which gas inflow, star formation, stellar feedback, magnetic fields and black-hole accretion regulate one another across many orders of magnitude in scale and time. As new observational facilities extend our view of the Galactic nucleus, they are expected to resolve long-standing questions while uncovering entirely new ones.",
+          "title": "IAU Symposium 405: Traversing the Galactic Center in Space and Time",
+          "paper_id": "eaa6f430-3a14-5866-a0f6-c47eac37603d",
+          "arxiv_id": "2606.24706",
+          "paper_version": 2,
+          "source_url": "https://arxiv.org/abs/2606.24706v2",
+          "authors": [
+            "Michal Zajaček",
+            "Bożena Czerny",
+            "Martin Mondek",
+            "Samik Mitra",
+            "Matúš Labaj",
+            "Tomáš Ondro",
+            "Jan Janík",
+            "Jiří Dušek"
+          ],
+          "year": 2026,
+          "page": 4,
+          "score": 0.16666667,
+          "type": "text",
+          "image_path": null,
+          "caption": null,
+          "rerank_score": 0.920218
+        },
+        {
+          "id": "96d8e5f4-523a-52de-a9a4-42a972c0f293",
+          "text": "**==> picture [426 x 552] intentionally omitted <==**\n\nFigure 1: **Complex dynamics in the Galactic Center.** Panel a) shows the innermost region of the CMZ, including the non-thermal supernova remnant Sgr A East, the thermal Sgr A West with the three Minispiral streamers, the Nuclear Star Cluster, the Central Cavity, and the Circumnuclear disc at _∼_ 2–5 pc from Sgr A*. Panel b) (top right inset) illustrates the innermost Galactic bar, where gas is channelled inward along the dust lanes ( _x_ 1 orbits) into the _∼_ 100 pc CMZ on _x_ 2 orbits, highlighting the main molecular complexes (Sgr B1, Sgr B2, 20 and 50 km s _[−]_[1] clouds, and Sgr C). The blue circle marks the _∼_ 10 pc region shown in Panel a. Panel c) shows the participants of IAU Symposium 405 with the 6-meter black-hole model displaying the polarized _Event Horizon Telescope_ image of Sgr A* (photo credit: Lea Szakszonov´a). \n\nPage 2",
+          "title": "IAU Symposium 405: Traversing the Galactic Center in Space and Time",
+          "paper_id": "eaa6f430-3a14-5866-a0f6-c47eac37603d",
+          "arxiv_id": "2606.24706",
+          "paper_version": 2,
+          "source_url": "https://arxiv.org/abs/2606.24706v2",
+          "authors": [
+            "Michal Zajaček",
+            "Bożena Czerny",
+            "Martin Mondek",
+            "Samik Mitra",
+            "Matúš Labaj",
+            "Tomáš Ondro",
+            "Jan Janík",
+            "Jiří Dušek"
+          ],
+          "year": 2026,
+          "page": 2,
+          "score": 0.2,
+          "type": "text",
+          "image_path": null,
+          "caption": null,
+          "rerank_score": 0.92007446
+        },
+        {
+          "id": "6d45148f-01e8-5366-8c47-a99fb64599f8",
+          "text": "## **Time** \n\n**Michal Zajaˇcek**[1] _[∗]_ , **Bo˙zena Czerny**[2] , **Martin Mondek**[1] , **Samik Mitra**[3] , **Mat´uˇs Labaj**[1] , **Tom´aˇs Ondro**[4] , **Jan Jan´ık**[1] , **Jiˇr´ı Duˇsek**[5] \n\n> 1 Department of Theoretical Physics and Astrophysics, Masaryk University, Kotl´aˇrsk´a 267/2, 611 37 Brno, Czech Republic; email: zajacek@mail.muni.cz \n\n> 2 Center for Theoretical Physics, Polish Academy of Sciences, Al. Lotnik´ow 32/46, 02-668 Warsaw, Poland \n\n> 3 International Center for Theoretical Sciences, Tata Institute of Fundamental Research, Bangalore, India \n\n> 4 Department of Technology and Automobile Transport, Faculty of AgriSciences, Mendel University in Brno, Zemˇedˇelsk´a 1, 61300 Brno, Czech Republic \n\n> 5 Brno Observatory and Planetarium, Krav´ı hora 2, 616 00 Brno, Czech Republic \n\nAt IAU Symposium 405 in Brno, the Galactic Center emerged as a nearby laboratory for galactic nuclei, linking the central supermassive black hole, dense stellar populations and multiphase gas into a connected ecosystem across space and time. \n\nThe Galactic Center is often identified with its central supermassive black hole, Sgr A*. Yet the black hole governs gravitationally only the innermost few parsecs of the Milky Way, while the surrounding Nuclear Star Cluster, Nuclear Stellar Disc and Central Molecular Zone (CMZ) shape the dynamics of stars and gas on progressively larger scales. Understanding how these components interact is essential not only for reconstructing the history of our own Galaxy, but also for interpreting galactic nuclei more generally. ",
+          "title": "IAU Symposium 405: Traversing the Galactic Center in Space and Time",
+          "paper_id": "eaa6f430-3a14-5866-a0f6-c47eac37603d",
+          "arxiv_id": "2606.24706",
+          "paper_version": 2,
+          "source_url": "https://arxiv.org/abs/2606.24706v2",
+          "authors": [
+            "Michal Zajaček",
+            "Bożena Czerny",
+            "Martin Mondek",
+            "Samik Mitra",
+            "Matúš Labaj",
+            "Tomáš Ondro",
+            "Jan Janík",
+            "Jiří Dušek"
+          ],
+          "year": 2026,
+          "page": 1,
+          "score": 0.071428575,
+          "type": "text",
+          "image_path": null,
+          "caption": null,
+          "rerank_score": 0.8715842
+        }
+      ],
+      "cited_context_ids": [
+        "229af5b0-02da-5fe7-b3cf-9ede4f4132cc"
+      ],
+      "metrics": {
+        "retrieval_hit": 1.0,
+        "retrieval_recall": 1.0,
+        "gold_citation_recall": 1.0,
+        "citation_from_retrieval": 1.0,
+        "retrieved_count": 5,
+        "cited_count": 1,
+        "answer_correctness": 1.0,
+        "groundedness": 1.0,
+        "answer_relevance": 1.0,
+        "correct_abstention": null
+      },
+      "judge": {
+        "correctness": 1.0,
+        "groundedness": 1.0,
+        "answer_relevance": 1.0,
+        "abstention": "not_applicable",
+        "reason": "The actual answer matches the reference answer and is directly supported by the cited proceedings excerpt, which states that only a tiny fraction reaches Sgr A* while most inflowing gas is turned into stars, dispersed by winds/supernovae, or expelled via outflows/feedback."
+      },
+      "judge_request": {
+        "response_id": "resp_0343233a0f101730016aaa6ee1a5c487d2abd35d2fda06679d",
+        "request_id": "req_97b64463738b481cace18d526d6d4a96",
+        "model": "gpt-5-mini-2025-08-07",
+        "usage": {
+          "input_tokens": 2448,
+          "input_tokens_details": {
+            "cached_tokens": 0,
+            "cache_write_tokens": 0
+          },
+          "output_tokens": 106,
+          "output_tokens_details": {
+            "reasoning_tokens": 0
+          },
+          "total_tokens": 2554
+        }
+      },
+      "elapsed_seconds": 6.743,
+      "error": null
+    },
+    {
+      "question_id": "q0002",
+      "kind": "single_paper",
+      "profile": "single_fact",
+      "mode": "hybrid",
+      "question": "In \"Constraints on the fuzzy dark matter mass using globular clusters in dwarf galaxies from Euclid ERO data\", what quantitative upper limits on the fuzzy dark matter mass parameter m_22 does the paper report for (a) the Fornax galaxy cluster, (b) the Perseus galaxy cluster, and (c) the Fornax dwarf spheroidal galaxy?",
+      "reference_answer": "The paper reports the following upper limits on m_22: (a) Fornax galaxy cluster: m_22 ≤ 1.46 (+0.00 −0.51); (b) Perseus galaxy cluster: m_22 ≤ 1.09 (+0.00 −0.14); (c) Fornax dSph: m_22 ≤ 1.38 (+0.00 −0.48). (Evidence: ddf71676ff9029e4c5534bca; 88d3700173b37b816de96731; c3d05f2f045b4bdbcb084059)",
+      "answer": "The paper reports upper limits on the fuzzy dark matter mass parameter _m_22 of 1.46 for the Fornax cluster, 1.09 for the Perseus cluster, and an unspecified value for the Fornax dwarf spheroidal galaxy. These limits indicate the particle mass thresholds above which globular clusters would experience sufficient orbital decay, thus constraining the mass of fuzzy dark matter.",
+      "retrieved_chunks": [
+        {
+          "id": "d3ffdd01-a8c3-5c9d-b4b6-81c89acbffe5",
+          "text": "Besnard et al.: Constraints on the fuzzy dark matter mass using globular clusters in dwarf galaxies from Euclid ERO data \n\n**==> picture [256 x 186] intentionally omitted <==**\n\nFig. 4: Orbital radius as a function of time for three GCs in dwarf galaxies in the Perseus galaxy cluster, integrated using the maximum _m_ 22 for which none of them falls below 0.2 kpc within 10 Gyr. We use eccentricity _e_ = 0.5 and the corrected radius _R_ 3D. A GC with eccentricity _e_ = 0.5 is considered to have reached the center of its host galaxy when its last apocenter (in a timescale of 10 Gyr) is below 0.2 kpc \n\nsummary, a realistic configuration of the orbits ( _R_ 3D and _e_ = 0.5) increases the infall time of the GCs, leading to a higher particle mass needed to prevent their fall ( _m_ 22 ≤ 2.24) compared to _R_ 2D and _e_ = 0 ( _m_ 22 ≤ 1.33).",
+          "title": "Constraints on the fuzzy dark matter mass using globular clusters in dwarf galaxies from Euclid ERO data",
+          "paper_id": "d8b1a37d-8307-5790-bbeb-6246d2343374",
+          "arxiv_id": "2609.11328",
+          "paper_version": 1,
+          "source_url": "https://arxiv.org/abs/2609.11328v1",
+          "authors": [
+            "Lisa Besnard",
+            "Pierre Boldrini",
+            "Paola Di Matteo",
+            "Chervin Laporte",
+            "Teymoor Saifollahi"
+          ],
+          "year": 2026,
+          "page": 5,
+          "score": 0.16666667,
+          "type": "text",
+          "image_path": null,
+          "caption": null,
+          "rerank_score": 0.99999964
+        },
+        {
+          "id": "a9992f6a-9c92-50f0-877c-b0f886b175c8",
+          "text": "Besnard et al.: Constraints on the fuzzy dark matter mass using globular clusters in dwarf galaxies from Euclid ERO data",
+          "title": "Constraints on the fuzzy dark matter mass using globular clusters in dwarf galaxies from Euclid ERO data",
+          "paper_id": "d8b1a37d-8307-5790-bbeb-6246d2343374",
+          "arxiv_id": "2609.11328",
+          "paper_version": 1,
+          "source_url": "https://arxiv.org/abs/2609.11328v1",
+          "authors": [
+            "Lisa Besnard",
+            "Pierre Boldrini",
+            "Paola Di Matteo",
+            "Chervin Laporte",
+            "Teymoor Saifollahi"
+          ],
+          "year": 2026,
+          "page": 7,
+          "score": 0.25,
+          "type": "text",
+          "image_path": null,
+          "caption": null,
+          "rerank_score": 0.9999993
+        },
+        {
+          "id": "51449e08-31b9-5b2f-a35c-caceca2a826a",
+          "text": "# **Constraints on the fuzzy dark matter mass using globular clusters in dwarf galaxies from Euclid ERO data** \n\nLisa Besnard[1] , Pierre Boldrini[1] , Paola Di Matteo[1] , Chervin Laporte[1][,][ 3][,][ 4] and Teymoor Saifollahi[2] \n\n1 LIRA, Observatoire de Paris, Université PSL, Sorbonne Université, Université Paris Cité, CY Cergy Paris Université, CNRS, 92190 Meudon, France, \n\n> 2 Université de Strasbourg, CNRS, Observatoire astronomique de Strasbourg, UMR 7550, 67000 Strasbourg, France, \n\n> 3 Kavli IPMU (WPI), UTIAS, The University of Tokyo, Kashiwa, Chiba 277-8583, Japan,",
+          "title": "Constraints on the fuzzy dark matter mass using globular clusters in dwarf galaxies from Euclid ERO data",
+          "paper_id": "d8b1a37d-8307-5790-bbeb-6246d2343374",
+          "arxiv_id": "2609.11328",
+          "paper_version": 1,
+          "source_url": "https://arxiv.org/abs/2609.11328v1",
+          "authors": [
+            "Lisa Besnard",
+            "Pierre Boldrini",
+            "Paola Di Matteo",
+            "Chervin Laporte",
+            "Teymoor Saifollahi"
+          ],
+          "year": 2026,
+          "page": 1,
+          "score": 0.071428575,
+          "type": "text",
+          "image_path": null,
+          "caption": null,
+          "rerank_score": 0.99999917
+        },
+        {
+          "id": "c92c4767-3048-5da6-a107-2cd1d75d4598",
+          "text": "## **ABSTRACT** \n\nWe constrain the particle mass of the fuzzy dark matter model using globular cluster candidates in dwarf galaxies, from the Euclid Early Release Observations, within the Fornax and Perseus galaxy clusters. We model the orbital evolution of globular clusters by combining fuzzy dark matter density profiles with the corresponding dynamical friction formalism, and integrate their orbits using `galpy` . In the fuzzy dark matter framework, both the halo density profile and the dynamical friction force are modified by the wave-like nature of the ultra-light dark matter particle, whose mass is parameterized as _m_ 22 = _m_ χ/10[−][22] , eV and explored over the range 0.1 ≤ _m_ 22 ≤ 100. This framework naturally alleviates the long-standing globular cluster timing problem originally identified in the Fornax dSph. We find that globular clusters no longer experience orbital decay toward the centers of their host galaxies for _m_ 22 ≤ 1.46[+] −[0] 0[.] .[51] 32[in the Fornax cluster and] _[ m]_[22][≤][1][.][09][+] −[0] 0[.] .[14] 21[in the Perseus cluster. Future Euclid data releases, providing substantially] larger samples of globular cluster candidates, will enable significantly tighter constraints on the dark matter particle mass within the fuzzy dark matter scenario. \n\n**Key words.** Dark matter - Galaxy dynamics - Globular clusters - Euclid - Methods: Orbital integrations",
+          "title": "Constraints on the fuzzy dark matter mass using globular clusters in dwarf galaxies from Euclid ERO data",
+          "paper_id": "d8b1a37d-8307-5790-bbeb-6246d2343374",
+          "arxiv_id": "2609.11328",
+          "paper_version": 1,
+          "source_url": "https://arxiv.org/abs/2609.11328v1",
+          "authors": [
+            "Lisa Besnard",
+            "Pierre Boldrini",
+            "Paola Di Matteo",
+            "Chervin Laporte",
+            "Teymoor Saifollahi"
+          ],
+          "year": 2026,
+          "page": 1,
+          "score": 0.5,
+          "type": "text",
+          "image_path": null,
+          "caption": null,
+          "rerank_score": 0.99999905
+        },
+        {
+          "id": "f6d56eab-bcce-55c2-b6c9-02e497a9dcb6",
+          "text": "Besnard et al.: Constraints on the fuzzy dark matter mass using globular clusters in dwarf galaxies from Euclid ERO data \n\nimplemented in the `Python Colossus` package (Diemer 2018), from which we determine the scale radius _r_ s (Dutton & Macciò 2014). To model the FDM case, we construct the density profile as the sum of a central solitonic core and an outer power-law envelope (see Equations 2 and 3), both implemented using the `TwoPowerSphericalPotential` class in `galpy` , as in Szpilfidel et al. (2026) and Boldrini & Di Matteo (2026). \n\n**==> picture [256 x 29] intentionally omitted <==**\n\n**==> picture [256 x 29] intentionally omitted <==**\n\n_rc_ 1 and _rc_ 2 are respectively the characteristic radii of the core and outer components (Schive et al. 2014) while ρ01 and ρ02 represent their corresponding central densities. Finally, we use ρFDM = ρcore + ρext. As the FDM model converges to the CDM model at large scales, this construction ensures a transition between the flat core and the CDM-like outer halo. We observe in Figure 1 the convergence of FDM with CDM in the outer region, and the expected FDM flat core for _m_ 22 = 0.1 and 1 in the inner region. This FDM profile modifies the orbit of the GCs compared to CDM. Indeed, at low masses ( _m_ 22 = 0.1, 1), the density is lower compared to CDM because of the flat core, leading to a reduced DF force thus preventing the GCs from falling into their host galaxy. However, we find that for higher values of _m_ 22 ( _m_ 22 = 10, 30), the inner density of FDM is higher than for the CDM model, which may accelerate the fall of the GCs in this region. In summary, lower values of _m_ 22 result in a larger characteristic core radius _rc_ , corresponding to a more uniform redistribution of DM within the galaxy. The resulting cored profile leads to reduced DF, and therefore to a longer infall time for an orbiting object.",
+          "title": "Constraints on the fuzzy dark matter mass using globular clusters in dwarf galaxies from Euclid ERO data",
+          "paper_id": "d8b1a37d-8307-5790-bbeb-6246d2343374",
+          "arxiv_id": "2609.11328",
+          "paper_version": 1,
+          "source_url": "https://arxiv.org/abs/2609.11328v1",
+          "authors": [
+            "Lisa Besnard",
+            "Pierre Boldrini",
+            "Paola Di Matteo",
+            "Chervin Laporte",
+            "Teymoor Saifollahi"
+          ],
+          "year": 2026,
+          "page": 3,
+          "score": 0.09090909,
+          "type": "text",
+          "image_path": null,
+          "caption": null,
+          "rerank_score": 0.9999982
+        }
+      ],
+      "cited_context_ids": [
+        "c92c4767-3048-5da6-a107-2cd1d75d4598"
+      ],
+      "metrics": {
+        "retrieval_hit": 0.0,
+        "retrieval_recall": 0.0,
+        "gold_citation_recall": 0.0,
+        "citation_from_retrieval": 1.0,
+        "retrieved_count": 5,
+        "cited_count": 1,
+        "answer_correctness": 0.5,
+        "groundedness": 0.5,
+        "answer_relevance": 1.0,
+        "correct_abstention": null
+      },
+      "judge": {
+        "correctness": 0.5,
+        "groundedness": 0.5,
+        "answer_relevance": 1.0,
+        "abstention": "not_applicable",
+        "reason": "The actual answer correctly gives the Fornax cluster (1.46) and Perseus cluster (1.09) limits matching the paper, but it incorrectly states the Fornax dSph value is unspecified; the paper does report m_22 ≤ 1.38 (+0.00 −0.48). The claims about what the limits indicate are general and supported by the retrieved evidence."
+      },
+      "judge_request": {
+        "response_id": "resp_051f04121ac1e4af016aaa6ee745a087d2bf7b2e3a6687fa7e",
+        "request_id": "req_bda68c1e589b41468fde536ce2996835",
+        "model": "gpt-5-mini-2025-08-07",
+        "usage": {
+          "input_tokens": 3597,
+          "input_tokens_details": {
+            "cached_tokens": 1792,
+            "cache_write_tokens": 0
+          },
+          "output_tokens": 136,
+          "output_tokens_details": {
+            "reasoning_tokens": 0
+          },
+          "total_tokens": 3733
+        }
+      },
+      "elapsed_seconds": 5.888,
+      "error": null
+    }
+  ]
+}

@@ -87,6 +87,18 @@ def test_cross_paper_requires_both_titles():
     assert gen.validate_candidate(candidate, job, evidence, set(), quality_policy=POLICY)
 
 
+def test_metadata_discovery_hides_title_in_question_and_names_it_in_answer():
+    evidence = {"e1": chunk()}
+    job = {"id": "q1", "kind": "single_paper", "profile": "metadata_discovery",
+           "evidence_ids": ["e1"]}
+    candidate = proposal(question="Which stellar-dynamics study estimated a mass of 100 solar masses?")
+    candidate.candidate.reference_answer = "Cluster masses reports an estimate of 100 solar masses."
+    assert gen.validate_candidate(candidate, job, evidence, set(), quality_policy=POLICY)
+    candidate.candidate.question = "What mass was estimated in Cluster masses?"
+    with pytest.raises(gen.EvaluationError, match="reveals_paper_title"):
+        gen.validate_candidate(candidate, job, evidence, set(), quality_policy=POLICY)
+
+
 def test_new_policy_rejects_bad_drafts_and_completed_rerun_stays_free(prepared):
     plan = json.loads((prepared / "plan.json").read_text())
     plan["quality_policy"] = POLICY
