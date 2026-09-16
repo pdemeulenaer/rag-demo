@@ -13,6 +13,7 @@ def test_pages_sections_and_blank_page_numbers():
              {"page_number": 2, "text": ""},
              {"page_number": 3, "text": "Continued result.\n\n## Masses\n\nCluster masses."}]
     chunks = chunk_pages(pages)
+    assert [c["chunk_index"] for c in chunks] == list(range(len(chunks)))
     assert [c["page_number"] for c in chunks] == [1, 3, 3]
     assert [c["section_header"] for c in chunks] == ["Results", "Results", "Results > Masses"]
     assert all(c["token_count"] == token_count(c["text"]) for c in chunks)
@@ -51,6 +52,7 @@ def test_adjacent_tables_do_not_merge_headers():
     second = "| C | D |\n| --- | --- |\n| 3 | 4 |"
     chunks = chunk_pages([{"page_number": 1, "text": first + "\n\n" + second}])
     assert [c["text"] for c in chunks] == [first, second]
+    assert [c["chunk_index"] for c in chunks] == [0, 1]
 
 
 def test_long_unicode_prose_preserved_and_token_bounded():

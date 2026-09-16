@@ -182,7 +182,7 @@ def test_upload_saves_structured_evidence_and_manifest(catalogue, qdrant, settin
     chunks, images, first, _ = args["extract"].return_value
     args["extract"].return_value = (chunks, images, first, {
         "extracted_pages": [{"page_number": 1, "text": "Paper evidence"}], "extraction": SPEC,
-        "structured_chunks": [{"text": "Paper evidence", "page_number": 1, "section_header": "Results",
+        "structured_chunks": [{"chunk_index": 0, "text": "Paper evidence", "page_number": 1, "section_header": "Results",
                                "token_count": 2, "content_kind": "text"}]})
     process_upload(**args)
     build = catalogue.get_build(args["build"]["id"])
@@ -191,6 +191,28 @@ def test_upload_saves_structured_evidence_and_manifest(catalogue, qdrant, settin
     point = next(p for p in qdrant.retrieve("uploads", expected_ids(build)) if p.payload["type"] == "chunk")
     assert point.payload["source_text"] == "Paper evidence"
     assert point.payload["section_header"] == "Results"
+    assert point.payload["chunk_index"] == 0
+    assert build["manifest"]["chunk_order"]["count"] == 1
+
+
+def test_activation_rejects_invalid_chunk_order(catalogue, qdrant):
+    build = upload(catalogue)
+    point_ids = [str(uuid5(NAMESPACE_URL, f"ordered:{index}")) for index in range(2)]
+    qdrant.upsert("uploads", [m.PointStruct(
+        id=point_id, vector=[1., 0., 0.], payload={
+            "build_id": build["id"], "paper_id": build["paper_id"],
+            "paper_version": 1, "type": "chunk", "chunk_index": 0, "text": "evidence",
+        }) for point_id in point_ids])
+    manifest = {"chunk_count": 2, "point_ids": point_ids,
+                "chunk_order": {"field": "chunk_index", "starts_at": 0, "count": 2,
+                                "scope": "text_chunks", "contiguous": True}}
+
+    result = check_build(qdrant, {**build, "manifest": manifest})
+
+    assert result["ok"] is False
+    assert sorted(result["invalid_chunk_order_ids"]) == sorted(point_ids)
+    with pytest.raises(ValueError, match="verification"):
+        activate_verified(catalogue, qdrant, build, manifest)
 
 
 @pytest.mark.parametrize("failure", ["storage", "describe", "embed"])

@@ -60,6 +60,10 @@ class PaperIndexer:
         if getattr(info.config.params.vectors, "size", None) != dimension:
             raise ValueError("Embedding dimension mismatch; use a new paper collection")
         self.qdrant.create_payload_index(collection, "build_id", m.PayloadSchemaType.KEYWORD, wait=True)
+        self.qdrant.create_payload_index(collection, "paper_id", m.PayloadSchemaType.KEYWORD, wait=True)
+        self.qdrant.create_payload_index(collection, "type", m.PayloadSchemaType.KEYWORD, wait=True)
+        self.qdrant.create_payload_index(collection, "section_header", m.PayloadSchemaType.KEYWORD, wait=True)
+        self.qdrant.create_payload_index(collection, "chunk_index", m.PayloadSchemaType.INTEGER, wait=True)
         self.qdrant.create_payload_index(collection, "text", m.TextIndexParams(
             type="text", tokenizer=m.TokenizerType.WORD, lowercase=True), wait=True)
         for start in range(0, len(chunks), 32):
@@ -107,6 +111,8 @@ def process_pending(client, catalogue, settings, store, indexer, limit, selected
                 "markdown": markdown, "pages": page_artifact, "extraction": SPEC,
                 "chunk_count": len(chunks), "pipeline_id": settings.pipeline_id,
                 "embedding_model": settings.EMBEDDING_MODEL, "collection": settings.PAPERS_COLLECTION}
+            manifest["chunk_order"] = {"field": "chunk_index", "starts_at": 0,
+                "count": len(chunks), "scope": "text_chunks", "contiguous": True}
             manifest["artifact"] = store.put_json(build["id"], "manifest.json", manifest)
             activate_verified(catalogue, indexer.qdrant, build, manifest)
             completed += 1

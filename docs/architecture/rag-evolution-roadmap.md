@@ -40,7 +40,9 @@ Implementation status:
 - complete: shared `RetrievalScope`, `PaperMatch` and `EvidenceChunk` contracts;
 - complete: PostgreSQL `search_papers` and scoped Qdrant `search_chunks`;
 - complete: separate Vanilla/Hybrid mode modules using the shared scope boundary;
-- next: stable chunk ordinals, `get_section` and `get_neighbors`, followed by a reindex;
+- complete in code: stable text-chunk ordinals, manifest validation and Qdrant payload
+  indexes; deployment still requires the documented pilot/full reindex;
+- next after reindex: `get_section` and `get_neighbors`;
 - not started: the Agentic planner/executor and public `agentic` mode.
 
 Implement framework-independent functions with typed inputs and outputs:

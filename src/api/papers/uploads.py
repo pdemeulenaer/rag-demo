@@ -71,6 +71,10 @@ def upsert_payloads(client, build, payloads, embed):
         if not client.collection_exists(build["collection"]):
             client.create_collection(build["collection"], vectors_config=m.VectorParams(size=len(vectors[0]), distance=m.Distance.COSINE))
         client.create_payload_index(build["collection"], "build_id", m.PayloadSchemaType.KEYWORD, wait=True)
+        client.create_payload_index(build["collection"], "paper_id", m.PayloadSchemaType.KEYWORD, wait=True)
+        client.create_payload_index(build["collection"], "type", m.PayloadSchemaType.KEYWORD, wait=True)
+        client.create_payload_index(build["collection"], "section_header", m.PayloadSchemaType.KEYWORD, wait=True)
+        client.create_payload_index(build["collection"], "chunk_index", m.PayloadSchemaType.INTEGER, wait=True)
         client.create_payload_index(build["collection"], "text", m.PayloadSchemaType.TEXT, wait=True)
         client.upsert(build["collection"], [m.PointStruct(id=row["id"], payload=row["payload"], vector=vector)
             for row, vector in zip(batch, vectors)], wait=True)
@@ -97,10 +101,14 @@ def process_upload(catalogue, qdrant, build, path, mode, store, extract, metadat
             summary = summarize(text) if mode == "sync" and summarize else ""
             searchable = f"Title: {meta.title}\nAuthors: {', '.join(meta.authors)}\nSummary: {summary}\nContent: {text}"
             payload = make_payload(build, meta, searchable, "chunk", page)
+            payload["chunk_index"] = i
             payload["summary"] = summary
             if extraction_metadata.get("structured_chunks"):
                 chunk = extraction_metadata["structured_chunks"][i]
-                payload.update({key: chunk[key] for key in ("section_header", "token_count", "content_kind")})
+                if chunk.get("chunk_index") != i:
+                    raise ValueError("Structured chunk ordering is not contiguous")
+                payload.update({key: chunk[key] for key in
+                                ("chunk_index", "section_header", "token_count", "content_kind")})
                 payload["source_text"] = text
             payloads.append({"id": point_id(build, f"text:{i}"), "payload": payload})
         payloads.append({"id": point_id(build, "summary"),
@@ -134,6 +142,8 @@ def process_upload(catalogue, qdrant, build, path, mode, store, extract, metadat
         expected = [row["id"] for row in payloads] + list(image_tasks)
         manifest = {"source": source, "chunk_count": len(expected), "point_ids": expected,
             "pipeline_id": build["pipeline_id"], "embedding_model": build["embedding_model"],
+            "chunk_order": {"field": "chunk_index", "starts_at": 0,
+                "count": len(chunks), "scope": "text_chunks", "contiguous": True},
             "figures": figure_artifacts,
             "payloads": store.put_json(build["id"], "payloads.json", payloads),
             "figure_tasks": {key: {k: v for k, v in task.items() if k != "request"} for key, task in image_tasks.items()}}

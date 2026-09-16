@@ -10,9 +10,10 @@ import re
 import sys
 
 
-SPEC = {"version": "markdown-structure-v1", "pymupdf": "1.27.2.3",
+SPEC = {"version": "markdown-structure-v2", "pymupdf": "1.27.2.3",
         "pymupdf4llm": "1.27.2.3", "ocr": False,
-        "tokenizer": "cl100k_base", "max_tokens": 512, "overlap_tokens": 64}
+        "tokenizer": "cl100k_base", "max_tokens": 512, "overlap_tokens": 64,
+        "chunk_index": "zero-based-document-text-order-v1"}
 HEADER = re.compile(r"^(#{1,6})\s+(.+)$")
 TABLE_SEPARATOR = re.compile(r"^\s*\|?(?:\s*:?-{2,}:?\s*\|)+\s*$")
 
@@ -157,7 +158,8 @@ def chunk_pages(pages, max_chunks=1000, *, max_tokens=512, overlap_tokens=64):
             count = token_count(text)
             if count > max_tokens:
                 raise ValueError("Chunk exceeds token budget")
-            chunks.append({"page_number": page, "section_header": section,
+            chunks.append({"chunk_index": len(chunks),
+                           "page_number": page, "section_header": section,
                            "text": text, "token_count": count, "content_kind": kind})
             if len(chunks) > max_chunks:
                 raise ValueError("Paper exceeds configured chunk budget")

@@ -191,13 +191,18 @@ def test_process_with_local_qdrant(catalogue, settings, paper):
         assert active[0]["manifest"]["source"]["sha256"]
         assert active[0]["manifest"]["markdown"]["sha256"]
         assert active[0]["manifest"]["pages"]["sha256"]
-        assert active[0]["manifest"]["extraction"]["version"] == "markdown-structure-v1"
+        assert active[0]["manifest"]["extraction"]["version"] == "markdown-structure-v2"
+        assert active[0]["manifest"]["chunk_order"] == {
+            "field": "chunk_index", "starts_at": 0, "count": 1,
+            "scope": "text_chunks", "contiguous": True,
+        }
         scope = m.Filter(must=[m.FieldCondition(key="build_id", match=m.MatchAny(any=[active[0]["id"]]))])
         for mode in ["vanilla", "hybrid"]:
             points = search_points(qdrant, settings.PAPERS_COLLECTION, [1., 0., 0.], "globular", 5, mode, scope).points
             assert len(points) == 1
             assert points[0].payload["page_number"] == 1
             assert points[0].payload["paper_version"] == 1
+            assert points[0].payload["chunk_index"] == 0
         assert process_pending(client, catalogue, settings, ArtifactStore(settings), indexer, 1)["completed"] == 0
 
 

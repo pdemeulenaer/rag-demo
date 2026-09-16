@@ -53,7 +53,9 @@ It reuses processing helpers from `src/api/ingestion/ingest_documents.py`:
 - `get_file_hash` — content hash, used to build stable point IDs and avoid duplicates.
 - `extract_raw_content` — shared PyMuPDF4LLM text extraction plus existing figure workers.
 - `src/api/papers/extraction.py` — page-aware Markdown, heading/paragraph-aware token
-  chunking, complete table rows with repeated headers, and page/section provenance.
+  chunking, complete table rows with repeated headers, page/section provenance, and a stable
+  zero-based `chunk_index` for textual chunks. Summaries and figures are outside this ordinal
+  stream.
   Tables whose layout cannot retain complete rows are stored as explicitly labelled
   `table_unstructured` evidence rather than dropped. Both arXiv and GUI uploads use it.
   `get_text_chunks_recursive` remains a legacy helper.

@@ -36,7 +36,9 @@ def scan(client, collection, scope=None, vectors=False):
     while True:
         points, offset = client.scroll(collection_name=collection, scroll_filter=scope, offset=offset,
             limit=128, with_vectors=vectors,
-            with_payload=["build_id", "paper_id", "paper_version", "file_hash", "file_name", "file_title", "title", "authors", "year", "text"])
+            with_payload=["build_id", "paper_id", "paper_version", "file_hash", "file_name",
+                          "file_title", "title", "authors", "year", "text", "type",
+                          "chunk_index", "section_header", "content_kind"])
         yield from points
         if offset is None:
             break
@@ -57,10 +59,22 @@ def check_build(client, build):
     invalid = [str(p.id) for p in points if not valid_vector(p.vector) or (
         not legacy and ((p.payload or {}).get("paper_id") != build["paper_id"] or
                         (p.payload or {}).get("paper_version") != build["version"]))]
-    return {"build_id": build["id"], "ok": expected == actual and not invalid,
+    order = (build.get("manifest") or {}).get("chunk_order")
+    invalid_order = []
+    if order:
+        text_points = [p for p in points if (p.payload or {}).get("type") in {"text", "chunk"}]
+        indexes = [(p.payload or {}).get("chunk_index") for p in text_points]
+        valid_order = (order == {"field": "chunk_index", "starts_at": 0,
+            "count": len(text_points), "scope": "text_chunks", "contiguous": True}
+            and all(isinstance(value, int) and not isinstance(value, bool) for value in indexes)
+            and sorted(indexes) == list(range(len(text_points))))
+        if not valid_order:
+            invalid_order = [str(p.id) for p in text_points]
+    return {"build_id": build["id"], "ok": expected == actual and not invalid and not invalid_order,
             "expected_points": len(expected), "actual_points": len(actual),
             "missing_ids": sorted(expected - actual), "unexpected_ids": sorted(actual - expected),
-            "invalid_vector_or_identity_ids": invalid}
+            "invalid_vector_or_identity_ids": invalid,
+            "invalid_chunk_order_ids": invalid_order}
 
 
 def activate_verified(catalogue, client, build, manifest):

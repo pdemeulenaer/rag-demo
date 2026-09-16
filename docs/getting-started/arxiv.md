@@ -91,6 +91,7 @@ PDF page as `{page_number, text}`. Each `chunks.json` entry contains:
 
 | Field | Meaning |
 | --- | --- |
+| `chunk_index` | Stable zero-based position among textual chunks in this build |
 | `page_number` | Original one-based PDF page number |
 | `section_header` | Markdown heading breadcrumb, for example `Methods > Data` |
 | `text` / `token_count` | Indexed evidence and its `cl100k_base` token count |
@@ -99,6 +100,12 @@ PDF page as `{page_number, text}`. Each `chunks.json` entry contains:
 `table_unstructured` is still searchable evidence with page and section provenance; only
 its table row/column structure should not be relied on. Inspect these artifacts with
 `make papers-extract-preview` before a paid re-index when extraction quality matters.
+
+Extraction specification `markdown-structure-v2` adds `chunk_index` to `chunks.json` and
+Qdrant payloads. The build manifest records a contiguous text-chunk ordering contract;
+activation and `papers-audit` reject missing or duplicate ordinals. Document summaries and
+figures intentionally have no `chunk_index`: neighbour expansion applies only to the ordered
+text/table evidence stream.
 
 For an existing installation, pause the Airflow DAG and let running ingestion/figure
 batches finish before rebuilding workers. Do not run old and new ingestion workers
@@ -125,6 +132,10 @@ Re-running skips current-pipeline active papers and resumes failed replacements 
 the attempt budget; it does not delete old points or bypass exhausted attempts. Interrupted
 embedding calls may still incur charges. `LIMIT` defaults to `ARXIV_DAILY_LIMIT`.
 This manual command is separate from Airflow's daily budget.
+
+For the `markdown-structure-v2` rollout, the preview should list every active arXiv build
+still lacking stable chunk ordinals. After each batch, `papers-audit` verifies both the usual
+point/vector identity and the new contiguous `chunk_index` contract.
 
 `papers-count` includes uploads, so 50 total documents need not mean 50 arXiv upgrades.
 For existing **GUI uploads**, re-upload the same PDF bytes after rebuilding the API.

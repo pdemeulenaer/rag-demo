@@ -102,9 +102,11 @@ or changing retrieval. Follow its order rather than jumping directly to graph st
 
 Typed scope/evidence contracts, PostgreSQL paper discovery, scoped Qdrant search and separate
 Vanilla/Hybrid mode modules are implemented. Do not fold their logic back into one mode file.
-The next slice is section and neighbour expansion. It requires a stable chunk ordinal in
-artifacts, manifests and Qdrant; do not infer order from UUIDs, and treat pipeline-version/
-reindex impact explicitly.
+Stable zero-based text `chunk_index` values are implemented in extraction artifacts,
+manifests and Qdrant payloads under `markdown-structure-v2`; activation/audit verifies their
+contiguity. A pilot/full reindex is still required wherever active builds use the older
+pipeline. After that rollout, the next slice is section and neighbour expansion. Never infer
+document order from UUIDs.
 
 Then add a distinct `agentic` API mode with structured planning, decomposition, evidence
 sufficiency checks and at most three retrieval rounds by default. Preserve Vanilla and
@@ -261,7 +263,8 @@ Both arXiv and uploads use `papers/extraction.py`: pinned PyMuPDF/PyMuPDF4LLM 1.
 OCR disabled, per-page Markdown, section-aware chunks capped at 512 cl100k_base tokens,
 up to 64 tokens of whole-paragraph overlap, complete table rows and repeated headers.
 Tables that cannot retain complete rows become explicitly labelled `table_unstructured`
-evidence rather than being dropped. Mathematical fidelity is not guaranteed. Figures remain handled separately on the upload path; arXiv has no figure
+evidence rather than being dropped. Text chunks carry a zero-based, contiguous `chunk_index`;
+summaries and figures do not. Mathematical fidelity is not guaranteed. Figures remain handled separately on the upload path; arXiv has no figure
 enrichment or graph extraction. Versioned artifacts include Markdown/pages/chunks and SPEC.
 Extraction/chunking changes must bump SPEC and therefore pipeline identity. New upload
 registration only deduplicates an active build of the current pipeline, so the same PDF
