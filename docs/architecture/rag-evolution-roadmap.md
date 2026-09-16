@@ -35,6 +35,14 @@ retrieval follows as an additional evidence tool for the same orchestration laye
 
 ## Phase 1 — reusable retrieval tools
 
+Implementation status:
+
+- complete: shared `RetrievalScope`, `PaperMatch` and `EvidenceChunk` contracts;
+- complete: PostgreSQL `search_papers` and scoped Qdrant `search_chunks`;
+- complete: separate Vanilla/Hybrid mode modules using the shared scope boundary;
+- next: stable chunk ordinals, `get_section` and `get_neighbors`, followed by a reindex;
+- not started: the Agentic planner/executor and public `agentic` mode.
+
 Implement framework-independent functions with typed inputs and outputs:
 
 | Tool | Store | Purpose |

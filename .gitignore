@@ -167,6 +167,9 @@ cython_debug/
 # Ruff stuff:
 .ruff_cache/
 
+# qdrant-client local-memory telemetry session created by offline tests
+/:memory:.ses
+
 # PyPI configuration file
 .pypirc
 

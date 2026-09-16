@@ -17,6 +17,8 @@ from src.api.rag.utils.utils import prompt_template_config
 from src.api.rag.summarize import summarize_text
 from src.api.api.models import Source
 from src.api.rag.search import search_points
+from src.api.rag.contracts import RetrievalScope
+from src.api.rag.tools.chunk_search import search_chunks
 
 
 logger = logging.getLogger(__name__)
@@ -118,8 +120,23 @@ def retrieve_context(query, qdrant_client, top_k=5, mode="hybrid", collection=No
         _, active, _ = active_corpus("uploads")
         if not active:
             return []
-        scope = active_filter(active)
+        target_collection = collection or config.QDRANT_COLLECTION_NAME
+        scope = RetrievalScope.from_builds(
+            target_collection, active, filter_override=active_filter(active)
+        )
     query_embedding = get_embedding(query)
+
+    if isinstance(scope, RetrievalScope):
+        target_collection = collection or scope.collection
+        if target_collection != scope.collection:
+            raise ValueError("Retrieval collection does not match the explicit corpus scope")
+        retrieved_context = [row.model_dump() for row in search_chunks(
+            qdrant_client, scope, query=query, vector=query_embedding,
+            limit=top_k, mode=mode,
+        )]
+        update_span(output={"point_ids": [row["id"] for row in retrieved_context]},
+                    metadata={"result_count": len(retrieved_context)})
+        return retrieved_context
 
     results = search_points(qdrant_client, collection or config.QDRANT_COLLECTION_NAME,
                            query_embedding, query, top_k, mode, scope)
@@ -394,10 +411,12 @@ def rag_pipeline(question, qdrant_client, session_id, generation_model=None, top
 
     # If in evaluation mode, return a fresh memory each time
     if mode is not None:
-        retrieved_context = retrieve_context(question, qdrant_client,
-            top_k=top_k if mode == "vanilla" else 20, mode=mode, collection=collection, scope=scope)
-        if mode == "hybrid":
-            retrieved_context = rerank_context(question, retrieved_context, top_n=top_k)
+        from src.api.rag.dispatcher import retrieve_for_mode
+        retrieved_context = retrieve_for_mode(
+            mode, question, qdrant_client, top_k=top_k, collection=collection,
+            scope=scope, retrieve_context=retrieve_context,
+            rerank_context=rerank_context,
+        )
     elif os.getenv("EVALUATION_MODE") == "true":
         
         # just use hybrid retrieval without reranking

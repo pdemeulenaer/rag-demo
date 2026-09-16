@@ -130,6 +130,19 @@ def test_failed_new_build_preserves_previous_ready_revision(catalogue, qdrant):
     assert inventory[0]["active_build"] == old["id"]
 
 
+def test_scoped_ready_builds_separates_live_and_frozen_revisions(catalogue):
+    old = upload(catalogue)
+    catalogue.activate(old, {"chunk_count": 1, "point_ids": ["old-point"]})
+    replacement = catalogue.upload("hash1", old["metadata"], "uploads", "test-model", "new-pipeline")
+    catalogue.activate(replacement, {"chunk_count": 1, "point_ids": ["new-point"]})
+
+    live = catalogue.scoped_ready_builds("uploads", [old["id"], replacement["id"]])
+    frozen = catalogue.scoped_ready_builds("uploads", [old["id"]], active_only=False)
+
+    assert [row["id"] for row in live] == [replacement["id"]]
+    assert [row["id"] for row in frozen] == [old["id"]]
+
+
 def process_args(catalogue, qdrant, settings, tmp_path, mode="sync"):
     path = tmp_path / "paper.pdf"
     path.write_bytes(b"%PDF-fixture")

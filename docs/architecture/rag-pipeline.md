@@ -1,15 +1,30 @@
 # RAG Pipeline
 
-The pipeline lives in [`src/api/rag/retrieval.py`](../reference/rag.md) and is entered
-through `rag_pipeline_wrapper`, which builds the Qdrant client and delegates to
-`rag_pipeline`.
+The answer-generation pipeline is entered through `rag_pipeline_wrapper` in
+[`src/api/rag/retrieval.py`](../reference/rag.md). Retrieval strategies are deliberately
+separate so that each comparison mode remains understandable and independently testable:
+
+| Responsibility | Module |
+| --- | --- |
+| Shared corpus/evidence contracts | `src/api/rag/contracts.py` |
+| Mode selection only | `src/api/rag/dispatcher.py` |
+| Vanilla retrieval | `src/api/rag/modes/vanilla.py` |
+| Hybrid retrieval and reranking | `src/api/rag/modes/hybrid.py` |
+| PostgreSQL paper discovery | `src/api/rag/tools/paper_search.py` |
+| Scoped Qdrant chunk retrieval | `src/api/rag/tools/chunk_search.py` |
+| Shared prompting, generation and citation resolution | `src/api/rag/retrieval.py` |
+
+Future Agentic and KG modes get their own files under `modes/`; they compose the shared
+read-only tools instead of replacing Vanilla or Hybrid.
 
 ```mermaid
 flowchart LR
-    Q[Question] --> E[Embed query]
-    E --> H[Hybrid search<br/>Qdrant, RRF fusion]
+    Q[Question] --> M{Explicit mode}
+    M -->|Vanilla| D[Dense Qdrant search]
+    M -->|Hybrid| H[Qdrant RRF fusion]
     H --> R[Rerank<br/>Cohere]
-    R --> P[Build prompt<br/>+ session memory]
+    D --> P[Build prompt<br/>+ session memory]
+    R --> P
     P --> G[Generate<br/>structured answer]
     G --> S[Resolve cited<br/>sources & figures]
 ```
@@ -20,7 +35,28 @@ flowchart LR
 (`text-embedding-3-small` by default). When enabled, the Langfuse OpenAI wrapper records
 latency and token usage.
 
-## 2. Hybrid retrieval
+## 2. Explicit corpus scope and retrieval
+
+The API resolves the selected corpus in PostgreSQL before querying Qdrant. A
+`RetrievalScope` contains the collection and exact allowed build IDs:
+
+- an `active` scope accepts only the currently active, ready builds selected by the
+  catalogue;
+- a `frozen` scope accepts the exact ready build IDs stored in an evaluation snapshot,
+  including a retained older build;
+- every Qdrant query receives the scope filter, and every result is validated against it;
+- returned `EvidenceChunk` objects retain collection, build, paper, chunk, page and section
+  identity. Missing or drifting identities fail closed instead of becoming answer context.
+
+Legacy adopted uploads can lack `build_id` in their historical Qdrant payload. Their scoped
+manifest point IDs are used to recover the registered build/paper identity; this does not
+make unregistered points queryable.
+
+`search_papers` searches title, author, year, source and title/abstract terms in the
+PostgreSQL catalogue. `search_chunks` performs vector retrieval in Qdrant. Both are direct,
+read-only functions and do not depend on an agent framework.
+
+### Hybrid retrieval
 
 `retrieve_context` issues a single Qdrant `query_points` call with two prefetch branches,
 fused with Reciprocal Rank Fusion:
@@ -29,8 +65,8 @@ fused with Reciprocal Rank Fusion:
 - a **full-text-constrained dense** branch applying `MatchText` to the `text` payload while
   querying with the same dense vector, limit 20.
 
-Each returned point is flattened into a dict carrying `id`, `text`, `title`, `authors`,
-`year`, `page`, `score`, `type`, `image_path`, and `caption`.
+Each returned point is validated as an `EvidenceChunk`, including `collection`, `build_id`,
+`paper_id`, `id`, `page`, `section_header` and content metadata in addition to display fields.
 
 ## 3. Reranking
 

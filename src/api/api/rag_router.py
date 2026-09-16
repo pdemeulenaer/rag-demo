@@ -254,9 +254,9 @@ async def rag(
 
     # Explicit demo presets bypass intent routing. Omitted mode keeps legacy API behavior.
     if payload.mode is not None or payload.corpus == "arxiv":
-        from qdrant_client.models import Filter, FieldCondition, MatchAny
         from src.api.api.papers_router import active_corpus
         from src.api.papers.consistency import active_filter
+        from src.api.rag.contracts import RetrievalScope
         from starlette.concurrency import run_in_threadpool
 
         mode = payload.mode or "hybrid"
@@ -271,7 +271,9 @@ async def rag(
             raise HTTPException(409, "Corpus changed. Select 'Start new conversation' before comparing modes (API clients: clear corpus_snapshot and start a new session).")
         if not active:
             raise HTTPException(409, "No ready papers in this source. Process pending documents or import legacy uploads first.")
-        scope = active_filter(active)
+        scope = RetrievalScope.from_builds(
+            collection, active, filter_override=active_filter(active)
+        )
         # Keep conversation memories separate by mode, corpus, model and active versions.
         memory_id = f"{session_id}:{payload.corpus}:{mode}:{gen_model}:{snapshot or 'live'}"
         result = await run_in_threadpool(rag_pipeline_wrapper, payload.query, memory_id,

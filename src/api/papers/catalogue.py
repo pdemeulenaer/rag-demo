@@ -200,6 +200,26 @@ class Catalogue:
                 builds, papers.c.source, papers.c.source_id, papers.c.active_build, papers.c.deleted,
             ).join(papers, builds.c.paper_id == papers.c.id)).mappings()]
 
+    def scoped_ready_builds(self, collection, build_ids, *, active_only=True):
+        """Return ready builds inside an explicit retrieval scope.
+
+        Metadata matching stays in the read-only RAG tool, but SQL performs the
+        identity/status/collection boundary so the tool never scans unrelated builds.
+        Frozen evaluations set ``active_only=False`` to use an exact retained build.
+        """
+        ids = tuple(dict.fromkeys(str(value) for value in build_ids if str(value)))
+        if not ids:
+            return []
+        conditions = [builds.c.id.in_(ids), builds.c.collection == collection,
+                      builds.c.status == "ready"]
+        if active_only:
+            conditions.extend([papers.c.active_build == builds.c.id, papers.c.deleted == 0])
+        statement = select(
+            builds, papers.c.source, papers.c.source_id, papers.c.active_build, papers.c.deleted,
+        ).join(papers, builds.c.paper_id == papers.c.id).where(*conditions).order_by(builds.c.id)
+        with self.engine.connect() as connection:
+            return [dict(row) for row in connection.execute(statement).mappings()]
+
     def inventory(self, source="all"):
         """One row per document, exposing latest attempt and active revision separately."""
         grouped = {}

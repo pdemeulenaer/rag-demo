@@ -14,8 +14,12 @@ two ingestion modes. MkDocs documentation is in `docs/`; start at
 - **API:** `src/api/main.py`; routers are in `src/api/api/`. Legacy `POST /rag2` requests
   classify questions and route metadata intents; explicit Vanilla/Hybrid presets bypass
   classification and retrieve evidence directly.
-- **RAG:** `src/api/rag/retrieval.py`: OpenAI embedding -> Qdrant RRF fusion of dense and
-  full-text retrieval -> Cohere rerank -> structured OpenAI/Groq response. The model selects
+- **RAG:** `src/api/rag/modes/vanilla.py` and `hybrid.py` own the two explicit retrieval
+  strategies; `dispatcher.py` selects one. `contracts.py` defines the explicit build scope
+  and evidence provenance, while `tools/paper_search.py` and `tools/chunk_search.py` provide
+  read-only PostgreSQL/Qdrant capabilities. `retrieval.py` owns shared embedding, prompting,
+  generation and citation resolution. Hybrid uses Qdrant RRF fusion of dense and full-text
+  retrieval followed by Cohere reranking. The model selects
   cited chunk IDs; only those sources/figures are returned. The Pydantic response model owns
   the strict OpenAI schema; duplicate/unavailable citation IDs are rejected, with one bounded
   retry for malformed structured generation. Evaluation judges use the same one-retry bound.
@@ -96,10 +100,11 @@ it is not a reason to introduce procurement-style text-to-SQL tools.
 milestones. Read it together with `docs/operations/evaluation-results.md` before planning
 or changing retrieval. Follow its order rather than jumping directly to graph storage.
 
-The next implementation must first add typed, framework-independent, read-only retrieval
-tools for PostgreSQL paper discovery, scoped Qdrant search, section expansion and neighbour
-expansion. Neighbour expansion requires a stable chunk ordinal in artifacts, manifests and
-Qdrant; do not infer order from UUIDs, and treat pipeline-version/reindex impact explicitly.
+Typed scope/evidence contracts, PostgreSQL paper discovery, scoped Qdrant search and separate
+Vanilla/Hybrid mode modules are implemented. Do not fold their logic back into one mode file.
+The next slice is section and neighbour expansion. It requires a stable chunk ordinal in
+artifacts, manifests and Qdrant; do not infer order from UUIDs, and treat pipeline-version/
+reindex impact explicitly.
 
 Then add a distinct `agentic` API mode with structured planning, decomposition, evidence
 sufficiency checks and at most three retrieval rounds by default. Preserve Vanilla and

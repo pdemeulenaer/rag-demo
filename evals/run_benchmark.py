@@ -22,7 +22,6 @@ from uuid import uuid4
 
 from pydantic import BaseModel, ConfigDict, ValidationError
 from qdrant_client import QdrantClient
-from qdrant_client.models import FieldCondition, Filter, MatchAny
 
 from evals.diagnostics import error_details
 from evals.review_dataset import (
@@ -40,6 +39,7 @@ from src.api.observability.tracing import (
     score_trace,
     trace_attributes,
 )
+from src.api.rag.contracts import RetrievalScope, ScopedBuild
 
 
 class BenchmarkError(ValueError):
@@ -102,11 +102,22 @@ def load_reviewed(path: Path, selected_split: str = "all") -> tuple[dict, dict, 
     return reviewed, snapshot, approved, canonical_hash(reviewed)
 
 
-def frozen_scope(snapshot: dict) -> Filter:
+def frozen_scope(snapshot: dict) -> RetrievalScope:
     build_ids = snapshot.get("active_build_ids") or []
     if not build_ids:
         raise BenchmarkError("Frozen snapshot has no active build IDs")
-    return Filter(must=[FieldCondition(key="build_id", match=MatchAny(any=build_ids))])
+    collections = {row.get("collection") for row in snapshot.get("papers", [])}
+    if len(collections) != 1 or None in collections:
+        raise BenchmarkError("Frozen snapshot must use exactly one Qdrant collection")
+    papers_by_build = {str(row.get("build_id")): row.get("paper_id")
+                       for row in snapshot.get("papers", [])}
+    builds = tuple(ScopedBuild(str(build_id),
+                              str(papers_by_build[str(build_id)])
+                              if papers_by_build.get(str(build_id)) else None)
+                   for build_id in build_ids)
+    return RetrievalScope(collection=str(next(iter(collections))),
+                          build_ids=tuple(str(value) for value in build_ids),
+                          kind="frozen", builds=builds)
 
 
 def judge(question: dict, answer: str, retrieved: list[dict], model: str,
@@ -171,7 +182,7 @@ def deterministic_metrics(question: dict, retrieved: list[dict], cited_ids: list
 
 
 def evaluate_item(question: dict, mode: str, *, qdrant: QdrantClient, collection: str,
-                  scope: Filter, top_k: int, generation_model: str, judge_enabled: bool,
+                  scope: RetrievalScope, top_k: int, generation_model: str, judge_enabled: bool,
                   judge_model: str, judge_reasoning_effort: str, run_id: str) -> dict:
     from src.api.rag.retrieval import rag_pipeline
 
