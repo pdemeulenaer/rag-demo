@@ -250,8 +250,11 @@ EVAL_JUDGE ?= false
 EVAL_JUDGE_MODEL ?= gpt-5-mini
 EVAL_JUDGE_REASONING_EFFORT ?= minimal
 EVAL_CONCURRENCY ?= 1
+EVAL_SPLIT ?= all
+EVAL_SPLIT_OUTPUT ?= $(EVAL_DIR)/questions.split.json
+EVAL_TEST_RATIO ?= 0.25
 
-.PHONY: eval-preview eval-check create-eval-dataset eval-run
+.PHONY: eval-preview eval-check create-eval-dataset eval-validate eval-split eval-run
 
 # Freeze active paper evidence locally. No model calls or database writes.
 eval-preview:
@@ -265,10 +268,18 @@ create-eval-dataset:
 eval-check:
 	uv run python -m evals.generate_questions check --output "$(EVAL_DIR)"
 
+# Validate the local reviewed dataset and its frozen snapshot; no service calls.
+eval-validate:
+	uv run python -m evals.review_dataset validate --dataset "$(EVAL_REVIEWED)" --split "$(EVAL_SPLIT)"
+
+# Write a new schema-v2 reviewed file with paper-component development/test splits.
+eval-split:
+	uv run python -m evals.review_dataset assign-splits --dataset "$(EVAL_REVIEWED)" --output "$(EVAL_SPLIT_OUTPUT)" --test-ratio "$(EVAL_TEST_RATIO)" --seed "$(EVAL_SEED)"
+
 # Run the reviewed benchmark against one or more explicit retrieval modes.
 # This performs paid embedding/generation calls; EVAL_JUDGE=true adds a paid judge call.
 eval-run:
-	uv run python -m evals.run_benchmark --dataset "$(EVAL_REVIEWED)" --output-root "$(EVAL_RUNS_DIR)" --modes $(EVAL_MODES) --top-k "$(EVAL_TOP_K)" $(if $(EVAL_GENERATION_MODEL),--generation-model "$(EVAL_GENERATION_MODEL)") $(if $(filter true 1 yes,$(EVAL_JUDGE)),--judge,--no-judge) --judge-model "$(EVAL_JUDGE_MODEL)" --judge-reasoning-effort "$(EVAL_JUDGE_REASONING_EFFORT)" --concurrency "$(EVAL_CONCURRENCY)" $(if $(EVAL_LIMIT),--limit "$(EVAL_LIMIT)")
+	uv run python -m evals.run_benchmark --dataset "$(EVAL_REVIEWED)" --output-root "$(EVAL_RUNS_DIR)" --modes $(EVAL_MODES) --split "$(EVAL_SPLIT)" --top-k "$(EVAL_TOP_K)" $(if $(EVAL_GENERATION_MODEL),--generation-model "$(EVAL_GENERATION_MODEL)") $(if $(filter true 1 yes,$(EVAL_JUDGE)),--judge,--no-judge) --judge-model "$(EVAL_JUDGE_MODEL)" --judge-reasoning-effort "$(EVAL_JUDGE_REASONING_EFFORT)" --concurrency "$(EVAL_CONCURRENCY)" $(if $(EVAL_LIMIT),--limit "$(EVAL_LIMIT)")
 
 .PHONY: build run docs docs-build docs-deploy
 

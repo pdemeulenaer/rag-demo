@@ -181,9 +181,12 @@ with short polling requests; rerun the same command to resume saved response IDs
 [evaluation guide](docs/operations/evaluation.md) for customization, resuming and limits.
 
 After marking accepted records `review_status: approved` in `questions.reviewed.json`,
-run a small Vanilla/Hybrid benchmark and then the complete judged comparison:
+validate the reviewed file. New schema-v2 datasets can assign leakage-safe splits that keep
+connected papers together. Then run a small Vanilla/Hybrid benchmark and the complete
+judged comparison:
 
 ```bash
+make eval-validate EVAL_DIR=data/evaluation/markdown-mini-v1
 make eval-run EVAL_DIR=data/evaluation/markdown-mini-v1 EVAL_LIMIT=2
 make eval-run EVAL_DIR=data/evaluation/markdown-mini-v1 EVAL_JUDGE=true
 ```

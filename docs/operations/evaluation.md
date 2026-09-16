@@ -229,6 +229,56 @@ from them.
    groups must stay in one split. Keep the same approved questions and corpus when
    comparing Vanilla, Hybrid and future graph/agentic modes.
 
+### Reviewed dataset contract and splits
+
+Historical schema-v1 reviewed files remain runnable with `EVAL_SPLIT=all`. New benchmark
+datasets should use schema v2. Change the copied review file's top-level `schema_version`
+to `2`, and add review evidence to every decision. For an approved answerable question:
+
+```json
+"review": {
+  "reviewer": "reviewer-1",
+  "reviewed_at": "2026-09-15T12:00:00Z",
+  "decision": "approved",
+  "original_sources_checked": true,
+  "corpus_search_verified": false
+}
+```
+
+Rejected records use `decision: rejected`. An approved `unanswerable_candidate` must also
+use `answerability_scope: frozen_corpus` and `corpus_search_verified: true` after the
+reviewer searches the complete frozen Qdrant builds. The validator rejects excerpt-only
+negative cases, missing reference evidence, cross-paper evidence from fewer than two
+papers, unknown paper/build identity, duplicate questions and inconsistent review metadata.
+
+Assign a deterministic development/test split after review:
+
+```bash
+make eval-split EVAL_DIR=data/evaluation/markdown-mini-v2 \
+  EVAL_SPLIT_OUTPUT=data/evaluation/markdown-mini-v2/questions.split.json
+make eval-validate \
+  EVAL_REVIEWED=data/evaluation/markdown-mini-v2/questions.split.json
+```
+
+The split operation derives each question's `paper_ids`, connects papers used by the same
+cross-paper question, and assigns whole connected components to one split. It never
+overwrites its input. If every reviewed question belongs to one connected paper component,
+a leakage-safe two-way split is impossible and the command fails. `EVAL_TEST_RATIO=0.25`
+and `EVAL_SEED=42` control a new assignment; both are recorded with the actual resulting
+ratio in the output.
+
+Use the development split while changing retrieval or prompts:
+
+```bash
+make eval-run EVAL_REVIEWED=data/evaluation/markdown-mini-v2/questions.split.json \
+  EVAL_SPLIT=development EVAL_JUDGE=true
+```
+
+Run `EVAL_SPLIT=test` only for a held-out comparison. The run manifest records the complete
+reviewed-dataset hash, selected split and hash of the exact ordered question IDs. The split
+cannot eliminate leakage from prior human/model exposure to the papers; it prevents the
+more direct error of tuning and reporting on questions connected to the same papers.
+
 ## Run the reviewed benchmark
 
 Start with a two-question smoke run. This makes embedding and answer-generation calls;
@@ -278,12 +328,12 @@ Errors are retained per item, processing continues, and the final manifest becom
 `completed_with_errors`. Partial results survive a stopped process, but automatic resume
 of an interrupted benchmark run is not implemented yet; a new invocation creates a new run.
 
-`EVAL_MODES="vanilla"`, `EVAL_TOP_K=10`, `EVAL_GENERATION_MODEL=...`, and
-`EVAL_CONCURRENCY=...` are available for controlled experiments. Use concurrency 1
+`EVAL_MODES="vanilla"`, `EVAL_SPLIT=development`, `EVAL_TOP_K=10`,
+`EVAL_GENERATION_MODEL=...`, and `EVAL_CONCURRENCY=...` are available for controlled experiments. Use concurrency 1
 until provider rate limits are understood.
 
-Dataset splitting remains future work. Until it is added, do not tune repeatedly on all
-approved questions and then describe the same scores as held-out performance.
+Schema-v1 datasets have no split metadata. Do not tune repeatedly on all of their approved
+questions and then describe the same scores as held-out performance.
 
 ## Track runs in Langfuse
 

@@ -24,6 +24,13 @@ from qdrant_client import QdrantClient
 from qdrant_client.models import FieldCondition, Filter, MatchAny
 
 from evals.diagnostics import error_details
+from evals.review_dataset import (
+    ReviewDatasetError,
+    canonical_hash,
+    load_files,
+    validate_legacy,
+    validate_v2,
+)
 from src.api.core.config import config
 from src.api.observability.tracing import (
     flush,
@@ -59,12 +66,6 @@ answer clearly declines to invent the missing information; otherwise set it to i
 For answerable questions set abstention to not_applicable. Give one concise reason."""
 
 
-def canonical_hash(value: object) -> str:
-    # Match the generator's frozen snapshot digest exactly. This remains
-    # independent of whitespace in the on-disk JSON file.
-    return sha256(json.dumps(value, sort_keys=True, ensure_ascii=False).encode()).hexdigest()
-
-
 def write_json(path: Path, value: object) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     with tempfile.NamedTemporaryFile("w", encoding="utf-8", dir=path.parent,
@@ -75,22 +76,19 @@ def write_json(path: Path, value: object) -> None:
     temporary.replace(path)
 
 
-def load_reviewed(path: Path) -> tuple[dict, dict, list[dict], str]:
+def load_reviewed(path: Path, selected_split: str = "all") -> tuple[dict, dict, list[dict], str]:
     try:
-        reviewed = json.loads(path.read_text())
-        snapshot = json.loads((path.parent / "snapshot.json").read_text())
-    except (OSError, json.JSONDecodeError) as error:
-        raise BenchmarkError("Reviewed questions or sibling snapshot.json is missing/invalid") from error
-    if reviewed.get("schema_version") != 1 or not isinstance(reviewed.get("questions"), list):
-        raise BenchmarkError("Unsupported reviewed question format")
-    if reviewed.get("snapshot_hash") != canonical_hash(snapshot):
-        raise BenchmarkError("Reviewed questions do not match the frozen snapshot")
-    approved = [row for row in reviewed["questions"] if row.get("review_status") == "approved"]
-    if not approved:
-        raise BenchmarkError("No questions have review_status=approved")
-    ids = [row.get("id") for row in approved]
-    if any(not value for value in ids) or len(ids) != len(set(ids)):
-        raise BenchmarkError("Approved question IDs must be present and unique")
+        reviewed, snapshot = load_files(path)
+        if reviewed.get("schema_version") == 1:
+            if selected_split != "all":
+                raise BenchmarkError("Schema-v1 datasets do not define development/test splits")
+            approved = validate_legacy(reviewed)
+        else:
+            _, approved = validate_v2(
+                reviewed, snapshot, selected_split=selected_split
+            )
+    except ReviewDatasetError as error:
+        raise BenchmarkError(str(error)) from error
     collections = {row.get("collection") for row in snapshot.get("papers", [])}
     if len(collections) != 1 or None in collections:
         raise BenchmarkError("A benchmark snapshot must use exactly one Qdrant collection")
@@ -228,6 +226,8 @@ def summarize(records: list[dict], modes: list[str]) -> dict:
 def report_markdown(manifest: dict, summary: dict) -> str:
     lines = [f"# Evaluation run {manifest['run_id']}", "",
              f"Dataset: `{manifest['dataset_hash']}`", "",
+             f"Split: `{manifest.get('split', 'all')}`; evaluation set: "
+             f"`{manifest.get('evaluation_set_hash', 'legacy')}`", "",
              "| Mode | Questions | Errors | Mean latency (s) | Retrieval recall | Correctness | Groundedness | Relevance |",
              "| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |"]
     for mode in manifest["modes"]:
@@ -253,6 +253,7 @@ def sync_langfuse_dataset(client, questions: list[dict], dataset_name: str,
             expected_output={"reference_answer": row["reference_answer"],
                 "gold_point_ids": [e["point_id"] for e in row.get("reference_evidence", [])]},
             metadata={"review_status": "approved",
+                      "split": row.get("split", "all"), "group_id": row.get("group_id"),
                       "corpus_fingerprint": snapshot.get("corpus_fingerprint")})
     dataset = client.get_dataset(dataset_name)
     wanted = {row["id"] for row in questions}
@@ -261,9 +262,10 @@ def sync_langfuse_dataset(client, questions: list[dict], dataset_name: str,
 
 def run(args) -> Path:
     os.environ["EVALUATION_MODE"] = "true"
-    reviewed, snapshot, questions, dataset_hash = load_reviewed(args.dataset)
+    reviewed, snapshot, questions, dataset_hash = load_reviewed(args.dataset, args.split)
     if args.limit:
         questions = questions[:args.limit]
+    evaluation_set_hash = canonical_hash([row["id"] for row in questions])
     modes = list(dict.fromkeys(args.modes))
     if any(mode not in {"vanilla", "hybrid"} for mode in modes):
         raise BenchmarkError("Modes must be vanilla and/or hybrid")
@@ -279,6 +281,8 @@ def run(args) -> Path:
         "schema_version": 1, "run_id": run_id, "status": "running",
         "started_at": datetime.now(timezone.utc).isoformat(), "completed_at": None,
         "dataset_path": str(args.dataset), "dataset_hash": dataset_hash,
+        "dataset_schema_version": reviewed["schema_version"], "split": args.split,
+        "evaluation_set_hash": evaluation_set_hash,
         "snapshot_hash": reviewed["snapshot_hash"],
         "corpus_fingerprint": snapshot.get("corpus_fingerprint"),
         "frozen_build_ids": snapshot["active_build_ids"], "modes": modes,
@@ -335,6 +339,7 @@ def run(args) -> Path:
                     task=lambda *, item, _mode=mode, **kwargs: task_for(_mode, by_id[item.input["id"]]),
                     evaluators=[evaluator], max_concurrency=args.concurrency,
                     metadata={"run_id": run_id, "mode": mode, "dataset_hash": dataset_hash,
+                              "split": args.split, "evaluation_set_hash": evaluation_set_hash,
                               "generation_model": args.generation_model,
                               "corpus_fingerprint": snapshot.get("corpus_fingerprint")})
                 manifest["langfuse_runs"][mode] = {
@@ -374,6 +379,7 @@ def main() -> None:
     parser.add_argument("--run-id", help="Optional unique run directory name")
     parser.add_argument("--modes", nargs="+", default=["vanilla", "hybrid"])
     parser.add_argument("--limit", type=int)
+    parser.add_argument("--split", choices=["all", "development", "test"], default="all")
     parser.add_argument("--top-k", type=int, default=5)
     parser.add_argument("--generation-model", default=config.GENERATION_MODEL)
     parser.add_argument("--judge", action=argparse.BooleanOptionalAction, default=False,

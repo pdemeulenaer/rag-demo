@@ -71,9 +71,23 @@ def test_reviewed_evaluation_runner_forwards_modes_and_optional_limit():
         "uv", "run", "python", "-m", "evals.run_benchmark",
         "--dataset", "data/evaluation/reviewed/questions.reviewed.json",
         "--output-root", "data/evaluation/runs", "--modes", "vanilla", "hybrid",
-        "--top-k", "5", "--judge",
+        "--split", "all", "--top-k", "5", "--judge",
         "--judge-model", "gpt-5-mini", "--judge-reasoning-effort", "minimal",
         "--concurrency", "1", "--limit", "3",
+    ]
+
+
+def test_evaluation_review_validation_and_split_are_local_commands():
+    assert dry_run("eval-validate", "EVAL_DIR=data/evaluation/reviewed", "EVAL_SPLIT=test") == [
+        "uv", "run", "python", "-m", "evals.review_dataset", "validate",
+        "--dataset", "data/evaluation/reviewed/questions.reviewed.json", "--split", "test",
+    ]
+    assert dry_run("eval-split", "EVAL_DIR=data/evaluation/reviewed",
+                   "EVAL_SPLIT_OUTPUT=data/evaluation/reviewed/questions.v2.json") == [
+        "uv", "run", "python", "-m", "evals.review_dataset", "assign-splits",
+        "--dataset", "data/evaluation/reviewed/questions.reviewed.json",
+        "--output", "data/evaluation/reviewed/questions.v2.json",
+        "--test-ratio", "0.25", "--seed", "42",
     ]
 
 

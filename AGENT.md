@@ -318,6 +318,13 @@ same questions, generation model, top-k and frozen scope. `EVAL_JUDGE=true` adds
 paid Responses API judge calls. Partial item results survive interruption, but benchmark
 resume is not implemented; a retry is a new run. Never run a benchmark implicitly during tests.
 
+Historical reviewed schema v1 remains runnable only as `split=all`. New schema-v2 review
+files are validated by `evals/review_dataset.py`: approved items require reviewer/source
+checks, approved negatives require verified `frozen_corpus` scope, and deterministic split
+assignment keeps connected paper components wholly in development or test. Use
+`make eval-split`, then `make eval-validate`; `make eval-run EVAL_SPLIT=development|test`
+records both the complete dataset hash and exact selected-question hash.
+
 Langfuse v4 is the sole supported observability integration and runs as an opt-in,
 repository-owned Docker stack in `docker-compose.langfuse.yaml`. Host processes use
 `LANGFUSE_BASE_URL`; application containers use `LANGFUSE_BASE_URL_CONTAINER`. All imports
@@ -335,7 +342,7 @@ missing-information answers for answerable jobs. Old plans retain prior validati
 rewrite their hashes or checkpoints. These gates do not establish scientific entailment.
 Negatives are excerpt-scoped, not proven absent from the entire corpus. Cross-paper
 pairing uses lexical metadata overlap, not KG reasoning. `make eval-run` consumes the
-reviewed format. Held-out splitting remains a follow-up.
+reviewed format. Schema-v1 datasets have no defensible held-out split.
 Do not change ingestion, retrieval presets or add graph infrastructure as part of
 maintaining the question generator or benchmark runner.
 
