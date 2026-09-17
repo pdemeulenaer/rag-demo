@@ -404,13 +404,68 @@ def generate_answer(prompt, generation_model=None, allowed_context_ids=None):
 
 @observe(name="rag_pipeline", capture_input=False, capture_output=False)
 def rag_pipeline(question, qdrant_client, session_id, generation_model=None, top_k=5,
-                 mode=None, collection=None, scope=None):
+                 mode=None, collection=None, scope=None, catalogue=None, planner=None,
+                 agent_budget=None):
     update_span(input={"question": question}, metadata={"mode": mode or "legacy",
         "collection": collection or config.QDRANT_COLLECTION_NAME,
         "generation_model": generation_model or config.GENERATION_MODEL, "top_k": top_k})
 
+    agent_run = None
+    # Agentic retrieval owns its bounded multi-round orchestration but reuses the
+    # same final answer/citation path below.
+    if mode == "agentic":
+        from src.api.rag.modes.agentic.contracts import AgentBudget
+        from src.api.rag.modes.agentic.executor import run_agentic
+        from src.api.rag.modes.agentic.planner import OpenAIAgentPlanner
+
+        if not isinstance(scope, RetrievalScope):
+            raise ValueError("Agentic mode requires an explicit retrieval scope")
+        if catalogue is None:
+            raise ValueError("Agentic mode requires the paper catalogue")
+        if agent_budget is None:
+            agent_budget = AgentBudget(
+                max_rounds=config.AGENT_MAX_ROUNDS,
+                max_tool_calls=config.AGENT_MAX_TOOL_CALLS,
+                max_evidence_chunks=config.AGENT_MAX_EVIDENCE_CHUNKS,
+                max_elapsed_seconds=config.AGENT_MAX_ELAPSED_SECONDS,
+                max_planner_tokens=config.AGENT_MAX_PLANNER_TOKENS,
+            )
+        agent_run = run_agentic(
+            question,
+            client=qdrant_client,
+            catalogue=catalogue,
+            scope=scope,
+            planner=planner or OpenAIAgentPlanner(),
+            embed=get_embedding,
+            budget=agent_budget,
+        )
+        retrieved_context = [row.model_dump() for row in agent_run.evidence]
+        if not agent_run.should_synthesize:
+            failure_reasons = {"planner_failure", "tool_failure"}
+            if agent_run.execution.stop_reason.value in failure_reasons:
+                answer_text = "Agentic retrieval could not complete safely for this question."
+            else:
+                answer_text = (
+                    "I could not find sufficient indexed evidence to answer this question "
+                    "within the Agentic retrieval limits."
+                )
+            result = {
+                "answer": answer_text,
+                "sources": [],
+                "images": [],
+                "question": question,
+                "retrieved_context": [row["text"] for row in retrieved_context],
+                "retrieved_chunks": retrieved_context,
+                "cited_context_ids": [],
+                "execution": agent_run.execution,
+            }
+            update_span(output={"answer": result["answer"],
+                                "retrieved_ids": [row["id"] for row in retrieved_context],
+                                "cited_ids": [],
+                                "stop_reason": agent_run.execution.stop_reason.value})
+            return result
     # If in evaluation mode, return a fresh memory each time
-    if mode is not None:
+    elif mode is not None:
         from src.api.rag.dispatcher import retrieve_for_mode
         retrieved_context = retrieve_for_mode(
             mode, question, qdrant_client, top_k=top_k, collection=collection,
@@ -432,7 +487,8 @@ def rag_pipeline(question, qdrant_client, session_id, generation_model=None, top
     if not retrieved_context:
         result = {"answer": "I found no indexed evidence for this question in the selected corpus.",
                   "sources": [], "images": [], "question": question, "retrieved_context": [],
-                  "retrieved_chunks": [], "cited_context_ids": []}
+                  "retrieved_chunks": [], "cited_context_ids": [],
+                  "execution": agent_run.execution if agent_run else None}
         update_span(output={"answer": result["answer"], "retrieved_ids": [], "cited_ids": []})
         return result
 
@@ -521,6 +577,7 @@ def rag_pipeline(question, qdrant_client, session_id, generation_model=None, top
         # deliberately does not expose full chunks or model-selected point IDs.
         "retrieved_chunks": retrieved_context,
         "cited_context_ids": sorted(used_ids.intersection(c["id"] for c in retrieved_context)),
+        "execution": agent_run.execution if agent_run else None,
     }
     update_span(output={"answer": result["answer"],
         "retrieved_ids": [row["id"] for row in retrieved_context],
@@ -537,17 +594,28 @@ def rag_pipeline_wrapper(question, session_id, generation_model=None, top_k=5,
         api_key=config.QDRANT_API_KEY  # For Qdrant Cloud only, empty otherwise
     )
         
+    catalogue = None
     try:
+        if mode == "agentic":
+            from src.api.papers.catalogue import Catalogue
+            from src.api.papers.settings import PaperSettings
+
+            catalogue = Catalogue(PaperSettings().PAPERS_DATABASE_URL)
+            catalogue.require_schema()
         with trace_attributes(session_id=session_id,
                 tags=["rag", f"mode:{mode or 'legacy'}"],
                 metadata={"mode": mode or "legacy", "collection": collection or config.QDRANT_COLLECTION_NAME}):
             result = rag_pipeline(question, qdrant_client, session_id, generation_model, top_k,
-                                  mode=mode, collection=collection, scope=scope)
+                                  mode=mode, collection=collection, scope=scope,
+                                  catalogue=catalogue)
     finally:
+        if catalogue is not None:
+            catalogue.close()
         qdrant_client.close()
 
     return {
         "answer": result["answer"],
         "sources": result.get("sources", []),
         "images": result.get("images", []),
+        "execution": result.get("execution"),
     }

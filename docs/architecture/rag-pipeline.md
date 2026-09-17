@@ -19,20 +19,24 @@ separate so that each comparison mode remains understandable and independently t
 | Exact-section expansion | `src/api/rag/tools/section_retrieval.py` |
 | Ordinal neighbour expansion | `src/api/rag/tools/neighbor_retrieval.py` |
 | Agentic plan/action/sufficiency/budget contracts | `src/api/rag/modes/agentic/contracts.py` |
+| Agentic structured model calls | `src/api/rag/modes/agentic/planner.py` |
+| Agentic bounded tool loop | `src/api/rag/modes/agentic/executor.py` |
 | Shared prompting, generation and citation resolution | `src/api/rag/retrieval.py` |
 
-Agentic contracts already live under `modes/agentic/`; its Phase 5 executor and future KG
-modes will also get isolated modules under `modes/`. They compose the shared read-only tools
-instead of replacing Vanilla or Hybrid.
+Agentic planning and execution live under `modes/agentic/`. Future KG modes will get their
+own isolated modules under `modes/`. They compose the shared read-only tools instead of
+replacing Vanilla or Hybrid.
 
 ```mermaid
 flowchart LR
     Q[Question] --> M{Explicit mode}
     M -->|Vanilla| D[Dense Qdrant search]
     M -->|Hybrid| H[Qdrant RRF fusion]
+    M -->|Agentic| A[Bounded plan + tool loop]
     H --> R[Rerank<br/>Cohere]
     D --> P[Build prompt<br/>+ session memory]
     R --> P
+    A --> P
     P --> G[Generate<br/>structured answer]
     G --> S[Resolve cited<br/>sources & figures]
 ```

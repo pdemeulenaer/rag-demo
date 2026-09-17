@@ -5,7 +5,9 @@ package without changing the Vanilla or Hybrid implementations.
 """
 
 from .contracts import (
+    AgentActionRecord,
     AgentBudget,
+    AgentExecutionMetadata,
     AgentPlan,
     BudgetUsage,
     EvidenceNeed,
@@ -20,7 +22,9 @@ from .contracts import (
 )
 
 __all__ = [
+    "AgentActionRecord",
     "AgentBudget",
+    "AgentExecutionMetadata",
     "AgentPlan",
     "BudgetUsage",
     "EvidenceNeed",

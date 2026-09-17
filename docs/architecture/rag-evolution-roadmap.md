@@ -112,7 +112,10 @@ than duplicating them in prompts or framework-specific state.
 
 ## Phase 5 — bounded Agentic RAG mode
 
-Add an explicit `agentic` mode with a structured planner/executor/synthesizer loop:
+Implementation status: complete as an API-only mode; Streamlit and benchmark exposure remain
+Phase 6 and Phase 7 work.
+
+The explicit `agentic` mode now uses a structured planner/executor/shared-synthesizer loop:
 
 1. Classify whether the question needs one paper, multiple papers or metadata discovery.
 2. Decompose multi-part and comparison questions into evidence needs.
@@ -131,23 +134,36 @@ This is intentionally a constrained retrieval agent. Merely asking an LLM to cho
 the existing Vanilla and Hybrid functions, without decomposition, evidence checking or
 iterative retrieval, does not satisfy this milestone.
 
-Exit criteria:
+Implemented safeguards and exit criteria:
 
-- API response records the selected mode, plan summary, citations and corpus fingerprint;
-- unit tests cover termination, repeated-result detection, tool failures and abstention;
-- latency, tool rounds and token use are observable and bounded;
-- direct single-paper questions do not incur unnecessary retrieval loops.
+- `POST /rag2` accepts `mode: "agentic"` and returns the selected mode, corpus fingerprint,
+  ordinary verified citations and concise `execution` metadata;
+- the executor intersects every action filter with the immutable active/frozen corpus scope;
+- at most three rounds run by default, with independent tool-call, evidence, elapsed-time and
+  planner-token limits;
+- repeated actions, repeated evidence, two empty-result rounds, tool failures, planner/schema
+  failures and explicit insufficiency all terminate without ungrounded generation;
+- direct questions can synthesize after one search and one sufficiency decision;
+- offline tests cover termination, scope escape, invented evidence IDs, repeated actions and
+  results, tool failure, abstention and strict provider requests.
+
+The implementation is isolated in `src/api/rag/modes/agentic/`: `contracts.py` defines the
+boundary, `planner.py` owns structured model calls, and `executor.py` owns deterministic tool
+execution. The existing answer generator is the synthesizer and still enforces retrieved
+chunk IDs, so Agentic citations follow the same contract as Vanilla and Hybrid.
 
 ## Phase 6 — API, Streamlit and observability
 
-Expose **Agentic** alongside **Vanilla** and **Hybrid** in Streamlit. Keep chat state isolated
+The explicit API mode is complete. Expose **Agentic** alongside **Vanilla** and **Hybrid** in
+Streamlit. Keep chat state isolated
 by corpus and mode. Show concise execution metadata—such as papers searched and retrieval
 round count—without exposing hidden reasoning or raw prompts. Existing source and figure
 rendering must continue to use verified citation IDs.
 
-Trace validated plan summaries, tool calls and filters, evidence IDs, budgets, stop reasons,
-model usage, latency and failures in Langfuse. Add the explicit `agentic` API mode before the
-UI selector; do not route omitted/legacy requests through the agent implicitly.
+The API already traces planner generations, tool calls, filters, evidence IDs, stop reasons,
+model usage and latency in Langfuse. Phase 6 should verify the trace presentation and add the
+UI's concise execution summary. Do not route omitted/legacy requests through the agent
+implicitly.
 
 ## Phase 7 — evaluation
 
@@ -226,7 +242,7 @@ Complete one reviewable slice at a time:
 2. stable chunk ordering and reindex (complete);
 3. section/neighbour evidence expansion (complete);
 4. structured planning contracts (complete);
-5. bounded planner/executor with an API-only `agentic` mode;
+5. bounded planner/executor with an API-only `agentic` mode (complete);
 6. Streamlit mode and Langfuse trace presentation;
 7. benchmark integration and evaluation-set strengthening;
 8. graph schema/provenance, deterministic KG retrieval, then KG-Agentic composition.

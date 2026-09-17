@@ -35,6 +35,7 @@ class StopReason(StrEnum):
     REPEATED_ACTION = "repeated_action"
     NO_PROGRESS = "no_progress"
     TOOL_FAILURE = "tool_failure"
+    PLANNER_FAILURE = "planner_failure"
     INSUFFICIENT_EVIDENCE = "insufficient_evidence"
 
 
@@ -214,6 +215,33 @@ class BudgetUsage(ContractModel):
     planner_tokens: int = Field(default=0, ge=0)
 
 
+class AgentActionRecord(ContractModel):
+    """Safe execution detail suitable for API responses and traces."""
+
+    action_id: Identifier
+    need_id: Identifier
+    tool: Literal["search_papers", "search_chunks", "get_section", "get_neighbors"]
+    status: Literal["success", "error", "skipped"]
+    result_count: int = Field(ge=0)
+    evidence_ids: list[str] = Field(max_length=50)
+    paper_ids: list[str] = Field(max_length=20)
+    error_type: Annotated[str, Field(min_length=1, max_length=100)] | None
+
+
+class AgentExecutionMetadata(ContractModel):
+    """Concise public execution metadata; never includes private reasoning."""
+
+    question_scope: QuestionScope | None
+    plan_summary: Annotated[str, Field(min_length=1, max_length=500)] | None
+    stop_reason: StopReason
+    rounds: int = Field(ge=0, le=3)
+    tool_calls: int = Field(ge=0, le=20)
+    evidence_count: int = Field(ge=0, le=50)
+    planner_tokens: int = Field(ge=0)
+    elapsed_seconds: float = Field(ge=0)
+    actions: list[AgentActionRecord] = Field(max_length=20)
+
+
 def action_fingerprint(action: ToolAction) -> str:
     """Identify a repeated tool operation independently of planner-local IDs."""
     payload = action.model_dump(mode="json", exclude={"action_id", "need_id"})
@@ -236,7 +264,11 @@ def budget_stop_reason(budget: AgentBudget, usage: BudgetUsage) -> StopReason | 
     return None
 
 
-def validate_decision_for_plan(plan: AgentPlan, decision: SufficiencyDecision) -> None:
+def validate_decision_for_plan(
+    plan: AgentPlan,
+    decision: SufficiencyDecision,
+    available_evidence_ids: set[str] | None = None,
+) -> None:
     """Validate round output against the immutable initial evidence needs."""
     expected = {need.need_id for need in plan.evidence_needs}
     assessed = {assessment.need_id for assessment in decision.assessments}
@@ -244,3 +276,11 @@ def validate_decision_for_plan(plan: AgentPlan, decision: SufficiencyDecision) -
         raise ValueError("A sufficiency decision must assess every planned evidence need")
     if any(action.need_id not in expected for action in decision.next_actions):
         raise ValueError("Every next action must reference a planned evidence need")
+    if available_evidence_ids is not None:
+        cited = {
+            evidence_id
+            for assessment in decision.assessments
+            for evidence_id in assessment.evidence_ids
+        }
+        if not cited.issubset(available_evidence_ids):
+            raise ValueError("A sufficiency decision cited unavailable evidence")

@@ -1,6 +1,8 @@
 from pydantic import BaseModel, Field
 from typing import List, Any, Optional, Dict, Union, Literal
 
+from src.api.rag.modes.agentic.contracts import AgentExecutionMetadata
+
 
 class ChatMessage(BaseModel):
     role: str
@@ -8,7 +10,7 @@ class ChatMessage(BaseModel):
 
 class RAGRequest(BaseModel):
     query: str = Field(..., description="The query to be used in the RAG pipeline")
-    mode: Literal["vanilla", "hybrid"] | None = None
+    mode: Literal["vanilla", "hybrid", "agentic"] | None = None
     corpus: Literal["uploads", "arxiv"] = "uploads"
     corpus_snapshot: str | None = None
     generation_model: Optional[str] = Field(
@@ -48,3 +50,4 @@ class RAGResponse(BaseModel):
     # used_image_urls: List[RAGUsedImage]
     sources: List[Source] = Field(..., description="The sources used in the RAG response")
     images: List[RAGImage] = []
+    execution: AgentExecutionMetadata | None = None

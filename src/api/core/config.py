@@ -33,6 +33,16 @@ class Config(BaseSettings):
     GENERATION_MODEL: str
     GENERATION_MODEL_PROVIDER: str
 
+    # Bounded Agentic RAG planner. Answer synthesis still uses GENERATION_MODEL.
+    AGENT_MODEL: str = "gpt-5-mini"
+    AGENT_REASONING_EFFORT: str = "minimal"
+    AGENT_MAX_COMPLETION_TOKENS: int = 2000
+    AGENT_MAX_ROUNDS: int = 3
+    AGENT_MAX_TOOL_CALLS: int = 12
+    AGENT_MAX_EVIDENCE_CHUNKS: int = 30
+    AGENT_MAX_ELAPSED_SECONDS: float = 120.0
+    AGENT_MAX_PLANNER_TOKENS: int = 6000
+
     # Optional Langfuse observability. Disabled means a true no-op: the SDK is
     # not imported by the application tracing shim.
     LANGFUSE_ENABLED: bool = False

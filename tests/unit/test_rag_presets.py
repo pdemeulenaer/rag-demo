@@ -86,7 +86,7 @@ def request():
                     "state": {"request_id": "request-1"}})
 
 
-@pytest.mark.parametrize("mode", ["vanilla", "hybrid"])
+@pytest.mark.parametrize("mode", ["vanilla", "hybrid", "agentic"])
 def test_router_presets_bypass_intent(runtime, monkeypatch, mode):
     _, router = runtime
     import src.api.api.papers_router as papers_router
@@ -136,3 +136,44 @@ def test_request_defaults_preserve_legacy_contract():
     assert payload.corpus == "uploads"
     with pytest.raises(ValueError):
         RAGRequest(query="Question", mode="graph")
+
+
+def test_agentic_abstention_skips_answer_generation(runtime, monkeypatch):
+    retrieval, _ = runtime
+    from src.api.rag.contracts import EvidenceChunk, RetrievalScope
+    from src.api.rag.modes.agentic.contracts import AgentExecutionMetadata
+    from src.api.rag.modes.agentic.executor import AgentRunResult
+    import src.api.rag.modes.agentic.executor as agent_executor
+
+    execution = AgentExecutionMetadata(
+        question_scope="direct",
+        plan_summary="Search for direct supporting evidence.",
+        stop_reason="insufficient_evidence",
+        rounds=1,
+        tool_calls=1,
+        evidence_count=1,
+        planner_tokens=20,
+        elapsed_seconds=0.1,
+        actions=[],
+    )
+    evidence = EvidenceChunk(
+        id="partial", text="Partial evidence", collection="papers",
+        build_id="build", paper_id="paper",
+    )
+    monkeypatch.setattr(
+        agent_executor,
+        "run_agentic",
+        Mock(return_value=AgentRunResult([evidence], execution, False)),
+    )
+    generate = Mock()
+    monkeypatch.setattr(retrieval, "generate_answer", generate)
+
+    result = retrieval.rag_pipeline(
+        "question", Mock(), "session", mode="agentic", collection="papers",
+        scope=RetrievalScope("papers", ("build",)), catalogue=Mock(), planner=Mock(),
+    )
+
+    assert "could not find sufficient indexed evidence" in result["answer"]
+    assert result["execution"].stop_reason.value == "insufficient_evidence"
+    assert result["sources"] == []
+    generate.assert_not_called()

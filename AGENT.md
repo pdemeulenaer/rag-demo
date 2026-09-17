@@ -112,15 +112,17 @@ and bounded ordinal expansion with strict paper/build scope. Never infer documen
 UUIDs. Phase 4 strict planning/action/sufficiency/budget contracts are implemented in
 `modes/agentic/contracts.py`, including read-only discriminated actions, hard budget models,
 stop reasons and duplicate-action fingerprints. The public Agentic mode is not implemented
-yet. The next slice is Phase 5: a bounded planner/executor/synthesizer that validates every
-model output and tool action against those contracts.
+yet in Streamlit. Phase 5 is complete as an API-only `agentic` mode:
+`modes/agentic/planner.py` performs strict structured planning/sufficiency calls and
+`modes/agentic/executor.py` runs the read-only tools within corpus, round, tool, evidence,
+time and token limits. It fails closed on scope escape, invented evidence, repeated work and
+provider/tool errors, then reuses the shared citation-validating answer generator.
 
-Then add a distinct `agentic` API mode with structured planning, decomposition, evidence
-sufficiency checks and at most three retrieval rounds by default. Preserve Vanilla and
-Hybrid as unchanged controls. The agent must respect SQL-active builds and evaluation-frozen
-build IDs, keep chunk/page/section provenance, detect repeated evidence, stop on budgets and
-abstain when evidence is insufficient. Give it no ingestion or mutation tools. A model that
-only chooses between the existing retrievers is not sufficient.
+The next slice is Phase 6: expose Agentic in Streamlit, keep mode-specific chat state, and
+verify the concise execution metadata and Langfuse trace presentation. Preserve Vanilla and
+Hybrid as unchanged controls. The agent must continue to respect SQL-active builds and
+evaluation-frozen build IDs, retain chunk/page/section provenance and receive no ingestion
+or mutation tools.
 
 Expose the mode in Streamlit, trace plans/tools/budgets in Langfuse, and add it to the frozen-
 corpus evaluator. Add cross-paper, human-written and corpus-level unanswerable questions and

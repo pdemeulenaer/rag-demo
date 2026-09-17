@@ -25,6 +25,18 @@ The main entry point. It resolves the session's memory, runs the
 [RAG pipeline](rag-pipeline.md), and returns the answer together with deduplicated sources
 and any cited figures. Supporting helpers in `rag_router.py`:
 
+Explicit `mode` values are `vanilla`, `hybrid` and `agentic`. Agentic is currently API-only
+and returns an additional `execution` object containing its plan summary, safe action
+records, stop reason, rounds, tool calls, evidence count, planner tokens and elapsed time.
+The response's `corpus_snapshot` is the corpus fingerprint. Omit `mode` only when the legacy
+intent-routed behaviour is desired.
+
+```bash
+curl -sS http://localhost:8000/rag2 \
+  -H 'Content-Type: application/json' \
+  -d '{"query":"Compare the reported cluster mass estimates across papers", "corpus":"arxiv", "mode":"agentic"}'
+```
+
 - `chat_memory(session_id)` — renders the stored history into prompt-ready text.
 - `answer_from_chat_context(question, chat_history, model)` — answers directly from
   conversation context when retrieval is unnecessary.

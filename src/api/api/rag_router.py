@@ -284,7 +284,8 @@ async def rag(
         history = ([{"role": "system", "content": memory.summary}] if memory.summary else []) + memory.recent_messages
         response_payload = RAGResponse(request_id=request.state.request_id, answer=result["answer"],
             chat_history=history, sources=result.get("sources", []),
-            images=_process_images(result.get("images", []), request), mode=mode, corpus_snapshot=snapshot)
+            images=_process_images(result.get("images", []), request), mode=mode,
+            corpus_snapshot=snapshot, execution=result.get("execution"))
         update_span(output={"answer": result["answer"], "source_count": len(result.get("sources", []))})
         return response_payload
 

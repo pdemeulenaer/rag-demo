@@ -132,11 +132,14 @@ def test_decision_must_cover_the_plan_and_actions_must_reference_its_needs():
         "schema_version": 1, "decision": "abstain", "summary": "Evidence remained incomplete.",
         "assessments": assessments(), "next_actions": [], "stop_reason": "max_rounds",
     })
-    validate_decision_for_plan(plan, decision)
+    validate_decision_for_plan(plan, decision, {"point-a"})
 
     changed = decision.model_copy(update={"assessments": decision.assessments[:1]})
     with pytest.raises(ValueError, match="assess every"):
         validate_decision_for_plan(plan, changed)
+
+    with pytest.raises(ValueError, match="unavailable evidence"):
+        validate_decision_for_plan(plan, decision, set())
 
 
 def test_action_fingerprint_ignores_planner_ids_but_not_tool_arguments():

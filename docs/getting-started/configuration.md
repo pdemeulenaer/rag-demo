@@ -18,6 +18,14 @@ Copy `.env.sample` to `.env` and populate it:
 | `EMBEDDING_MODEL_PROVIDER` | Embedding provider, e.g. `openai` |
 | `GENERATION_MODEL` | Generation model name, e.g. `gpt-4.1` |
 | `GENERATION_MODEL_PROVIDER` | Generation provider, e.g. `openai` |
+| `AGENT_MODEL` | OpenAI model used for Agentic planning/sufficiency; final answers use `GENERATION_MODEL` |
+| `AGENT_REASONING_EFFORT` | Reasoning effort for supported Agentic planner models (`minimal` by default) |
+| `AGENT_MAX_COMPLETION_TOKENS` | Per-call Agentic planner output limit |
+| `AGENT_MAX_ROUNDS` | Retrieval-round limit; application maximum is three |
+| `AGENT_MAX_TOOL_CALLS` | Total read-only tool-call limit per request |
+| `AGENT_MAX_EVIDENCE_CHUNKS` | Maximum distinct chunks accumulated by the agent |
+| `AGENT_MAX_ELAPSED_SECONDS` | Agentic retrieval wall-time budget |
+| `AGENT_MAX_PLANNER_TOKENS` | Combined planner/sufficiency token budget |
 | `COHERE_API_KEY` | Cohere API key, used for reranking |
 | `OPENAI_API_KEY` | OpenAI API key |
 | `LANGFUSE_ENABLED` | Enable API traces and evaluation experiments |
