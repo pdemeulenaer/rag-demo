@@ -109,8 +109,11 @@ manifests and Qdrant payloads under `markdown-structure-v2`; activation/audit ve
 contiguity. A pilot/full reindex is still required wherever active builds use the older
 pipeline. `tools/section_retrieval.py` and `neighbor_retrieval.py` now provide exact-section
 and bounded ordinal expansion with strict paper/build scope. Never infer document order from
-UUIDs. The next slice is Phase 4: strict planning/action/sufficiency/budget contracts; the
-public Agentic mode is not implemented yet.
+UUIDs. Phase 4 strict planning/action/sufficiency/budget contracts are implemented in
+`modes/agentic/contracts.py`, including read-only discriminated actions, hard budget models,
+stop reasons and duplicate-action fingerprints. The public Agentic mode is not implemented
+yet. The next slice is Phase 5: a bounded planner/executor/synthesizer that validates every
+model output and tool action against those contracts.
 
 Then add a distinct `agentic` API mode with structured planning, decomposition, evidence
 sufficiency checks and at most three retrieval rounds by default. Preserve Vanilla and

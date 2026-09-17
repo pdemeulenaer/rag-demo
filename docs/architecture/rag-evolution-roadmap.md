@@ -86,10 +86,29 @@ Exit criteria:
 
 ## Phase 4 — agent planning contracts
 
-Define strict structured models for question scope, evidence needs, subquestions, tool
-actions, filters, sufficiency decisions, stop reasons and budget usage. The planner must emit
-validated data rather than executable code or unconstrained free-form actions. No ingestion,
-deletion or other mutation action belongs in these contracts.
+Implementation status: complete as data contracts; no planner model or Agentic runtime is
+enabled yet.
+
+`src/api/rag/modes/agentic/contracts.py` defines strict Pydantic contracts for:
+
+- question scope, explicit evidence needs and an auditable plan summary;
+- discriminated actions for only `search_papers`, `search_chunks`, `get_section` and
+  `get_neighbors`;
+- per-need evidence sufficiency and `synthesize`, `continue` or `abstain` decisions;
+- deterministic stop reasons and application-owned limits for rounds, tool calls, evidence,
+  elapsed time and planner tokens;
+- action fingerprints so the Phase 5 executor can detect repeated searches independently
+  of planner-generated action IDs.
+
+Unknown fields, unknown tools, dangling need references and contradictory sufficiency
+decisions fail validation. The schemas contain concise, auditable summaries rather than
+private chain-of-thought, executable code or unconstrained free-form actions. No ingestion,
+deletion or database-mutation action belongs in these contracts.
+
+Exit criteria are satisfied by offline tests covering strict provider schemas, action and
+reference validation, sufficiency invariants, duplicate-action fingerprints and deterministic
+budget exhaustion. Phase 5 must use these contracts at every model/executor boundary rather
+than duplicating them in prompts or framework-specific state.
 
 ## Phase 5 — bounded Agentic RAG mode
 
@@ -206,7 +225,7 @@ Complete one reviewable slice at a time:
 1. shared retrieval foundation (complete);
 2. stable chunk ordering and reindex (complete);
 3. section/neighbour evidence expansion (complete);
-4. structured planning contracts;
+4. structured planning contracts (complete);
 5. bounded planner/executor with an API-only `agentic` mode;
 6. Streamlit mode and Langfuse trace presentation;
 7. benchmark integration and evaluation-set strengthening;

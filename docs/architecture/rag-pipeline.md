@@ -18,10 +18,12 @@ separate so that each comparison mode remains understandable and independently t
 | Scoped Qdrant chunk retrieval | `src/api/rag/tools/chunk_search.py` |
 | Exact-section expansion | `src/api/rag/tools/section_retrieval.py` |
 | Ordinal neighbour expansion | `src/api/rag/tools/neighbor_retrieval.py` |
+| Agentic plan/action/sufficiency/budget contracts | `src/api/rag/modes/agentic/contracts.py` |
 | Shared prompting, generation and citation resolution | `src/api/rag/retrieval.py` |
 
-Future Agentic and KG modes get their own files under `modes/`; they compose the shared
-read-only tools instead of replacing Vanilla or Hybrid.
+Agentic contracts already live under `modes/agentic/`; its Phase 5 executor and future KG
+modes will also get isolated modules under `modes/`. They compose the shared read-only tools
+instead of replacing Vanilla or Hybrid.
 
 ```mermaid
 flowchart LR

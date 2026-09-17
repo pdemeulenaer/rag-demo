@@ -11,7 +11,7 @@ planned and are deliberately labelled as such wherever they are mentioned.
 | --- | --- | --- | ---: | ---: |
 | **Vanilla** | Available | One dense-vector search in Qdrant | 1 | No |
 | **Hybrid** | Available | Dense/full-text-constrained fusion, then Cohere reranking | 1 | No |
-| **Agentic** | Planned | A bounded planner selects and combines read-only retrieval tools | Up to 3 | No |
+| **Agentic** | Contracts implemented; runtime planned | A bounded planner selects and combines read-only retrieval tools | Up to 3 | No |
 | **KG** | Placeholder | Deterministic graph search/traversal | 1 | Yes |
 | **KG-Agentic** | Placeholder | The bounded agent combines vector, metadata and graph tools | Up to 3 | Yes |
 
@@ -71,9 +71,10 @@ for improvement. See [Evaluation results](../operations/evaluation-results.md).
 
 ## Agentic RAG
 
-Agentic RAG is the next planned mode; it is **not available in the API or Streamlit yet**.
-It will wrap the existing read-only retrieval capabilities in a constrained
-planner/executor/synthesizer loop:
+Agentic RAG is the next mode; it is **not available in the API or Streamlit yet**. Its strict
+plan, action, sufficiency and budget contracts are implemented, but the Phase 5 executor and
+model calls are not. The runtime will wrap the existing read-only retrieval capabilities in
+a constrained planner/executor/synthesizer loop:
 
 1. classify the evidence need as direct, within-paper, cross-paper or metadata discovery;
 2. decompose complex questions into explicit subquestions;
@@ -83,9 +84,11 @@ planner/executor/synthesizer loop:
 6. stop after at most three retrieval rounds, on repeated evidence, or when its budget ends;
 7. answer only from accumulated evidence, otherwise abstain explicitly.
 
-The agent will receive no ingestion, deletion or database-mutation tools. Its structured
-plan, tool calls, evidence IDs, budgets and stop reason will be traced in Langfuse. The
-implementation sequence and acceptance criteria are in the
+The agent will receive no ingestion, deletion or database-mutation tools. Its contracts
+allow only paper search, chunk search, exact-section retrieval and neighbouring-chunk
+retrieval, with hard application-owned budgets. Its structured plan, tool calls, evidence
+IDs, budgets and stop reason will be traced in Langfuse. The implementation sequence and
+acceptance criteria are in the
 [RAG evolution roadmap](rag-evolution-roadmap.md).
 
 ### Intent routing is not Agentic RAG
