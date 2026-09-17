@@ -162,6 +162,14 @@ def test_airflow_start_does_not_unpause_or_trigger_dag():
     command = dry_run("airflow-up")
     assert "--profile" in command and "airflow" in command
     assert "unpause" not in command and "trigger" not in command
+    assert "Airflow UI: http://localhost:8080" in " ".join(command)
+
+
+def test_airflow_password_reads_generated_credentials():
+    assert dry_run("airflow-password") == [
+        "docker", "compose", "--profile", "airflow", "exec", "airflow", "cat",
+        "/opt/airflow/simple_auth_manager_passwords.json.generated",
+    ]
 
 
 def test_langfuse_start_uses_repo_compose_stack_and_waits():

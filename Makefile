@@ -78,7 +78,7 @@ papers-backups:
 papers-backup-check:
 	python3 scripts/papers_backup.py check
 
-.PHONY: papers-scheduled papers-run-status airflow-up airflow-stop airflow-logs airflow-check
+.PHONY: papers-scheduled papers-run-status airflow-up airflow-stop airflow-logs airflow-check airflow-password
 
 # Explicit paid run; fixes today's selection across retries, audits and reports.
 papers-scheduled:
@@ -91,12 +91,16 @@ papers-run-status:
 airflow-up:
 	mkdir -p data/paper_artifacts
 	LOCAL_UID="$(LOCAL_UID)" docker compose --profile airflow up -d --build airflow
+	@echo "Airflow UI: http://localhost:8080"
 
 airflow-stop:
 	docker compose --profile airflow stop airflow
 
 airflow-logs:
 	docker compose --profile airflow logs --tail=100 -f airflow
+
+airflow-password:
+	docker compose --profile airflow exec airflow cat /opt/airflow/simple_auth_manager_passwords.json.generated
 
 # Inspect the output: it must contain no DAG import errors. Does not trigger tasks.
 airflow-check:
@@ -151,6 +155,7 @@ papers-help:
 	  '  make papers-scheduled LIMIT=10       Durable daily budget + audit + notifications (paid)' \
 	  '  make papers-run-status              Read saved daily run summary/state' \
 	  '  make airflow-up                     Start optional Airflow; new DAG is paused' \
+	  '  make airflow-password               Show the generated local Airflow login credentials' \
 	  '  make airflow-logs / airflow-stop     Inspect / stop scheduler' \
 	  'DAYS/LIMIT are optional; omitted values use CLI/.env defaults.' \
 	  'Preview/backfill also accept UNTIL=YYYY-MM-DD. No target installs a schedule.' \

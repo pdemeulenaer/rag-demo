@@ -31,7 +31,7 @@ It starts **paused**. The normal `make compose` does not start Airflow.
    login credentials locally (do not paste them into logs or chat):
 
     ```bash
-    docker compose --profile airflow exec airflow cat /opt/airflow/simple_auth_manager_passwords.json.generated
+    make airflow-password
     ```
 
 4. Review `ARXIV_DAILY_LIMIT` (default **10**) and monitoring configuration. **Unpause
