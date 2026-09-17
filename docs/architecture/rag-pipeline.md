@@ -1,5 +1,9 @@
 # RAG Pipeline
 
+This page explains the shared mechanics and current implementation. For the product-level
+definition and availability of each comparison architecture, start with
+[RAG modes](rag-modes.md).
+
 The answer-generation pipeline is entered through `rag_pipeline_wrapper` in
 [`src/api/rag/retrieval.py`](../reference/rag.md). Retrieval strategies are deliberately
 separate so that each comparison mode remains understandable and independently testable:
@@ -12,6 +16,8 @@ separate so that each comparison mode remains understandable and independently t
 | Hybrid retrieval and reranking | `src/api/rag/modes/hybrid.py` |
 | PostgreSQL paper discovery | `src/api/rag/tools/paper_search.py` |
 | Scoped Qdrant chunk retrieval | `src/api/rag/tools/chunk_search.py` |
+| Exact-section expansion | `src/api/rag/tools/section_retrieval.py` |
+| Ordinal neighbour expansion | `src/api/rag/tools/neighbor_retrieval.py` |
 | Shared prompting, generation and citation resolution | `src/api/rag/retrieval.py` |
 
 Future Agentic and KG modes get their own files under `modes/`; they compose the shared
@@ -55,6 +61,12 @@ make unregistered points queryable.
 `search_papers` searches title, author, year, source and title/abstract terms in the
 PostgreSQL catalogue. `search_chunks` performs vector retrieval in Qdrant. Both are direct,
 read-only functions and do not depend on an agent framework.
+
+`get_section` returns an exact Markdown section breadcrumb in document order.
+`get_neighbors` returns the anchor chunk and a bounded window on either side. Both require
+the paper/build identity explicitly, enforce the same active or frozen scope, and reject
+evidence without a stable `chunk_index`. They are reusable capabilities for the future
+Agentic mode; Vanilla and Hybrid do not call them.
 
 ### Hybrid retrieval
 

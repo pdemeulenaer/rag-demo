@@ -1,12 +1,18 @@
+from contextlib import closing
 from types import SimpleNamespace
 from unittest.mock import Mock
+from uuid import NAMESPACE_URL, uuid5
 
 import pytest
+from qdrant_client import QdrantClient, models as m
 
 from src.api.rag.contracts import RetrievalScope, ScopedBuild
 from src.api.rag.dispatcher import retrieve_for_mode
 from src.api.rag.tools import chunk_search
+from src.api.rag.tools.evidence import EvidenceScopeError
+from src.api.rag.tools.neighbor_retrieval import get_neighbors
 from src.api.rag.tools.paper_search import search_papers
+from src.api.rag.tools.section_retrieval import get_section
 
 
 def catalogue_rows():
@@ -110,3 +116,80 @@ def test_dispatcher_keeps_mode_pipelines_separate():
     assert retrieve.call_args.kwargs["mode"] == "hybrid"
     assert retrieve.call_args.kwargs["top_k"] == 20
     rerank.assert_called_once_with("q", retrieve.return_value, top_n=5)
+
+
+def expansion_fixture():
+    client = QdrantClient(location=":memory:")
+    client.create_collection("papers", vectors_config=m.VectorParams(
+        size=1, distance=m.Distance.COSINE))
+    sections = ["Introduction", "Results", "Results", "Results > Detail", "Discussion"]
+    client.upsert("papers", [m.PointStruct(
+        id=str(uuid5(NAMESPACE_URL, f"phase3:{index}")), vector=[1.0], payload={
+            "build_id": "build-1", "paper_id": "paper-1", "paper_version": 1,
+            "type": "text", "text": f"Evidence {index}", "chunk_index": index,
+            "section_header": section, "page_number": index + 1,
+        }) for index, section in enumerate(sections)])
+    scope = RetrievalScope("papers", ("build-1",), builds=(
+        ScopedBuild("build-1", "paper-1"),
+    ))
+    return client, scope
+
+
+def test_get_section_is_exact_scoped_and_document_ordered():
+    client, scope = expansion_fixture()
+    with closing(client):
+        evidence = get_section(client, scope, build_id="build-1", paper_id="paper-1",
+                               section_header="Results", limit=10)
+        assert [row.chunk_index for row in evidence] == [1, 2]
+        assert all(row.section_header == "Results" for row in evidence)
+        assert get_section(client, scope, build_id="build-1", paper_id="paper-1",
+                           section_header="Methods") == []
+
+
+def test_get_neighbors_crosses_sections_but_stays_in_document_order():
+    client, scope = expansion_fixture()
+    with closing(client):
+        evidence = get_neighbors(client, scope, build_id="build-1", paper_id="paper-1",
+                                 chunk_index=2, before=1, after=1)
+        assert [row.chunk_index for row in evidence] == [1, 2, 3]
+        assert [row.section_header for row in evidence] == ["Results", "Results", "Results > Detail"]
+
+
+def test_expansion_tools_reject_out_of_scope_targets_before_qdrant():
+    client = Mock()
+    scope = RetrievalScope("papers", ("build-1",), builds=(
+        ScopedBuild("build-1", "paper-1"),
+    ))
+    with pytest.raises(EvidenceScopeError, match="outside"):
+        get_section(client, scope, build_id="other", paper_id="paper-1",
+                    section_header="Results")
+    with pytest.raises(EvidenceScopeError, match="does not match"):
+        get_neighbors(client, scope, build_id="build-1", paper_id="other", chunk_index=2)
+    client.scroll.assert_not_called()
+
+
+def test_expansion_tools_fail_closed_on_invalid_returned_provenance():
+    client = Mock()
+    client.scroll.return_value = ([SimpleNamespace(id="bad", payload={
+        "build_id": "outside", "paper_id": "paper-1", "type": "text",
+        "text": "Wrong build", "chunk_index": 1, "section_header": "Results",
+    })], None)
+    scope = RetrievalScope("papers", ("build-1",), builds=(
+        ScopedBuild("build-1", "paper-1"),
+    ))
+
+    with pytest.raises(EvidenceScopeError, match="invalid build/paper"):
+        get_section(client, scope, build_id="build-1", paper_id="paper-1",
+                    section_header="Results")
+
+
+@pytest.mark.parametrize("kwargs", [
+    {"chunk_index": -1}, {"chunk_index": "1"}, {"chunk_index": 1, "before": 6},
+    {"chunk_index": 1, "after": -1},
+])
+def test_get_neighbors_enforces_small_integer_window(kwargs):
+    scope = RetrievalScope("papers", ("build-1",), builds=(
+        ScopedBuild("build-1", "paper-1"),
+    ))
+    with pytest.raises(ValueError):
+        get_neighbors(Mock(), scope, build_id="build-1", paper_id="paper-1", **kwargs)

@@ -33,17 +33,13 @@ retrieval follows as an additional evidence tool for the same orchestration laye
 8. Do not introduce graph infrastructure during the Agentic milestone merely to anticipate
    KG-RAG; add it only after the agentic baseline is measurable.
 
-## Phase 1 — reusable retrieval tools
+## Phase 1 — shared retrieval foundation
 
 Implementation status:
 
 - complete: shared `RetrievalScope`, `PaperMatch` and `EvidenceChunk` contracts;
 - complete: PostgreSQL `search_papers` and scoped Qdrant `search_chunks`;
-- complete: separate Vanilla/Hybrid mode modules using the shared scope boundary;
-- complete in code: stable text-chunk ordinals, manifest validation and Qdrant payload
-  indexes; deployment still requires the documented pilot/full reindex;
-- next after reindex: `get_section` and `get_neighbors`;
-- not started: the Agentic planner/executor and public `agentic` mode.
+- complete: separate Vanilla/Hybrid mode modules using the shared scope boundary.
 
 Implement framework-independent functions with typed inputs and outputs:
 
@@ -51,15 +47,35 @@ Implement framework-independent functions with typed inputs and outputs:
 | --- | --- | --- |
 | `search_papers` | PostgreSQL | Resolve papers/builds by title, author, year, source and metadata terms |
 | `search_chunks` | Qdrant | Run dense or Hybrid search within explicit build/paper filters |
-| `get_section` | Artifacts/Qdrant | Retrieve additional evidence from a named paper and section |
-| `get_neighbors` | Artifacts/Qdrant | Expand around a promising chunk without issuing another broad search |
 
 Tool results must use a shared evidence model and must not return unregistered or inactive
 builds. For frozen evaluations, they must be constrained to the snapshot's build IDs.
 
-Neighbour retrieval requires a stable `chunk_index` (or equivalent ordinal) persisted in
-the chunk artifact, manifest and Qdrant payload. Adding it may require an extraction pipeline
-version bump and explicit reindexing; never infer ordering from UUIDs.
+## Phase 2 — stable chunk ordering
+
+Implementation and active-corpus rollout are complete. Extraction specification
+`markdown-structure-v2` assigns every textual chunk a zero-based, contiguous `chunk_index`.
+The ordinal is stored in `chunks.json`, the build manifest and Qdrant payload. Summaries and
+figures are intentionally outside this ordering. Activation and audit validate the contract,
+and the required integer/keyword payload indexes are created during indexing.
+
+Never infer document order from Qdrant UUIDs. An installation is ready for Phase 3 only when
+`papers-reindex-preview` reports zero upgrades and `papers-audit` is healthy.
+
+## Phase 3 — evidence expansion tools
+
+Implementation status: complete as read-only tools; they are not yet exposed to an agent.
+
+| Tool | Store | Purpose |
+| --- | --- | --- |
+| `get_section` | Qdrant | Retrieve ordered chunks from one exact paper/section breadcrumb |
+| `get_neighbors` | Qdrant | Retrieve a bounded ordinal window around a promising text chunk |
+
+Both tools require an explicit paper/build pair, compose the active or frozen Qdrant scope,
+validate every returned identity, require stable chunk ordinals and return `EvidenceChunk`.
+Section reads are capped at 50 chunks. Neighbour reads are capped at five chunks per side.
+They have Langfuse retriever spans and deterministic offline tests for ordering, empty
+sections, bounds and scope violations.
 
 Exit criteria:
 
@@ -68,7 +84,14 @@ Exit criteria:
 - current Vanilla/Hybrid pipelines can use the shared primitives without metric drift;
 - each tool has a Langfuse span and returns complete evidence provenance.
 
-## Phase 2 — bounded Agentic RAG mode
+## Phase 4 — agent planning contracts
+
+Define strict structured models for question scope, evidence needs, subquestions, tool
+actions, filters, sufficiency decisions, stop reasons and budget usage. The planner must emit
+validated data rather than executable code or unconstrained free-form actions. No ingestion,
+deletion or other mutation action belongs in these contracts.
+
+## Phase 5 — bounded Agentic RAG mode
 
 Add an explicit `agentic` mode with a structured planner/executor/synthesizer loop:
 
@@ -96,14 +119,18 @@ Exit criteria:
 - latency, tool rounds and token use are observable and bounded;
 - direct single-paper questions do not incur unnecessary retrieval loops.
 
-## Phase 3 — UI integration
+## Phase 6 — API, Streamlit and observability
 
 Expose **Agentic** alongside **Vanilla** and **Hybrid** in Streamlit. Keep chat state isolated
 by corpus and mode. Show concise execution metadata—such as papers searched and retrieval
 round count—without exposing hidden reasoning or raw prompts. Existing source and figure
 rendering must continue to use verified citation IDs.
 
-## Phase 4 — evaluation and Langfuse
+Trace validated plan summaries, tool calls and filters, evidence IDs, budgets, stop reasons,
+model usage, latency and failures in Langfuse. Add the explicit `agentic` API mode before the
+UI selector; do not route omitted/legacy requests through the agent implicitly.
+
+## Phase 7 — evaluation
 
 Add `agentic` to `evals/run_benchmark.py` using the same reviewed questions, frozen builds,
 answer model and top-k/context policy wherever comparable. Record each mode as a separate
@@ -120,7 +147,7 @@ Add agent-specific measures:
 Run a small smoke evaluation first, followed by the full development set. Do not declare an
 improvement from judge scores alone; inspect per-question regressions and retrieved evidence.
 
-## Phase 5 — strengthen the evaluation set
+### Strengthen the evaluation set
 
 Before tuning or presenting final comparisons:
 
@@ -136,7 +163,7 @@ Before tuning or presenting final comparisons:
 Use the development split while implementing. Reserve the held-out split for milestone
 comparisons.
 
-## Phase 6 — knowledge-graph RAG
+## Phase 8 — knowledge-graph RAG
 
 ### Graph construction
 
@@ -176,14 +203,14 @@ by iterative planning.
 
 Complete one reviewable slice at a time:
 
-1. shared evidence model and `search_papers`;
-2. scoped `search_chunks`;
-3. stable chunk ordinals plus section/neighbour expansion;
-4. bounded planner/executor with an API-only `agentic` mode;
-5. Streamlit mode and Langfuse trace presentation;
-6. benchmark integration and evaluation-set strengthening;
-7. graph schema/provenance prototype;
-8. deterministic KG retrieval, then KG-Agentic composition.
+1. shared retrieval foundation (complete);
+2. stable chunk ordering and reindex (complete);
+3. section/neighbour evidence expansion (complete);
+4. structured planning contracts;
+5. bounded planner/executor with an API-only `agentic` mode;
+6. Streamlit mode and Langfuse trace presentation;
+7. benchmark integration and evaluation-set strengthening;
+8. graph schema/provenance, deterministic KG retrieval, then KG-Agentic composition.
 
 Do not start a later slice while an earlier slice lacks offline tests, provenance guarantees
 or evaluation compatibility.

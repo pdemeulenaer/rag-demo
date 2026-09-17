@@ -97,16 +97,20 @@ it is not a reason to introduce procurement-style text-to-SQL tools.
 ### Next implementation milestone: bounded Agentic RAG
 
 `docs/architecture/rag-evolution-roadmap.md` is the source of truth for the next RAG
-milestones. Read it together with `docs/operations/evaluation-results.md` before planning
-or changing retrieval. Follow its order rather than jumping directly to graph storage.
+milestones. `docs/architecture/rag-modes.md` is the source of truth for what Vanilla,
+Hybrid, Agentic, KG and KG-Agentic mean and which are currently available. Read both with
+`docs/operations/evaluation-results.md` before planning or changing retrieval. Follow the
+roadmap order rather than jumping directly to graph storage.
 
 Typed scope/evidence contracts, PostgreSQL paper discovery, scoped Qdrant search and separate
 Vanilla/Hybrid mode modules are implemented. Do not fold their logic back into one mode file.
 Stable zero-based text `chunk_index` values are implemented in extraction artifacts,
 manifests and Qdrant payloads under `markdown-structure-v2`; activation/audit verifies their
 contiguity. A pilot/full reindex is still required wherever active builds use the older
-pipeline. After that rollout, the next slice is section and neighbour expansion. Never infer
-document order from UUIDs.
+pipeline. `tools/section_retrieval.py` and `neighbor_retrieval.py` now provide exact-section
+and bounded ordinal expansion with strict paper/build scope. Never infer document order from
+UUIDs. The next slice is Phase 4: strict planning/action/sufficiency/budget contracts; the
+public Agentic mode is not implemented yet.
 
 Then add a distinct `agentic` API mode with structured planning, decomposition, evidence
 sufficiency checks and at most three retrieval rounds by default. Preserve Vanilla and

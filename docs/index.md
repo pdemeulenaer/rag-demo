@@ -40,6 +40,8 @@ flowchart LR
 - [Installation](getting-started/installation.md) — get the stack running locally.
 - [Configuration](getting-started/configuration.md) — environment variables and `config.yaml`.
 - [Architecture](architecture/index.md) — how the components fit together.
+- [RAG modes](architecture/rag-modes.md) — exact definitions and availability of Vanilla,
+  Hybrid, Agentic and future knowledge-graph modes.
 - [Code Reference](reference/index.md) — API generated from the docstrings.
 
 !!! note "Building these docs"
