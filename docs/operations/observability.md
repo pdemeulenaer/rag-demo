@@ -68,27 +68,26 @@ An Agentic request adds its bounded orchestration beneath the same request/pipel
 rag_request
 └── rag_pipeline
     ├── agentic_retrieval
-    │   ├── agentic_plan
-    │   │   └── OpenAI planner generation
-    │   ├── agentic_tool_<name>          # one span per validated action
+    │   ├── LangGraph agent model call
+    │   ├── LangGraph/LangChain tool call
     │   │   └── search/section/neighbour retriever span
-    │   ├── agentic_sufficiency          # repeated only within the hard round limit
-    │   │   └── OpenAI sufficiency generation
+    │   ├── bounded graph loop           # repeated only within hard limits
     │   └── validated execution metadata + stop reason
     └── generate_answer                  # only when evidence was judged sufficient
         └── configured answer generation
 ```
 
-The Agentic spans record validated plan summaries, actions and filters, evidence IDs, budget
-usage, model/token usage, latency and the terminal stop reason. They do not store private
-chain-of-thought. Tool/planner failure and insufficient evidence terminate before final
+The Agentic trace records safe summaries, tool arguments, evidence IDs, budget usage,
+model/token usage, latency and the terminal stop reason. It does not store private
+chain-of-thought. Tool/model failure and insufficient evidence terminate before final
 generation. The Streamlit execution panel shows a smaller safe subset and links no raw
 prompts or evidence text.
 
 Intent classification, chat-only follow-ups and conversation summaries are also observed.
-The wrapper is centralized in `src/api/core/clients.py`; application code should not create
-a second OpenAI client directly. Prompt and response content is stored by the local
-Langfuse stack, so protect its access and persistent volumes accordingly.
+Raw OpenAI SDK access is centralized in `src/api/core/clients.py`; Agentic orchestration uses
+the standard `ChatOpenAI` integration so LangGraph can bind tools and Langfuse can receive its
+callback events. Prompt and response content is stored by the local Langfuse stack, so
+protect its access and persistent volumes accordingly.
 
 Short-lived evaluation commands flush traces before exiting. The API flushes on graceful
 shutdown. Langfuse transport errors are asynchronous and should not change an answer;

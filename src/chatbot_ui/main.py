@@ -24,11 +24,11 @@ STOP_REASON_LABELS = {
     "tool_call_budget": "Tool-call limit reached",
     "evidence_budget": "Evidence limit reached",
     "time_budget": "Time limit reached",
-    "token_budget": "Planner-token limit reached",
+    "token_budget": "Agent-model token limit reached",
     "repeated_action": "Repeated action stopped",
     "no_progress": "No new evidence found",
     "tool_failure": "Retrieval tool failed safely",
-    "planner_failure": "Planner failed safely",
+    "planner_failure": "Agent model failed safely",
     "insufficient_evidence": "Insufficient evidence",
 }
 

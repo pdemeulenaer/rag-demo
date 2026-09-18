@@ -404,7 +404,7 @@ def generate_answer(prompt, generation_model=None, allowed_context_ids=None):
 
 @observe(name="rag_pipeline", capture_input=False, capture_output=False)
 def rag_pipeline(question, qdrant_client, session_id, generation_model=None, top_k=5,
-                 mode=None, collection=None, scope=None, catalogue=None, planner=None,
+                 mode=None, collection=None, scope=None, catalogue=None, agent_model=None,
                  agent_budget=None):
     update_span(input={"question": question}, metadata={"mode": mode or "legacy",
         "collection": collection or config.QDRANT_COLLECTION_NAME,
@@ -416,7 +416,6 @@ def rag_pipeline(question, qdrant_client, session_id, generation_model=None, top
     if mode == "agentic":
         from src.api.rag.modes.agentic.contracts import AgentBudget
         from src.api.rag.modes.agentic.executor import run_agentic
-        from src.api.rag.modes.agentic.planner import OpenAIAgentPlanner
 
         if not isinstance(scope, RetrievalScope):
             raise ValueError("Agentic mode requires an explicit retrieval scope")
@@ -435,15 +434,17 @@ def rag_pipeline(question, qdrant_client, session_id, generation_model=None, top
             client=qdrant_client,
             catalogue=catalogue,
             scope=scope,
-            planner=planner or OpenAIAgentPlanner(),
+            model=agent_model,
             embed=get_embedding,
             budget=agent_budget,
         )
         retrieved_context = [row.model_dump() for row in agent_run.evidence]
         if not agent_run.should_synthesize:
-            failure_reasons = {"planner_failure", "tool_failure"}
-            if agent_run.execution.stop_reason.value in failure_reasons:
-                answer_text = "Agentic retrieval could not complete safely for this question."
+            stop_reason = agent_run.execution.stop_reason.value
+            if stop_reason == "planner_failure":
+                answer_text = "The Agentic model could not select a valid retrieval action."
+            elif stop_reason == "tool_failure":
+                answer_text = "An Agentic retrieval tool failed, so the request stopped safely."
             else:
                 answer_text = (
                     "I could not find sufficient indexed evidence to answer this question "
@@ -462,7 +463,7 @@ def rag_pipeline(question, qdrant_client, session_id, generation_model=None, top
             update_span(output={"answer": result["answer"],
                                 "retrieved_ids": [row["id"] for row in retrieved_context],
                                 "cited_ids": [],
-                                "stop_reason": agent_run.execution.stop_reason.value})
+                                "stop_reason": stop_reason})
             return result
     # If in evaluation mode, return a fresh memory each time
     elif mode is not None:

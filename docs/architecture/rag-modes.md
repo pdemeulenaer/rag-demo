@@ -11,7 +11,7 @@ knowledge-graph modes remain planned and are deliberately labelled as such.
 | --- | --- | --- | ---: | ---: |
 | **Vanilla** | Available | One dense-vector search in Qdrant | 1 | No |
 | **Hybrid** | Available | Dense/full-text-constrained fusion, then Cohere reranking | 1 | No |
-| **Agentic** | Available | A bounded planner selects and combines read-only retrieval tools | Up to 3 | No |
+| **Agentic** | Available | A bounded LangGraph agent selects read-only retrieval tools | Up to 3 | No |
 | **KG** | Placeholder | Deterministic graph search/traversal | 1 | Yes |
 | **KG-Agentic** | Placeholder | The bounded agent combines vector, metadata and graph tools | Up to 3 | Yes |
 
@@ -73,7 +73,7 @@ for improvement. See [Evaluation results](../operations/evaluation-results.md).
 
 Agentic RAG is available through `POST /rag2` with `mode: "agentic"` and through the
 Streamlit retrieval-mode selector. Its runtime wraps the existing read-only retrieval
-capabilities in a constrained planner/executor/shared-synthesizer loop:
+capabilities in a constrained LangGraph tool loop plus the shared synthesizer:
 
 1. classify the evidence need as direct, within-paper, cross-paper or metadata discovery;
 2. decompose complex questions into explicit subquestions;
@@ -83,11 +83,11 @@ capabilities in a constrained planner/executor/shared-synthesizer loop:
 6. stop after at most three retrieval rounds, on repeated evidence, or when its budget ends;
 7. answer only from accumulated evidence, otherwise abstain explicitly.
 
-The agent receives no ingestion, deletion or database-mutation tools. Its contracts
-allow only paper search, chunk search, exact-section retrieval and neighbouring-chunk
-retrieval, with hard application-owned budgets. Its structured plan, tool calls, evidence
-IDs, budgets and stop reason are traced in Langfuse. The implementation sequence and
-acceptance criteria are in the
+The agent receives no ingestion, deletion or database-mutation tools. LangChain exposes only
+paper search, chunk search, exact-section retrieval, neighbouring-chunk retrieval and two
+terminal decisions. LangGraph manages the bounded state loop; application policy enforces
+the corpus scope and budgets. Tool calls, evidence IDs, budgets and stop reason are traced in
+Langfuse. The implementation sequence and acceptance criteria are in the
 [RAG evolution roadmap](rag-evolution-roadmap.md).
 
 ### Intent routing is not Agentic RAG

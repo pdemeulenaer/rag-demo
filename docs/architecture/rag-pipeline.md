@@ -18,13 +18,18 @@ separate so that each comparison mode remains understandable and independently t
 | Scoped Qdrant chunk retrieval | `src/api/rag/tools/chunk_search.py` |
 | Exact-section expansion | `src/api/rag/tools/section_retrieval.py` |
 | Ordinal neighbour expansion | `src/api/rag/tools/neighbor_retrieval.py` |
-| Agentic plan/action/sufficiency/budget contracts | `src/api/rag/modes/agentic/contracts.py` |
-| Agentic structured model calls | `src/api/rag/modes/agentic/planner.py` |
-| Agentic bounded tool loop | `src/api/rag/modes/agentic/executor.py` |
+| Agentic public budget/execution contracts | `src/api/rag/modes/agentic/contracts.py` |
+| Agentic LangGraph state and orchestration | `src/api/rag/modes/agentic/state.py`, `graph.py` |
+| Agentic LangChain tool adapters and safety policy | `src/api/rag/modes/agentic/tools.py`, `policies.py` |
+| Agentic pipeline adapter | `src/api/rag/modes/agentic/executor.py` |
 | Shared prompting, generation and citation resolution | `src/api/rag/retrieval.py` |
 
-Agentic planning and execution live under `modes/agentic/`. Future KG modes will get their
-own isolated modules under `modes/`. They compose the shared read-only tools instead of
+Agentic orchestration lives under `modes/agentic/` and uses LangGraph's state graph plus
+LangChain's native per-tool schemas. The model selects one of four request-scoped read-only
+retrieval tools and later calls either `finish_with_evidence` or `abstain`. Application code,
+not the model, enforces the approved corpus boundary, duplicate detection and hard budgets.
+This avoids a custom provider-specific plan/assessment JSON protocol. Future KG modes will
+get their own isolated modules and can expose graph retrieval as another typed tool without
 replacing Vanilla or Hybrid.
 
 ```mermaid
@@ -32,7 +37,7 @@ flowchart LR
     Q[Question] --> M{Explicit mode}
     M -->|Vanilla| D[Dense Qdrant search]
     M -->|Hybrid| H[Qdrant RRF fusion]
-    M -->|Agentic| A[Bounded plan + tool loop]
+    M -->|Agentic| A[Bounded LangGraph tool loop]
     H --> R[Rerank<br/>Cohere]
     D --> P[Build prompt<br/>+ session memory]
     R --> P
@@ -71,8 +76,8 @@ read-only functions and do not depend on an agent framework.
 `get_section` returns an exact Markdown section breadcrumb in document order.
 `get_neighbors` returns the anchor chunk and a bounded window on either side. Both require
 the paper/build identity explicitly, enforce the same active or frozen scope, and reject
-evidence without a stable `chunk_index`. They are reusable capabilities for the future
-Agentic mode; Vanilla and Hybrid do not call them.
+evidence without a stable `chunk_index`. Agentic may call them after observing exact
+identifiers; Vanilla and Hybrid do not call them.
 
 ### Hybrid retrieval
 

@@ -27,7 +27,8 @@ and any cited figures. Supporting helpers in `rag_router.py`:
 
 Explicit `mode` values are `vanilla`, `hybrid` and `agentic`. Agentic returns an additional
 `execution` object containing its plan summary, safe action
-records, stop reason, rounds, tool calls, evidence count, planner tokens and elapsed time.
+records, stop reason, rounds, tool calls, evidence count, agent-model tokens (the stable wire
+field remains `planner_tokens`) and elapsed time.
 The response's `corpus_snapshot` is the corpus fingerprint. Omit `mode` only when the legacy
 intent-routed behaviour is desired.
 

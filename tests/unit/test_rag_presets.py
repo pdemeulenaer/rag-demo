@@ -170,7 +170,7 @@ def test_agentic_abstention_skips_answer_generation(runtime, monkeypatch):
 
     result = retrieval.rag_pipeline(
         "question", Mock(), "session", mode="agentic", collection="papers",
-        scope=RetrievalScope("papers", ("build",)), catalogue=Mock(), planner=Mock(),
+        scope=RetrievalScope("papers", ("build",)), catalogue=Mock(), agent_model=Mock(),
     )
 
     assert "could not find sufficient indexed evidence" in result["answer"]
@@ -207,7 +207,7 @@ def test_successful_agentic_execution_reaches_shared_generator_and_trace(runtime
 
     result = retrieval.rag_pipeline(
         "question", Mock(), "session", mode="agentic", collection="papers",
-        scope=RetrievalScope("papers", ("build",)), catalogue=Mock(), planner=Mock(),
+        scope=RetrievalScope("papers", ("build",)), catalogue=Mock(), agent_model=Mock(),
     )
 
     assert result["answer"] == "Grounded"

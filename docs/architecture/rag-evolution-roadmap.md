@@ -21,7 +21,7 @@ retrieval follows as an additional evidence tool for the same orchestration laye
 
 1. Keep Vanilla and Hybrid behaviour unchanged as experimental controls.
 2. Put retrieval capabilities behind typed, directly testable, read-only tools before adding
-   an LLM planner.
+   an LLM-driven graph loop.
 3. PostgreSQL remains authoritative for paper/build identity and metadata; Qdrant remains
    authoritative for searchable chunk vectors. Tools may combine them but must respect
    SQL-active or evaluation-frozen build IDs.
@@ -30,8 +30,8 @@ retrieval follows as an additional evidence tool for the same orchestration laye
    three retrieval rounds is the starting policy.
 6. Trace plans, tool calls, retrieved evidence, model use, latency and failures in Langfuse.
 7. Do not perform paid model calls in automated unit tests.
-8. Do not introduce graph infrastructure during the Agentic milestone merely to anticipate
-   KG-RAG; add it only after the agentic baseline is measurable.
+8. LangGraph is the Agentic workflow framework, not a scientific knowledge graph or graph
+   database. Do not introduce KG storage merely to anticipate KG-RAG.
 
 ## Phase 1 — shared retrieval foundation
 
@@ -64,7 +64,7 @@ Never infer document order from Qdrant UUIDs. An installation is ready for Phase
 
 ## Phase 3 — evidence expansion tools
 
-Implementation status: complete as read-only tools; they are not yet exposed to an agent.
+Implementation status: complete as read-only tools and exposed through the Agentic mode.
 
 | Tool | Store | Purpose |
 | --- | --- | --- |
@@ -84,38 +84,27 @@ Exit criteria:
 - current Vanilla/Hybrid pipelines can use the shared primitives without metric drift;
 - each tool has a Langfuse span and returns complete evidence provenance.
 
-## Phase 4 — agent planning contracts
+## Phase 4 — typed tools and execution contracts
 
-Implementation status: complete as data contracts; no planner model or Agentic runtime is
-enabled yet.
+Implementation status: complete and incorporated into the LangGraph runtime.
 
-`src/api/rag/modes/agentic/contracts.py` defines strict Pydantic contracts for:
+Each read-only operation has its own small LangChain tool schema: `search_papers`,
+`search_chunks`, `get_section` and `get_neighbors`. Two terminal tools express the evidence
+decision: `finish_with_evidence` and `abstain`. `contracts.py` contains the stable public
+budget and execution metadata used by the API/UI; `state.py` contains internal graph state.
+There is deliberately no provider-specific union of plan/action/assessment JSON schemas.
 
-- question scope, explicit evidence needs and an auditable plan summary;
-- discriminated actions for only `search_papers`, `search_chunks`, `get_section` and
-  `get_neighbors`;
-- per-need evidence sufficiency and `synthesize`, `continue` or `abstain` decisions;
-- deterministic stop reasons and application-owned limits for rounds, tool calls, evidence,
-  elapsed time and planner tokens;
-- action fingerprints so the Phase 5 executor can detect repeated searches independently
-  of planner-generated action IDs.
-
-Unknown fields, unknown tools, dangling need references and contradictory sufficiency
-decisions fail validation. The schemas contain concise, auditable summaries rather than
-private chain-of-thought, executable code or unconstrained free-form actions. No ingestion,
-deletion or database-mutation action belongs in these contracts.
-
-Exit criteria are satisfied by offline tests covering strict provider schemas, action and
-reference validation, sufficiency invariants, duplicate-action fingerprints and deterministic
-budget exhaustion. Phase 5 must use these contracts at every model/executor boundary rather
-than duplicating them in prompts or framework-specific state.
+Unknown tools and malformed arguments are rejected by native tool validation. Deterministic
+policy code separately enforces corpus scope, duplicate-call detection and hard limits for
+rounds, tool calls, evidence, elapsed time and model tokens. No ingestion, deletion,
+database mutation, shell or arbitrary-code tool is exposed.
 
 ## Phase 5 — bounded Agentic RAG mode
 
 Implementation status: complete as the API/runtime milestone. Streamlit exposure was added in
 Phase 6; benchmark exposure remains Phase 7 work.
 
-The explicit `agentic` mode now uses a structured planner/executor/shared-synthesizer loop:
+The explicit `agentic` mode uses a LangGraph tool-calling/shared-synthesizer loop:
 
 1. Classify whether the question needs one paper, multiple papers or metadata discovery.
 2. Decompose multi-part and comparison questions into evidence needs.
@@ -140,17 +129,18 @@ Implemented safeguards and exit criteria:
   ordinary verified citations and concise `execution` metadata;
 - the executor intersects every action filter with the immutable active/frozen corpus scope;
 - at most three rounds run by default, with independent tool-call, evidence, elapsed-time and
-  planner-token limits;
-- repeated actions, repeated evidence, two empty-result rounds, tool failures, planner/schema
+  agent-model-token limits;
+- repeated actions, repeated evidence, two empty-result rounds, tool failures, model/schema
   failures and explicit insufficiency all terminate without ungrounded generation;
-- direct questions can synthesize after one search and one sufficiency decision;
-- offline tests cover termination, scope escape, invented evidence IDs, repeated actions and
-  results, tool failure, abstention and strict provider requests.
+- direct questions can synthesize after one retrieval round and a terminal tool call;
+- offline tests cover termination, scope escape, repeated actions, tool failure, abstention,
+  malformed model output and native tool schemas.
 
-The implementation is isolated in `src/api/rag/modes/agentic/`: `contracts.py` defines the
-boundary, `planner.py` owns structured model calls, and `executor.py` owns deterministic tool
-execution. The existing answer generator is the synthesizer and still enforces retrieved
-chunk IDs, so Agentic citations follow the same contract as Vanilla and Hybrid.
+The implementation is isolated in `src/api/rag/modes/agentic/`: `graph.py` owns LangGraph
+orchestration, `state.py` its state, `tools.py` the LangChain adapters, `policies.py` the
+deterministic guards, and `executor.py` the small pipeline adapter. The existing answer
+generator remains the synthesizer and still enforces retrieved chunk IDs, so Agentic
+citations follow the same contract as Vanilla and Hybrid.
 
 ## Phase 6 — API, Streamlit and observability
 
@@ -164,11 +154,11 @@ counts, papers touched, evidence count and elapsed time. It does not expose prom
 text or hidden reasoning. Existing source and figure rendering still uses verified citation
 IDs.
 
-Langfuse receives the complete safe execution hierarchy: `rag_request` → `rag_pipeline` →
-`agentic_retrieval`, with child planner/sufficiency generations, read-only tool spans and the
-shared final generation. Validated actions/filters, evidence IDs, budget usage, stop reason,
-model usage and latency are attached to their relevant spans. Tracing remains optional and
-cannot change request behaviour. Omitted/legacy requests are not routed through the agent.
+Langfuse receives the safe execution hierarchy: `rag_request` → `rag_pipeline` →
+`agentic_retrieval`, plus LangGraph/LangChain model and tool callbacks, existing retriever
+spans and the shared final generation. Tool calls, evidence IDs, budget usage, stop reason,
+model usage and latency are recorded without exposing private reasoning. Tracing remains
+optional and cannot change request behaviour.
 
 ## Phase 7 — evaluation
 
@@ -246,8 +236,8 @@ Complete one reviewable slice at a time:
 1. shared retrieval foundation (complete);
 2. stable chunk ordering and reindex (complete);
 3. section/neighbour evidence expansion (complete);
-4. structured planning contracts (complete);
-5. bounded planner/executor with an API-only `agentic` mode (complete);
+4. native typed tools and public execution contracts (complete);
+5. bounded LangGraph tool loop with an API-only `agentic` mode (complete);
 6. Streamlit mode and Langfuse trace presentation (complete);
 7. benchmark integration and evaluation-set strengthening;
 8. graph schema/provenance, deterministic KG retrieval, then KG-Agentic composition.
