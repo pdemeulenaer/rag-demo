@@ -1,11 +1,51 @@
 # Unified catalogue and index consistency
 
 PostgreSQL now catalogues **both uploaded PDFs and arXiv papers**. The two Qdrant
-collections remain separate; one catalogue does not require moving or re-embedding
-their vectors. Streamlit's **Document inventory** defaults to **All sources** and is
+collections remain separate. Streamlit's **Document inventory** defaults to **All sources** and is
 independent of **Query source**, which still selects uploads or arXiv for answering.
 
-## Upgrade an existing installation
+## Dense + BM25 collection migration
+
+The four-mode retrieval release requires every current point to have both an unnamed dense
+vector and a named `bm25` sparse vector. Qdrant collection vector schemas are treated as
+immutable here, so do not reuse a dense-only collection name. The sample names are:
+
+```dotenv
+PAPERS_COLLECTION=arxiv_papers_v2
+QDRANT_COLLECTION_NAME=uploaded_papers_v2
+```
+
+Pause Airflow and application writers, back up PostgreSQL, change those two values in
+`.env`, then migrate arXiv in bounded batches:
+
+```bash
+make airflow-stop
+docker compose stop api ingestion-worker streamlit-app
+make papers-backup
+make papers-reindex-preview
+make papers-reindex LIMIT=2
+make papers-audit
+make papers-reindex LIMIT=50
+make papers-audit
+make papers-reindex-preview
+make compose
+```
+
+Repeat the bounded re-index until the preview reports `needs_upgrade: 0`; stop and inspect
+any failed/blocked build rather than bypassing activation checks. The command downloads the
+exact arXiv PDF versions and makes paid OpenAI embedding calls. It automatically creates the
+new Qdrant collection inside the already-provisioned local or Cloud cluster.
+
+There is no upload bulk-reindex command yet. After the rebuilt API is running, re-upload each
+original GUI PDF; identical bytes retain paper identity but produce and activate a current
+dense+sparse build in `uploaded_papers_v2`. This can rerun paid metadata, summary and figure
+work. Keep the old collections until migration and any historical frozen evaluations are no
+longer needed.
+
+Finally create a new evaluation preview/reviewed dataset. Old snapshots identify old points
+in a dense-only collection and are historical baselines, not valid sparse-mode benchmarks.
+
+## Earlier SQL catalogue upgrade
 
 Pause scheduled ingestion and new uploads, and let in-flight uploads finish before
 upgrading. Use `make papers-backup` for the PostgreSQL backup. This release migrates schema version 1 to
@@ -75,7 +115,7 @@ by `PAPERS_DATABASE_URL`, Airflow's database, Qdrant, or PDF/image files. No aut
 backup schedule, retention/deletion, or off-machine copy is installed. Keep an off-machine
 copy for disaster recovery; keep sensitive archives out of Git. Existing backups are never overwritten.
 
-## Existing-vector adoption is not re-ingestion
+## Existing-vector adoption is not sparse re-indexing
 
 `papers-import-uploads` scans the configured upload collection and groups existing
 points by content hash, falling back to filename/title for old payloads. It verifies
@@ -88,6 +128,8 @@ captured every page/figure. Existing vectors do not reliably identify the model 
 created them, so the command requires explicit model confirmation. Uploads are
 content-addressed: identical content is one document; changed bytes create another
 document, even if the filename is unchanged. arXiv retains its own version numbering.
+This legacy adoption command does not add `bm25` vectors and therefore does not replace the
+dense+sparse migration above.
 
 ## Shared completion rules
 

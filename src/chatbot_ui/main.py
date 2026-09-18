@@ -14,7 +14,8 @@ API_URL = os.getenv("API_URL", "http://localhost:8000")
 
 RAG_MODE_LABELS = {
     "vanilla": "Vanilla — dense retrieval",
-    "hybrid": "Hybrid — fusion + reranking",
+    "hybrid": "Hybrid — dense + BM25 fusion",
+    "hybrid_rerank": "Hybrid + Rerank — dense + BM25 + Cohere",
     "agentic": "Agentic — bounded multi-step retrieval",
 }
 
@@ -191,7 +192,7 @@ def main():
         if st.session_state.rag_mode == "agentic":
             st.caption("Agentic uses a bounded read-only tool loop (maximum three retrieval rounds). It does not use a knowledge graph.")
         else:
-            st.caption("Vanilla and Hybrid are one-shot retrieval baselines. They do not use the intent router or a knowledge graph.")
+            st.caption("Vanilla, Hybrid and Hybrid + Rerank are one-shot retrieval baselines. They do not use the intent router or a knowledge graph.")
         if st.session_state.corpus == "arxiv":
             st.caption("Default scope: astro-ph.GA + star-cluster terms. Change scope in backend configuration.")
         if st.button("Start new conversation", help="Clears chat history. Your next question uses the latest ready documents from the selected source."):

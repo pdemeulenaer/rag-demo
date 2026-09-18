@@ -1,7 +1,7 @@
 # arXiv star-cluster milestone
 
 arXiv discovery is opt-in. PostgreSQL now catalogues both arXiv papers and manually
-uploaded PDFs, with versioned artifacts, bounded processing and a Vanilla/Hybrid
+uploaded PDFs, with versioned artifacts, bounded processing and four query-time
 query-time switch. Existing uploads retain their Qdrant collection. No knowledge
 graph or autonomous agent is added. Existing installations must follow the
 [catalogue upgrade and consistency guide](../operations/catalogue.md) first.
@@ -35,7 +35,7 @@ See arXiv's [category taxonomy](https://arxiv.org/category_taxonomy) and
 | Component | Responsibility |
 | --- | --- |
 | PostgreSQL | Canonical paper IDs, version metadata, build/job states, discovery checkpoints, active version |
-| Qdrant (`PAPERS_COLLECTION`) | Rebuildable chunk embeddings and citation/filter payloads |
+| Qdrant (`PAPERS_COLLECTION`) | Rebuildable dense + BM25 sparse chunk vectors and citation/filter payloads |
 | Local directory / private Azure Blob container | Content-addressed PDF, source metadata, chunks and build manifest |
 | Redis | Existing conversation memory, isolated by corpus/mode/model/fingerprint |
 
@@ -69,7 +69,7 @@ information. See [arXiv API terms](https://info.arxiv.org/help/api/tou.html).
 
 ## Local quick start
 
-### Upgrade existing PDFs to Markdown extraction
+### Upgrade existing PDFs to the current retrieval index
 
 Both arXiv and GUI uploads now use **PyMuPDF4LLM → per-page Markdown →
 structure-aware chunks**. Chunking preserves section breadcrumbs and PDF page numbers,
@@ -83,6 +83,12 @@ tables or scientific meaning.
 New builds save `document.md`, `pages.json`, `chunks.json` and extraction settings as
 content-addressed artifacts. Existing PDFs/vectors are **not upgraded automatically**.
 Changing extraction changes the build fingerprint, not the paper's identity.
+
+The current index stores an unnamed OpenAI dense vector and a named `bm25` sparse vector
+on every point. Existing dense-only Qdrant collections cannot be modified safely in place.
+Use new collection names (the samples use `arxiv_papers_v2` and `uploaded_papers_v2`) and
+re-index. The existing Qdrant server or Cloud cluster is reused; the application creates the
+new collections on the first write.
 
 #### Extraction artifacts and provenance
 
@@ -113,29 +119,33 @@ against the same catalogue during the upgrade.
 
 ```bash
 make airflow-stop
+docker compose stop api ingestion-worker streamlit-app
 make papers-backup
 uv sync --group dev --group frontend
 make papers-extractor-setup       # Cache public tokenizer vocabulary; no model calls
-docker compose up -d --build api ingestion-worker streamlit-app
+# Set PAPERS_COLLECTION=arxiv_papers_v2 and
+# QDRANT_COLLECTION_NAME=uploaded_papers_v2 in .env first.
 make papers-reindex-preview       # Read-only list of active arXiv papers needing upgrade
 make papers-reindex LIMIT=2       # Pilot: download exact PDF versions + paid embeddings
 make papers-audit
 make papers-reindex LIMIT=50      # After inspecting pilot quality: upgrade up to 50 remaining
 make papers-audit
 make papers-reindex-preview       # Check remaining/blocked replacements
+make compose                      # Rebuild/start API, worker and Streamlit after migration
 ```
 
 Run commands separately and stop on failure. `papers-reindex` targets **existing active
-arXiv papers in the configured scope/collection/model**, not unrelated discovery backlog.
+arXiv papers in the configured scope/model**, including active builds in an older collection,
+not unrelated discovery backlog.
 Each old build remains searchable until its replacement passes vector/identity checks.
 Re-running skips current-pipeline active papers and resumes failed replacements within
 the attempt budget; it does not delete old points or bypass exhausted attempts. Interrupted
 embedding calls may still incur charges. `LIMIT` defaults to `ARXIV_DAILY_LIMIT`.
 This manual command is separate from Airflow's daily budget.
 
-For the `markdown-structure-v2` rollout, the preview should list every active arXiv build
-still lacking stable chunk ordinals. After each batch, `papers-audit` verifies both the usual
-point/vector identity and the new contiguous `chunk_index` contract.
+The preview should list every active arXiv build whose extraction/index fingerprint or
+target collection is outdated. After each batch, `papers-audit` verifies dense and sparse
+vectors, point identity and the contiguous `chunk_index` contract.
 
 `papers-count` includes uploads, so 50 total documents need not mean 50 arXiv upgrades.
 For existing **GUI uploads**, re-upload the same PDF bytes after rebuilding the API.
@@ -143,6 +153,10 @@ Old-extractor builds now produce a replacement under the same content identity; 
 current builds are skipped. Upload replacement also reruns metadata/summary/figure work
 and may incur those costs. Legacy-adopted documents without a matching SHA-256 content
 identity may need operator review; do not assume a filename proves identical content.
+
+Do not start the API against the new upload collection until you are ready to re-upload:
+the old active upload remains recorded safely in PostgreSQL, but it belongs to the old
+collection and is therefore outside the newly selected query corpus.
 
 To inspect extraction locally before any embeddings:
 
@@ -281,14 +295,16 @@ creating a new processing build; an operator retry/reset command is a follow-up.
 
 ## Query-time comparison
 
-Open Streamlit, select **arXiv star clusters** under **Query source**, then **Vanilla**
-or **Hybrid**. **Document inventory** independently defaults to **All sources**;
+Open Streamlit, select **arXiv star clusters** under **Query source**, then one of the four
+implemented retrieval modes. **Document inventory** independently defaults to **All sources**;
 refresh it to see uploads and arXiv together, including pending/failed builds.
 
 - Vanilla: dense retrieval, five chunks, no reranker.
-- Hybrid: dense candidates plus full-text-constrained dense candidates, reciprocal
-  rank fusion, then Cohere reranking to five chunks. This is not a BM25 sparse index.
-- Both use the same embedding/generation settings, grounding prompt, citation schema
+- Hybrid: independent dense and BM25 sparse candidates, fused by reciprocal rank fusion.
+- Hybrid + Rerank: the same fusion over a larger pool, then Cohere reranking.
+- Agentic: a bounded LangGraph loop that can choose dense, sparse or hybrid chunk search,
+  paper metadata lookup and section/neighbour expansion.
+- All modes use the same embedding/generation settings, grounding prompt, citation schema
   and active-build filter. Explicit presets bypass intent routing. API clients that
   omit `mode` and select uploads retain the existing routed behavior.
 

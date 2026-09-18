@@ -3,7 +3,7 @@
 This page records named comparison baselines. Local run artifacts remain the authoritative
 per-question record, and Langfuse holds the corresponding traces and Dataset Experiments.
 
-## Baseline 1 — Vanilla versus Hybrid
+## Baseline 1 — Vanilla versus legacy Hybrid
 
 Run `20260915T092511Z-afa2f2d4`, completed on 15 September 2026 with no errors.
 
@@ -14,7 +14,7 @@ Run `20260915T092511Z-afa2f2d4`, completed on 15 September 2026 with no errors.
 | Retrieval depth | `top_k=5` |
 | Answer model | `gpt-4.1-nano` |
 | Judge | `gpt-5-mini`, minimal reasoning |
-| Modes | Vanilla dense retrieval; Hybrid RRF retrieval plus Cohere reranking |
+| Modes | Vanilla dense retrieval; legacy full-text-constrained RRF plus Cohere reranking |
 
 | Metric | Vanilla | Hybrid | Hybrid change |
 | --- | ---: | ---: | ---: |
@@ -27,13 +27,18 @@ Run `20260915T092511Z-afa2f2d4`, completed on 15 September 2026 with no errors.
 | Citation from retrieval | 1.0000 | 1.0000 | 0.0000 |
 | Mean latency | 8.743 s | 8.349 s | -0.394 s |
 
-Hybrid is the stronger baseline for this run: it raises retrieval coverage and the three
+The legacy Hybrid pipeline is the stronger baseline for this run: it raises retrieval coverage and the three
 judge-scored answer measures. The nearly unchanged, relatively low gold-citation recall
 shows that both modes still often miss or do not select the exact reviewed evidence. A
 good next mode should therefore be able to decompose a question, search again with a more
 specific query, retrieve from named papers/sections, and stop only when its evidence is
 sufficient. The small latency difference is not evidence that Hybrid is faster; one run
 without repeated timing trials cannot establish that.
+
+!!! warning "Historical implementation"
+    This run predates the named BM25 sparse index and the separation of `hybrid` from
+    `hybrid_rerank`. Do not attribute these scores to either current mode. Re-index into the
+    v2 collection, create a new frozen dataset, and benchmark all four current modes.
 
 ### Interpretation limits
 

@@ -25,9 +25,11 @@ def qdrant_client():
 def pipeline_id(mode):
     from src.api.core.config import config
     from .extraction import SPEC
+    from src.api.rag.sparse import BM25_SPEC
     spec = ["upload-v3", mode, config.EMBEDDING_MODEL, config.IMAGE_DESCRIPTION_MODEL,
             config.SUMMARIZATION_MODEL,
-            "metadata:openai/gpt-oss-20b", SPEC,
+            "metadata:openai/gpt-oss-20b", SPEC, BM25_SPEC,
+            config.QDRANT_COLLECTION_NAME,
             sha256(Path(config.IMAGE_DESCRIPTION_PROMPT_TEMPLATE_PATH).read_bytes()).hexdigest()]
     return sha256(json.dumps(spec).encode()).hexdigest()[:16]
 
@@ -63,21 +65,31 @@ def point_id(build, label):
 
 
 def upsert_payloads(client, build, payloads, embed):
+    from src.api.rag.sparse import ensure_hybrid_collection, point_vectors
     for start in range(0, len(payloads), 32):
         batch = payloads[start:start + 32]
         vectors = embed([row["payload"]["text"] for row in batch])
         if len(vectors) != len(batch):
             raise ValueError("Incomplete embedding batch")
-        if not client.collection_exists(build["collection"]):
-            client.create_collection(build["collection"], vectors_config=m.VectorParams(size=len(vectors[0]), distance=m.Distance.COSINE))
+        ensure_hybrid_collection(client, build["collection"], len(vectors[0]))
         client.create_payload_index(build["collection"], "build_id", m.PayloadSchemaType.KEYWORD, wait=True)
         client.create_payload_index(build["collection"], "paper_id", m.PayloadSchemaType.KEYWORD, wait=True)
         client.create_payload_index(build["collection"], "type", m.PayloadSchemaType.KEYWORD, wait=True)
         client.create_payload_index(build["collection"], "section_header", m.PayloadSchemaType.KEYWORD, wait=True)
         client.create_payload_index(build["collection"], "chunk_index", m.PayloadSchemaType.INTEGER, wait=True)
         client.create_payload_index(build["collection"], "text", m.PayloadSchemaType.TEXT, wait=True)
-        client.upsert(build["collection"], [m.PointStruct(id=row["id"], payload=row["payload"], vector=vector)
-            for row, vector in zip(batch, vectors)], wait=True)
+        client.upsert(
+            build["collection"],
+            [
+                m.PointStruct(
+                    id=row["id"],
+                    payload=row["payload"],
+                    vector=point_vectors(vector, row["payload"]["text"]),
+                )
+                for row, vector in zip(batch, vectors)
+            ],
+            wait=True,
+        )
 
 
 def process_upload(catalogue, qdrant, build, path, mode, store, extract, metadata, describe, embed, storage, openai_client, template, summarize=None):
@@ -147,6 +159,8 @@ def process_upload(catalogue, qdrant, build, path, mode, store, extract, metadat
             "figures": figure_artifacts,
             "payloads": store.put_json(build["id"], "payloads.json", payloads),
             "figure_tasks": {key: {k: v for k, v in task.items() if k != "request"} for key, task in image_tasks.items()}}
+        from src.api.rag.sparse import retrieval_index_manifest
+        manifest["retrieval_index"] = retrieval_index_manifest()
         updated_metadata = {**build["metadata"], "title": meta.title, "authors": meta.authors,
                             "year": meta.publication_year, "summary": meta.summary}
         if extraction_metadata.get("extracted_pages"):

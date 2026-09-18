@@ -124,7 +124,7 @@ def retrieve_context(query, qdrant_client, top_k=5, mode="hybrid", collection=No
         scope = RetrievalScope.from_builds(
             target_collection, active, filter_override=active_filter(active)
         )
-    query_embedding = get_embedding(query)
+    query_embedding = None if mode == "sparse" else get_embedding(query)
 
     if isinstance(scope, RetrievalScope):
         target_collection = collection or scope.collection
@@ -170,7 +170,7 @@ def retrieve_context(query, qdrant_client, top_k=5, mode="hybrid", collection=No
     return retrieved_context
 
 
-@observe(name="rerank_context", as_type="reranker", capture_input=False, capture_output=False)
+@observe(name="rerank_context", as_type="span", capture_input=False, capture_output=False)
 def rerank_context(query: str, retrieved_context: list, top_n: int = 5):
     """
     Reranks the retrieved context chunks using Cohere's reranker.

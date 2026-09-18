@@ -183,7 +183,8 @@ def deterministic_metrics(question: dict, retrieved: list[dict], cited_ids: list
 
 def evaluate_item(question: dict, mode: str, *, qdrant: QdrantClient, collection: str,
                   scope: RetrievalScope, top_k: int, generation_model: str, judge_enabled: bool,
-                  judge_model: str, judge_reasoning_effort: str, run_id: str) -> dict:
+                  judge_model: str, judge_reasoning_effort: str, run_id: str,
+                  catalogue=None) -> dict:
     from src.api.rag.retrieval import rag_pipeline
 
     started = monotonic()
@@ -195,7 +196,8 @@ def evaluate_item(question: dict, mode: str, *, qdrant: QdrantClient, collection
             try:
                 result = rag_pipeline(question["question"], qdrant,
                     f"eval:{run_id}:{mode}:{question['id']}", generation_model=generation_model,
-                    top_k=top_k, mode=mode, collection=collection, scope=scope)
+                    top_k=top_k, mode=mode, collection=collection, scope=scope,
+                    catalogue=catalogue)
                 chunks = result.get("retrieved_chunks", [])
                 cited_ids = result.get("cited_context_ids", [])
                 metrics = deterministic_metrics(question, chunks, cited_ids)
@@ -330,8 +332,9 @@ def run(args) -> Path:
         questions = questions[:args.limit]
     evaluation_set_hash = canonical_hash([row["id"] for row in questions])
     modes = list(dict.fromkeys(args.modes))
-    if any(mode not in {"vanilla", "hybrid"} for mode in modes):
-        raise BenchmarkError("Modes must be vanilla and/or hybrid")
+    valid_modes = {"vanilla", "hybrid", "hybrid_rerank", "agentic"}
+    if any(mode not in valid_modes for mode in modes):
+        raise BenchmarkError(f"Modes must be selected from {sorted(valid_modes)}")
     run_id = args.run_id or f"{datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ')}-{uuid4().hex[:8]}"
     run_dir = args.output_root / run_id
     if run_dir.exists():
@@ -364,12 +367,18 @@ def run(args) -> Path:
     scope = frozen_scope(snapshot)
     qdrant = QdrantClient(url=config.QDRANT_URL, port=config.qdrant_port,
                           api_key=config.QDRANT_API_KEY or None)
+    catalogue = None
+    if "agentic" in modes:
+        from src.api.papers.catalogue import Catalogue
+        from src.api.papers.settings import PaperSettings
+        catalogue = Catalogue(PaperSettings().PAPERS_DATABASE_URL)
+        catalogue.require_schema()
 
     def task_for(mode: str, question: dict) -> dict:
         record = evaluate_item(question, mode, qdrant=qdrant, collection=collection, scope=scope,
             top_k=args.top_k, generation_model=args.generation_model, judge_enabled=args.judge,
             judge_model=args.judge_model, judge_reasoning_effort=args.judge_reasoning_effort,
-            run_id=run_id)
+            run_id=run_id, catalogue=catalogue)
         with state_lock:
             state["results"].append(record)
             write_json(run_dir / "results.json", state)
@@ -433,6 +442,8 @@ def run(args) -> Path:
         raise
     finally:
         qdrant.close()
+        if catalogue is not None:
+            catalogue.close()
         flush()
 
 
@@ -442,7 +453,10 @@ def main() -> None:
                         default=Path("data/evaluation/star-clusters/questions.reviewed.json"))
     parser.add_argument("--output-root", type=Path, default=Path("data/evaluation/runs"))
     parser.add_argument("--run-id", help="Optional unique run directory name")
-    parser.add_argument("--modes", nargs="+", default=["vanilla", "hybrid"])
+    parser.add_argument(
+        "--modes", nargs="+",
+        default=["vanilla", "hybrid", "hybrid_rerank", "agentic"],
+    )
     parser.add_argument("--limit", type=int)
     parser.add_argument("--question-id", help="Run one approved question from the selected split")
     parser.add_argument("--split", choices=["all", "development", "test"], default="all")

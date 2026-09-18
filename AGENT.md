@@ -12,14 +12,16 @@ two ingestion modes. MkDocs documentation is in `docs/`; start at
 
 - **UI:** `src/chatbot_ui/main.py`; sends `POST /rag2` and `POST /ingest` to `API_URL`.
 - **API:** `src/api/main.py`; routers are in `src/api/api/`. Legacy `POST /rag2` requests
-  classify questions and route metadata intents; explicit Vanilla/Hybrid presets bypass
+  classify questions and route metadata intents; explicit comparison modes bypass
   classification and retrieve evidence directly.
-- **RAG:** `src/api/rag/modes/vanilla.py` and `hybrid.py` own the two explicit retrieval
-  strategies; `dispatcher.py` selects one. `contracts.py` defines the explicit build scope
+- **RAG:** `src/api/rag/modes/vanilla.py`, `hybrid.py`, `hybrid_rerank.py`, and
+  `agentic/` own the four explicit retrieval strategies; `dispatcher.py` selects one-shot
+  modes. `contracts.py` defines the explicit build scope
   and evidence provenance, while `tools/paper_search.py` and `tools/chunk_search.py` provide
   read-only PostgreSQL/Qdrant capabilities. `retrieval.py` owns shared embedding, prompting,
-  generation and citation resolution. Hybrid uses Qdrant RRF fusion of dense and full-text
-  retrieval followed by Cohere reranking. The model selects
+  generation and citation resolution. `sparse.py` creates deterministic BM25 sparse vectors;
+  Qdrant applies IDF and RRF. Hybrid is dense+BM25+RRF; only Hybrid + Rerank adds Cohere.
+  The model selects
   cited chunk IDs; only those sources/figures are returned. The Pydantic response model owns
   the strict OpenAI schema; duplicate/unavailable citation IDs are rejected, with one bounded
   retry for malformed structured generation. Evaluation judges use the same one-retry bound.
@@ -54,6 +56,9 @@ two ingestion modes. MkDocs documentation is in `docs/`; start at
 - Preserve both corpora: arXiv uses `PAPERS_COLLECTION`, distinct from the uploaded-PDF
   `QDRANT_COLLECTION_NAME`. Ingestion may create collections, not a Qdrant Cloud cluster;
   the managed cluster must be provisioned separately.
+- Current defaults are new dense+sparse collections: `arxiv_papers_v2` and
+  `uploaded_papers_v2`. Never point the current writer at a dense-only collection. Migrate
+  arXiv with `papers-reindex`; migrate uploads by re-uploading the original PDFs.
 
 ## Important current caveats
 
@@ -94,16 +99,16 @@ The separate procurement RAG repository is an architectural reference, not the t
 domain. PostgreSQL here serves paper identity, provenance and ingestion lifecycle;
 it is not a reason to introduce procurement-style text-to-SQL tools.
 
-### Next implementation milestone: bounded Agentic RAG
+### Current comparison modes and next milestone
 
 `docs/architecture/rag-evolution-roadmap.md` is the source of truth for the next RAG
 milestones. `docs/architecture/rag-modes.md` is the source of truth for what Vanilla,
-Hybrid, Agentic, KG and KG-Agentic mean and which are currently available. Read both with
+Hybrid, Hybrid + Rerank, Agentic, KG and KG-Agentic mean and which are available. Read both with
 `docs/operations/evaluation-results.md` before planning or changing retrieval. Follow the
 roadmap order rather than jumping directly to graph storage.
 
 Typed scope/evidence contracts, PostgreSQL paper discovery, scoped Qdrant search and separate
-Vanilla/Hybrid mode modules are implemented. Do not fold their logic back into one mode file.
+mode modules are implemented. Do not fold their logic back into one mode file.
 Stable zero-based text `chunk_index` values are implemented in extraction artifacts,
 manifests and Qdrant payloads under `markdown-structure-v2`; activation/audit verifies their
 contiguity. A pilot/full reindex is still required wherever active builds use the older
@@ -119,11 +124,11 @@ model output, repeated work and model/tool errors, then reuses the shared citati
 answer generator. Do not recreate the removed custom planner/provider schema layer. Add a
 future KG retriever as another typed tool only after deterministic KG retrieval exists.
 
-Phase 6 is also complete: Streamlit exposes Agentic with mode-isolated chat state and a
-collapsed safe execution summary, and Langfuse receives the LangGraph model/tool/stop
-hierarchy. Preserve Vanilla and Hybrid as unchanged controls. The next slice is Phase 7:
-integrate Agentic with the frozen-corpus evaluator and Langfuse Dataset Experiments, adding
-agent-specific retrieval, termination, latency and cost measures. The agent must continue to
+Phase 7 is complete: Streamlit and the frozen-corpus runner expose Vanilla, Hybrid,
+Hybrid + Rerank and Agentic; Langfuse receives the LangGraph model/tool/stop hierarchy and
+separate Dataset Experiments. Preserve all four as controls. The next slice is to generate
+a new reviewed evaluation snapshot on the v2 dense+sparse collection and add agent-specific
+termination/cost measures. The agent must continue to
 respect SQL-active builds and evaluation-frozen build IDs, retain chunk/page/section
 provenance and receive no ingestion or mutation tools.
 
@@ -154,10 +159,11 @@ or `status`. Nothing schedules paid ingestion automatically. Only the one-shot C
 is in the Compose `papers` profile; existing uploads retain the legacy collection
 but must be registered in PostgreSQL before they are queryable.
 
-Explicit `/rag2` modes `vanilla`/`hybrid` bypass intent routing. `corpus=arxiv` filters
+Explicit `/rag2` modes `vanilla`, `hybrid`, `hybrid_rerank`, and `agentic` bypass intent routing. `corpus=arxiv` filters
 Qdrant to SQL-active builds; both sources support a corpus-change fingerprint. Streamlit
-exposes these presets with isolated chat context. Neither preset is agentic/graph RAG.
-Hybrid is dense + full-text-constrained dense RRF with Cohere rerank, not sparse BM25.
+exposes these presets with isolated chat context. Hybrid is dense + BM25 sparse retrieval
+fused with RRF; Hybrid + Rerank adds Cohere. Agentic can choose dense, sparse or hybrid
+chunk retrieval and section/neighbour expansion. None is graph RAG.
 Tests: `make test` (offline, including the frontend test; no paid calls).
 
 ### Storage and activation guarantees
@@ -246,8 +252,9 @@ are in `docs/getting-started/arxiv.md`; the README links the quick-start sequenc
 - If a running bind-mounted API lacks a newly added route, `docker compose restart api`
   loads it; image-only deployments need a rebuild/redeploy. Refresh Streamlit and check
   the UI if you still see the old **Currently in database** button.
-- Vanilla retrieves densely without reranking; Hybrid fuses dense and full-text-filtered
-  dense candidates, then reranks. Both use the same active corpus and grounding prompt.
+- Vanilla retrieves densely; Hybrid fuses dense and BM25 sparse candidates; Hybrid + Rerank
+  adds Cohere; Agentic performs bounded adaptive retrieval. All use the same active corpus
+  and grounding prompt.
   The corpus fingerprint detects changes; it is not a historical snapshot store.
   Use **Start new conversation** after ingestion changes active papers; it clears chat
   and the corpus fingerprint. **Refresh document inventory** only updates the listing.
@@ -286,7 +293,8 @@ for offline operation; backend/Airflow builds bundle it. `papers-extract-preview
 EXTRACT_DIR=...` is a local-only, no-overwrite inspection tool. `papers-reindex-preview`
 is read-only; `papers-reindex LIMIT=...` explicitly incurs PDF downloads and embeddings
 for existing active scoped arXiv papers, not discovery backlog. It preserves old active
-builds until verification, skips already upgraded papers, and honors attempt limits.
+builds until verification, scans active old collections, skips already upgraded papers, and
+honors attempt limits.
 Uploads upgrade through re-upload (including paid figure/metadata work). Never launch
 paid re-indexing as an implementation test. Pause/drain old workers and rebuild API,
 ingestion worker and Airflow together; old saved daily plans cannot cross pipeline changes.
@@ -346,8 +354,8 @@ corpus, and independent human-written questions must be added manually.
 `questions.reviewed.json`. It validates the sibling snapshot hash and embedding model, then
 queries the exact frozen Qdrant build IDs rather than the current active catalogue. Each
 invocation creates a unique checkpointed directory under `data/evaluation/runs/` with a
-manifest, per-item results, aggregate JSON and Markdown report. Vanilla and Hybrid use the
-same questions, generation model, top-k and frozen scope. `EVAL_JUDGE=true` adds explicit
+manifest, per-item results, aggregate JSON and Markdown report. All four modes use the same
+questions, generation model, top-k and frozen scope. `EVAL_JUDGE=true` adds explicit
 paid Responses API judge calls. Partial item results survive interruption, but benchmark
 resume is not implemented; a retry is a new run. Never run a benchmark implicitly during tests.
 
@@ -367,6 +375,8 @@ With Langfuse enabled, the runner syncs a content-addressed, idempotent Dataset 
 each mode as a Dataset Experiment, while local files remain authoritative. Use a separate
 Langfuse project for this repository. `make langfuse-stop` preserves its named volumes.
 The local Compose deployment has no high availability or automatic backup policy.
+Frozen build IDs constrain eligible points, but Qdrant BM25 IDF remains collection-wide;
+pause ingestion or use a cloned collection for final repeatable sparse-mode comparisons.
 All candidates need human review; quote/ID checks do not prove scientific entailment.
 New previews apply `evals/quality.py` evidence heuristics: exclude references, acknowledgments,
 funding, citation lists and empty placeholders; prefer Methods/Results/Discussion/Conclusions.

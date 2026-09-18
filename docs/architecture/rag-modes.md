@@ -2,7 +2,7 @@
 
 This project treats each RAG architecture as an explicit comparison mode over the same
 scientific-paper corpus. A mode describes **how evidence is selected before answer
-generation**. Vanilla, Hybrid and Agentic are available in the API and Streamlit;
+generation**. Vanilla, Hybrid, Hybrid + Rerank and Agentic are available in the API and Streamlit;
 knowledge-graph modes remain planned and are deliberately labelled as such.
 
 ## At a glance
@@ -10,8 +10,9 @@ knowledge-graph modes remain planned and are deliberately labelled as such.
 | Mode | Status | Evidence acquisition | Adaptive rounds | Graph evidence |
 | --- | --- | --- | ---: | ---: |
 | **Vanilla** | Available | One dense-vector search in Qdrant | 1 | No |
-| **Hybrid** | Available | Dense/full-text-constrained fusion, then Cohere reranking | 1 | No |
-| **Agentic** | Available | A bounded LangGraph agent selects read-only retrieval tools | Up to 3 | No |
+| **Hybrid** | Available | Dense + BM25 sparse retrieval, fused with RRF | 1 | No |
+| **Hybrid + Rerank** (`hybrid_rerank`) | Available | Hybrid candidates, then Cohere reranking | 1 | No |
+| **Agentic** | Available | A bounded LangGraph agent selects dense, sparse, hybrid and expansion tools | Up to 3 | No |
 | **KG** | Placeholder | Deterministic graph search/traversal | 1 | Yes |
 | **KG-Agentic** | Placeholder | The bounded agent combines vector, metadata and graph tools | Up to 3 | Yes |
 
@@ -23,12 +24,14 @@ architecture should not silently change the corpus or answer contract.
 flowchart TB
     Q[Question] --> M{Selected mode}
     M --> V[Vanilla<br/>dense top-k]
-    M --> H[Hybrid<br/>RRF candidates + rerank]
+    M --> H[Hybrid<br/>dense + BM25 → RRF]
+    M --> HR[Hybrid + Rerank<br/>dense + BM25 → RRF → Cohere]
     M --> A[Agentic<br/>plan + bounded tool loop]
     M -. later .-> K[KG<br/>graph traversal]
     M -. later .-> KA[KG-Agentic<br/>agent + graph tool]
     V --> G[Grounded answer generation]
     H --> G
+    HR --> G
     A --> G
     K --> G
     KA --> G
@@ -51,23 +54,32 @@ implemented in `src/api/rag/modes/vanilla.py` and remains unchanged as a control
 
 ## Hybrid RAG
 
-Hybrid is the stronger one-shot retrieval baseline. It:
+Hybrid is the lexical-plus-semantic one-shot retrieval baseline. It:
 
 1. embeds the question once;
-2. asks Qdrant for a dense candidate set and a second dense candidate set constrained by
-   full-text `MatchText` on the payload;
+2. asks Qdrant for dense candidates and independently for BM25 sparse candidates;
 3. combines both rankings with reciprocal-rank fusion (RRF);
-4. retrieves 20 candidates and reranks them with Cohere `rerank-english-v3.0`;
-5. keeps the top `top_k` chunks and uses the same generator/citation path as Vanilla.
+4. keeps the top `top_k` fused chunks and uses the same generator/citation path as Vanilla.
 
-!!! important "What Hybrid does not mean here"
-    This implementation is not BM25 plus vector search and does not use a learned sparse
-    vector. Its lexical branch is a full-text-constrained dense query. It is still one
-    retrieval round and cannot decide to search another paper or expand weak evidence.
+The sparse branch uses deterministic word-token hashes and BM25 term-frequency/length
+weights. Qdrant applies collection-dependent IDF at query time. It requires no sparse
+embedding API or downloaded model. The fixed average chunk length is versioned in the
+index specification; changing it requires a new collection and re-index.
 
-Hybrid is implemented in `src/api/rag/modes/hybrid.py`. The current reviewed benchmark found
-it stronger than Vanilla overall, although difficult cross-paper profiles still leave room
-for improvement. See [Evaluation results](../operations/evaluation-results.md).
+Hybrid is implemented in `src/api/rag/modes/hybrid.py`. It is still one retrieval round and
+cannot decide to search another paper or expand weak evidence.
+
+## Hybrid + Rerank RAG
+
+`hybrid_rerank` runs the same dense + BM25 + RRF search with a larger candidate pool, sends
+those candidates to Cohere `rerank-english-v3.0`, and keeps the top `top_k`. This isolates
+the effect and cost of reranking from the effect of adding lexical retrieval. It requires a
+working Cohere credential; plain `hybrid` does not. Its mode module is
+`src/api/rag/modes/hybrid_rerank.py`.
+
+Earlier recorded results called the old full-text-constrained, Cohere-reranked pipeline
+“Hybrid.” Treat those as historical baselines, not results for the new sparse implementation.
+See [Evaluation results](../operations/evaluation-results.md).
 
 ## Agentic RAG
 
@@ -77,7 +89,7 @@ capabilities in a constrained LangGraph tool loop plus the shared synthesizer:
 
 1. classify the evidence need as direct, within-paper, cross-paper or metadata discovery;
 2. decompose complex questions into explicit subquestions;
-3. use PostgreSQL paper discovery and scoped Qdrant chunk search;
+3. use PostgreSQL paper discovery and scoped Qdrant dense, sparse or hybrid chunk search;
 4. expand an exact section or neighbouring chunks when initial evidence is incomplete;
 5. assess evidence sufficiency and either stop, reformulate or perform another retrieval;
 6. stop after at most three retrieval rounds, on repeated evidence, or when its budget ends;
@@ -96,7 +108,7 @@ The existing legacy intent router makes one classification and dispatches to a p
 metadata handler or the ordinary RAG pipeline. It does not decompose a question, select a
 sequence of tools, inspect evidence sufficiency, reformulate failed searches or perform a
 bounded retrieval loop. Therefore, the presence of intent routing does **not** make the
-legacy intent-routed path Agentic RAG. Explicit Vanilla, Hybrid and Agentic requests bypass
+legacy intent-routed path Agentic RAG. All four explicit comparison modes bypass
 that router.
 
 ## Knowledge-graph RAG
@@ -120,11 +132,11 @@ knowledge graph.
 
 Currently:
 
-- Streamlit and `POST /rag2` expose `vanilla`, `hybrid` and `agentic`.
-- The evaluation runner accepts only `vanilla` and `hybrid`.
+- Streamlit and `POST /rag2` expose `vanilla`, `hybrid`, `hybrid_rerank` and `agentic`.
+- The evaluation runner accepts all four implemented modes.
 - `kg` and `kg_agentic` are reserved names in the roadmap, not accepted runtime modes.
 - Omitting an explicit mode preserves the legacy intent-routed API behaviour; it should not
   be reported as another comparison architecture.
 
-Vanilla and Hybrid will remain available after Agentic and KG modes are added so all modes
-can be compared against the same frozen evaluation corpus.
+All four implemented modes will remain available after KG modes are added so they can be
+compared against the same frozen evaluation corpus.

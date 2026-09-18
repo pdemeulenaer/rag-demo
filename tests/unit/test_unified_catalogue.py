@@ -15,6 +15,7 @@ from src.api.papers.consistency import activate_verified, active_filter, audit, 
 from src.api.papers.uploads import process_upload, complete_batch, poll_batches
 from src.api.papers.artifacts import ArtifactStore
 from src.api.papers.arxiv import Paper
+from src.api.rag.sparse import ensure_hybrid_collection
 
 
 @pytest.fixture
@@ -34,7 +35,7 @@ def catalogue(settings):
 @pytest.fixture
 def qdrant():
     with closing(QdrantClient(":memory:")) as client:
-        client.create_collection("uploads", vectors_config=m.VectorParams(size=3, distance=m.Distance.COSINE))
+        ensure_hybrid_collection(client, "uploads", 3)
         yield client
 
 
@@ -169,6 +170,7 @@ def test_sync_upload_activates_only_complete_manifest(catalogue, qdrant, setting
     build = catalogue.get_build(args["build"]["id"])
     assert build["status"] == "ready"
     assert build["manifest"]["chunk_count"] == 3  # text + summary + figure
+    assert build["manifest"]["retrieval_index"]["sparse_vector_name"] == "bm25"
     assert check_build(qdrant, build)["ok"] is True
     figure = next(p for p in qdrant.retrieve("uploads", expected_ids(build)) if p.payload["type"] == "figure")
     assert figure.payload["page_number"] == 2

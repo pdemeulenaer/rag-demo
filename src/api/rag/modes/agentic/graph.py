@@ -29,6 +29,8 @@ Use the supplied read-only tools to gather answer evidence from the approved cor
 
 Rules:
 - For a broad factual question, start with one focused hybrid search_chunks call.
+- Use sparse search for exact identifiers, acronyms, catalogue numbers and named objects;
+  use dense search for conceptual paraphrases; use hybrid when both signals are useful.
 - Use search_papers only to resolve a named paper or metadata constraint.
 - Call get_section/get_neighbors only with exact identifiers seen in tool results.
 - Never invent identifiers, repeat an identical call, or request mutation/code execution.

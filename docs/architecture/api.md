@@ -25,7 +25,7 @@ The main entry point. It resolves the session's memory, runs the
 [RAG pipeline](rag-pipeline.md), and returns the answer together with deduplicated sources
 and any cited figures. Supporting helpers in `rag_router.py`:
 
-Explicit `mode` values are `vanilla`, `hybrid` and `agentic`. Agentic returns an additional
+Explicit `mode` values are `vanilla`, `hybrid`, `hybrid_rerank` and `agentic`. Agentic returns an additional
 `execution` object containing its plan summary, safe action
 records, stop reason, rounds, tool calls, evidence count, agent-model tokens (the stable wire
 field remains `planner_tokens`) and elapsed time.

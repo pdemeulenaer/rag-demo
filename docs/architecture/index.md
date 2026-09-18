@@ -79,9 +79,9 @@ component. See [Observability](../operations/observability.md).
 ## Planned RAG evolution
 
 See [RAG modes](rag-modes.md) for the precise definitions and current availability of
-Vanilla, Hybrid, Agentic, KG and KG-Agentic RAG. The next milestone is a bounded Agentic RAG
-mode built on reusable, read-only retrieval tools. Knowledge-graph retrieval follows as a
-separate tool and comparison mode. The [RAG evolution roadmap](rag-evolution-roadmap.md)
+Vanilla, Hybrid, Hybrid + Rerank, Agentic, KG and KG-Agentic RAG. The four non-KG modes are
+implemented; the next milestone is their fresh dense+sparse benchmark. Knowledge-graph
+retrieval follows as a separate tool and comparison mode. The [RAG evolution roadmap](rag-evolution-roadmap.md)
 defines sequencing and acceptance criteria.
 
 ## Repository layout

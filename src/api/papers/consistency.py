@@ -44,8 +44,23 @@ def scan(client, collection, scope=None, vectors=False):
             break
 
 
-def valid_vector(vector):
-    return isinstance(vector, list) and bool(vector) and any(vector) and all(isinstance(v, (float, int)) and math.isfinite(v) for v in vector)
+def valid_vector(vector, require_sparse=False):
+    from src.api.rag.sparse import SPARSE_VECTOR_NAME
+    dense = vector.get("") if isinstance(vector, dict) else vector
+    dense_ok = (isinstance(dense, list) and bool(dense) and any(dense)
+                and all(isinstance(v, (float, int)) and math.isfinite(v) for v in dense))
+    if not dense_ok or not require_sparse:
+        return dense_ok
+    sparse = vector.get(SPARSE_VECTOR_NAME) if isinstance(vector, dict) else None
+    if sparse is None:
+        return False
+    indices = getattr(sparse, "indices", None)
+    values = getattr(sparse, "values", None)
+    return (isinstance(indices, list) and isinstance(values, list)
+            and len(indices) == len(values)
+            and all(isinstance(index, int) and index >= 0 for index in indices)
+            and all(isinstance(value, (float, int)) and math.isfinite(value)
+                    for value in values))
 
 
 def check_build(client, build):
@@ -56,7 +71,10 @@ def check_build(client, build):
     points = list(scan(client, build["collection"], build_filter(build), vectors=True)) if client.collection_exists(build["collection"]) else []
     actual = {str(p.id) for p in points}
     legacy = (build.get("manifest") or {}).get("legacy_filter")
-    invalid = [str(p.id) for p in points if not valid_vector(p.vector) or (
+    require_sparse = bool((build.get("manifest") or {}).get("retrieval_index", {}).get(
+        "sparse_vector_name"
+    ))
+    invalid = [str(p.id) for p in points if not valid_vector(p.vector, require_sparse) or (
         not legacy and ((p.payload or {}).get("paper_id") != build["paper_id"] or
                         (p.payload or {}).get("paper_version") != build["version"]))]
     order = (build.get("manifest") or {}).get("chunk_order")

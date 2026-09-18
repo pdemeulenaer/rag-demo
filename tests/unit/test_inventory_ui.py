@@ -88,7 +88,8 @@ def test_agentic_mode_is_submitted_and_execution_summary_is_retained(monkeypatch
     mode = next(widget for widget in app.radio if widget.label == "Retrieval mode")
     assert mode.options == [
         "Vanilla — dense retrieval",
-        "Hybrid — fusion + reranking",
+        "Hybrid — dense + BM25 fusion",
+        "Hybrid + Rerank — dense + BM25 + Cohere",
         "Agentic — bounded multi-step retrieval",
     ]
 

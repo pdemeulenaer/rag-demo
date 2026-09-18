@@ -68,15 +68,16 @@ def build_retrieval_tools(*, client, catalogue, scope: RetrievalScope,
     @tool("search_chunks", response_format="content_and_artifact")
     def search_chunks_tool(
         query: str,
-        retrieval_mode: Literal["vanilla", "hybrid"] = "hybrid",
+        retrieval_mode: Literal["dense", "sparse", "hybrid"] = "hybrid",
         build_ids: list[str] | None = None,
         paper_ids: list[str] | None = None,
         limit: int = 8,
     ) -> tuple[str, dict]:
-        """Search scientific-paper chunks semantically within approved IDs."""
+        """Search chunks with dense semantics, BM25 terms, or fused hybrid retrieval."""
         action_scope = narrow_scope(scope, build_ids, paper_ids)
+        vector = None if retrieval_mode == "sparse" else embed(query)
         chunks = scoped_chunk_search(
-            client, action_scope, query=query, vector=embed(query),
+            client, action_scope, query=query, vector=vector,
             limit=min(max(limit, 1), 20), mode=retrieval_mode,
         )
         return _content(chunks, []), _artifact(chunks=chunks)

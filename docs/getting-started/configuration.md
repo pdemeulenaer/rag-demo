@@ -12,7 +12,7 @@ Copy `.env.sample` to `.env` and populate it:
 | `GROQ_API_KEY` | Groq API key, used for generation and summarization |
 | `QDRANT_API_KEY` | Qdrant Cloud API key |
 | `QDRANT_URL` | Qdrant Cloud instance URL |
-| `QDRANT_COLLECTION_NAME` | Collection holding the document embeddings |
+| `QDRANT_COLLECTION_NAME` | Uploaded-PDF collection holding dense and named BM25 sparse vectors |
 | `EMBEDDING_API_URL` | Endpoint of the embedding model API |
 | `EMBEDDING_MODEL` | Embedding model name, e.g. `text-embedding-3-small` |
 | `EMBEDDING_MODEL_PROVIDER` | Embedding provider, e.g. `openai` |
@@ -26,7 +26,8 @@ Copy `.env.sample` to `.env` and populate it:
 | `AGENT_MAX_EVIDENCE_CHUNKS` | Maximum distinct chunks accumulated by the agent |
 | `AGENT_MAX_ELAPSED_SECONDS` | Agentic retrieval wall-time budget |
 | `AGENT_MAX_PLANNER_TOKENS` | Combined planner/sufficiency token budget |
-| `COHERE_API_KEY` | Cohere API key, used for reranking |
+| `COHERE_API_KEY` | Cohere API key, used only by `hybrid_rerank` |
+| `PAPERS_COLLECTION` | Separate arXiv dense+BM25 collection (`arxiv_papers_v2` by default) |
 | `OPENAI_API_KEY` | OpenAI API key |
 | `LANGFUSE_ENABLED` | Enable API traces and evaluation experiments |
 | `LANGFUSE_PUBLIC_KEY` | Langfuse project public key |
@@ -46,6 +47,11 @@ Langfuse is the only supported tracing and evaluation-experiment backend. See
 
 Docker Compose adds two more at runtime: `REDIS_HOST` and `REDIS_PORT` point the backend
 and the ingestion worker at the `redis` service, and the frontend gets `API_URL=http://api:8000`.
+
+Dense-only collections cannot be upgraded in place. When adopting the current sparse index,
+choose new `QDRANT_COLLECTION_NAME` and `PAPERS_COLLECTION` values, then follow the
+[arXiv re-index procedure](arxiv.md#upgrade-existing-pdfs-to-the-current-retrieval-index).
+The application creates collections, not the managed Qdrant Cloud cluster itself.
 
 ## Legacy `config.yaml`
 

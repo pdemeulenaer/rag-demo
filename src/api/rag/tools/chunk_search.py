@@ -8,7 +8,8 @@ from src.api.rag.tools.evidence import EvidenceScopeError, evidence_from_point
 
 
 @observe(name="search_chunks", as_type="retriever", capture_input=False, capture_output=False)
-def search_chunks(client, scope: RetrievalScope, *, query: str, vector: list[float],
+def search_chunks(client, scope: RetrievalScope, *, query: str,
+                  vector: list[float] | None,
                   limit: int, mode: str) -> list[EvidenceChunk]:
     """Search only explicit builds and fail closed on missing/drifting identity."""
     if limit < 1:

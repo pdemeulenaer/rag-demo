@@ -27,7 +27,9 @@ def runtime(monkeypatch):
     return retrieval, router
 
 
-@pytest.mark.parametrize("mode,rerank_calls", [("vanilla", 0), ("hybrid", 1)])
+@pytest.mark.parametrize("mode,rerank_calls", [
+    ("vanilla", 0), ("hybrid", 0), ("hybrid_rerank", 1),
+])
 def test_pipeline_modes_and_citation_filter_order(runtime, monkeypatch, mode, rerank_calls):
     retrieval, _ = runtime
     contexts = [
@@ -86,7 +88,7 @@ def request():
                     "state": {"request_id": "request-1"}})
 
 
-@pytest.mark.parametrize("mode", ["vanilla", "hybrid", "agentic"])
+@pytest.mark.parametrize("mode", ["vanilla", "hybrid", "hybrid_rerank", "agentic"])
 def test_router_presets_bypass_intent(runtime, monkeypatch, mode):
     _, router = runtime
     import src.api.api.papers_router as papers_router

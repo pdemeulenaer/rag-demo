@@ -50,14 +50,14 @@ is suitable for this demo, but has no built-in high availability or backups.
 
 ## What is traced
 
-An explicit Vanilla/Hybrid request produces a hierarchy equivalent to:
+An explicit one-shot request produces a hierarchy equivalent to:
 
 ```text
 rag_request
 └── rag_pipeline
     ├── retrieve_context
     │   └── OpenAI embedding
-    ├── rerank_context          # Hybrid only
+    ├── rerank_context          # hybrid_rerank only
     └── generate_answer
         └── OpenAI generation
 ```
@@ -103,6 +103,6 @@ make eval-run EVAL_DIR=data/evaluation/markdown-mini-v1 EVAL_LIMIT=2 EVAL_JUDGE=
 ```
 
 Look under **Datasets** for the content-addressed dataset and under its experiments/runs
-for separate Vanilla and Hybrid results. Agentic benchmark experiments are Phase 7 and are
-not enabled yet. The local `manifest.json` records the Langfuse
+for separate Vanilla, Hybrid, Hybrid + Rerank and Agentic results (or the subset selected
+with `EVAL_MODES`). The local `manifest.json` records the Langfuse
 dataset name, run names and returned URLs.

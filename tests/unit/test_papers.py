@@ -192,12 +192,16 @@ def test_process_with_local_qdrant(catalogue, settings, paper):
         assert active[0]["manifest"]["markdown"]["sha256"]
         assert active[0]["manifest"]["pages"]["sha256"]
         assert active[0]["manifest"]["extraction"]["version"] == "markdown-structure-v2"
+        assert active[0]["manifest"]["retrieval_index"] == {
+            "dense_vector_name": "", "sparse_vector_name": "bm25",
+            "sparse_model": "bm25-sha256-word-v1", "fusion": "rrf",
+        }
         assert active[0]["manifest"]["chunk_order"] == {
             "field": "chunk_index", "starts_at": 0, "count": 1,
             "scope": "text_chunks", "contiguous": True,
         }
         scope = m.Filter(must=[m.FieldCondition(key="build_id", match=m.MatchAny(any=[active[0]["id"]]))])
-        for mode in ["vanilla", "hybrid"]:
+        for mode in ["vanilla", "sparse", "hybrid"]:
             points = search_points(qdrant, settings.PAPERS_COLLECTION, [1., 0., 0.], "globular", 5, mode, scope).points
             assert len(points) == 1
             assert points[0].payload["page_number"] == 1
@@ -229,7 +233,8 @@ def test_retrieval_presets_use_identical_scope():
     hybrid = client.query_points.call_args.kwargs
     assert hybrid["query_filter"] == scope
     assert hybrid["prefetch"][0].filter == scope
-    assert scope in hybrid["prefetch"][1].filter.must
+    assert hybrid["prefetch"][1].filter == scope
+    assert hybrid["prefetch"][1].using == "bm25"
 
 
 def test_empty_extraction_rejected():

@@ -50,15 +50,14 @@ class PaperIndexer:
 
     def index(self, build, paper, chunks):
         from qdrant_client import models as m
+        from src.api.rag.sparse import (
+            ensure_hybrid_collection,
+            point_vectors,
+        )
         collection = self.settings.PAPERS_COLLECTION
         first_vector = self.embed([chunks[0]["text"]])[0]
         dimension = len(first_vector)
-        if not self.qdrant.collection_exists(collection):
-            self.qdrant.create_collection(collection, vectors_config=m.VectorParams(
-                size=dimension, distance=m.Distance.COSINE))
-        info = self.qdrant.get_collection(collection)
-        if getattr(info.config.params.vectors, "size", None) != dimension:
-            raise ValueError("Embedding dimension mismatch; use a new paper collection")
+        ensure_hybrid_collection(self.qdrant, collection, dimension)
         self.qdrant.create_payload_index(collection, "build_id", m.PayloadSchemaType.KEYWORD, wait=True)
         self.qdrant.create_payload_index(collection, "paper_id", m.PayloadSchemaType.KEYWORD, wait=True)
         self.qdrant.create_payload_index(collection, "type", m.PayloadSchemaType.KEYWORD, wait=True)
@@ -74,7 +73,8 @@ class PaperIndexer:
             points = []
             for offset, (chunk, vector) in enumerate(zip(batch, vectors)):
                 points.append(m.PointStruct(
-                    id=str(uuid5(NAMESPACE_URL, f"{build['id']}:{start + offset}")), vector=vector,
+                    id=str(uuid5(NAMESPACE_URL, f"{build['id']}:{start + offset}")),
+                    vector=point_vectors(vector, chunk["text"]),
                     payload={**chunk, "type": "text", "build_id": build["id"],
                         "paper_id": build["paper_id"], "arxiv_id": paper.arxiv_id,
                         "paper_version": paper.version, "source_url": paper.source_url,
@@ -111,6 +111,8 @@ def process_pending(client, catalogue, settings, store, indexer, limit, selected
                 "markdown": markdown, "pages": page_artifact, "extraction": SPEC,
                 "chunk_count": len(chunks), "pipeline_id": settings.pipeline_id,
                 "embedding_model": settings.EMBEDDING_MODEL, "collection": settings.PAPERS_COLLECTION}
+            from src.api.rag.sparse import retrieval_index_manifest
+            manifest["retrieval_index"] = retrieval_index_manifest()
             manifest["chunk_order"] = {"field": "chunk_index", "starts_at": 0,
                 "count": len(chunks), "scope": "text_chunks", "contiguous": True}
             manifest["artifact"] = store.put_json(build["id"], "manifest.json", manifest)

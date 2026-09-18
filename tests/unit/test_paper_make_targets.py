@@ -78,11 +78,13 @@ def test_evaluation_connectivity_check_is_not_generation():
 
 def test_reviewed_evaluation_runner_forwards_modes_and_optional_limit():
     command = dry_run("eval-run", "EVAL_DIR=data/evaluation/reviewed",
-                      "EVAL_MODES=vanilla hybrid", "EVAL_LIMIT=3", "EVAL_JUDGE=true")
+                      "EVAL_MODES=vanilla hybrid hybrid_rerank agentic",
+                      "EVAL_LIMIT=3", "EVAL_JUDGE=true")
     assert command == [
         "uv", "run", "python", "-m", "evals.run_benchmark",
         "--dataset", "data/evaluation/reviewed/questions.reviewed.json",
         "--output-root", "data/evaluation/runs", "--modes", "vanilla", "hybrid",
+        "hybrid_rerank", "agentic",
         "--split", "all", "--top-k", "5", "--judge",
         "--judge-model", "gpt-5-mini", "--judge-reasoning-effort", "minimal",
         "--concurrency", "1", "--limit", "3",

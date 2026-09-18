@@ -287,7 +287,7 @@ from them.
    rejected records `rejected`. Add a few real questions of your own to reduce synthetic bias.
 6. Separate development and held-out test papers **before tuning**; connected cross-paper
    groups must stay in one split. Keep the same approved questions and corpus when
-   comparing Vanilla, Hybrid and future graph/agentic modes.
+   comparing Vanilla, Hybrid, Hybrid + Rerank, Agentic and future graph modes.
 
 ### Reviewed dataset contract and splits
 
@@ -348,7 +348,7 @@ the optional judge adds one more model call per answer.
 make eval-run EVAL_DIR=data/evaluation/markdown-mini-v1 EVAL_LIMIT=2
 ```
 
-Then run all approved questions through both modes with semantic scoring:
+Then run all approved questions through all four implemented modes with semantic scoring:
 
 ```bash
 make eval-run EVAL_DIR=data/evaluation/markdown-mini-v1 EVAL_JUDGE=true
@@ -358,13 +358,29 @@ Each invocation creates a new directory under `data/evaluation/runs/` containing
 
 - `manifest.json`: exact dataset, corpus build IDs, models and settings;
 - `results.json`: checkpointed per-question answers, retrieved chunks, citations and scores;
-- `summary.json` and `report.md`: aggregate Vanilla/Hybrid comparison.
+- `summary.json` and `report.md`: aggregate four-mode comparison.
 
 The runner ignores non-approved records and queries the **frozen build IDs** saved in
 `snapshot.json`, not whatever papers happen to be active after later daily ingestion.
 It fails if the reviewed file does not match that snapshot or if its embedding model
 differs from the configured query embedding model. Retained Qdrant builds must therefore
 remain available while a benchmark snapshot is in use.
+
+The build filter freezes which chunks are eligible, but Qdrant's BM25 `IDF` statistics are
+collection-wide. Adding or retaining points in that collection can therefore slightly
+change sparse scores even for a frozen build set. For a final repeatable comparison, pause
+ingestion for the run (or clone/snapshot the Qdrant collection); record this limitation when
+comparing runs made at different times.
+
+The default `EVAL_MODES` is `vanilla hybrid hybrid_rerank agentic`. Override it to isolate a
+change, for example `EVAL_MODES="hybrid hybrid_rerank"`. `hybrid_rerank` requires Cohere;
+plain `hybrid` does not. Agentic also requires PostgreSQL because its paper-discovery tool
+uses the catalogue, while its Qdrant scope remains frozen to the snapshot.
+
+Snapshots made against a dense-only collection cannot exercise BM25 sparse retrieval. After
+migrating to the v2 dense+sparse collection, generate and review a new evaluation dataset.
+Keep old datasets/runs as historical baselines rather than rewriting their point IDs or
+snapshot hashes.
 
 Without the judge, the report contains deterministic retrieval and citation measures.
 `EVAL_JUDGE=true` adds correctness, groundedness and answer-relevance scores using
@@ -404,8 +420,8 @@ questions and then describe the same scores as held-out performance.
 ## Track runs in Langfuse
 
 Enable Langfuse as described in [Observability](observability.md). The same `make eval-run`
-then uploads the reviewed set to a content-addressed Langfuse Dataset and records Vanilla
-and Hybrid as separate Dataset Experiments. Stable dataset-item IDs make synchronization
+then uploads the reviewed set to a content-addressed Langfuse Dataset and records every
+selected mode as a separate Dataset Experiment. Stable dataset-item IDs make synchronization
 idempotent; changing reviewed content creates a new dataset identity. The local run files
 remain the authoritative, checkpointed record.
 

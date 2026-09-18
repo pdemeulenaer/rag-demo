@@ -24,7 +24,7 @@ The application is composed of several key components:
 
 *   **Conversational Chat**: Engages in a multi-turn dialogue, maintaining context through a conversation memory system.
 *   **PDF Knowledge Base**: Users can upload and process a large collection of PDF documents.
-*   **Hybrid Search**: Combines semantic (vector) search with traditional keyword search for more robust retrieval. Re-ranking is performed on top of this.
+*   **Comparable RAG modes**: Dense-only Vanilla, dense+BM25 Hybrid, Hybrid+Cohere reranking, and bounded LangGraph Agentic retrieval.
 *   **Advanced RAG Pipeline**:
     *   Retrieves relevant text chunks from Qdrant (hybrid search)
     *   Reranks the retrieved chunks using Cohere for better context.
@@ -113,25 +113,31 @@ Both manual uploads and arXiv papers now share the PostgreSQL catalogue. Streaml
 **Document inventory → All sources** lists them together with their processing states;
 **Query source** independently controls which corpus answers your question.
 
-**Existing installations:** follow the [catalogue upgrade guide](docs/operations/catalogue.md)
-to migrate the schema and register existing upload vectors without re-embedding:
+**Existing installations:** follow the [catalogue upgrade guide](docs/operations/catalogue.md).
+Registering legacy vectors preserves their catalogue history, but does not add BM25 vectors.
+The current four-mode index requires new v2 collection names and an arXiv re-index:
 
 ```bash
 make papers-backup
 make papers-init-db
-make papers-import-uploads LEGACY_MODEL=text-embedding-3-small
+make papers-reindex-preview
+make papers-reindex LIMIT=2
 make papers-audit
 ```
 
-Quiesce ingestion before backup/migration; the guide includes service
-stop/recreation and legacy Batch-job precautions. PostgreSQL is now required for both
+Repeat the re-index in bounded batches, then re-upload original GUI PDFs into the new upload
+collection. Re-indexing makes paid embedding calls; old collections remain available for
+historical snapshots until explicitly retired.
+
+Quiesce ingestion before backup/migration; the guide includes `.env` collection values,
+service stop/recreation and legacy Batch-job precautions. PostgreSQL is required for both
 ingestion paths. `papers-audit` is read-only and never repairs or re-embeds automatically.
 `make papers-backup` creates and checks a local catalogue archive in `~/rag-demo-backups`;
 `make papers-backups` lists them. It does not back up Qdrant or PDF/image files.
 
 The [arXiv setup and operation guide](docs/getting-started/arxiv.md) covers the
 star-cluster scope, PostgreSQL catalogue, PDF processing, daily scheduling and
-Vanilla/Hybrid comparison. Run `make papers-help` to see the command shortcuts.
+four-mode comparison. Run `make papers-help` to see the command shortcuts.
 
 For monitored daily automation, see the [short Airflow setup guide](docs/operations/daily-ingestion.md).
 `make airflow-up` starts the optional local scheduler with a **new DAG paused**;
@@ -166,7 +172,7 @@ for one discovery-and-processing run. Neither command installs a schedule.
 ## Evaluation questions
 
 PDF ingestion now uses page-aware Markdown and structure-aware chunks. Existing indexes
-need an explicit upgrade: see the [re-indexing guide](docs/getting-started/arxiv.md#upgrade-existing-pdfs-to-markdown-extraction).
+need an explicit upgrade: see the [re-indexing guide](docs/getting-started/arxiv.md#upgrade-existing-pdfs-to-the-current-retrieval-index).
 `make papers-reindex-preview` shows affected arXiv papers without changing anything.
 
 ```bash
@@ -185,7 +191,7 @@ unanswerable cases.
 
 After marking accepted records `review_status: approved` in `questions.reviewed.json`,
 validate the reviewed file. New schema-v2 datasets can assign leakage-safe splits that keep
-connected papers together. Then run a small Vanilla/Hybrid benchmark and the complete
+connected papers together. Then run a small four-mode benchmark and the complete
 judged comparison:
 
 ```bash
@@ -198,8 +204,9 @@ Every run is retained under `data/evaluation/runs/`. This repository's optional 
 Docker stack records traces and Dataset Experiments; setup is in the
 [observability guide](docs/operations/observability.md).
 
-The API and Streamlit now include bounded Agentic RAG alongside the Vanilla/Hybrid baselines;
-benchmark integration is the next slice. Deterministic KG-RAG and KG-Agentic RAG remain later
+The API, Streamlit and benchmark runner include bounded Agentic RAG alongside Vanilla,
+Hybrid and Hybrid + Rerank baselines. A new reviewed benchmark on the dense+sparse index is
+the next slice. Deterministic KG-RAG and KG-Agentic RAG remain later
 milestones defined in [RAG modes](docs/architecture/rag-modes.md) and sequenced in the
 [RAG evolution roadmap](docs/architecture/rag-evolution-roadmap.md).
 

@@ -13,7 +13,9 @@ separate so that each comparison mode remains understandable and independently t
 | Shared corpus/evidence contracts | `src/api/rag/contracts.py` |
 | Mode selection only | `src/api/rag/dispatcher.py` |
 | Vanilla retrieval | `src/api/rag/modes/vanilla.py` |
-| Hybrid retrieval and reranking | `src/api/rag/modes/hybrid.py` |
+| Hybrid dense + sparse fusion | `src/api/rag/modes/hybrid.py` |
+| Hybrid fusion plus Cohere reranking | `src/api/rag/modes/hybrid_rerank.py` |
+| Shared BM25 sparse encoding/index contract | `src/api/rag/sparse.py` |
 | PostgreSQL paper discovery | `src/api/rag/tools/paper_search.py` |
 | Scoped Qdrant chunk retrieval | `src/api/rag/tools/chunk_search.py` |
 | Exact-section expansion | `src/api/rag/tools/section_retrieval.py` |
@@ -30,15 +32,17 @@ retrieval tools and later calls either `finish_with_evidence` or `abstain`. Appl
 not the model, enforces the approved corpus boundary, duplicate detection and hard budgets.
 This avoids a custom provider-specific plan/assessment JSON protocol. Future KG modes will
 get their own isolated modules and can expose graph retrieval as another typed tool without
-replacing Vanilla or Hybrid.
+replacing the four current modes.
 
 ```mermaid
 flowchart LR
     Q[Question] --> M{Explicit mode}
     M -->|Vanilla| D[Dense Qdrant search]
-    M -->|Hybrid| H[Qdrant RRF fusion]
+    M -->|Hybrid| H[Dense + BM25<br/>Qdrant RRF fusion]
+    M -->|Hybrid + Rerank| HR[Dense + BM25<br/>Qdrant RRF fusion]
     M -->|Agentic| A[Bounded LangGraph tool loop]
-    H --> R[Rerank<br/>Cohere]
+    HR --> R[Rerank<br/>Cohere]
+    H --> P
     D --> P[Build prompt<br/>+ session memory]
     R --> P
     A --> P
@@ -70,7 +74,7 @@ manifest point IDs are used to recover the registered build/paper identity; this
 make unregistered points queryable.
 
 `search_papers` searches title, author, year, source and title/abstract terms in the
-PostgreSQL catalogue. `search_chunks` performs vector retrieval in Qdrant. Both are direct,
+PostgreSQL catalogue. `search_chunks` performs dense, sparse or fused retrieval in Qdrant. Both are direct,
 read-only functions and do not depend on an agent framework.
 
 `get_section` returns an exact Markdown section breadcrumb in document order.
@@ -85,8 +89,12 @@ identifiers; Vanilla and Hybrid do not call them.
 fused with Reciprocal Rank Fusion:
 
 - a **dense** branch querying the embedding vector, limit 20;
-- a **full-text-constrained dense** branch applying `MatchText` to the `text` payload while
-  querying with the same dense vector, limit 20.
+- a **BM25 sparse** branch querying the named `bm25` sparse vector, limit 20.
+
+At ingestion, every point receives both its unnamed OpenAI dense vector and a named `bm25`
+sparse vector. The sparse encoder applies deterministic token IDs and BM25 term-frequency/
+length weights; Qdrant's `IDF` modifier supplies live collection IDF. Qdrant then fuses the
+independent rankings with RRF. Exact sparse search is also available to the Agentic tool.
 
 Each returned point is validated as an `EvidenceChunk`, including `collection`, `build_id`,
 `paper_id`, `id`, `page`, `section_header` and content metadata in addition to display fields.
@@ -97,9 +105,10 @@ Each returned point is validated as an `EvidenceChunk`, including `collection`, 
 top `top_n`, attaching a `rerank_score` to each surviving chunk.
 
 !!! note "Explicit comparison modes"
-    Vanilla retrieves `top_k` dense results without reranking. Hybrid retrieves 20 fused
-    candidates and reranks to `top_k`. The reviewed benchmark invokes these explicit modes;
-    the old `EVALUATION_MODE` behavior applies only to the legacy evaluator.
+    Vanilla retrieves `top_k` dense results. Hybrid returns `top_k` RRF-fused results.
+    Hybrid + Rerank retrieves at least 20 fused candidates and reranks to `top_k` with
+    Cohere. The reviewed benchmark invokes these explicit modes; the old `EVALUATION_MODE`
+    behavior applies only to the legacy evaluator.
 
 ## 4. Prompt construction
 

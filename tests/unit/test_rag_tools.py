@@ -114,6 +114,12 @@ def test_dispatcher_keeps_mode_pipelines_separate():
     retrieve_for_mode("hybrid", "q", Mock(), top_k=5, collection="papers",
                       scope=scope, retrieve_context=retrieve, rerank_context=rerank)
     assert retrieve.call_args.kwargs["mode"] == "hybrid"
+    assert retrieve.call_args.kwargs["top_k"] == 5
+    rerank.assert_not_called()
+
+    retrieve_for_mode("hybrid_rerank", "q", Mock(), top_k=5, collection="papers",
+                      scope=scope, retrieve_context=retrieve, rerank_context=rerank)
+    assert retrieve.call_args.kwargs["mode"] == "hybrid"
     assert retrieve.call_args.kwargs["top_k"] == 20
     rerank.assert_called_once_with("q", retrieve.return_value, top_n=5)
 

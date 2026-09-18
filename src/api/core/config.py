@@ -71,7 +71,7 @@ class Config(BaseSettings):
     RAG_PROMPT_TEMPLATE_PATH: str = "src/api/rag/prompts/rag_generation.yaml"    
 
     # Ingestion settings
-    QDRANT_COLLECTION_NAME: str = 'test_collection_oai_test_image' # 'test_collection_oai_test_summary' # test_collection_oai_prod # test_collection_oai_local2
+    QDRANT_COLLECTION_NAME: str = 'uploaded_papers_v2'
 
     SUMMARIZATION_MODEL: str = 'llama-3.1-8b-instant' # 'llama-3.3-70b-versatile'
     SUMMARIZATION_PROMPT: str = 'Summarize the following text: {{text}}'

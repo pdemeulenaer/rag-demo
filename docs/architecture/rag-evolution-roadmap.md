@@ -9,17 +9,20 @@ independently selectable modes so improvements can be attributed to retrieval ar
 Current modes:
 
 - **Vanilla:** dense Qdrant retrieval, then answer generation.
-- **Hybrid:** reciprocal-rank fusion retrieval, Cohere reranking, then generation.
+- **Hybrid:** dense and BM25 sparse retrieval, reciprocal-rank fusion, then generation.
+- **Hybrid + Rerank:** Hybrid retrieval, Cohere reranking, then generation.
+- **Agentic:** a bounded LangGraph agent selects dense, sparse, hybrid and expansion tools.
 
 The first reviewed benchmark found Hybrid stronger on retrieval coverage, correctness,
 groundedness and relevance, while gold-citation recall remained approximately 0.43 in both
-modes. See [Evaluation results](../operations/evaluation-results.md). The next milestone is
-therefore adaptive evidence acquisition through a bounded Agentic RAG mode. Knowledge-graph
-retrieval follows as an additional evidence tool for the same orchestration layer.
+modes. That run predates the current BM25 index and mode split; see
+[Evaluation results](../operations/evaluation-results.md). The next milestone is a new
+four-mode benchmark on the dense+sparse corpus, followed by knowledge-graph retrieval as an
+additional evidence tool for the same orchestration layer.
 
 ## Design rules
 
-1. Keep Vanilla and Hybrid behaviour unchanged as experimental controls.
+1. Keep the four explicit mode pipelines separate and stable as experimental controls.
 2. Put retrieval capabilities behind typed, directly testable, read-only tools before adding
    an LLM-driven graph loop.
 3. PostgreSQL remains authoritative for paper/build identity and metadata; Qdrant remains
@@ -39,14 +42,16 @@ Implementation status:
 
 - complete: shared `RetrievalScope`, `PaperMatch` and `EvidenceChunk` contracts;
 - complete: PostgreSQL `search_papers` and scoped Qdrant `search_chunks`;
-- complete: separate Vanilla/Hybrid mode modules using the shared scope boundary.
+- complete: separate Vanilla, Hybrid and Hybrid + Rerank modules using the shared scope boundary;
+- complete: versioned BM25 sparse vectors with Qdrant IDF and RRF fusion;
+- complete: Agentic chunk search can select dense, sparse or hybrid retrieval.
 
 Implement framework-independent functions with typed inputs and outputs:
 
 | Tool | Store | Purpose |
 | --- | --- | --- |
 | `search_papers` | PostgreSQL | Resolve papers/builds by title, author, year, source and metadata terms |
-| `search_chunks` | Qdrant | Run dense or Hybrid search within explicit build/paper filters |
+| `search_chunks` | Qdrant | Run dense, sparse or Hybrid search within explicit build/paper filters |
 
 Tool results must use a shared evidence model and must not return unregistered or inactive
 builds. For frozen evaluations, they must be constrained to the snapshot's build IDs.
@@ -81,7 +86,7 @@ Exit criteria:
 
 - deterministic offline unit tests cover filters, empty results, invalid identities and
   scope enforcement;
-- current Vanilla/Hybrid pipelines can use the shared primitives without metric drift;
+- current one-shot pipelines can use the shared primitives without scope/provenance drift;
 - each tool has a Langfuse span and returns complete evidence provenance.
 
 ## Phase 4 — typed tools and execution contracts
@@ -102,7 +107,7 @@ database mutation, shell or arbitrary-code tool is exposed.
 ## Phase 5 — bounded Agentic RAG mode
 
 Implementation status: complete as the API/runtime milestone. Streamlit exposure was added in
-Phase 6; benchmark exposure remains Phase 7 work.
+Phase 6; benchmark exposure was added in Phase 7.
 
 The explicit `agentic` mode uses a LangGraph tool-calling/shared-synthesizer loop:
 
@@ -146,7 +151,7 @@ citations follow the same contract as Vanilla and Hybrid.
 
 Implementation status: complete.
 
-Streamlit exposes **Agentic** alongside **Vanilla** and **Hybrid**. The existing comparison
+Streamlit exposes **Agentic** alongside **Vanilla**, **Hybrid** and **Hybrid + Rerank**. The existing comparison
 key isolates chat state by corpus, mode and answer model while preserving the corpus
 fingerprint across mode switches for fair comparisons. Each Agentic answer has a collapsed
 execution panel containing only the validated plan summary, outcome, rounds, successful tool
@@ -162,9 +167,13 @@ optional and cannot change request behaviour.
 
 ## Phase 7 — evaluation
 
-Add `agentic` to `evals/run_benchmark.py` using the same reviewed questions, frozen builds,
-answer model and top-k/context policy wherever comparable. Record each mode as a separate
-Langfuse Dataset Experiment.
+Implementation status: runner/Langfuse mode integration is complete; a fresh reviewed
+dense+sparse benchmark and agent-specific aggregate metrics remain.
+
+The runner accepts all four modes using the same reviewed questions, frozen builds, answer
+model and top-k/context policy wherever comparable. Each selected mode is a separate
+Langfuse Dataset Experiment. Old dense-only snapshots remain historical and must not be
+rewritten; create a new reviewed snapshot after the v2 re-index.
 
 Add agent-specific measures:
 
@@ -222,6 +231,7 @@ Expose graph search/traversal as another typed evidence tool. First evaluate a d
 | --- | --- | --- |
 | Vanilla | No | No |
 | Hybrid | No | No |
+| Hybrid + Rerank | No | No |
 | Agentic | Yes | No |
 | KG | No | Yes |
 | KG-Agentic | Yes | Yes |
@@ -239,7 +249,7 @@ Complete one reviewable slice at a time:
 4. native typed tools and public execution contracts (complete);
 5. bounded LangGraph tool loop with an API-only `agentic` mode (complete);
 6. Streamlit mode and Langfuse trace presentation (complete);
-7. benchmark integration and evaluation-set strengthening;
+7. benchmark integration (complete), then fresh evaluation-set strengthening and runs;
 8. graph schema/provenance, deterministic KG retrieval, then KG-Agentic composition.
 
 Do not start a later slice while an earlier slice lacks offline tests, provenance guarantees
