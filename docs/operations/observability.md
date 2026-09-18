@@ -62,6 +62,29 @@ rag_request
         └── OpenAI generation
 ```
 
+An Agentic request adds its bounded orchestration beneath the same request/pipeline trace:
+
+```text
+rag_request
+└── rag_pipeline
+    ├── agentic_retrieval
+    │   ├── agentic_plan
+    │   │   └── OpenAI planner generation
+    │   ├── agentic_tool_<name>          # one span per validated action
+    │   │   └── search/section/neighbour retriever span
+    │   ├── agentic_sufficiency          # repeated only within the hard round limit
+    │   │   └── OpenAI sufficiency generation
+    │   └── validated execution metadata + stop reason
+    └── generate_answer                  # only when evidence was judged sufficient
+        └── configured answer generation
+```
+
+The Agentic spans record validated plan summaries, actions and filters, evidence IDs, budget
+usage, model/token usage, latency and the terminal stop reason. They do not store private
+chain-of-thought. Tool/planner failure and insufficient evidence terminate before final
+generation. The Streamlit execution panel shows a smaller safe subset and links no raw
+prompts or evidence text.
+
 Intent classification, chat-only follow-ups and conversation summaries are also observed.
 The wrapper is centralized in `src/api/core/clients.py`; application code should not create
 a second OpenAI client directly. Prompt and response content is stored by the local
@@ -81,5 +104,6 @@ make eval-run EVAL_DIR=data/evaluation/markdown-mini-v1 EVAL_LIMIT=2 EVAL_JUDGE=
 ```
 
 Look under **Datasets** for the content-addressed dataset and under its experiments/runs
-for separate Vanilla and Hybrid results. The local `manifest.json` records the Langfuse
+for separate Vanilla and Hybrid results. Agentic benchmark experiments are Phase 7 and are
+not enabled yet. The local `manifest.json` records the Langfuse
 dataset name, run names and returned URLs.

@@ -177,3 +177,42 @@ def test_agentic_abstention_skips_answer_generation(runtime, monkeypatch):
     assert result["execution"].stop_reason.value == "insufficient_evidence"
     assert result["sources"] == []
     generate.assert_not_called()
+
+
+def test_successful_agentic_execution_reaches_shared_generator_and_trace(runtime, monkeypatch):
+    retrieval, _ = runtime
+    from src.api.rag.contracts import EvidenceChunk, RetrievalScope
+    from src.api.rag.modes.agentic.contracts import AgentExecutionMetadata
+    from src.api.rag.modes.agentic.executor import AgentRunResult
+    import src.api.rag.modes.agentic.executor as agent_executor
+
+    execution = AgentExecutionMetadata(
+        question_scope="direct", plan_summary="Retrieve one direct result.",
+        stop_reason="sufficient", rounds=1, tool_calls=1, evidence_count=1,
+        planner_tokens=25, elapsed_seconds=0.2, actions=[],
+    )
+    evidence = EvidenceChunk(
+        id="point", text="Direct result", collection="papers",
+        build_id="build", paper_id="paper", title="Paper", page=2,
+    )
+    monkeypatch.setattr(
+        agent_executor, "run_agentic",
+        Mock(return_value=AgentRunResult([evidence], execution, True)),
+    )
+    monkeypatch.setattr(retrieval, "build_prompt", Mock(return_value=[]))
+    monkeypatch.setattr(retrieval, "generate_answer", Mock(return_value=SimpleNamespace(
+        answer="Grounded", retrieved_context_ids=["point"])))
+    update = Mock()
+    monkeypatch.setattr(retrieval, "update_span", update)
+
+    result = retrieval.rag_pipeline(
+        "question", Mock(), "session", mode="agentic", collection="papers",
+        scope=RetrievalScope("papers", ("build",)), catalogue=Mock(), planner=Mock(),
+    )
+
+    assert result["answer"] == "Grounded"
+    assert result["sources"][0].id == "point"
+    assert result["execution"].stop_reason.value == "sufficient"
+    trace_outputs = [call.kwargs.get("output", {}) for call in update.call_args_list]
+    assert any(output.get("agent_execution", {}).get("stop_reason") == "sufficient"
+               for output in trace_outputs)

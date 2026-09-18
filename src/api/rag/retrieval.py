@@ -579,9 +579,12 @@ def rag_pipeline(question, qdrant_client, session_id, generation_model=None, top
         "cited_context_ids": sorted(used_ids.intersection(c["id"] for c in retrieved_context)),
         "execution": agent_run.execution if agent_run else None,
     }
-    update_span(output={"answer": result["answer"],
+    trace_output = {"answer": result["answer"],
         "retrieved_ids": [row["id"] for row in retrieved_context],
-        "cited_ids": result["cited_context_ids"]})
+        "cited_ids": result["cited_context_ids"]}
+    if agent_run is not None:
+        trace_output["agent_execution"] = agent_run.execution.model_dump(mode="json")
+    update_span(output=trace_output)
     return result
 
 

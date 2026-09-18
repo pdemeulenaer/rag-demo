@@ -198,9 +198,9 @@ Every run is retained under `data/evaluation/runs/`. This repository's optional 
 Docker stack records traces and Dataset Experiments; setup is in the
 [observability guide](docs/operations/observability.md).
 
-The API now includes bounded Agentic RAG alongside the Vanilla/Hybrid baselines; Streamlit
-and benchmark integration are the next slices. Deterministic KG-RAG and KG-Agentic RAG remain
-later milestones defined in [RAG modes](docs/architecture/rag-modes.md) and sequenced in the
+The API and Streamlit now include bounded Agentic RAG alongside the Vanilla/Hybrid baselines;
+benchmark integration is the next slice. Deterministic KG-RAG and KG-Agentic RAG remain later
+milestones defined in [RAG modes](docs/architecture/rag-modes.md) and sequenced in the
 [RAG evolution roadmap](docs/architecture/rag-evolution-roadmap.md).
 
 ## 🌐 Deployment to Azure (Multi-Container)

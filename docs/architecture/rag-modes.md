@@ -2,8 +2,8 @@
 
 This project treats each RAG architecture as an explicit comparison mode over the same
 scientific-paper corpus. A mode describes **how evidence is selected before answer
-generation**. Vanilla and Hybrid are available in the API and Streamlit. Agentic is currently
-API-only; knowledge-graph modes remain planned and are deliberately labelled as such.
+generation**. Vanilla, Hybrid and Agentic are available in the API and Streamlit;
+knowledge-graph modes remain planned and are deliberately labelled as such.
 
 ## At a glance
 
@@ -11,7 +11,7 @@ API-only; knowledge-graph modes remain planned and are deliberately labelled as 
 | --- | --- | --- | ---: | ---: |
 | **Vanilla** | Available | One dense-vector search in Qdrant | 1 | No |
 | **Hybrid** | Available | Dense/full-text-constrained fusion, then Cohere reranking | 1 | No |
-| **Agentic** | API available; Streamlit pending | A bounded planner selects and combines read-only retrieval tools | Up to 3 | No |
+| **Agentic** | Available | A bounded planner selects and combines read-only retrieval tools | Up to 3 | No |
 | **KG** | Placeholder | Deterministic graph search/traversal | 1 | Yes |
 | **KG-Agentic** | Placeholder | The bounded agent combines vector, metadata and graph tools | Up to 3 | Yes |
 
@@ -71,9 +71,9 @@ for improvement. See [Evaluation results](../operations/evaluation-results.md).
 
 ## Agentic RAG
 
-Agentic RAG is available through `POST /rag2` with `mode: "agentic"`; it is **not yet shown
-in Streamlit**. Its runtime wraps the existing read-only retrieval capabilities in a
-constrained planner/executor/shared-synthesizer loop:
+Agentic RAG is available through `POST /rag2` with `mode: "agentic"` and through the
+Streamlit retrieval-mode selector. Its runtime wraps the existing read-only retrieval
+capabilities in a constrained planner/executor/shared-synthesizer loop:
 
 1. classify the evidence need as direct, within-paper, cross-paper or metadata discovery;
 2. decompose complex questions into explicit subquestions;
@@ -120,7 +120,7 @@ knowledge graph.
 
 Currently:
 
-- Streamlit exposes `vanilla` and `hybrid`; `POST /rag2` additionally accepts `agentic`.
+- Streamlit and `POST /rag2` expose `vanilla`, `hybrid` and `agentic`.
 - The evaluation runner accepts only `vanilla` and `hybrid`.
 - `kg` and `kg_agentic` are reserved names in the roadmap, not accepted runtime modes.
 - Omitting an explicit mode preserves the legacy intent-routed API behaviour; it should not

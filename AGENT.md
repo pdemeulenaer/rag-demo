@@ -111,18 +111,20 @@ pipeline. `tools/section_retrieval.py` and `neighbor_retrieval.py` now provide e
 and bounded ordinal expansion with strict paper/build scope. Never infer document order from
 UUIDs. Phase 4 strict planning/action/sufficiency/budget contracts are implemented in
 `modes/agentic/contracts.py`, including read-only discriminated actions, hard budget models,
-stop reasons and duplicate-action fingerprints. The public Agentic mode is not implemented
-yet in Streamlit. Phase 5 is complete as an API-only `agentic` mode:
+stop reasons and duplicate-action fingerprints. Phase 5 is complete as an API-only
+`agentic` mode:
 `modes/agentic/planner.py` performs strict structured planning/sufficiency calls and
 `modes/agentic/executor.py` runs the read-only tools within corpus, round, tool, evidence,
 time and token limits. It fails closed on scope escape, invented evidence, repeated work and
 provider/tool errors, then reuses the shared citation-validating answer generator.
 
-The next slice is Phase 6: expose Agentic in Streamlit, keep mode-specific chat state, and
-verify the concise execution metadata and Langfuse trace presentation. Preserve Vanilla and
-Hybrid as unchanged controls. The agent must continue to respect SQL-active builds and
-evaluation-frozen build IDs, retain chunk/page/section provenance and receive no ingestion
-or mutation tools.
+Phase 6 is also complete: Streamlit exposes Agentic with mode-isolated chat state and a
+collapsed safe execution summary, and Langfuse receives the planner/tool/sufficiency/stop
+hierarchy. Preserve Vanilla and Hybrid as unchanged controls. The next slice is Phase 7:
+integrate Agentic with the frozen-corpus evaluator and Langfuse Dataset Experiments, adding
+agent-specific retrieval, termination, latency and cost measures. The agent must continue to
+respect SQL-active builds and evaluation-frozen build IDs, retain chunk/page/section
+provenance and receive no ingestion or mutation tools.
 
 Expose the mode in Streamlit, trace plans/tools/budgets in Langfuse, and add it to the frozen-
 corpus evaluator. Add cross-paper, human-written and corpus-level unanswerable questions and

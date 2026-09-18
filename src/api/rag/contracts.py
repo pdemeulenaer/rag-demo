@@ -1,8 +1,8 @@
 """Shared contracts for every RAG retrieval strategy.
 
 PostgreSQL selects the allowed builds; Qdrant may only return evidence from that
-explicit scope.  Keeping this contract independent from an agent framework lets
-Vanilla, Hybrid and future Agentic/KG modes share the same safety boundary.
+explicit scope. Keeping this contract independent from an agent framework lets
+Vanilla, Hybrid, Agentic and future KG modes share the same safety boundary.
 """
 from __future__ import annotations
 

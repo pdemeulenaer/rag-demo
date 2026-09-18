@@ -112,8 +112,8 @@ than duplicating them in prompts or framework-specific state.
 
 ## Phase 5 — bounded Agentic RAG mode
 
-Implementation status: complete as an API-only mode; Streamlit and benchmark exposure remain
-Phase 6 and Phase 7 work.
+Implementation status: complete as the API/runtime milestone. Streamlit exposure was added in
+Phase 6; benchmark exposure remains Phase 7 work.
 
 The explicit `agentic` mode now uses a structured planner/executor/shared-synthesizer loop:
 
@@ -154,16 +154,21 @@ chunk IDs, so Agentic citations follow the same contract as Vanilla and Hybrid.
 
 ## Phase 6 — API, Streamlit and observability
 
-The explicit API mode is complete. Expose **Agentic** alongside **Vanilla** and **Hybrid** in
-Streamlit. Keep chat state isolated
-by corpus and mode. Show concise execution metadata—such as papers searched and retrieval
-round count—without exposing hidden reasoning or raw prompts. Existing source and figure
-rendering must continue to use verified citation IDs.
+Implementation status: complete.
 
-The API already traces planner generations, tool calls, filters, evidence IDs, stop reasons,
-model usage and latency in Langfuse. Phase 6 should verify the trace presentation and add the
-UI's concise execution summary. Do not route omitted/legacy requests through the agent
-implicitly.
+Streamlit exposes **Agentic** alongside **Vanilla** and **Hybrid**. The existing comparison
+key isolates chat state by corpus, mode and answer model while preserving the corpus
+fingerprint across mode switches for fair comparisons. Each Agentic answer has a collapsed
+execution panel containing only the validated plan summary, outcome, rounds, successful tool
+counts, papers touched, evidence count and elapsed time. It does not expose prompts, evidence
+text or hidden reasoning. Existing source and figure rendering still uses verified citation
+IDs.
+
+Langfuse receives the complete safe execution hierarchy: `rag_request` → `rag_pipeline` →
+`agentic_retrieval`, with child planner/sufficiency generations, read-only tool spans and the
+shared final generation. Validated actions/filters, evidence IDs, budget usage, stop reason,
+model usage and latency are attached to their relevant spans. Tracing remains optional and
+cannot change request behaviour. Omitted/legacy requests are not routed through the agent.
 
 ## Phase 7 — evaluation
 
@@ -243,7 +248,7 @@ Complete one reviewable slice at a time:
 3. section/neighbour evidence expansion (complete);
 4. structured planning contracts (complete);
 5. bounded planner/executor with an API-only `agentic` mode (complete);
-6. Streamlit mode and Langfuse trace presentation;
+6. Streamlit mode and Langfuse trace presentation (complete);
 7. benchmark integration and evaluation-set strengthening;
 8. graph schema/provenance, deterministic KG retrieval, then KG-Agentic composition.
 

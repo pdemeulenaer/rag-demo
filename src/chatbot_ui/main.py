@@ -1,6 +1,7 @@
 # src/chatbot_ui/main.py
 import os
 import re
+from collections import Counter
 from html import escape
 from io import BytesIO
 import streamlit as st
@@ -10,6 +11,56 @@ from htmlTemplates import css, bot_template, user_template
 
 # API_URL = "http://localhost:8000"  # Update for production (e.g., hosted backend)
 API_URL = os.getenv("API_URL", "http://localhost:8000")
+
+RAG_MODE_LABELS = {
+    "vanilla": "Vanilla — dense retrieval",
+    "hybrid": "Hybrid — fusion + reranking",
+    "agentic": "Agentic — bounded multi-step retrieval",
+}
+
+STOP_REASON_LABELS = {
+    "sufficient": "Evidence sufficient",
+    "max_rounds": "Retrieval-round limit reached",
+    "tool_call_budget": "Tool-call limit reached",
+    "evidence_budget": "Evidence limit reached",
+    "time_budget": "Time limit reached",
+    "token_budget": "Planner-token limit reached",
+    "repeated_action": "Repeated action stopped",
+    "no_progress": "No new evidence found",
+    "tool_failure": "Retrieval tool failed safely",
+    "planner_failure": "Planner failed safely",
+    "insufficient_evidence": "Insufficient evidence",
+}
+
+
+def summarize_agent_execution(execution):
+    """Return concise display data without exposing prompts or evidence text."""
+    execution = execution if isinstance(execution, dict) else {}
+    actions = [row for row in execution.get("actions", []) if isinstance(row, dict)]
+    successful_tools = Counter(
+        row.get("tool") for row in actions
+        if row.get("status") == "success" and row.get("tool")
+    )
+    papers = {
+        str(paper_id)
+        for row in actions
+        for paper_id in row.get("paper_ids", [])
+        if paper_id
+    }
+    tools = ", ".join(
+        f"{tool} × {count}" for tool, count in sorted(successful_tools.items())
+    ) or "None completed"
+    stop_reason = str(execution.get("stop_reason") or "insufficient_evidence")
+    return {
+        "plan_summary": execution.get("plan_summary") or "No validated plan was produced.",
+        "outcome": STOP_REASON_LABELS.get(stop_reason, stop_reason.replace("_", " ").title()),
+        "rounds": int(execution.get("rounds") or 0),
+        "tool_calls": int(execution.get("tool_calls") or 0),
+        "evidence_count": int(execution.get("evidence_count") or 0),
+        "elapsed_seconds": float(execution.get("elapsed_seconds") or 0),
+        "papers_touched": len(papers),
+        "tools": tools,
+    }
 
 
 def get_app_version() -> str:
@@ -135,9 +186,12 @@ def main():
         st.subheader("📚 Knowledge Base")
         st.selectbox("Query source", ["uploads", "arxiv"], key="corpus",
                      format_func=lambda value: "Uploaded PDFs" if value == "uploads" else "arXiv star clusters")
-        st.radio("Retrieval mode", ["vanilla", "hybrid"], key="rag_mode",
-                 format_func=lambda value: "Vanilla — dense retrieval" if value == "vanilla" else "Hybrid — fusion + reranking")
-        st.caption("Both presets retrieve evidence directly; neither uses the intent router or a knowledge graph.")
+        st.radio("Retrieval mode", list(RAG_MODE_LABELS), key="rag_mode",
+                 format_func=RAG_MODE_LABELS.get)
+        if st.session_state.rag_mode == "agentic":
+            st.caption("Agentic uses a bounded read-only tool loop (maximum three retrieval rounds). It does not use a knowledge graph.")
+        else:
+            st.caption("Vanilla and Hybrid are one-shot retrieval baselines. They do not use the intent router or a knowledge graph.")
         if st.session_state.corpus == "arxiv":
             st.caption("Default scope: astro-ph.GA + star-cluster terms. Change scope in backend configuration.")
         if st.button("Start new conversation", help="Clears chat history. Your next question uses the latest ready documents from the selected source."):
@@ -308,7 +362,8 @@ def main():
                 "role": "assistant", 
                 "content": result["answer"], 
                 "sources": result.get("sources", []),
-                "images": result.get("images", [])
+                "images": result.get("images", []),
+                "execution": result.get("execution"),
             })            
 
             # Store backend's truncated/summarized memory separately
@@ -426,6 +481,24 @@ def main():
                     # --- DISPLAY FINAL HTML CONTENT ---
                     st.write(bot_template.replace("{{MSG}}", html_content), unsafe_allow_html=True)
                     # st.markdown(full_content)
+
+                    execution = msg.get("execution")
+                    if execution:
+                        details = summarize_agent_execution(execution)
+                        with st.expander("🧭 Agentic retrieval details"):
+                            st.write("Plan:", details["plan_summary"])
+                            st.write("Outcome:", details["outcome"])
+                            metric_columns = st.columns(4)
+                            metric_columns[0].metric("Rounds", details["rounds"])
+                            metric_columns[1].metric("Tool calls", details["tool_calls"])
+                            metric_columns[2].metric("Evidence chunks", details["evidence_count"])
+                            metric_columns[3].metric(
+                                "Elapsed", f"{details['elapsed_seconds']:.1f}s"
+                            )
+                            st.caption(
+                                f"Tools: {details['tools']} · "
+                                f"Papers resolved: {details['papers_touched']}"
+                            )
 
                     # 3. Display Figures immediately after the bubble
                     # Check if the API response included images (figures)

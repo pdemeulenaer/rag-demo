@@ -247,7 +247,10 @@ def run_agentic(question: str, *, client, catalogue, scope: RetrievalScope,
                         status="success",
                         result_count=len(chunks) + len(papers),
                         evidence_ids=[row.id for row in accepted],
-                        paper_ids=[row.paper_id for row in papers],
+                        paper_ids=list(dict.fromkeys(
+                            [row.paper_id for row in accepted]
+                            + [row.paper_id for row in papers]
+                        )),
                     )
                     records.append(record)
                     if tool_span is not None:

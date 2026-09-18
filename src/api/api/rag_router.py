@@ -286,7 +286,15 @@ async def rag(
             chat_history=history, sources=result.get("sources", []),
             images=_process_images(result.get("images", []), request), mode=mode,
             corpus_snapshot=snapshot, execution=result.get("execution"))
-        update_span(output={"answer": result["answer"], "source_count": len(result.get("sources", []))})
+        trace_output = {"answer": result["answer"],
+                        "source_count": len(result.get("sources", []))}
+        if result.get("execution") is not None:
+            execution = result["execution"]
+            trace_output["agent_execution"] = (
+                execution.model_dump(mode="json")
+                if hasattr(execution, "model_dump") else execution
+            )
+        update_span(output=trace_output)
         return response_payload
 
     # 2. Intent Classification
