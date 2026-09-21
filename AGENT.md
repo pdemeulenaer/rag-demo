@@ -80,6 +80,7 @@ make docs-build    # validate/render MkDocs
 make docs PORT=8001
 make ingest        # legacy script: bypasses catalogue; do not use for the current workflow
 make eval-preview  # Freeze active arXiv evidence locally; no model calls
+make eval-rebase EVAL_FROM=... EVAL_DIR=...  # New snapshot; reuse reviewed questions
 make eval-check EVAL_DIR=data/evaluation/gpt5  # Read-only model metadata access check; no inference
 make create-eval-dataset  # Paid question generation from saved preview
 make eval-run EVAL_DIR=data/evaluation/markdown-mini-v1 EVAL_LIMIT=2  # Paid RAG smoke benchmark
@@ -241,8 +242,11 @@ are in `docs/getting-started/arxiv.md`; the README links the quick-start sequenc
 ### Streamlit corpus selection and troubleshooting
 
 - **Document inventory** defaults to **All sources** and calls `GET /catalogue?source=all`.
-  It shows registered totals, latest states and whether an active indexed build exists.
-  Inventory source selection is independent of **Query source**. Upload acceptance is
+  It shows registered totals, latest states and whether an active build is compatible
+  with the current collection. Inventory source selection is independent of **Query source**.
+  Query source defaults to **All ready papers** and federates the separately scoped arXiv
+  and upload collections. Legacy uploads remain visible but require re-upload into the
+  current collection before retrieval. Upload acceptance is
   no longer displayed as completed ingestion. A failed replacement may retain an older
   ready build; latest-state counts and active-build counts can therefore overlap.
 - `/documents` is a compatibility ready-upload listing backed by SQL; `/papers` lists
@@ -298,7 +302,11 @@ honors attempt limits.
 Uploads upgrade through re-upload (including paid figure/metadata work). Never launch
 paid re-indexing as an implementation test. Pause/drain old workers and rebuild API,
 ingestion worker and Airflow together; old saved daily plans cannot cross pipeline changes.
-After re-indexing, generate a fresh evaluation snapshot; never rewrite old preview hashes.
+After re-indexing, generate a fresh evaluation snapshot or use `eval-rebase` to preserve
+reviewed questions. Rebasing compares complete old/new text streams and scientific metadata,
+retains approval only for exact papers, downgrades drift to `needs_review`, clears splits and
+never overwrites its source/output. Keep old Qdrant points until rebasing finishes. Never
+rewrite old preview hashes.
 Migration v1→v2 is implemented; a general migration framework, operator retry/reset,
 ambiguous remote-Batch submission recovery, interrupted-upload recovery, stale-build cleanup and
 historical snapshot serving remain follow-ups; see the guide for detailed limitations.

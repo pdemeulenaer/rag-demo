@@ -378,9 +378,52 @@ plain `hybrid` does not. Agentic also requires PostgreSQL because its paper-disc
 uses the catalogue, while its Qdrant scope remains frozen to the snapshot.
 
 Snapshots made against a dense-only collection cannot exercise BM25 sparse retrieval. After
-migrating to the v2 dense+sparse collection, generate and review a new evaluation dataset.
-Keep old datasets/runs as historical baselines rather than rewriting their point IDs or
-snapshot hashes.
+migrating to the v2 dense+sparse collection, either rebase an existing reviewed dataset as
+described below or generate a new one. Keep old datasets/runs as historical baselines rather
+than rewriting their point IDs or snapshot hashes.
+
+### Rebase an existing reviewed dataset after re-indexing
+
+Rebasing reuses the reviewed questions and reference answers without regenerating them. It
+creates a new snapshot and remaps Qdrant point/build/collection identities while preserving
+the dataset-local `evidence_id` values referenced in answers and citations.
+
+Keep the old Qdrant collection and retained PostgreSQL builds available until this comparison
+finishes. The command reads both complete text-chunk streams; it does not call a model or
+write PostgreSQL/Qdrant:
+
+```bash
+make eval-rebase \
+  EVAL_FROM=data/evaluation/markdown-mini-v3/questions.split.json \
+  EVAL_DIR=data/evaluation/markdown-mini-v4
+```
+
+The destination must not already exist. It contains:
+
+- `snapshot.json`: the same paper set resolved to current active dense+sparse builds;
+- `questions.reviewed.json`: copied questions with remapped evidence;
+- `rebase.json`: per-paper equivalence and evidence-mapping report.
+
+Approval is retained only when the paper version, complete ordered text stream and scientific
+metadata (title, abstract, authors, year and categories) are identical. Approved corpus-level
+unanswerable questions additionally require every paper in the frozen corpus to be identical.
+Anything changed, missing or ambiguous becomes `needs_review`; its earlier review is retained
+under `previous_review` for audit but is no longer treated as approval. Existing development/
+test assignments are cleared because approval membership may have changed.
+
+Inspect `rebase.json` and any `needs_review` records. After completing that review, recreate
+the paper-group split and validate it:
+
+```bash
+make eval-split EVAL_DIR=data/evaluation/markdown-mini-v4
+make eval-validate \
+  EVAL_REVIEWED=data/evaluation/markdown-mini-v4/questions.split.json
+```
+
+The old directory remains untouched and can still reproduce the historical dense-only run.
+To expand v4 with additional questions, create candidates against the current corpus in a
+separate directory and review them before deliberately merging them; the rebase command does
+not silently append or renumber questions.
 
 Without the judge, the report contains deterministic retrieval and citation measures.
 `EVAL_JUDGE=true` adds correctness, groundedness and answer-relevance scores using

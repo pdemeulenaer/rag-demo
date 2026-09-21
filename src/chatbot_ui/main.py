@@ -185,8 +185,12 @@ def main():
 
     with st.sidebar:
         st.subheader("📚 Knowledge Base")
-        st.selectbox("Query source", ["uploads", "arxiv"], key="corpus",
-                     format_func=lambda value: "Uploaded PDFs" if value == "uploads" else "arXiv star clusters")
+        st.selectbox("Query source", ["all", "arxiv", "uploads"], key="corpus",
+                     format_func=lambda value: {
+                         "all": "All ready papers",
+                         "uploads": "Uploaded PDFs",
+                         "arxiv": "arXiv star clusters",
+                     }[value])
         st.radio("Retrieval mode", list(RAG_MODE_LABELS), key="rag_mode",
                  format_func=RAG_MODE_LABELS.get)
         if st.session_state.rag_mode == "agentic":
@@ -202,7 +206,7 @@ def main():
             st.session_state.backend_memory = []
         if st.session_state.get("corpus_snapshot"):
             st.caption(f"Corpus fingerprint: {st.session_state.corpus_snapshot}")
-        st.caption("Queries use only ready documents from the selected source. Inventory below can show all sources.")
+        st.caption("Queries use ready documents from the selected source. “All” searches both arXiv and uploaded-PDF collections.")
 
         # st.markdown("---")
         # st.subheader("📊 Database Content")
@@ -214,11 +218,34 @@ def main():
             st.session_state.inventory = get_document_titles(inventory_source)
         inventory = st.session_state.get("inventory")
         if inventory and inventory.get("source") == inventory_source:
-            st.write(f"Catalogued: {inventory['total_documents']} · Active indexed: {inventory['queryable_documents']}")
+            st.write(f"Catalogued: {inventory['total_documents']} · Query-ready: {inventory['queryable_documents']}")
             st.caption("Latest processing states: " + ", ".join(
                 f"{state}: {count}" for state, count in inventory["status_counts"].items()))
-            st.dataframe([{key: row.get(key) for key in ("title", "source", "status", "queryable", "active_version", "collection", "error")}
-                          for row in inventory["documents"]], hide_index=True)
+            rows = [{
+                "title": row.get("title"),
+                "source": row.get("source"),
+                "processing": row.get("status"),
+                "query_ready": "Yes" if row.get("queryable") else "No",
+                "latest_collection": row.get("latest_collection") or row.get("collection"),
+                "active_collection": row.get("active_collection") or row.get("collection"),
+                "error": row.get("error"),
+            } for row in inventory["documents"]]
+            st.dataframe(rows, hide_index=True, use_container_width=True)
+            not_ready = [row for row in inventory["documents"] if not row.get("queryable")]
+            if not_ready:
+                with st.expander(f"Not query-ready ({len(not_ready)})", expanded=True):
+                    for row in not_ready:
+                        st.markdown(f"**{row.get('title', 'Untitled')}**")
+                        st.caption(
+                            f"Processing: {row.get('status', 'unknown')} · Query ready: No · "
+                            f"Latest collection: {row.get('latest_collection') or row.get('collection') or 'none'}"
+                        )
+                        if row.get("active_collection"):
+                            st.caption(f"Retained active collection: {row['active_collection']}")
+                        if row.get("queryable_reason"):
+                            st.caption(row["queryable_reason"])
+                        if row.get("error"):
+                            st.error(f"Latest attempt failed: {row['error']}")
             st.caption("A failed replacement may still have an older ready version. Run make papers-audit to check live index consistency.")
 
         st.markdown("---")

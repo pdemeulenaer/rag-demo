@@ -111,7 +111,8 @@ The application is composed of several key components:
 
 Both manual uploads and arXiv papers now share the PostgreSQL catalogue. Streamlit's
 **Document inventory → All sources** lists them together with their processing states;
-**Query source** independently controls which corpus answers your question.
+**Query source → All ready papers** searches the separate arXiv and upload Qdrant
+collections together. Either source can still be selected on its own.
 
 **Existing installations:** follow the [catalogue upgrade guide](docs/operations/catalogue.md).
 Registering legacy vectors preserves their catalogue history, but does not add BM25 vectors.
@@ -127,7 +128,8 @@ make papers-audit
 
 Repeat the re-index in bounded batches, then re-upload original GUI PDFs into the new upload
 collection. Re-indexing makes paid embedding calls; old collections remain available for
-historical snapshots until explicitly retired.
+historical snapshots until explicitly retired. A legacy upload may remain visible in the
+inventory but is not queryable until it is re-uploaded into `uploaded_papers_v2`.
 
 Quiesce ingestion before backup/migration; the guide includes `.env` collection values,
 service stop/recreation and legacy Batch-job precautions. PostgreSQL is required for both
@@ -178,6 +180,9 @@ need an explicit upgrade: see the [re-indexing guide](docs/getting-started/arxiv
 ```bash
 make eval-preview             # Freeze a sample of up to 50 active arXiv papers; no model calls
 make create-eval-dataset      # Generate 50 planned candidates with OpenAI (paid)
+# Or preserve reviewed questions after re-indexing (no model calls/writes):
+make eval-rebase EVAL_FROM=data/evaluation/markdown-mini-v3/questions.split.json \
+  EVAL_DIR=data/evaluation/markdown-mini-v4
 ```
 
 Review `data/evaluation/star-clusters/questions.json`: single-paper, cross-paper and

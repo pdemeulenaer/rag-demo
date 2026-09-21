@@ -11,7 +11,7 @@ class ChatMessage(BaseModel):
 class RAGRequest(BaseModel):
     query: str = Field(..., description="The query to be used in the RAG pipeline")
     mode: Literal["vanilla", "hybrid", "hybrid_rerank", "agentic"] | None = None
-    corpus: Literal["uploads", "arxiv"] = "uploads"
+    corpus: Literal["all", "uploads", "arxiv"] = "uploads"
     corpus_snapshot: str | None = None
     generation_model: Optional[str] = Field(
         None,

@@ -172,8 +172,10 @@ After verifying the upgraded corpus, use `make airflow-up` / `make airflow-check
 rebuild Airflow too, then explicitly unpause the DAG when ready. Existing daily run plans
 are immutable: a plan created under the old pipeline cannot be retried under the new one;
 use the next day's scheduled run or the manual re-index workflow.
-Create a **new evaluation preview directory** after re-indexing; old snapshots still
-contain the old extracted text. Retain them for comparison rather than editing hashes.
+Create a **new evaluation directory** after re-indexing. Either generate new questions or
+use `make eval-rebase` to reuse reviewed questions with conservatively remapped evidence.
+Retain old snapshots for comparison rather than editing hashes; keep their Qdrant collection
+until the rebase comparison has completed.
 
 ### Fresh installation
 
@@ -295,7 +297,8 @@ creating a new processing build; an operator retry/reset command is a follow-up.
 
 ## Query-time comparison
 
-Open Streamlit, select **arXiv star clusters** under **Query source**, then one of the four
+Open Streamlit, keep **All ready papers** under **Query source** (or isolate **arXiv star
+clusters**), then select one of the four
 implemented retrieval modes. **Document inventory** independently defaults to **All sources**;
 refresh it to see uploads and arXiv together, including pending/failed builds.
 

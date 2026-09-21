@@ -52,7 +52,9 @@ real-time and OpenAI Batch processing. See [Ingestion](ingestion.md).
 ## Corpus listings
 
 Streamlit's **Refresh document inventory** button calls `GET /catalogue`, defaulting
-to **All sources** independently of **Query source**. It returns total registered
+to **All sources** independently of **Query source**. Query source defaults to **All ready
+papers** and federates retrieval over the separately scoped arXiv and upload collections.
+The endpoint returns total registered
 documents, active indexed documents, latest-state counts, and per-document source,
 state, active version and collection. A failed replacement can coexist with an older
 active version. `/documents` remains a ready-upload compatibility listing and `/papers`

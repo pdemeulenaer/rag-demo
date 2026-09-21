@@ -17,7 +17,7 @@ from src.api.rag.utils.utils import prompt_template_config
 from src.api.rag.summarize import summarize_text
 from src.api.api.models import Source
 from src.api.rag.search import search_points
-from src.api.rag.contracts import RetrievalScope
+from src.api.rag.contracts import FederatedRetrievalScope, RetrievalScope
 from src.api.rag.tools.chunk_search import search_chunks
 
 
@@ -125,6 +125,28 @@ def retrieve_context(query, qdrant_client, top_k=5, mode="hybrid", collection=No
             target_collection, active, filter_override=active_filter(active)
         )
     query_embedding = None if mode == "sparse" else get_embedding(query)
+
+    if isinstance(scope, FederatedRetrievalScope):
+        if collection is not None:
+            raise ValueError("A federated corpus cannot be forced into one collection")
+        candidates = []
+        for child_scope in scope.scopes:
+            candidates.extend(search_chunks(
+                qdrant_client, child_scope, query=query, vector=query_embedding,
+                limit=top_k, mode=mode,
+            ))
+        # Both collections use the same vector models and distance/fusion setup,
+        # so their scores are comparable. Stable tie-breakers keep runs reproducible.
+        candidates.sort(key=lambda row: (
+            -(row.score if row.score is not None else float("-inf")),
+            row.collection,
+            row.id,
+        ))
+        retrieved_context = [row.model_dump() for row in candidates[:top_k]]
+        update_span(output={"point_ids": [row["id"] for row in retrieved_context]},
+                    metadata={"result_count": len(retrieved_context),
+                              "collections": list(scope.collections)})
+        return retrieved_context
 
     if isinstance(scope, RetrievalScope):
         target_collection = collection or scope.collection
@@ -417,7 +439,7 @@ def rag_pipeline(question, qdrant_client, session_id, generation_model=None, top
         from src.api.rag.modes.agentic.contracts import AgentBudget
         from src.api.rag.modes.agentic.executor import run_agentic
 
-        if not isinstance(scope, RetrievalScope):
+        if not isinstance(scope, (RetrievalScope, FederatedRetrievalScope)):
             raise ValueError("Agentic mode requires an explicit retrieval scope")
         if catalogue is None:
             raise ValueError("Agentic mode requires the paper catalogue")

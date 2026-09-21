@@ -1,11 +1,13 @@
 """Catalogue-backed upload ingestion, including durable Batch completion state."""
 import base64
 from contextlib import closing
+from dataclasses import dataclass
 from hashlib import sha256
 import io
 import json
 import logging
 from pathlib import Path
+import re
 from uuid import NAMESPACE_URL, uuid5
 
 from qdrant_client import QdrantClient, models as m
@@ -14,6 +16,41 @@ from .artifacts import ArtifactStore
 from .catalogue import Catalogue
 from .consistency import activate_verified
 from .settings import PaperSettings
+
+
+@dataclass(frozen=True)
+class FallbackMetadata:
+    """Deterministic minimum metadata when optional LLM enrichment fails."""
+
+    title: str
+    authors: list[str]
+    keywords: list[str]
+    publication_year: str | None
+    summary: str
+
+
+def _metadata_list(value) -> list[str]:
+    if isinstance(value, list):
+        return [str(item).strip() for item in value if str(item).strip()]
+    if isinstance(value, str):
+        return [item.strip() for item in value.replace(";", ",").split(",")
+                if item.strip()]
+    return []
+
+
+def fallback_metadata(build, first_pages, extraction_metadata) -> FallbackMetadata:
+    """Use embedded PDF metadata and extracted text without another provider call."""
+    pdf_metadata = extraction_metadata if isinstance(extraction_metadata, dict) else {}
+    title = str(pdf_metadata.get("title") or build["metadata"].get("title")
+                or build["metadata"].get("file_name") or "Uploaded PDF").strip()
+    authors = _metadata_list(pdf_metadata.get("author") or pdf_metadata.get("authors"))
+    keywords = _metadata_list(pdf_metadata.get("keywords"))
+    creation = str(pdf_metadata.get("creationDate") or pdf_metadata.get("creation_date") or "")
+    year_match = re.search(r"(?:19|20)\d{2}", creation)
+    year = year_match.group(0) if year_match else None
+    excerpt = " ".join(str(first_pages or "").split())[:2000]
+    summary = excerpt or f"Extracted content from {title}."
+    return FallbackMetadata(title, authors, keywords, year, summary)
 
 
 def qdrant_client():
@@ -26,9 +63,9 @@ def pipeline_id(mode):
     from src.api.core.config import config
     from .extraction import SPEC
     from src.api.rag.sparse import BM25_SPEC
-    spec = ["upload-v3", mode, config.EMBEDDING_MODEL, config.IMAGE_DESCRIPTION_MODEL,
+    spec = ["upload-v4", mode, config.EMBEDDING_MODEL, config.IMAGE_DESCRIPTION_MODEL,
             config.SUMMARIZATION_MODEL,
-            "metadata:openai/gpt-oss-20b", SPEC, BM25_SPEC,
+            "metadata:openai/gpt-oss-20b+deterministic-fallback-v1", SPEC, BM25_SPEC,
             config.QDRANT_COLLECTION_NAME,
             sha256(Path(config.IMAGE_DESCRIPTION_PROMPT_TEMPLATE_PATH).read_bytes()).hexdigest()]
     return sha256(json.dumps(spec).encode()).hexdigest()[:16]
@@ -107,7 +144,20 @@ def process_upload(catalogue, qdrant, build, path, mode, store, extract, metadat
         chunks, images, first_pages, extraction_metadata = extract(path, build["metadata"]["file_hash"])
         if not chunks:
             raise ValueError("PDF has no extractable text")
-        meta = metadata(first_pages)
+        metadata_extraction = {"strategy": "structured_llm", "fallback": False}
+        try:
+            meta = metadata(first_pages)
+        except Exception as exc:
+            logging.getLogger(__name__).warning(
+                "Upload build %s metadata enrichment failed (%s); using deterministic fallback",
+                build["id"], type(exc).__name__,
+            )
+            meta = fallback_metadata(build, first_pages, extraction_metadata)
+            metadata_extraction = {
+                "strategy": "pdf_metadata_and_text_fallback",
+                "fallback": True,
+                "failure_type": type(exc).__name__,
+            }
         payloads = []
         for i, (text, page) in enumerate(chunks):
             summary = summarize(text) if mode == "sync" and summarize else ""
@@ -154,6 +204,7 @@ def process_upload(catalogue, qdrant, build, path, mode, store, extract, metadat
         expected = [row["id"] for row in payloads] + list(image_tasks)
         manifest = {"source": source, "chunk_count": len(expected), "point_ids": expected,
             "pipeline_id": build["pipeline_id"], "embedding_model": build["embedding_model"],
+            "metadata_extraction": metadata_extraction,
             "chunk_order": {"field": "chunk_index", "starts_at": 0,
                 "count": len(chunks), "scope": "text_chunks", "contiguous": True},
             "figures": figure_artifacts,

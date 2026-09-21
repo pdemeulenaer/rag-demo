@@ -63,7 +63,10 @@ It reuses processing helpers from `src/api/ingestion/ingest_documents.py`:
 - `describe_image_with_gpt4o` — generate a searchable description for an extracted figure
   from its base64 image and caption.
 - `extract_metadata_fast` — structured extraction into `AdditionalMetadata` (authors, title,
-  year, keywords) using the Groq `metadata_model`.
+  year, keywords) using the Groq `metadata_model`. This enrichment is optional: after
+  exhausted provider/schema retries, ingestion continues with deterministic embedded-PDF
+  metadata, the filename and an extracted first-page excerpt. The manifest records the
+  fallback and failure class instead of discarding an otherwise extractable document.
 - `robust_summarize_text` / `rate_limited_summarize` — chunk summaries with rate limiting.
 - `OpenAIEmbeddings` — a LangChain `Embeddings` implementation over the OpenAI API.
 

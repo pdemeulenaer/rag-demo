@@ -76,6 +76,18 @@ def test_evaluation_connectivity_check_is_not_generation():
     ]
 
 
+def test_evaluation_rebase_is_explicit_and_writes_a_new_directory():
+    assert dry_run(
+        "eval-rebase",
+        "EVAL_FROM=data/evaluation/v3/questions.split.json",
+        "EVAL_DIR=data/evaluation/v4",
+    ) == [
+        "uv", "run", "python", "-m", "evals.rebase_dataset",
+        "--dataset", "data/evaluation/v3/questions.split.json",
+        "--output", "data/evaluation/v4",
+    ]
+
+
 def test_reviewed_evaluation_runner_forwards_modes_and_optional_limit():
     command = dry_run("eval-run", "EVAL_DIR=data/evaluation/reviewed",
                       "EVAL_MODES=vanilla hybrid hybrid_rerank agentic",

@@ -25,10 +25,33 @@ def active_corpus(source="arxiv"):
 
 
 def inventory_response(source="all"):
-    catalogue = Catalogue(PaperSettings().PAPERS_DATABASE_URL)
+    settings = PaperSettings()
+    catalogue = Catalogue(settings.PAPERS_DATABASE_URL)
     try:
+        from src.api.core.config import config
+
         catalogue.require_schema()
         documents = catalogue.inventory(source)
+        for document in documents:
+            expected_collection = (
+                settings.PAPERS_COLLECTION
+                if document["source"] == "arxiv"
+                else config.QDRANT_COLLECTION_NAME
+            )
+            historically_active = bool(document["queryable"])
+            active_collection = document.get("active_collection", document.get("collection"))
+            document["queryable"] = bool(
+                historically_active and active_collection == expected_collection
+            )
+            document["expected_collection"] = expected_collection
+            document["queryable_reason"] = (
+                None if document["queryable"]
+                else (
+                    f"Active build is in legacy collection {active_collection}; "
+                    f"current queries use {expected_collection}"
+                    if historically_active else "No active ready build"
+                )
+            )
         counts = dict(Counter(row["status"] for row in documents))
         return {"source": source, "total_documents": len(documents),
                 "queryable_documents": sum(row["queryable"] for row in documents),

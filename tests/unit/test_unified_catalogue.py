@@ -178,6 +178,38 @@ def test_sync_upload_activates_only_complete_manifest(catalogue, qdrant, setting
     assert catalogue.inventory()[0]["title"] == "Scientific paper"
 
 
+def test_metadata_provider_failure_uses_deterministic_fallback(
+        catalogue, qdrant, settings, tmp_path):
+    args = process_args(catalogue, qdrant, settings, tmp_path)
+    chunks, images, first_pages, _ = args["extract"].return_value
+    args["extract"].return_value = (
+        chunks,
+        images,
+        first_pages,
+        {
+            "title": "PDF metadata title",
+            "author": "Author One; Author Two",
+            "keywords": "clusters, galaxies",
+            "creationDate": "D:20240910120000Z",
+        },
+    )
+    args["metadata"].side_effect = RuntimeError("provider response was invalid")
+
+    process_upload(**args)
+
+    build = catalogue.get_build(args["build"]["id"])
+    assert build["status"] == "ready"
+    assert build["manifest"]["metadata_extraction"] == {
+        "strategy": "pdf_metadata_and_text_fallback",
+        "fallback": True,
+        "failure_type": "RuntimeError",
+    }
+    assert build["metadata"]["title"] == "PDF metadata title"
+    assert build["metadata"]["authors"] == ["Author One", "Author Two"]
+    assert build["metadata"]["year"] == "2024"
+    assert check_build(qdrant, build)["ok"] is True
+
+
 def test_upload_saves_structured_evidence_and_manifest(catalogue, qdrant, settings, tmp_path):
     from src.api.papers.extraction import SPEC
     args = process_args(catalogue, qdrant, settings, tmp_path)

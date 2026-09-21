@@ -15,7 +15,7 @@ from src.api.observability.tracing import (
     observe,
     update_span,
 )
-from src.api.rag.contracts import EvidenceChunk, RetrievalScope
+from src.api.rag.contracts import EvidenceChunk, RetrievalBoundary
 from src.api.rag.modes.agentic.contracts import (
     AgentBudget,
     AgentExecutionMetadata,
@@ -65,7 +65,7 @@ def _failed(started: float, reason: StopReason) -> AgentRunResult:
 
 
 @observe(name="agentic_retrieval", capture_input=False, capture_output=False)
-def run_agentic(question: str, *, client, catalogue, scope: RetrievalScope,
+def run_agentic(question: str, *, client, catalogue, scope: RetrievalBoundary,
                  embed: Callable[[str], list[float]], budget: AgentBudget | None = None,
                  model=None) -> AgentRunResult:
     """Run the bounded LangGraph retrieval loop; final answer generation stays shared."""

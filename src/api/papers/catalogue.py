@@ -237,6 +237,8 @@ class Catalogue:
                 "active_build": active["id"] if active else None,
                 "active_version": active["version"] if active else None,
                 "latest_build": latest["id"], "collection": (active or latest)["collection"],
+                "active_collection": active["collection"] if active else None,
+                "latest_collection": latest["collection"],
                 "expected_points": ((active or latest).get("manifest") or {}).get("chunk_count"),
                 "error": latest["error"], "attempts": latest["attempts"]})
         return sorted(result, key=lambda row: (row["source"], row["title"]))

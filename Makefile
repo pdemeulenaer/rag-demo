@@ -265,8 +265,9 @@ EVAL_CONCURRENCY ?= 1
 EVAL_SPLIT ?= all
 EVAL_SPLIT_OUTPUT ?= $(EVAL_DIR)/questions.split.json
 EVAL_TEST_RATIO ?= 0.25
+EVAL_FROM ?=
 
-.PHONY: eval-preview eval-check create-eval-dataset eval-validate eval-split eval-run
+.PHONY: eval-preview eval-check create-eval-dataset eval-rebase eval-validate eval-split eval-run
 
 # Freeze active paper evidence locally. No model calls or database writes.
 eval-preview:
@@ -279,6 +280,10 @@ create-eval-dataset:
 # Read-only model metadata request; no inference or changes to saved evaluation data.
 eval-check:
 	uv run python -m evals.generate_questions check --output "$(EVAL_DIR)"
+
+# Reuse reviewed questions on the current dense+sparse corpus; no model calls or writes.
+eval-rebase:
+	uv run python -m evals.rebase_dataset --dataset "$(EVAL_FROM)" --output "$(EVAL_DIR)"
 
 # Validate the local reviewed dataset and its frozen snapshot; no service calls.
 eval-validate:

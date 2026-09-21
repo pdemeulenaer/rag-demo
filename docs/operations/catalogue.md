@@ -2,7 +2,9 @@
 
 PostgreSQL now catalogues **both uploaded PDFs and arXiv papers**. The two Qdrant
 collections remain separate. Streamlit's **Document inventory** defaults to **All sources** and is
-independent of **Query source**, which still selects uploads or arXiv for answering.
+independent of **Query source**. The query selector defaults to **All ready papers**, which
+federates retrieval across both current collections; uploads and arXiv can also be isolated.
+Legacy collection builds remain visible for audit/history but are marked non-queryable.
 
 ## Dense + BM25 collection migration
 
@@ -42,8 +44,10 @@ dense+sparse build in `uploaded_papers_v2`. This can rerun paid metadata, summar
 work. Keep the old collections until migration and any historical frozen evaluations are no
 longer needed.
 
-Finally create a new evaluation preview/reviewed dataset. Old snapshots identify old points
-in a dense-only collection and are historical baselines, not valid sparse-mode benchmarks.
+Finally either create a new evaluation dataset or use `make eval-rebase` to copy reviewed
+questions into a new dense+sparse snapshot. Old snapshots remain historical baselines and
+must not be edited. Keep the old collection until rebasing finishes; see the
+[evaluation guide](evaluation.md#rebase-an-existing-reviewed-dataset-after-re-indexing).
 
 ## Earlier SQL catalogue upgrade
 
@@ -148,6 +152,11 @@ document. Sync figure/storage failures and missing/failed Batch results are no l
 silently treated as success. A failed replacement does not invalidate an earlier
 active build. Inventory therefore shows the latest state **and** whether an active
 indexed version remains available; these counts can overlap.
+
+LLM metadata enrichment is not an activation requirement. If its structured output remains
+invalid after bounded retries, uploads use embedded PDF metadata plus deterministic filename
+and text fallbacks. `manifest.metadata_extraction` records whether this occurred. Extraction,
+embedding, figure, storage and index-verification failures remain fatal.
 
 New upload batches persist batch ID, expected figure IDs and reconstruction payloads
 in the build manifest. The poller activates only after all results are present and

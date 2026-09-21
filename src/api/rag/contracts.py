@@ -80,6 +80,53 @@ class RetrievalScope:
         return None, None
 
 
+@dataclass(frozen=True)
+class FederatedRetrievalScope:
+    """An immutable corpus boundary spanning separately indexed collections."""
+
+    scopes: tuple[RetrievalScope, ...]
+
+    def __post_init__(self) -> None:
+        if not self.scopes:
+            raise ValueError("Federated retrieval requires at least one collection scope")
+        collections = [scope.collection for scope in self.scopes]
+        if len(collections) != len(set(collections)):
+            raise ValueError("Federated retrieval collection scopes must be unique")
+        if len({scope.kind for scope in self.scopes}) != 1:
+            raise ValueError("Federated retrieval scopes must use the same scope kind")
+
+    @property
+    def kind(self) -> ScopeKind:
+        return self.scopes[0].kind
+
+    @property
+    def collections(self) -> tuple[str, ...]:
+        return tuple(scope.collection for scope in self.scopes)
+
+    @property
+    def build_ids(self) -> tuple[str, ...]:
+        return tuple(build_id for scope in self.scopes for build_id in scope.build_ids)
+
+    @property
+    def paper_ids(self) -> tuple[str, ...]:
+        return tuple(dict.fromkeys(
+            paper_id for scope in self.scopes for paper_id in scope.paper_ids
+        ))
+
+    @property
+    def builds(self) -> tuple[ScopedBuild, ...]:
+        return tuple(build for scope in self.scopes for build in scope.builds)
+
+    def scope_for_build(self, build_id: str) -> RetrievalScope:
+        matches = [scope for scope in self.scopes if build_id in scope.build_ids]
+        if len(matches) != 1:
+            raise ValueError("Build is outside or ambiguous in the federated retrieval scope")
+        return matches[0]
+
+
+RetrievalBoundary = RetrievalScope | FederatedRetrievalScope
+
+
 class PaperMatch(BaseModel):
     """A PostgreSQL catalogue result suitable for a retrieval plan."""
 

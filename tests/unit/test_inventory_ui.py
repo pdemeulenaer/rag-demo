@@ -22,7 +22,7 @@ def test_inventory_defaults_to_all_sources_independent_of_query_source(monkeypat
     app = testing.AppTest.from_file(str(root / "src/chatbot_ui/main.py")).run(timeout=10)
     assert not app.exception
     query_source = next(widget for widget in app.selectbox if widget.label == "Query source")
-    assert query_source.value == "uploads"
+    assert query_source.value == "all"
     history = [{"role": "user", "content": "Existing question"}]
     app.session_state.full_conversation = history
     app.session_state.backend_memory = []
@@ -45,6 +45,34 @@ def test_inventory_defaults_to_all_sources_independent_of_query_source(monkeypat
     assert len(app.dataframe[0].value) == 3
     get.assert_called_once()
     post.assert_not_called()
+
+
+def test_inventory_exposes_non_queryable_upload_details(monkeypatch):
+    testing = pytest.importorskip("streamlit.testing.v1")
+    root = Path(__file__).resolve().parents[2]
+    monkeypatch.syspath_prepend(str(root / "src/chatbot_ui"))
+    response = Mock()
+    response.json.return_value = {
+        "source": "all", "total_documents": 1, "queryable_documents": 0,
+        "status_counts": {"failed": 1},
+        "documents": [{
+            "title": "Thesis.pdf", "source": "uploads", "status": "failed",
+            "queryable": False, "latest_collection": "uploaded_papers_v2",
+            "active_collection": "test_collection",
+            "queryable_reason": "Active build is in legacy collection test_collection",
+            "error": "InstructorRetryException",
+        }],
+    }
+    monkeypatch.setattr("requests.get", Mock(return_value=response))
+    monkeypatch.setattr("requests.post", Mock())
+
+    app = testing.AppTest.from_file(str(root / "src/chatbot_ui/main.py")).run(timeout=10)
+    next(widget for widget in app.button
+         if widget.label == "Refresh document inventory").click().run(timeout=10)
+
+    assert not app.exception
+    assert any(item.label == "Not query-ready (1)" for item in app.expander)
+    assert any("InstructorRetryException" in item.value for item in app.error)
 
 
 def test_agentic_mode_is_submitted_and_execution_summary_is_retained(monkeypatch):

@@ -62,6 +62,39 @@ def test_empty_evidence_does_not_generate(runtime, monkeypatch):
     generate.assert_not_called()
 
 
+def test_federated_retrieval_searches_and_merges_collections(runtime, monkeypatch):
+    retrieval, _ = runtime
+    from src.api.rag.contracts import (
+        EvidenceChunk,
+        FederatedRetrievalScope,
+        RetrievalScope,
+    )
+
+    scope = FederatedRetrievalScope((
+        RetrievalScope("arxiv", ("arxiv-build",)),
+        RetrievalScope("uploads", ("upload-build",)),
+    ))
+
+    def search(_client, child, **_kwargs):
+        score = 0.7 if child.collection == "arxiv" else 0.9
+        return [EvidenceChunk(
+            id=f"{child.collection}-point", text=child.collection,
+            collection=child.collection, build_id=child.build_ids[0],
+            paper_id=f"{child.collection}-paper", score=score,
+        )]
+
+    chunk_search = Mock(side_effect=search)
+    monkeypatch.setattr(retrieval, "search_chunks", chunk_search)
+    monkeypatch.setattr(retrieval, "get_embedding", Mock(return_value=[1.0, 0.0]))
+
+    rows = retrieval.retrieve_context(
+        "question", Mock(), top_k=2, mode="hybrid", scope=scope,
+    )
+
+    assert [row["collection"] for row in rows] == ["uploads", "arxiv"]
+    assert chunk_search.call_count == 2
+
+
 def test_openai_generation_uses_model_schema_and_retries_invalid_citations(runtime, monkeypatch):
     retrieval, _ = runtime
     usage = SimpleNamespace(prompt_tokens=10, completion_tokens=2, total_tokens=12)
@@ -130,6 +163,45 @@ def test_corpus_change_rejected_before_model_call(runtime, monkeypatch):
                                                      corpus_snapshot="old-snapshot"), Response()))
     assert error.value.status_code == 409
     pipeline.assert_not_called()
+
+
+def test_all_corpus_builds_a_federated_scope(runtime, monkeypatch):
+    _, router = runtime
+    import src.api.api.papers_router as papers_router
+    from src.api.rag.contracts import FederatedRetrievalScope
+
+    async def inline(fn, *args, **kwargs):
+        return fn(*args, **kwargs)
+
+    def active(source="arxiv"):
+        if source == "uploads":
+            return SimpleNamespace(PAPERS_COLLECTION="arxiv-papers"), [
+                {"id": "upload-build", "paper_id": "upload-paper", "manifest": {}}
+            ], "uploads-snapshot"
+        return SimpleNamespace(PAPERS_COLLECTION="arxiv-papers"), [
+            {"id": "arxiv-build", "paper_id": "arxiv-paper", "manifest": {}}
+        ], "arxiv-snapshot"
+
+    monkeypatch.setattr("starlette.concurrency.run_in_threadpool", inline)
+    monkeypatch.setattr(papers_router, "active_corpus", active)
+    pipeline = Mock(return_value={"answer": "Evidence", "sources": [], "images": []})
+    monkeypatch.setattr(router, "rag_pipeline_wrapper", pipeline)
+    monkeypatch.setattr(router, "add_message", Mock())
+    monkeypatch.setattr(router, "get_memory", Mock(return_value=SimpleNamespace(
+        summary="", recent_messages=[])))
+    monkeypatch.setattr(router, "_process_images", Mock(return_value=[]))
+
+    result = asyncio.run(router.rag(
+        request(), RAGRequest(query="Compare sources", mode="hybrid", corpus="all"),
+        Response(),
+    ))
+
+    scope = pipeline.call_args.kwargs["scope"]
+    assert isinstance(scope, FederatedRetrievalScope)
+    assert scope.collections == ("arxiv-papers", "uploaded_papers_v2")
+    assert set(scope.build_ids) == {"arxiv-build", "upload-build"}
+    assert result.corpus_snapshot
+    assert f":all:hybrid:" in pipeline.call_args.args[1]
 
 
 def test_request_defaults_preserve_legacy_contract():
