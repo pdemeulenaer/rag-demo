@@ -10,7 +10,8 @@ from src.api.rag.modes.agentic.contracts import (
 
 def test_budget_and_public_metadata_remain_strict():
     with pytest.raises(ValidationError):
-        AgentBudget(max_rounds=4)
+        AgentBudget(max_rounds=6)
+    assert AgentBudget(max_rounds=4).max_rounds == 4
     with pytest.raises(ValidationError):
         AgentExecutionMetadata(
             question_scope="direct", plan_summary="Safe summary", stop_reason="sufficient",

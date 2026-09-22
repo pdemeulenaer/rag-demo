@@ -24,3 +24,4 @@ class AgentState(TypedDict, total=False):
     plan_summary: str | None
     stop_reason: str | None
     should_synthesize: bool
+    synthesis_policy: str

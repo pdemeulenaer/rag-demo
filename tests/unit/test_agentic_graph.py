@@ -81,6 +81,7 @@ def test_tool_call_then_terminal_call_synthesizes(monkeypatch):
 
     assert result.should_synthesize is True
     assert result.execution.stop_reason == StopReason.SUFFICIENT
+    assert result.execution.synthesis_policy == "model_finish"
     assert result.execution.rounds == 1
     assert result.execution.tool_calls == 1
     assert result.execution.evidence_count == 1
@@ -103,8 +104,9 @@ def test_repeated_tool_call_stops_without_second_execution(monkeypatch):
         budget=AgentBudget(),
     )
 
-    assert result.should_synthesize is False
+    assert result.should_synthesize is True
     assert result.execution.stop_reason == StopReason.REPEATED_ACTION
+    assert result.execution.synthesis_policy == "evidence_fallback"
     assert result.execution.rounds == 1
     assert result.execution.tool_calls == 1
     assert tool.call_count == 1
@@ -131,6 +133,20 @@ def test_explicit_abstention_does_not_synthesize(monkeypatch):
     assert result.execution.stop_reason == StopReason.INSUFFICIENT_EVIDENCE
     assert result.should_synthesize is False
     assert result.execution.rounds == 0
+
+
+def test_explicit_abstention_after_retrieval_uses_grounded_fallback(monkeypatch):
+    abstain = call("abstain", {
+        "summary": "The planner considers the evidence incomplete.",
+        "question_scope": "direct",
+    }, "call_abstain")
+
+    result = run(FakeToolCallingModel([search(), abstain]), monkeypatch)
+
+    assert result.execution.stop_reason == StopReason.INSUFFICIENT_EVIDENCE
+    assert result.execution.synthesis_policy == "evidence_fallback"
+    assert result.should_synthesize is True
+    assert result.execution.evidence_count == 1
 
 
 def test_plain_text_model_response_fails_closed(monkeypatch):
@@ -161,6 +177,8 @@ def test_round_budget_allows_terminal_but_rejects_more_retrieval(monkeypatch):
     )
 
     assert result.execution.stop_reason == StopReason.MAX_ROUNDS
+    assert result.execution.synthesis_policy == "evidence_fallback"
+    assert result.should_synthesize is True
     assert result.execution.rounds == 1
     assert result.execution.tool_calls == 1
 

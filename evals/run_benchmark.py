@@ -181,6 +181,15 @@ def deterministic_metrics(question: dict, retrieved: list[dict], cited_ids: list
     }
 
 
+def _execution_payload(value) -> dict | None:
+    """Serialize the public Agentic execution contract without private model reasoning."""
+    if value is None:
+        return None
+    if hasattr(value, "model_dump"):
+        value = value.model_dump(mode="json")
+    return dict(value) if isinstance(value, dict) else None
+
+
 def evaluate_item(question: dict, mode: str, *, qdrant: QdrantClient, collection: str,
                   scope: RetrievalScope, top_k: int, generation_model: str, judge_enabled: bool,
                   judge_model: str, judge_reasoning_effort: str, run_id: str,
@@ -200,6 +209,7 @@ def evaluate_item(question: dict, mode: str, *, qdrant: QdrantClient, collection
                     catalogue=catalogue)
                 chunks = result.get("retrieved_chunks", [])
                 cited_ids = result.get("cited_context_ids", [])
+                agent_execution = _execution_payload(result.get("execution"))
                 metrics = deterministic_metrics(question, chunks, cited_ids)
                 judge_result = judge_meta = None
                 if judge_enabled:
@@ -219,35 +229,77 @@ def evaluate_item(question: dict, mode: str, *, qdrant: QdrantClient, collection
                     "answer": result["answer"], "retrieved_chunks": chunks,
                     "cited_context_ids": cited_ids, "metrics": metrics,
                     "judge": judge_result, "judge_request": judge_meta,
+                    "agent_execution": agent_execution,
                     "elapsed_seconds": round(monotonic() - started, 3), "error": None,
                 }
                 for name, value in metrics.items():
                     if isinstance(value, (int, float)) and name not in {"retrieved_count", "cited_count"}:
                         score_trace(name, value)
                 if span is not None:
-                    span.update(output={"answer": result["answer"], "metrics": metrics})
+                    span.update(output={"answer": result["answer"], "metrics": metrics,
+                                        "agent_execution": agent_execution})
                 return record
             except Exception as error:  # continue the benchmark and retain a safe failure record
                 details = error_details(error)
+                agent_execution = _execution_payload(
+                    getattr(error, "agent_execution", None)
+                )
                 if span is not None:
-                    span.update(level="ERROR", status_message=details.get("category", type(error).__name__))
+                    span.update(
+                        output={"agent_execution": agent_execution}, level="ERROR",
+                        status_message=details.get("category", type(error).__name__),
+                    )
                 return {"question_id": question["id"], "kind": question["kind"],
                         "profile": question.get("profile"), "mode": mode,
                         "question": question["question"], "reference_answer": question["reference_answer"],
                         "answer": None, "retrieved_chunks": [], "cited_context_ids": [], "metrics": {},
                         "judge": None, "judge_request": None,
+                        "agent_execution": agent_execution,
                         "elapsed_seconds": round(monotonic() - started, 3), "error": details}
+
+
+def _summarize_agent_execution(rows: list[dict]) -> dict | None:
+    executions = [row.get("agent_execution") for row in rows
+                  if isinstance(row.get("agent_execution"), dict)]
+    if not executions:
+        return None
+    actions = [action for execution in executions for action in execution.get("actions", [])
+               if isinstance(action, dict)]
+    return {
+        "runs": len(executions),
+        "stop_reasons": dict(sorted(Counter(
+            str(row.get("stop_reason") or "unknown") for row in executions
+        ).items())),
+        "synthesis_policies": dict(sorted(Counter(
+            str(row.get("synthesis_policy") or "unknown") for row in executions
+        ).items())),
+        "mean_rounds": round(fmean(float(row.get("rounds") or 0) for row in executions), 3),
+        "mean_tool_calls": round(fmean(float(row.get("tool_calls") or 0)
+                                         for row in executions), 3),
+        "mean_evidence_count": round(fmean(float(row.get("evidence_count") or 0)
+                                             for row in executions), 3),
+        "mean_planner_tokens": round(fmean(float(row.get("planner_tokens") or 0)
+                                             for row in executions), 3),
+        "tool_usage": dict(sorted(Counter(
+            str(action.get("tool") or "unknown") for action in actions
+        ).items())),
+        "tool_errors": sum(action.get("status") == "error" for action in actions),
+    }
 
 
 def _summarize_rows(rows: list[dict]) -> dict:
     names = sorted({name for row in rows for name, value in row.get("metrics", {}).items()
                     if isinstance(value, (int, float)) and name not in {"retrieved_count", "cited_count"}})
-    return {"questions": len(rows), "errors": sum(row["error"] is not None for row in rows),
-            "mean_latency_seconds": round(fmean(row["elapsed_seconds"] for row in rows), 3)
-            if rows else None,
-            "metrics": {name: round(fmean(row["metrics"][name] for row in rows
-                                 if isinstance(row.get("metrics", {}).get(name), (int, float))), 4)
-                        for name in names}}
+    result = {"questions": len(rows), "errors": sum(row["error"] is not None for row in rows),
+              "mean_latency_seconds": round(fmean(row["elapsed_seconds"] for row in rows), 3)
+              if rows else None,
+              "metrics": {name: round(fmean(row["metrics"][name] for row in rows
+                                   if isinstance(row.get("metrics", {}).get(name), (int, float))), 4)
+                          for name in names}}
+    agent_execution = _summarize_agent_execution(rows)
+    if agent_execution is not None:
+        result["agent_execution"] = agent_execution
+    return result
 
 
 def summarize(records: list[dict], modes: list[str]) -> dict:
@@ -292,6 +344,21 @@ def report_markdown(manifest: dict, summary: dict) -> str:
             lines.append(f"| {profile} | {row['questions']} | {row['errors']} | "
                          f"{show('retrieval_recall')} | {show('answer_correctness')} | "
                          f"{show('groundedness')} | {show('answer_relevance')} |")
+    agent = summary.get("agentic", {}).get("agent_execution")
+    if agent:
+        lines.extend([
+            "", "## Agentic execution", "",
+            f"Mean rounds: `{agent['mean_rounds']}`; mean tool calls: "
+            f"`{agent['mean_tool_calls']}`; mean evidence chunks: "
+            f"`{agent['mean_evidence_count']}`; mean planner tokens: "
+            f"`{agent['mean_planner_tokens']}`.", "",
+            "| Stop reason | Runs |", "| --- | ---: |",
+        ])
+        for reason, count in agent["stop_reasons"].items():
+            lines.append(f"| {reason} | {count} |")
+        lines.extend(["", "Synthesis policy counts: " + ", ".join(
+            f"`{name}`={count}" for name, count in agent["synthesis_policies"].items()
+        ) + "."])
     lines.extend(["", "See `results.json` for per-question answers, evidence, citations and scores.", ""])
     return "\n".join(lines)
 
@@ -359,6 +426,16 @@ def run(args) -> Path:
         "judge_reasoning_effort": args.judge_reasoning_effort if args.judge else None,
         "langfuse_enabled": use_langfuse, "langfuse_dataset": None, "langfuse_runs": {},
         "question_profiles": dict(Counter(row.get("profile") or row["kind"] for row in questions)),
+        "agentic_configuration": ({
+            "model": config.AGENT_MODEL,
+            "reasoning_effort": config.AGENT_REASONING_EFFORT,
+            "max_completion_tokens": config.AGENT_MAX_COMPLETION_TOKENS,
+            "max_rounds": config.AGENT_MAX_ROUNDS,
+            "max_tool_calls": config.AGENT_MAX_TOOL_CALLS,
+            "max_evidence_chunks": config.AGENT_MAX_EVIDENCE_CHUNKS,
+            "max_elapsed_seconds": config.AGENT_MAX_ELAPSED_SECONDS,
+            "max_planner_tokens": config.AGENT_MAX_PLANNER_TOKENS,
+        } if "agentic" in modes else None),
     }
     write_json(run_dir / "manifest.json", manifest)
     state = {"schema_version": 1, "run_id": run_id, "results": []}
@@ -415,6 +492,8 @@ def run(args) -> Path:
                     metadata={"run_id": run_id, "mode": mode, "dataset_hash": dataset_hash,
                               "split": args.split, "evaluation_set_hash": evaluation_set_hash,
                               "generation_model": args.generation_model,
+                              "agentic_configuration": manifest["agentic_configuration"]
+                              if mode == "agentic" else None,
                               "corpus_fingerprint": snapshot.get("corpus_fingerprint")})
                 manifest["langfuse_runs"][mode] = {
                     "run_name": f"{run_id}-{mode}",

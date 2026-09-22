@@ -53,6 +53,7 @@ def _failed(started: float, reason: StopReason) -> AgentRunResult:
             question_scope=None,
             plan_summary="The LangGraph retrieval agent failed safely.",
             stop_reason=reason,
+            synthesis_policy="hard_stop",
             rounds=0,
             tool_calls=0,
             evidence_count=0,
@@ -96,6 +97,7 @@ def run_agentic(question: str, *, client, catalogue, scope: RetrievalBoundary,
             "plan_summary": None,
             "stop_reason": None,
             "should_synthesize": False,
+            "synthesis_policy": "hard_stop",
         }, config=invoke_config)
     except Exception as exc:
         logger.exception("Agentic graph failed (%s)", type(exc).__name__)
@@ -107,6 +109,7 @@ def run_agentic(question: str, *, client, catalogue, scope: RetrievalBoundary,
         question_scope=state.get("question_scope"),
         plan_summary=state.get("plan_summary"),
         stop_reason=reason,
+        synthesis_policy=state.get("synthesis_policy", "hard_stop"),
         rounds=state.get("rounds", 0),
         tool_calls=state.get("tool_calls", 0),
         evidence_count=len(evidence),

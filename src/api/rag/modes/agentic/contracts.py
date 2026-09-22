@@ -35,7 +35,7 @@ class StopReason(StrEnum):
 class AgentBudget(ContractModel):
     """Hard application limits. The model cannot modify these values."""
 
-    max_rounds: int = Field(default=3, ge=1, le=3)
+    max_rounds: int = Field(default=3, ge=1, le=5)
     max_tool_calls: int = Field(default=12, ge=1, le=20)
     max_evidence_chunks: int = Field(default=30, ge=1, le=50)
     max_elapsed_seconds: float = Field(default=120.0, ge=5.0, le=300.0)
@@ -61,7 +61,8 @@ class AgentExecutionMetadata(ContractModel):
     question_scope: QuestionScope | None
     plan_summary: Annotated[str, Field(min_length=1, max_length=500)] | None
     stop_reason: StopReason
-    rounds: int = Field(ge=0, le=3)
+    synthesis_policy: Literal["model_finish", "evidence_fallback", "hard_stop"] = "hard_stop"
+    rounds: int = Field(ge=0, le=5)
     tool_calls: int = Field(ge=0, le=20)
     evidence_count: int = Field(ge=0, le=50)
     planner_tokens: int = Field(ge=0)

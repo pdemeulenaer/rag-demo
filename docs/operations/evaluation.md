@@ -360,6 +360,32 @@ Each invocation creates a new directory under `data/evaluation/runs/` containing
 - `results.json`: checkpointed per-question answers, retrieved chunks, citations and scores;
 - `summary.json` and `report.md`: aggregate four-mode comparison.
 
+For Agentic runs, each `results.json` item also contains the public `agent_execution`
+record: stop reason, synthesis policy, rounds, tool calls, evidence count, planner-token
+usage and safe action metadata. `summary.json` and `report.md` aggregate stop reasons,
+synthesis policies, tool usage and mean Agentic budget consumption. `manifest.json` records
+the effective Agentic model and limits so runs made with different budgets are not mistaken
+for like-for-like comparisons. These fields contain no hidden chain-of-thought.
+
+The three synthesis policies are:
+
+- `model_finish`: the planner explicitly declared its collected evidence sufficient;
+- `evidence_fallback`: bounded retrieval stopped for another reason, but collected scoped
+  chunks were passed to the shared grounded generator;
+- `hard_stop`: no chunks were available, so answer generation was skipped.
+
+To inspect one previously problematic development question before paying for a complete
+rerun:
+
+```bash
+make eval-run \
+  EVAL_REVIEWED=data/evaluation/markdown-mini-v4/questions.split.json \
+  EVAL_SPLIT=development \
+  EVAL_MODES=agentic \
+  EVAL_QUESTION_ID=q0005 \
+  EVAL_JUDGE=true
+```
+
 The runner ignores non-approved records and queries the **frozen build IDs** saved in
 `snapshot.json`, not whatever papers happen to be active after later daily ingestion.
 It fails if the reviewed file does not match that snapshot or if its embedding model

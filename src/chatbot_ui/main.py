@@ -33,6 +33,12 @@ STOP_REASON_LABELS = {
     "insufficient_evidence": "Insufficient evidence",
 }
 
+SYNTHESIS_POLICY_LABELS = {
+    "model_finish": "Planner-selected synthesis",
+    "evidence_fallback": "Grounded synthesis from collected evidence",
+    "hard_stop": "No answer synthesis",
+}
+
 
 def summarize_agent_execution(execution):
     """Return concise display data without exposing prompts or evidence text."""
@@ -52,9 +58,13 @@ def summarize_agent_execution(execution):
         f"{tool} × {count}" for tool, count in sorted(successful_tools.items())
     ) or "None completed"
     stop_reason = str(execution.get("stop_reason") or "insufficient_evidence")
+    synthesis_policy = str(execution.get("synthesis_policy") or "hard_stop")
     return {
         "plan_summary": execution.get("plan_summary") or "No validated plan was produced.",
         "outcome": STOP_REASON_LABELS.get(stop_reason, stop_reason.replace("_", " ").title()),
+        "synthesis_policy": SYNTHESIS_POLICY_LABELS.get(
+            synthesis_policy, synthesis_policy.replace("_", " ").title()
+        ),
         "rounds": int(execution.get("rounds") or 0),
         "tool_calls": int(execution.get("tool_calls") or 0),
         "evidence_count": int(execution.get("evidence_count") or 0),
@@ -525,7 +535,8 @@ def main():
                             )
                             st.caption(
                                 f"Tools: {details['tools']} · "
-                                f"Papers resolved: {details['papers_touched']}"
+                                f"Papers resolved: {details['papers_touched']} · "
+                                f"Answer policy: {details['synthesis_policy']}"
                             )
 
                     # 3. Display Figures immediately after the bubble

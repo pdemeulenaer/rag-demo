@@ -120,16 +120,21 @@ UUIDs. Agentic retrieval is implemented with LangGraph and native LangChain tool
 read-only retrieval adapters plus terminal decisions, `policies.py` deterministic scope and
 duplicate guards, and `executor.py` the pipeline adapter. `contracts.py` contains stable API
 budget/execution contracts, not a provider-specific plan protocol. Preserve hard corpus,
-round, tool, evidence, time and token limits. It fails closed on scope escape, malformed
-model output, repeated work and model/tool errors, then reuses the shared citation-validating
-answer generator. Do not recreate the removed custom planner/provider schema layer. Add a
+round, tool, evidence, time and token limits. Scope escapes and zero-evidence stops fail
+closed. When a bounded run already has scoped chunks, abstention, repetition, no-progress,
+budget and later planner/tool failures terminate retrieval but use an `evidence_fallback`
+into the shared citation-validating answer generator; this avoids making the planner a
+second answer gate. Execution metadata records that synthesis policy. Do not recreate the
+removed custom planner/provider schema layer. Add a
 future KG retriever as another typed tool only after deterministic KG retrieval exists.
 
 Phase 7 is complete: Streamlit and the frozen-corpus runner expose Vanilla, Hybrid,
 Hybrid + Rerank and Agentic; Langfuse receives the LangGraph model/tool/stop hierarchy and
-separate Dataset Experiments. Preserve all four as controls. The next slice is to generate
-a new reviewed evaluation snapshot on the v2 dense+sparse collection and add agent-specific
-termination/cost measures. The agent must continue to
+separate Dataset Experiments. Benchmark results persist public Agentic execution metadata;
+summaries aggregate stop reasons, synthesis policies, tool usage, rounds, evidence and
+planner tokens, and manifests freeze the effective Agentic configuration. Preserve all four
+as controls. The next slice is controlled Agentic development reruns and cross-paper
+decomposition diagnosis. The agent must continue to
 respect SQL-active builds and evaluation-frozen build IDs, retain chunk/page/section
 provenance and receive no ingestion or mutation tools.
 

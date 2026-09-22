@@ -290,3 +290,38 @@ def test_successful_agentic_execution_reaches_shared_generator_and_trace(runtime
     trace_outputs = [call.kwargs.get("output", {}) for call in update.call_args_list]
     assert any(output.get("agent_execution", {}).get("stop_reason") == "sufficient"
                for output in trace_outputs)
+
+
+def test_agentic_generation_failure_retains_safe_execution_metadata(runtime, monkeypatch):
+    retrieval, _ = runtime
+    from src.api.rag.contracts import EvidenceChunk, RetrievalScope
+    from src.api.rag.modes.agentic.contracts import AgentExecutionMetadata
+    from src.api.rag.modes.agentic.executor import AgentRunResult
+    import src.api.rag.modes.agentic.executor as agent_executor
+
+    execution = AgentExecutionMetadata(
+        question_scope="direct", plan_summary="Use collected evidence.",
+        stop_reason="insufficient_evidence", synthesis_policy="evidence_fallback",
+        rounds=1, tool_calls=1, evidence_count=1, planner_tokens=25,
+        elapsed_seconds=0.2, actions=[],
+    )
+    evidence = EvidenceChunk(
+        id="point", text="Direct result", collection="papers",
+        build_id="build", paper_id="paper", title="Paper", page=2,
+    )
+    monkeypatch.setattr(
+        agent_executor, "run_agentic",
+        Mock(return_value=AgentRunResult([evidence], execution, True)),
+    )
+    monkeypatch.setattr(retrieval, "build_prompt", Mock(return_value=[]))
+    monkeypatch.setattr(
+        retrieval, "generate_answer", Mock(side_effect=ValueError("invalid citations")),
+    )
+
+    with pytest.raises(ValueError) as caught:
+        retrieval.rag_pipeline(
+            "question", Mock(), "session", mode="agentic", collection="papers",
+            scope=RetrievalScope("papers", ("build",)), catalogue=Mock(), agent_model=Mock(),
+        )
+
+    assert caught.value.agent_execution.synthesis_policy == "evidence_fallback"

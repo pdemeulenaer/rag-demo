@@ -35,10 +35,39 @@ Rules:
 - Call get_section/get_neighbors only with exact identifiers seen in tool results.
 - Never invent identifiers, repeat an identical call, or request mutation/code execution.
 - Tool metadata alone is not answer evidence; answers require retrieved chunks.
-- When chunks are sufficient, call finish_with_evidence with a concise public summary.
-- When no useful next retrieval exists, call abstain. Never return a plain-text answer.
+- When chunks provide potentially useful answer evidence, call finish_with_evidence with a
+  concise public summary. The shared grounded generator, not this planner, makes the final
+  answer from those chunks and may still state that a detail is unsupported.
+- Call abstain only after retrieval returned no potentially relevant chunks and no useful
+  reformulation remains. Never return a plain-text answer.
 - Do not mix a terminal tool with retrieval tools in the same response.
 """
+
+EVIDENCE_FALLBACK_REASONS = {
+    StopReason.MAX_ROUNDS,
+    StopReason.TOOL_CALL_BUDGET,
+    StopReason.EVIDENCE_BUDGET,
+    StopReason.TIME_BUDGET,
+    StopReason.TOKEN_BUDGET,
+    StopReason.REPEATED_ACTION,
+    StopReason.NO_PROGRESS,
+    StopReason.TOOL_FAILURE,
+    StopReason.PLANNER_FAILURE,
+    StopReason.INSUFFICIENT_EVIDENCE,
+}
+
+
+def _terminate(state: AgentState, reason: StopReason, *, summary: str | None = None) -> dict:
+    """Stop retrieval, but preserve already collected evidence for grounded synthesis."""
+    use_evidence = bool(state.get("evidence")) and reason in EVIDENCE_FALLBACK_REASONS
+    update = {
+        "stop_reason": reason.value,
+        "should_synthesize": use_evidence,
+        "synthesis_policy": "evidence_fallback" if use_evidence else "hard_stop",
+    }
+    if summary is not None:
+        update["plan_summary"] = summary
+    return update
 
 
 def _token_usage(message: AIMessage) -> int:
@@ -65,18 +94,16 @@ def build_agent_graph(*, model, retrieval_tools: list, budget: AgentBudget):
             response = bound_model.invoke(state["messages"])
         except Exception as exc:
             logger.exception("Agentic model call failed (%s)", type(exc).__name__)
-            return {
-                "stop_reason": StopReason.PLANNER_FAILURE.value,
-                "should_synthesize": False,
-                "plan_summary": "The LangGraph agent model call failed safely.",
-            }
+            return _terminate(
+                state, StopReason.PLANNER_FAILURE,
+                summary="The LangGraph agent model call failed after bounded retrieval.",
+            )
         if not isinstance(response, AIMessage):
             logger.error("Agentic model returned %s instead of AIMessage", type(response).__name__)
-            return {
-                "stop_reason": StopReason.PLANNER_FAILURE.value,
-                "should_synthesize": False,
-                "plan_summary": "The LangGraph agent returned an invalid response.",
-            }
+            return _terminate(
+                state, StopReason.PLANNER_FAILURE,
+                summary="The LangGraph agent returned an invalid response.",
+            )
         return {
             "messages": [response],
             "planner_tokens": state.get("planner_tokens", 0) + _token_usage(response),
@@ -88,70 +115,65 @@ def build_agent_graph(*, model, retrieval_tools: list, budget: AgentBudget):
         message = state["messages"][-1]
         calls = message.tool_calls if isinstance(message, AIMessage) else []
         if not calls:
-            return {
-                "stop_reason": StopReason.PLANNER_FAILURE.value,
-                "should_synthesize": False,
-                "plan_summary": "The agent did not select a valid retrieval or terminal tool.",
-            }
+            return _terminate(
+                state, StopReason.PLANNER_FAILURE,
+                summary="The agent did not select a valid retrieval or terminal tool.",
+            )
 
         terminal = [call for call in calls if call["name"] in TERMINAL_TOOL_NAMES]
         retrieval = [call for call in calls if call["name"] in RETRIEVAL_TOOL_NAMES]
         unknown = [call for call in calls
                    if call["name"] not in TERMINAL_TOOL_NAMES | RETRIEVAL_TOOL_NAMES]
         if unknown or (terminal and (retrieval or len(terminal) != 1)):
-            return {
-                "stop_reason": StopReason.PLANNER_FAILURE.value,
-                "should_synthesize": False,
-                "plan_summary": "The agent selected an invalid combination of tools.",
-            }
+            return _terminate(
+                state, StopReason.PLANNER_FAILURE,
+                summary="The agent selected an invalid combination of tools.",
+            )
         if terminal:
             call = terminal[0]
             args = call.get("args") or {}
             summary = str(args.get("summary") or "Agentic retrieval completed.")[:500]
             scope = args.get("question_scope")
             if scope not in QUESTION_SCOPES:
-                return {
-                    "stop_reason": StopReason.PLANNER_FAILURE.value,
-                    "should_synthesize": False,
-                    "plan_summary": "The agent returned an invalid question scope.",
-                }
+                return _terminate(
+                    state, StopReason.PLANNER_FAILURE,
+                    summary="The agent returned an invalid question scope.",
+                )
             can_finish = call["name"] == "finish_with_evidence" and bool(state.get("evidence"))
-            return {
-                "stop_reason": (
-                    StopReason.SUFFICIENT.value if can_finish
-                    else StopReason.INSUFFICIENT_EVIDENCE.value
-                ),
-                "should_synthesize": can_finish,
-                "question_scope": scope,
-                "plan_summary": summary,
-            }
+            if can_finish:
+                return {
+                    "stop_reason": StopReason.SUFFICIENT.value,
+                    "should_synthesize": True,
+                    "synthesis_policy": "model_finish",
+                    "question_scope": scope,
+                    "plan_summary": summary,
+                }
+            update = _terminate(
+                state, StopReason.INSUFFICIENT_EVIDENCE, summary=summary,
+            )
+            update["question_scope"] = scope
+            return update
 
         elapsed = monotonic() - state["started_at"]
         if elapsed >= budget.max_elapsed_seconds:
-            return {"stop_reason": StopReason.TIME_BUDGET.value,
-                    "should_synthesize": False}
+            return _terminate(state, StopReason.TIME_BUDGET)
         if state.get("planner_tokens", 0) >= budget.max_planner_tokens:
-            return {"stop_reason": StopReason.TOKEN_BUDGET.value,
-                    "should_synthesize": False}
+            return _terminate(state, StopReason.TOKEN_BUDGET)
         if state.get("rounds", 0) >= budget.max_rounds:
-            return {"stop_reason": StopReason.MAX_ROUNDS.value,
-                    "should_synthesize": False}
+            return _terminate(state, StopReason.MAX_ROUNDS)
         if state.get("tool_calls", 0) + len(retrieval) > budget.max_tool_calls:
-            return {"stop_reason": StopReason.TOOL_CALL_BUDGET.value,
-                    "should_synthesize": False}
+            return _terminate(state, StopReason.TOOL_CALL_BUDGET)
         if len(state.get("evidence", [])) >= budget.max_evidence_chunks:
-            return {"stop_reason": StopReason.EVIDENCE_BUDGET.value,
-                    "should_synthesize": False}
+            return _terminate(state, StopReason.EVIDENCE_BUDGET)
 
         known = set(state.get("fingerprints", []))
         requested = [action_fingerprint(call["name"], call.get("args") or {})
                      for call in retrieval]
         if len(requested) != len(set(requested)) or known.intersection(requested):
-            return {
-                "stop_reason": StopReason.REPEATED_ACTION.value,
-                "should_synthesize": False,
-                "plan_summary": "The agent repeated an identical retrieval action.",
-            }
+            return _terminate(
+                state, StopReason.REPEATED_ACTION,
+                summary="The agent repeated an identical retrieval action.",
+            )
         return {
             "fingerprints": [*state.get("fingerprints", []), *requested],
             "plan_summary": state.get("plan_summary") or (
@@ -219,14 +241,11 @@ def build_agent_graph(*, model, retrieval_tools: list, budget: AgentBudget):
             "no_progress_rounds": next_no_progress,
         }
         if tool_messages and errors == len(tool_messages):
-            update.update(stop_reason=StopReason.TOOL_FAILURE.value,
-                          should_synthesize=False)
+            update.update(_terminate(update, StopReason.TOOL_FAILURE))
         elif next_no_progress >= 2:
-            update.update(stop_reason=StopReason.NO_PROGRESS.value,
-                          should_synthesize=False)
+            update.update(_terminate(update, StopReason.NO_PROGRESS))
         elif monotonic() - state["started_at"] >= budget.max_elapsed_seconds:
-            update.update(stop_reason=StopReason.TIME_BUDGET.value,
-                          should_synthesize=False)
+            update.update(_terminate(update, StopReason.TIME_BUDGET))
         return update
 
     graph = StateGraph(AgentState)

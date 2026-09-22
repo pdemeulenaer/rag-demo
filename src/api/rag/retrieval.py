@@ -527,8 +527,20 @@ def rag_pipeline(question, qdrant_client, session_id, generation_model=None, top
     )
 
     # Generate answer using LLM
-    answer = generate_answer(prompt, generation_model,
-                             allowed_context_ids={str(c["id"]) for c in retrieved_context})
+    try:
+        answer = generate_answer(
+            prompt, generation_model,
+            allowed_context_ids={str(c["id"]) for c in retrieved_context},
+        )
+    except Exception as error:
+        # Preserve safe Agentic execution metadata for the benchmark failure record.
+        # The original exception type/cause remains intact for diagnostics.
+        if agent_run is not None:
+            try:
+                error.agent_execution = agent_run.execution
+            except Exception:
+                pass
+        raise
 
     # Deduplicate sources and aggregate page numbers
     seen = {}

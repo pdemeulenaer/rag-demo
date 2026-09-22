@@ -96,6 +96,32 @@ def test_deterministic_metrics_uses_qdrant_point_ids():
     assert metrics["citation_from_retrieval"] == 1.0
 
 
+def test_summary_includes_agentic_termination_and_cost_metadata():
+    execution = {
+        "stop_reason": "insufficient_evidence",
+        "synthesis_policy": "evidence_fallback",
+        "rounds": 2,
+        "tool_calls": 3,
+        "evidence_count": 7,
+        "planner_tokens": 900,
+        "actions": [
+            {"tool": "search_chunks", "status": "success"},
+            {"tool": "get_neighbors", "status": "error"},
+        ],
+    }
+    rows = [{"mode": "agentic", "profile": "cross_multihop", "kind": "cross_paper",
+             "metrics": {}, "elapsed_seconds": 1.0, "error": None,
+             "agent_execution": execution}]
+
+    summary = runner.summarize(rows, ["agentic"])["agentic"]["agent_execution"]
+
+    assert summary["stop_reasons"] == {"insufficient_evidence": 1}
+    assert summary["synthesis_policies"] == {"evidence_fallback": 1}
+    assert summary["mean_rounds"] == 2.0
+    assert summary["tool_usage"] == {"get_neighbors": 1, "search_chunks": 1}
+    assert summary["tool_errors"] == 1
+
+
 def test_judge_retries_one_invalid_structured_response(monkeypatch):
     invalid = SimpleNamespace(id="response-1", model="judge", output_text="{}",
                               usage=SimpleNamespace(model_dump=lambda: {"input_tokens": 10}))

@@ -118,11 +118,20 @@ The explicit `agentic` mode uses a LangGraph tool-calling/shared-synthesizer loo
 5. Reformulate or narrow an unsuccessful search when useful.
 6. Generate the final answer only from accumulated evidence, with chunk-level citations.
 
-The loop must terminate after at most three retrieval rounds by default. It must also stop
+The loop terminates after at most three retrieval rounds by default (operators may select up
+to five for controlled experiments). It must also stop
 when evidence is sufficient, the budget is exhausted, or repeated searches add no new
 evidence. Insufficient evidence must produce an explicit abstention rather than an invented
 answer. The agent receives read-only corpus tools; ingestion, deletion and database mutation
 are outside its authority.
+
+The planner is not a second answer-generation gate. If a bounded run stops because of an
+explicit planner abstention, repetition, no progress, a budget, or a later planner/tool error
+after it has already collected scoped chunks, those chunks continue to the shared grounded,
+citation-validating generator. The generator may answer only what they support or explicitly
+state that a requested detail is missing. A stop with zero collected evidence remains a hard
+abstention. Execution metadata distinguishes `model_finish`, `evidence_fallback` and
+`hard_stop` synthesis policies.
 
 This is intentionally a constrained retrieval agent. Merely asking an LLM to choose between
 the existing Vanilla and Hybrid functions, without decomposition, evidence checking or
@@ -136,7 +145,8 @@ Implemented safeguards and exit criteria:
 - at most three rounds run by default, with independent tool-call, evidence, elapsed-time and
   agent-model-token limits;
 - repeated actions, repeated evidence, two empty-result rounds, tool failures, model/schema
-  failures and explicit insufficiency all terminate without ungrounded generation;
+  failures and explicit insufficiency terminate retrieval; any already collected evidence is
+  still eligible for the same grounded generator used by the other modes;
 - direct questions can synthesize after one retrieval round and a terminal tool call;
 - offline tests cover termination, scope escape, repeated actions, tool failure, abstention,
   malformed model output and native tool schemas.
@@ -167,21 +177,22 @@ optional and cannot change request behaviour.
 
 ## Phase 7 — evaluation
 
-Implementation status: runner/Langfuse mode integration is complete; a fresh reviewed
-dense+sparse benchmark and agent-specific aggregate metrics remain.
+Implementation status: runner/Langfuse mode integration and core agent execution aggregates
+are complete; controlled reruns, an explicit cross-paper coverage metric and estimated cost
+remain.
 
 The runner accepts all four modes using the same reviewed questions, frozen builds, answer
 model and top-k/context policy wherever comparable. Each selected mode is a separate
 Langfuse Dataset Experiment. Old dense-only snapshots remain historical and must not be
 rewritten; create a new reviewed snapshot after the v2 re-index.
 
-Add agent-specific measures:
+The runner now records these agent-specific measures locally and in Langfuse:
 
-- retrieval/tool rounds and duplicate-search rate;
+- retrieval/tool rounds and repeated-action stops;
 - evidence coverage and citation recall;
-- successful decomposition for cross-paper questions;
+- per-action tool usage (for diagnosing cross-paper decomposition);
 - correct abstention when evidence remains insufficient;
-- latency, token usage and estimated model cost.
+- latency and planner token usage. Estimated model cost remains a follow-up.
 
 Run a small smoke evaluation first, followed by the full development set. Do not declare an
 improvement from judge scores alone; inspect per-question regressions and retrieved evidence.

@@ -91,6 +91,7 @@ def test_agentic_mode_is_submitted_and_execution_summary_is_retained(monkeypatch
             "question_scope": "cross_paper",
             "plan_summary": "Compare direct evidence from two papers.",
             "stop_reason": "sufficient",
+            "synthesis_policy": "model_finish",
             "rounds": 2,
             "tool_calls": 3,
             "evidence_count": 6,
