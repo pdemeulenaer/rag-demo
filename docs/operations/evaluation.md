@@ -311,7 +311,10 @@ reviewer searches the complete frozen Qdrant builds. The validator rejects excer
 negative cases, missing reference evidence, cross-paper evidence from fewer than two
 papers, unknown paper/build identity, duplicate questions and inconsistent review metadata.
 
-Assign a deterministic development/test split after review:
+For questions with critical exact values, optionally add `required_numeric_values` to the
+reviewed question, for example `q0054`'s requested endpoints and measurements. The runner
+reports numeric coverage and caps correctness at 0.5 if any curated value is absent; include
+only values the question explicitly asks for.
 
 ```bash
 make eval-split EVAL_DIR=data/evaluation/markdown-mini-v2 \
@@ -362,7 +365,17 @@ Each invocation creates a new directory under `data/evaluation/runs/` containing
 
 For Agentic runs, each `results.json` item also contains the public `agent_execution`
 record: stop reason, synthesis policy, rounds, tool calls, evidence count, planner-token
-usage and safe action metadata. `summary.json` and `report.md` aggregate stop reasons,
+usage, explicitly named-paper coverage and safe action metadata. Every action includes its
+atomic `need_id` and bounded lookup query, which makes decomposition directly inspectable.
+Execution metadata includes the frozen requirement descriptions and covered/missing search
+needs. These counts describe retrieval results, not semantic answer coverage. Search origin
+does not constrain which claim may cite a chunk.
+Agentic `generation_diagnostics` separately records model-assessed claim support, requirement
+coverage, rejected-claim codes, repair attempts and `complete`/`partial`/`safe_abstention`.
+Inspect this alongside actual claim text: a citation or need label alone does not prove that
+a requested value, unit, range or comparison was answered.
+`summary.json` and
+`report.md` aggregate stop reasons,
 synthesis policies, tool usage and mean Agentic budget consumption. `manifest.json` records
 the effective Agentic model and limits so runs made with different budgets are not mistaken
 for like-for-like comparisons. These fields contain no hidden chain-of-thought.
@@ -371,8 +384,28 @@ The three synthesis policies are:
 
 - `model_finish`: the planner explicitly declared its collected evidence sufficient;
 - `evidence_fallback`: bounded retrieval stopped for another reason, but collected scoped
-  chunks were passed to the shared grounded generator;
+  chunks were passed to Agentic's reviewed generator, which can produce a partial answer;
 - `hard_stop`: no chunks were available, so answer generation was skipped.
+
+When a question quotes full indexed paper titles, Agentic resolves those titles against the
+bounded PostgreSQL catalogue before planning. Every resolved build becomes required coverage:
+the planner is told to search each build independently. Missing builds remain visible in
+execution diagnostics but do not block verified partial synthesis. Unsupported requested
+details must be explicitly disclosed. This uses catalogue scope, not evaluation gold evidence.
+Planner-visible chunk previews are compact; full chunks remain available to generation.
+
+If baseline generation exhausts its single citation-validation retry, the result is retained as
+a safe abstention with the retrieved chunks and `generation_diagnostics`. It is scored as an
+answer rather than counted as a runtime error; summaries aggregate the diagnostic status and
+reason.
+
+Agentic uses one initial draft/review and at most one repair/review, preserving verified
+claims instead of treating missing coverage as an all-or-nothing failure. The same configured
+answer model performs review; this is not an independent ground-truth judge. It increases
+latency/cost and must be evaluated as a pipeline change. Planner usage excludes these calls;
+full benchmark latency includes them. Langfuse records separate draft, verify and repair
+generation spans. See [Agentic answer checks](../architecture/rag-modes.md#agentic-answer-checks-and-repair).
+Existing frozen questions and evidence can be reused unchanged; no re-indexing is required.
 
 To inspect one previously problematic development question before paying for a complete
 rerun:
@@ -452,10 +485,26 @@ separate directory and review them before deliberately merging them; the rebase 
 not silently append or renumber questions.
 
 Without the judge, the report contains deterministic retrieval and citation measures.
-`EVAL_JUDGE=true` adds correctness, groundedness and answer-relevance scores using
+`EVAL_JUDGE=true` makes two isolated judge requests per answer using
 `gpt-5-mini` with minimal reasoning by default. Override with
 `EVAL_JUDGE_MODEL` or `EVAL_JUDGE_REASONING_EFFORT`. Gold-citation recall is deliberately
-strict: a valid alternative passage may support an answer but still score as a miss.
+strict: a valid alternative passage may support an answer but still score as a miss. The
+reference judge sees the reviewed answer/evidence and scores correctness/relevance; the
+grounding judge receives each generated atomic claim with only the retrieved excerpts that claim
+cites. It checks factual support and correct entity/paper/source attribution, so a chunk about
+one study cannot substantiate a claim attributed to another. This separation prevents gold
+evidence or unrelated retrieved chunks from being mistaken for support and roughly doubles
+judge-call cost relative to the historical combined judge. Numeric endpoints, inequalities,
+units and uncertainties are explicitly substantive in the correctness rubric. Answerable items
+that clearly abstain are deterministically assigned correctness `0`; `correct_abstention` is
+reported only for unanswerable candidates. For a cross-paper answer that cites evidence while
+deterministic metrics show a required paper was never retrieved, the runner overrides groundedness
+to `0` and records the change in `judge_safeguards`; an LLM judge cannot overrule that provenance
+fact.
+
+All four explicit modes resolve quoted full paper titles against the bounded catalogue. If
+retrieval omits any resolved build, generation is skipped and `generation_diagnostics`
+records `named_paper_coverage_failed`. This is a scored safe abstention, not a benchmark error.
 
 | Metric | Meaning |
 | --- | --- |
@@ -463,25 +512,43 @@ strict: a valid alternative passage may support an answer but still score as a m
 | `retrieval_recall` | Fraction of reviewed reference points retrieved |
 | `gold_citation_recall` | Fraction of reviewed reference points selected as citations by the answer model |
 | `citation_from_retrieval` | Fraction of selected citation IDs that came from the retrieved set |
+| `required_paper_retrieval_recall` | Fraction of the question's reviewed paper IDs represented in retrieved chunks |
+| `required_paper_citation_recall` | Fraction of the question's reviewed paper IDs represented in cited chunks |
+| `all_required_papers_retrieved` | Whether every reviewed paper for the question was represented in retrieval |
 | `answer_correctness` | Judge comparison with the reviewed reference answer/evidence |
 | `groundedness` | Judge assessment that answer claims follow from retrieved evidence |
 | `answer_relevance` | Judge assessment that the answer addresses the question |
 | `correct_abstention` | For accepted unanswerable cases, whether the answer declined to invent information |
 
 Judge metrics use `0`, `0.5`, or `1`; they are model assessments, not human ground truth.
+Each result also retains claim text, cited point IDs and Agentic need IDs. This makes it
+possible to audit which exact excerpt was offered as support for each statement. A validated
+answer is displayed with inline numbered references; each number maps to a source/page entry in
+the UI.
+
 Errors are retained per item, processing continues, and the final manifest becomes
 `completed_with_errors`. Partial results survive a stopped process, but automatic resume
 of an interrupted benchmark run is not implemented yet; a new invocation creates a new run.
-OpenAI answer generation and judge calls each make at most one additional call when a
-structured model response fails local validation. Judge metadata records both response IDs
-and combined usage when that recovery occurs. Other service failures are not retried by the
-runner.
+OpenAI answer generation and each of the two judge calls make at most one additional call
+when a structured model response fails local validation. Judge metadata records reference
+and grounding requests separately, including response IDs and usage. Other service failures
+are not retried by the runner.
 
 `EVAL_MODES="vanilla"`, `EVAL_SPLIT=development`, `EVAL_TOP_K=10`,
 `EVAL_GENERATION_MODEL=...`, and `EVAL_CONCURRENCY=...` are available for controlled experiments. Use concurrency 1
 until provider rate limits are understood.
+Use `EVAL_PROFILES="cross_comparison cross_multihop"` to run only selected profiles.
 Use `EVAL_QUESTION_ID=q0033` to reproduce one approved item from the selected split without
 rerunning the whole benchmark; this still performs paid generation and optional judge calls.
+
+For `hybrid_rerank`, each result now persists the complete Cohere ordering of the 20 Hybrid
+candidates (IDs, paper IDs, titles and scores), plus candidate-versus-selected paper counts.
+This diagnoses whether a miss began in Hybrid candidate generation or whether global top-five
+reranking discarded useful paper diversity. The aggregate report compares reviewed required-
+paper recall before and after reranking. Diagnostic collection does not itself change
+selection.
+For explicitly quoted full titles, a separate deterministic diversity guard reserves the
+highest-ranked candidate from each named paper before filling the remaining final positions.
 
 Schema-v1 datasets have no split metadata. Do not tune repeatedly on all of their approved
 questions and then describe the same scores as held-out performance.

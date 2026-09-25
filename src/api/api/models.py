@@ -39,6 +39,7 @@ class Source(BaseModel):
     authors: list[str] = []
     year: Optional[int] = None
     page: int | list[int] | None
+    evidence_ids: list[str] = Field(default_factory=list)
 
 
 class RAGResponse(BaseModel):
@@ -50,4 +51,6 @@ class RAGResponse(BaseModel):
     # used_image_urls: List[RAGUsedImage]
     sources: List[Source] = Field(..., description="The sources used in the RAG response")
     images: List[RAGImage] = []
+    claims: List[Dict[str, Any]] = Field(default_factory=list)
     execution: AgentExecutionMetadata | None = None
+    generation_diagnostics: Dict[str, Any] | None = None

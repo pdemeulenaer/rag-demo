@@ -10,7 +10,11 @@ from src.api.rag.contracts import RetrievalScope
 
 
 def action_fingerprint(name: str, arguments: dict) -> str:
-    payload = json.dumps({"name": name, "arguments": arguments}, sort_keys=True,
+    # need_id is observability metadata, not retrieval behavior. Excluding it
+    # prevents a planner from evading duplicate-call protection by renaming a need.
+    effective_arguments = {key: value for key, value in arguments.items()
+                           if key != "need_id"}
+    payload = json.dumps({"name": name, "arguments": effective_arguments}, sort_keys=True,
                          separators=(",", ":"), default=str)
     return sha256(payload.encode()).hexdigest()
 

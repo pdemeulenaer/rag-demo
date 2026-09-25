@@ -25,7 +25,7 @@ Copy `.env.sample` to `.env` and populate it:
 | `AGENT_MAX_TOOL_CALLS` | Total read-only tool-call limit per request |
 | `AGENT_MAX_EVIDENCE_CHUNKS` | Maximum distinct chunks accumulated by the agent |
 | `AGENT_MAX_ELAPSED_SECONDS` | Agentic retrieval wall-time budget |
-| `AGENT_MAX_PLANNER_TOKENS` | Combined planner/sufficiency token budget |
+| `AGENT_MAX_PLANNER_TOKENS` | Combined planner/sufficiency token budget (`20000` by default) |
 | `COHERE_API_KEY` | Cohere API key, used only by `hybrid_rerank` |
 | `PAPERS_COLLECTION` | Separate arXiv dense+BM25 collection (`arxiv_papers_v2` by default) |
 | `OPENAI_API_KEY` | OpenAI API key |

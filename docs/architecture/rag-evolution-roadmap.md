@@ -95,7 +95,8 @@ Implementation status: complete and incorporated into the LangGraph runtime.
 
 Each read-only operation has its own small LangChain tool schema: `search_papers`,
 `search_chunks`, `get_section` and `get_neighbors`. Two terminal tools express the evidence
-decision: `finish_with_evidence` and `abstain`. `contracts.py` contains the stable public
+decision: `finish_with_evidence` and `abstain`. A native `define_requirements` tool records
+the requested facts once before retrieval; it does not access external data. `contracts.py` contains the stable public
 budget and execution metadata used by the API/UI; `state.py` contains internal graph state.
 There is deliberately no provider-specific union of plan/action/assessment JSON schemas.
 
@@ -109,14 +110,24 @@ database mutation, shell or arbitrary-code tool is exposed.
 Implementation status: complete as the API/runtime milestone. Streamlit exposure was added in
 Phase 6; benchmark exposure was added in Phase 7.
 
-The explicit `agentic` mode uses a LangGraph tool-calling/shared-synthesizer loop:
+The explicit `agentic` mode uses LangGraph tool calling followed by reviewed synthesis:
 
 1. Classify whether the question needs one paper, multiple papers or metadata discovery.
-2. Decompose multi-part and comparison questions into evidence needs.
+2. Call `define_requirements` once; freeze requested facts with graph-assigned r1/r2/etc. IDs.
 3. Select tools and explicit paper/build filters.
 4. Assess evidence sufficiency after each retrieval round.
 5. Reformulate or narrow an unsuccessful search when useful.
-6. Generate the final answer only from accumulated evidence, with chunk-level citations.
+6. Generate claims from accumulated evidence, review support and completeness separately,
+   then repair at most once while preserving verified claims and disclosing missing details.
+
+Every retrieval call has a required atomic `need_id`. Chunk searches must use a focused
+query for one requested fact rather than the complete multi-part question; distinct facts
+from the same paper require distinct searches. Execution records persist the actual bounded
+lookup query next to the need ID so evaluation can inspect decomposition without relying on
+private reasoning. Calls must reuse IDs from the frozen requirements; searches cannot add
+mandatory answer requirements. Per-need retrieval coverage is diagnostic only, not semantic
+entailment or a citation allowlist. Any scoped chunk may support any requested fact.
+Catalogue-only discovery actions are routing steps, not answer evidence.
 
 The loop terminates after at most three retrieval rounds by default (operators may select up
 to five for controlled experiments). It must also stop
@@ -127,11 +138,21 @@ are outside its authority.
 
 The planner is not a second answer-generation gate. If a bounded run stops because of an
 explicit planner abstention, repetition, no progress, a budget, or a later planner/tool error
-after it has already collected scoped chunks, those chunks continue to the shared grounded,
-citation-validating generator. The generator may answer only what they support or explicitly
+after it has already collected scoped chunks, those chunks continue to Agentic's reviewed
+generator. The generator may answer only what they support and must explicitly
 state that a requested detail is missing. A stop with zero collected evidence remains a hard
 abstention. Execution metadata distinguishes `model_finish`, `evidence_fallback` and
 `hard_stop` synthesis policies.
+
+For questions that explicitly quote full indexed paper titles, a deterministic catalogue
+step resolves those titles inside the active/frozen scope. Their build IDs become required
+coverage. The planner receives the authoritative IDs, searches each independently (parallel
+tool calls are allowed). Missing required builds prevent a sufficient-evidence finish but do
+not prevent verified partial synthesis via evidence fallback. The answer must disclose gaps.
+Chunk search gives the planner 700-character previews with truncation flags. Targeted section/
+neighbour expansion exposes full text within a 12,000-text-character response budget; neighbour
+reads prioritize the anchor and expose the 0–5 per-side bounds in the native tool schema.
+Full evidence remains unchanged for Agentic synthesis and cited excerpts for its support review.
 
 This is intentionally a constrained retrieval agent. Merely asking an LLM to choose between
 the existing Vanilla and Hybrid functions, without decomposition, evidence checking or
@@ -148,14 +169,23 @@ Implemented safeguards and exit criteria:
   failures and explicit insufficiency terminate retrieval; any already collected evidence is
   still eligible for the same grounded generator used by the other modes;
 - direct questions can synthesize after one retrieval round and a terminal tool call;
+- tool calls without an atomic need ID fail before execution, and duplicate-action detection
+  ignores the need label so an identical lookup cannot evade the repetition guard;
 - offline tests cover termination, scope escape, repeated actions, tool failure, abstention,
   malformed model output and native tool schemas.
 
 The implementation is isolated in `src/api/rag/modes/agentic/`: `graph.py` owns LangGraph
 orchestration, `state.py` its state, `tools.py` the LangChain adapters, `policies.py` the
-deterministic guards, and `executor.py` the small pipeline adapter. The existing answer
-generator remains the synthesizer and still enforces retrieved chunk IDs, so Agentic
-citations follow the same contract as Vanilla and Hybrid.
+deterministic guards, and `executor.py` the small pipeline adapter. `answering.py` owns
+Agentic-specific synthesis: scoped citation IDs, model-assessed grounding using each claim's
+own cited excerpts, and semantic completeness against the question and frozen requirements.
+Need labels and values found only in evidence are not proof of an answered fact.
+One targeted repair preserves verified claims; remaining gaps yield a partial answer rather
+than whole-answer abstention. No verified claims means safe abstention.
+See [Agentic answer checks and repair](rag-modes.md#agentic-answer-checks-and-repair) for
+call limits and diagnostic fields. This adds verification cost; it does not change baseline
+generation or require re-indexing/new evaluation questions. Live improvement is unproven
+until a controlled development rerun.
 
 ## Phase 6 — API, Streamlit and observability
 
@@ -171,15 +201,15 @@ IDs.
 
 Langfuse receives the safe execution hierarchy: `rag_request` → `rag_pipeline` →
 `agentic_retrieval`, plus LangGraph/LangChain model and tool callbacks, existing retriever
-spans and the shared final generation. Tool calls, evidence IDs, budget usage, stop reason,
+spans and Agentic draft/review/repair generation spans. Tool calls, evidence IDs, budget usage, stop reason,
 model usage and latency are recorded without exposing private reasoning. Tracing remains
 optional and cannot change request behaviour.
 
 ## Phase 7 — evaluation
 
-Implementation status: runner/Langfuse mode integration and core agent execution aggregates
-are complete; controlled reruns, an explicit cross-paper coverage metric and estimated cost
-remain.
+Implementation status: runner/Langfuse mode integration, named-paper coverage enforcement,
+paper-coverage metrics and core agent execution aggregates are complete. Controlled reruns
+and estimated cost remain.
 
 The runner accepts all four modes using the same reviewed questions, frozen builds, answer
 model and top-k/context policy wherever comparable. Each selected mode is a separate
@@ -190,12 +220,26 @@ The runner now records these agent-specific measures locally and in Langfuse:
 
 - retrieval/tool rounds and repeated-action stops;
 - evidence coverage and citation recall;
+- required-paper retrieval/citation coverage and missing named papers;
 - per-action tool usage (for diagnosing cross-paper decomposition);
 - correct abstention when evidence remains insufficient;
 - latency and planner token usage. Estimated model cost remains a follow-up.
 
 Run a small smoke evaluation first, followed by the full development set. Do not declare an
 improvement from judge scores alone; inspect per-question regressions and retrieved evidence.
+Correctness/relevance and groundedness use separate judge requests: grounding receives no
+reference answer or gold evidence.
+
+If baseline answer generation still produces invalid or incomplete citations after its one
+bounded repair retry, the pipeline returns a safe abstention while retaining retrieved
+chunks and structured generation diagnostics. Evaluations therefore record a scored
+abstention rather than losing retrieval evidence as a runtime error.
+
+For questions containing quoted full paper titles, Hybrid + Rerank reserves one final
+candidate per named paper before filling the remaining top-k positions. Baseline generation
+then validates that at least one chunk from each named paper was cited and permits one
+bounded corrective retry. Complete Cohere candidate rankings remain recorded so this guard
+can be evaluated rather than assumed beneficial.
 
 ### Strengthen the evaluation set
 

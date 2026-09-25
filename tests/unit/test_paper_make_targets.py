@@ -108,6 +108,16 @@ def test_evaluation_runner_forwards_question_id_filter():
     assert command[-2:] == ["--question-id", "q0033"]
 
 
+def test_evaluation_runner_forwards_profile_filters():
+    command = dry_run(
+        "eval-run", "EVAL_PROFILES=cross_comparison cross_multihop",
+    )
+    position = command.index("--profiles")
+    assert command[position:position + 3] == [
+        "--profiles", "cross_comparison", "cross_multihop",
+    ]
+
+
 def test_evaluation_review_validation_and_split_are_local_commands():
     assert dry_run("eval-validate", "EVAL_DIR=data/evaluation/reviewed", "EVAL_SPLIT=test") == [
         "uv", "run", "python", "-m", "evals.review_dataset", "validate",

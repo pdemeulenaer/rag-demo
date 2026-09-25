@@ -41,7 +41,7 @@ class Config(BaseSettings):
     AGENT_MAX_TOOL_CALLS: int = 12
     AGENT_MAX_EVIDENCE_CHUNKS: int = 30
     AGENT_MAX_ELAPSED_SECONDS: float = 120.0
-    AGENT_MAX_PLANNER_TOKENS: int = 6000
+    AGENT_MAX_PLANNER_TOKENS: int = 20000
 
     # Optional Langfuse observability. Disabled means a true no-op: the SDK is
     # not imported by the application tracing shim.

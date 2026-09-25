@@ -88,12 +88,34 @@ def test_schema_v1_cannot_claim_a_held_out_split(tmp_path):
 
 def test_deterministic_metrics_uses_qdrant_point_ids():
     metrics = runner.deterministic_metrics(
-        {"reference_evidence": [{"point_id": "gold"}, {"point_id": "missed"}]},
-        [{"id": "gold"}, {"id": "other"}], ["gold"])
+        {"paper_ids": ["paper-1", "paper-2"],
+         "reference_evidence": [{"point_id": "gold"}, {"point_id": "missed"}]},
+        [{"id": "gold", "paper_id": "paper-1"},
+         {"id": "other", "paper_id": "distractor"}], ["gold"])
     assert metrics["retrieval_hit"] == 1.0
     assert metrics["retrieval_recall"] == 0.5
     assert metrics["gold_citation_recall"] == 0.5
     assert metrics["citation_from_retrieval"] == 1.0
+    assert metrics["required_paper_retrieval_recall"] == 0.5
+    assert metrics["required_paper_citation_recall"] == 0.5
+    assert metrics["all_required_papers_retrieved"] == 0.0
+
+
+def test_required_numeric_values_cap_correctness_when_a_range_endpoint_is_missing():
+    question = {"id": "q0054", "kind": "cross_paper",
+                "required_numeric_values": ["1130", "1627", "1514", "137", "26", "30", "45"]}
+    answer = "Range 1154–1627; N IV 1514 ± 137; minimum 26 vs typical 30–45."
+    metrics = runner.deterministic_metrics(question, [], [], answer)
+    judge_result = {"correctness": 1.0, "groundedness": 1.0,
+                    "answer_relevance": 1.0, "abstention": "not_applicable"}
+    adjusted, safeguards = runner.apply_judge_safeguards(
+        question, metrics, [], judge_result, answer,
+    )
+
+    assert metrics["required_numeric_value_recall"] == 6 / 7
+    assert metrics["missing_required_numeric_values"] == ["1130"]
+    assert adjusted["correctness"] == 0.5
+    assert safeguards[0]["reason"] == "missing_required_numeric_values"
 
 
 def test_summary_includes_agentic_termination_and_cost_metadata():
@@ -103,6 +125,8 @@ def test_summary_includes_agentic_termination_and_cost_metadata():
         "rounds": 2,
         "tool_calls": 3,
         "evidence_count": 7,
+        "required_evidence_need_count": 3,
+        "covered_evidence_need_count": 2,
         "planner_tokens": 900,
         "actions": [
             {"tool": "search_chunks", "status": "success"},
@@ -120,17 +144,64 @@ def test_summary_includes_agentic_termination_and_cost_metadata():
     assert summary["mean_rounds"] == 2.0
     assert summary["tool_usage"] == {"get_neighbors": 1, "search_chunks": 1}
     assert summary["tool_errors"] == 1
+    assert summary["mean_atomic_evidence_needs"] == 3.0
+    assert summary["atomic_need_full_coverage_rate"] == 0.0
+
+
+def test_summary_counts_safe_generation_abstentions():
+    rows = [{
+        "mode": "hybrid", "profile": "cross_multihop", "kind": "cross_paper",
+        "metrics": {}, "elapsed_seconds": 1.0, "error": None,
+        "generation_diagnostics": {
+            "status": "safe_abstention", "reason": "citation_validation_failed",
+        },
+    }]
+
+    summary = runner.summarize(rows, ["hybrid"])["hybrid"]
+
+    assert summary["errors"] == 0
+    assert summary["generation_diagnostics"] == {
+        "runs": 1,
+        "statuses": {"safe_abstention": 1},
+        "reasons": {"citation_validation_failed": 1},
+    }
+
+
+def test_rerank_diagnostics_distinguish_candidate_and_selection_coverage():
+    diagnostics = runner._retrieval_diagnostics_payload(
+        {"paper_ids": ["paper-a", "paper-b"]},
+        {"candidate_count": 20, "selected_count": 5,
+         "candidate_paper_count": 3, "selected_paper_count": 1,
+         "candidate_paper_ids": ["paper-a", "paper-b", "distractor"],
+         "selected_paper_ids": ["paper-a"], "ranked_candidates": []},
+    )
+    row = {"mode": "hybrid_rerank", "profile": "cross_comparison",
+           "kind": "cross_paper", "metrics": {}, "elapsed_seconds": 1.0,
+           "error": None, "retrieval_diagnostics": diagnostics}
+
+    summary = runner.summarize([row], ["hybrid_rerank"])["hybrid_rerank"][
+        "retrieval_diagnostics"
+    ]
+
+    assert diagnostics["required_paper_candidate_recall"] == 1.0
+    assert diagnostics["required_paper_selected_recall"] == 0.5
+    assert summary["all_required_papers_candidate_rate"] == 1.0
+    assert summary["all_required_papers_selected_rate"] == 0.0
 
 
 def test_judge_retries_one_invalid_structured_response(monkeypatch):
     invalid = SimpleNamespace(id="response-1", model="judge", output_text="{}",
                               usage=SimpleNamespace(model_dump=lambda: {"input_tokens": 10}))
     valid = SimpleNamespace(id="response-2", model="judge", _request_id="request-2",
-                            output_text=json.dumps({"correctness": 1, "groundedness": 1,
+                            output_text=json.dumps({"correctness": 1,
                                 "answer_relevance": 1, "abstention": "not_applicable",
-                                "reason": "Supported."}),
+                                "reason": "Matches the reference."}),
                             usage=SimpleNamespace(model_dump=lambda: {"input_tokens": 11}))
-    create = Mock(side_effect=[invalid, valid])
+    grounded = SimpleNamespace(id="response-3", model="judge", _request_id="request-3",
+                               output_text=json.dumps({"groundedness": 0.5,
+                                   "reason": "One claim lacks retrieved support."}),
+                               usage=SimpleNamespace(model_dump=lambda: {"input_tokens": 7}))
+    create = Mock(side_effect=[invalid, valid, grounded])
     client = SimpleNamespace(responses=SimpleNamespace(create=create))
     monkeypatch.setattr("src.api.core.clients.openai_client", Mock(return_value=client))
 
@@ -139,16 +210,50 @@ def test_judge_retries_one_invalid_structured_response(monkeypatch):
          "reference_evidence": []}, "Answer.", [], "gpt-5-mini", "minimal")
 
     assert result["correctness"] == 1
-    assert create.call_count == 2
-    assert metadata["attempts"] == 2
-    assert metadata["response_ids"] == ["response-1", "response-2"]
-    assert metadata["usage"]["input_tokens"] == 21
+    assert result["groundedness"] == 0.5
+    assert create.call_count == 3
+    assert metadata["reference"]["attempts"] == 2
+    assert metadata["reference"]["response_ids"] == ["response-1", "response-2"]
+    assert metadata["reference"]["usage"]["input_tokens"] == 21
+    assert metadata["grounding"]["response_ids"] == ["response-3"]
+    grounding_payload = json.loads(create.call_args_list[-1].kwargs["input"])
+    assert "reference_answer" not in grounding_payload
+    assert "reference_evidence" not in grounding_payload
+
+
+def test_cross_paper_groundedness_is_capped_when_required_paper_is_missing():
+    adjusted, safeguards = runner.apply_judge_safeguards(
+        {"kind": "cross_paper"},
+        {"all_required_papers_retrieved": 0.0},
+        ["cited-point"],
+        {"correctness": 1.0, "groundedness": 1.0, "answer_relevance": 1.0,
+         "abstention": "not_applicable", "reason": "Judge was too lenient."},
+    )
+
+    assert adjusted["groundedness"] == 0.0
+    assert safeguards == [{
+        "metric": "groundedness", "from": 1.0, "to": 0.0,
+        "reason": "incomplete_required_paper_retrieval",
+    }]
+
+
+def test_groundedness_cap_does_not_penalize_citation_free_safe_abstention():
+    adjusted, safeguards = runner.apply_judge_safeguards(
+        {"kind": "cross_paper"},
+        {"all_required_papers_retrieved": 0.0}, [],
+        {"groundedness": 1.0},
+    )
+
+    assert adjusted["groundedness"] == 1.0
+    assert safeguards == []
 
 
 def test_local_run_checkpoints_both_modes(tmp_path, monkeypatch):
     dataset = reviewed_dataset(tmp_path / "dataset")
     qdrant = Mock()
     monkeypatch.setattr(runner, "QdrantClient", Mock(return_value=qdrant))
+    catalogue = Mock()
+    monkeypatch.setattr("src.api.papers.catalogue.Catalogue", Mock(return_value=catalogue))
 
     def fake_evaluate(question, mode, **kwargs):
         return {"question_id": question["id"], "kind": question["kind"],

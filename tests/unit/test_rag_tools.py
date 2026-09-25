@@ -11,7 +11,11 @@ from src.api.rag.dispatcher import retrieve_for_mode
 from src.api.rag.tools import chunk_search
 from src.api.rag.tools.evidence import EvidenceScopeError
 from src.api.rag.tools.neighbor_retrieval import get_neighbors
-from src.api.rag.tools.paper_search import search_papers
+from src.api.rag.tools.paper_search import (
+    quoted_context_papers,
+    resolve_quoted_papers,
+    search_papers,
+)
 from src.api.rag.tools.section_retrieval import get_section
 
 
@@ -56,6 +60,54 @@ def test_paper_search_distinguishes_active_and_frozen_builds():
     result = search_papers(catalogue, frozen, title="globular")
     assert [row.build_id for row in result] == ["retained-build"]
     assert result[0].year == 2025
+
+
+def test_quoted_paper_resolution_uses_exact_catalogue_titles_within_scope():
+    catalogue = SimpleNamespace(all_builds=lambda: catalogue_rows())
+    scope = RetrievalScope("papers", ("active-build",), kind="active")
+
+    result = resolve_quoted_papers(
+        catalogue, scope,
+        'Compare "Globular cluster dynamics" with "A title outside this corpus".',
+    )
+
+    assert [row.build_id for row in result] == ["active-build"]
+
+
+def test_paper_title_resolution_normalizes_tex_punctuation():
+    rows = [dict(catalogue_rows()[0], metadata={
+        "title": "Bar-induced migration of $ω$ Centauri away from Gaia Sausage-Enceladus",
+    })]
+    catalogue = SimpleNamespace(all_builds=lambda: rows)
+    scope = RetrievalScope("papers", ("active-build",), kind="active")
+
+    result = resolve_quoted_papers(
+        catalogue, scope,
+        'Compare "Bar-induced migration of ω Centauri away from Gaia Sausage-Enceladus".',
+    )
+
+    assert [row.build_id for row in result] == ["active-build"]
+
+
+def test_quoted_context_papers_requires_full_normalized_title_match():
+    contexts = [{
+        "paper_id": "paper-1",
+        "title": "Bar-induced migration of $ω$ Centauri away from Gaia Sausage-Enceladus",
+    }, {
+        "paper_id": "paper-2",
+        "title": "An unrelated paper about globular clusters",
+    }]
+
+    result = quoted_context_papers(
+        'Compare "Bar-induced migration of ω Centauri away from Gaia Sausage-Enceladus" '
+        'with the "globular cluster" literature.',
+        contexts,
+    )
+
+    assert result == [{
+        "paper_id": "paper-1",
+        "title": "Bar-induced migration of $ω$ Centauri away from Gaia Sausage-Enceladus",
+    }]
 
 
 def test_chunk_search_returns_complete_provenance(monkeypatch):

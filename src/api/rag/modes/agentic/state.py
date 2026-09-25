@@ -7,12 +7,15 @@ from langchain_core.messages import AnyMessage
 from langgraph.graph.message import add_messages
 
 from src.api.rag.contracts import EvidenceChunk
-from src.api.rag.modes.agentic.contracts import AgentActionRecord
+from src.api.rag.modes.agentic.contracts import AgentActionRecord, AnswerRequirement
 
 
 class AgentState(TypedDict, total=False):
     messages: Annotated[list[AnyMessage], add_messages]
     evidence: list[EvidenceChunk]
+    requirements: list[AnswerRequirement]
+    required_build_ids: list[str]
+    required_paper_ids: list[str]
     actions: list[AgentActionRecord]
     fingerprints: list[str]
     rounds: int

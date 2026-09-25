@@ -305,7 +305,9 @@ async def rag(
         response_payload = RAGResponse(request_id=request.state.request_id, answer=result["answer"],
             chat_history=history, sources=result.get("sources", []),
             images=_process_images(result.get("images", []), request), mode=mode,
-            corpus_snapshot=snapshot, execution=result.get("execution"))
+            corpus_snapshot=snapshot, execution=result.get("execution"),
+            claims=result.get("claims", []),
+            generation_diagnostics=result.get("generation_diagnostics"))
         trace_output = {"answer": result["answer"],
                         "source_count": len(result.get("sources", []))}
         if result.get("execution") is not None:
@@ -330,6 +332,7 @@ async def rag(
     answer = ""
     sources = []
     rag_images = []
+    claims = []
 
     # 3. Execution Logic
     # Depending on intent, 
@@ -373,6 +376,7 @@ async def rag(
 
                 answer = result["answer"]
                 sources = result.get("sources", [])
+                claims = result.get("claims", [])
 
                 # Process images for the fallback path too
                 rag_images = _process_images(result.get("images", []), request)
@@ -398,6 +402,7 @@ async def rag(
                                       )        
         answer = result["answer"]
         sources = result.get("sources", [])
+        claims = result.get("claims", [])
 
         # Process images returned by the pipeline
         rag_images = _process_images(result.get("images", []), request)
@@ -423,7 +428,8 @@ async def rag(
         answer=answer,
         chat_history=full_history,
         sources=sources,
-        images=rag_images
+        images=rag_images,
+        claims=claims,
     )
     update_span(output={"answer": answer, "source_count": len(sources)})
     return response_payload

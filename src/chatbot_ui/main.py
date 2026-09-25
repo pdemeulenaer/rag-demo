@@ -68,6 +68,10 @@ def summarize_agent_execution(execution):
         "rounds": int(execution.get("rounds") or 0),
         "tool_calls": int(execution.get("tool_calls") or 0),
         "evidence_count": int(execution.get("evidence_count") or 0),
+        "required_paper_count": int(execution.get("required_paper_count") or 0),
+        "covered_required_paper_count": int(
+            execution.get("covered_required_paper_count") or 0
+        ),
         "elapsed_seconds": float(execution.get("elapsed_seconds") or 0),
         "papers_touched": len(papers),
         "tools": tools,
@@ -431,7 +435,7 @@ def main():
                     full_content = msg["content"]
                     if "sources" in msg and msg["sources"]:
                         sources_list = []
-                        for src in msg["sources"]:
+                        for source_index, src in enumerate(msg["sources"], start=1):
                             authors = src.get("authors") or "Unknown author"
                             if isinstance(authors, list):
                                 authors = ", ".join(authors)
@@ -440,7 +444,7 @@ def main():
                             # sources_list.append(f"- {authors} ({year}). *{title}*")
                             pages = src.get("page")  # this is a list of ints
                             pages_str = f" pp. {', '.join(map(str, pages))}" if pages else ""
-                            reference = f"- {escape(authors)} ({escape(str(year))}). <em>{escape(title)}</em>{pages_str}"
+                            reference = f"- [{source_index}] {escape(authors)} ({escape(str(year))}). <em>{escape(title)}</em>{pages_str}"
                             source_url = src.get("source_url") or ""
                             if source_url.startswith("https://arxiv.org/abs/"):
                                 label = f"arXiv:{src.get('arxiv_id')}v{src.get('paper_version')}"
@@ -538,6 +542,12 @@ def main():
                                 f"Papers resolved: {details['papers_touched']} · "
                                 f"Answer policy: {details['synthesis_policy']}"
                             )
+                            if details["required_paper_count"]:
+                                st.caption(
+                                    "Explicitly named paper coverage: "
+                                    f"{details['covered_required_paper_count']}/"
+                                    f"{details['required_paper_count']}"
+                                )
 
                     # 3. Display Figures immediately after the bubble
                     # Check if the API response included images (figures)

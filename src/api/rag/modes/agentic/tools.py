@@ -3,9 +3,10 @@ from __future__ import annotations
 
 import json
 from collections.abc import Callable
-from typing import Literal
+from typing import Annotated, Literal
 
 from langchain_core.tools import BaseTool, tool
+from pydantic import Field
 
 from src.api.rag.contracts import (
     EvidenceChunk,
@@ -16,7 +17,10 @@ from src.api.rag.contracts import (
 )
 from src.api.rag.modes.agentic.policies import narrow_scope
 from src.api.rag.tools.chunk_search import search_chunks as scoped_chunk_search
-from src.api.rag.tools.neighbor_retrieval import get_neighbors as scoped_neighbors
+from src.api.rag.tools.neighbor_retrieval import (
+    MAX_NEIGHBORS_PER_SIDE,
+    get_neighbors as scoped_neighbors,
+)
 from src.api.rag.tools.paper_search import search_papers as scoped_paper_search
 from src.api.rag.tools.section_retrieval import get_section as scoped_section
 
@@ -24,6 +28,22 @@ from src.api.rag.tools.section_retrieval import get_section as scoped_section
 QuestionScopeLiteral = Literal[
     "direct", "within_paper", "cross_paper", "metadata_discovery"
 ]
+PLANNER_CHUNK_PREVIEW_CHARS = 700
+PLANNER_ABSTRACT_PREVIEW_CHARS = 400
+# Text-only budget per expansion response; artifacts keep the original full chunks.
+PLANNER_EXPANSION_TEXT_CHARS = 12000
+NeighborCount = Annotated[int, Field(strict=True, ge=0, le=MAX_NEIGHBORS_PER_SIDE)]
+ChunkIndex = Annotated[int, Field(strict=True, ge=0)]
+EvidenceNeedId = Annotated[str, Field(
+    min_length=1,
+    max_length=128,
+    description="Graph-assigned requirement ID (r1, r2, etc.) from define_requirements; never invent a new ID.",
+)]
+SearchQuery = Annotated[str, Field(
+    min_length=1,
+    max_length=500,
+    description="Focused query for one atomic evidence need, not the full user question.",
+)]
 
 
 def _artifact(*, chunks: list[EvidenceChunk] | None = None,
@@ -34,20 +54,37 @@ def _artifact(*, chunks: list[EvidenceChunk] | None = None,
     }
 
 
-def _content(chunks: list[EvidenceChunk], papers: list[PaperMatch]) -> str:
+def _content(chunks: list[EvidenceChunk], papers: list[PaperMatch], *,
+             expanded: bool = False, anchor_index: int | None = None) -> str:
+    # Read the requested anchor first so preceding neighbours cannot consume its budget.
+    # Preserve the original document ordering in the response and artifact.
+    texts = {}
+    remaining = PLANNER_EXPANSION_TEXT_CHARS
+    priority = sorted(range(len(chunks)), key=lambda i: (
+        chunks[i].chunk_index != anchor_index if anchor_index is not None else False, i))
+    for index in priority:
+        text = chunks[index].text
+        texts[index] = text[:remaining] if expanded else text[:PLANNER_CHUNK_PREVIEW_CHARS]
+        if expanded:
+            remaining -= len(texts[index])
     payload = {
+        "text_mode": "expanded" if expanded else "preview",
         "evidence": [{
             "id": row.id, "paper_id": row.paper_id, "build_id": row.build_id,
             "title": row.title, "page": row.page,
             "section_header": row.section_header, "chunk_index": row.chunk_index,
-            "text": row.text[:1600],
-        } for row in chunks],
+            "text": texts[index],
+            "text_truncated": len(texts[index]) < len(row.text),
+            "text_chars": len(row.text),
+        } for index, row in enumerate(chunks)],
         "papers": [{
             "paper_id": row.paper_id, "build_id": row.build_id, "title": row.title,
             "authors": row.authors, "year": row.year,
-            "abstract": (row.abstract or "")[:800],
+            "abstract": (row.abstract or "")[:PLANNER_ABSTRACT_PREVIEW_CHARS],
         } for row in papers],
     }
+    if expanded:
+        payload["text_budget_chars"] = PLANNER_EXPANSION_TEXT_CHARS
     return json.dumps(payload, ensure_ascii=False)
 
 
@@ -94,6 +131,7 @@ def build_retrieval_tools(*, client, catalogue, scope: RetrievalBoundary,
 
     @tool("search_papers", response_format="content_and_artifact")
     def search_papers_tool(
+        need_id: EvidenceNeedId,
         title: str | None = None,
         author: str | None = None,
         year: int | None = None,
@@ -115,13 +153,14 @@ def build_retrieval_tools(*, client, catalogue, scope: RetrievalBoundary,
 
     @tool("search_chunks", response_format="content_and_artifact")
     def search_chunks_tool(
-        query: str,
+        need_id: EvidenceNeedId,
+        query: SearchQuery,
         retrieval_mode: Literal["dense", "sparse", "hybrid"] = "hybrid",
         build_ids: list[str] | None = None,
         paper_ids: list[str] | None = None,
         limit: int = 8,
     ) -> tuple[str, dict]:
-        """Search chunks with dense semantics, BM25 terms, or fused hybrid retrieval."""
+        """Search dense/BM25/hybrid chunks. Text is a 700-character preview; expand truncated hits."""
         bounded_limit = min(max(limit, 1), 20)
         vector = None if retrieval_mode == "sparse" else embed(query)
         chunks = []
@@ -134,28 +173,34 @@ def build_retrieval_tools(*, client, catalogue, scope: RetrievalBoundary,
         return _content(chunks, []), _artifact(chunks=chunks)
 
     @tool("get_section", response_format="content_and_artifact")
-    def get_section_tool(build_id: str, paper_id: str, section_header: str,
+    def get_section_tool(need_id: EvidenceNeedId, build_id: str, paper_id: str,
+                         section_header: str,
                          limit: int = 12) -> tuple[str, dict]:
-        """Expand an exact section header observed in retrieved evidence."""
+        """Read an observed section with full chunk text, capped at 12000 text characters total."""
         action_scope = (scope.scope_for_build(build_id)
                         if isinstance(scope, FederatedRetrievalScope) else scope)
         chunks = scoped_section(
             client, action_scope, build_id=build_id, paper_id=paper_id,
             section_header=section_header, limit=min(max(limit, 1), 50),
         )
-        return _content(chunks, []), _artifact(chunks=chunks)
+        return _content(chunks, [], expanded=True), _artifact(chunks=chunks)
 
     @tool("get_neighbors", response_format="content_and_artifact")
-    def get_neighbors_tool(build_id: str, paper_id: str, chunk_index: int,
-                           before: int = 1, after: int = 1) -> tuple[str, dict]:
-        """Expand around a retrieved chunk using its exact stable identifiers."""
+    def get_neighbors_tool(need_id: EvidenceNeedId, build_id: str, paper_id: str,
+                           chunk_index: ChunkIndex,
+                           before: NeighborCount = 1, after: NeighborCount = 1) -> tuple[str, dict]:
+        """Read an observed chunk and 0–5 neighbours per side; 0/0 reads only the anchor.
+
+        Full chunk text up to 12000 characters total; the anchor has budget priority.
+        Check text_truncated on each returned chunk. Use exact observed identifiers.
+        """
         action_scope = (scope.scope_for_build(build_id)
                         if isinstance(scope, FederatedRetrievalScope) else scope)
         chunks = scoped_neighbors(
             client, action_scope, build_id=build_id, paper_id=paper_id,
             chunk_index=chunk_index, before=before, after=after,
         )
-        return _content(chunks, []), _artifact(chunks=chunks)
+        return _content(chunks, [], expanded=True, anchor_index=chunk_index), _artifact(chunks=chunks)
 
     return [search_papers_tool, search_chunks_tool, get_section_tool, get_neighbors_tool]
 
@@ -173,3 +218,16 @@ def abstain(summary: str, question_scope: QuestionScopeLiteral) -> str:
 
 
 TERMINAL_TOOLS = [finish_with_evidence, abstain]
+
+
+@tool("define_requirements")
+def define_requirements(
+    descriptions: Annotated[list[Annotated[str, Field(min_length=1, max_length=2000)]],
+                      Field(min_length=1, max_length=20)],
+) -> str:
+    """Declare each distinct requested fact once before searching, including units/qualifiers.
+
+    The graph assigns immutable r1, r2, ... IDs. Repeated searches reuse those IDs;
+    retrieval actions cannot add answer requirements.
+    """
+    return "Requirements are registered by the graph guard."

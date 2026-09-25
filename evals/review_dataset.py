@@ -53,6 +53,7 @@ class ReviewedQuestionV2(BaseModel):
     profile: QuestionProfile | None = None
     question: str = Field(min_length=1)
     reference_answer: str = Field(min_length=1)
+    required_numeric_values: list[str] = Field(default_factory=list)
     review_status: ReviewStatus
     answerability_scope: Literal["supplied_excerpts_only", "frozen_corpus"]
     reference_evidence: list[dict]

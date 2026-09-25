@@ -22,7 +22,9 @@ def test_budget_and_public_metadata_remain_strict():
 
 def test_action_record_accepts_langchain_tool_call_ids():
     record = AgentActionRecord(
-        action_id="call_abc-123", tool="search_chunks", status="success",
+        action_id="call_abc-123", need_id="cluster_mass", tool="search_chunks",
+        query="reported cluster mass", status="success",
         result_count=1, evidence_ids=["point"], paper_ids=["paper"], error_type=None,
     )
-    assert record.need_id == "graph"
+    assert record.need_id == "cluster_mass"
+    assert record.query == "reported cluster mass"

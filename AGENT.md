@@ -21,10 +21,18 @@ two ingestion modes. MkDocs documentation is in `docs/`; start at
   read-only PostgreSQL/Qdrant capabilities. `retrieval.py` owns shared embedding, prompting,
   generation and citation resolution. `sparse.py` creates deterministic BM25 sparse vectors;
   Qdrant applies IDF and RRF. Hybrid is dense+BM25+RRF; only Hybrid + Rerank adds Cohere.
-  The model selects
-  cited chunk IDs; only those sources/figures are returned. The Pydantic response model owns
-  the strict OpenAI schema; duplicate/unavailable citation IDs are rejected, with one bounded
-  retry for malformed structured generation. Evaluation judges use the same one-retry bound.
+  Generation emits atomic claims with exact cited chunk IDs and Agentic need IDs; the API
+  returns this provenance, while the UI renders numbered citations per claim. Only those
+  cited sources/figures are returned, and the benchmark grounding judge sees only each claim's
+  cited excerpts (including paper/entity metadata). The Pydantic response model owns the strict
+  OpenAI schema; duplicate/unavailable citation IDs are rejected, with one bounded
+  retry for malformed structured generation. Full paper titles quoted in the question also
+  activate one-per-paper final selection in Hybrid + Rerank and one-citation-per-paper
+  validation in baseline generation; citation coverage receives the same single retry.
+  Agentic uses `modes/agentic/answering.py`: scoped citation integrity, model-assessed claim
+  support and semantic requirement coverage, then at most one targeted repair. Preserve
+  verified claims and disclose unsupported parts rather than dropping the entire answer.
+  Evaluation judges use the same one-retry bound.
 - **Memory:** pickled `ConversationMemory` objects in Redis, per `session_id`, 10-message
   recent window plus a Groq summary; TTL is refreshed to one hour on every message.
 - **Uploaded-PDF ingestion:** PDF text/figures are extracted with PyMuPDF. Text chunks, a document summary,
@@ -117,22 +125,51 @@ pipeline. `tools/section_retrieval.py` and `neighbor_retrieval.py` now provide e
 and bounded ordinal expansion with strict paper/build scope. Never infer document order from
 UUIDs. Agentic retrieval is implemented with LangGraph and native LangChain tools under
 `modes/agentic/`: `graph.py` owns orchestration, `state.py` graph state, `tools.py` the four
-read-only retrieval adapters plus terminal decisions, `policies.py` deterministic scope and
+read-only retrieval adapters, immutable requirement definition and terminal decisions, `policies.py` deterministic scope and
 duplicate guards, and `executor.py` the pipeline adapter. `contracts.py` contains stable API
 budget/execution contracts, not a provider-specific plan protocol. Preserve hard corpus,
 round, tool, evidence, time and token limits. Scope escapes and zero-evidence stops fail
 closed. When a bounded run already has scoped chunks, abstention, repetition, no-progress,
 budget and later planner/tool failures terminate retrieval but use an `evidence_fallback`
-into the shared citation-validating answer generator; this avoids making the planner a
-second answer gate. Execution metadata records that synthesis policy. Do not recreate the
+into Agentic's reviewed answer generator; this avoids making the planner a second answer
+gate. Resolve quoted full paper titles inside the bounded catalogue scope and ask the planner
+to retrieve every resolved build. Missing builds/needs remain observable but may lead to
+verified partial synthesis with explicit gaps, not automatic whole-answer abstention.
+Search tool messages use 700-character previews with explicit truncation flags. Section/neighbour
+expansion exposes full text within a 12,000-text-character per-response budget; neighbours give
+the anchor priority. Native neighbour schemas enforce non-negative chunk ordinals and 0–5 per
+side; before=after=0 reads just the anchor. Full artifacts remain unchanged for final generation. Execution metadata records synthesis policy and named-paper coverage. Do not recreate the
 removed custom planner/provider schema layer. Add a
 future KG retriever as another typed tool only after deterministic KG retrieval exists.
+
+Agentic must call `define_requirements` once before searching; the graph freezes semantic
+descriptions and assigns r1/r2/etc. Retrieval calls use these IDs as `need_id`; reformulation
+cannot add requirements. Queries target requested facts, with query/need IDs persisted in
+evaluation output and Langfuse. `need_id` is excluded from duplicate fingerprints. Per-need
+search coverage is diagnostic only: ANY scoped retrieved chunk may support ANY requirement.
+Never reinstate per-search citation groups as answer-validation gates.
+
+Agentic's review checks each claim using only its cited excerpts, and actual answer coverage
+against the question/requirements (values, units, ranges, uncertainty, comparisons). No gold
+answers enter runtime review. One targeted repair preserves verified claims; partial output
+names missing details. No verified claims means safe abstention. `generation_diagnostics`
+records complete/partial/safe_abstention and per-requirement assessments in API/evaluation/
+Langfuse. Model support checks are fallible; tests mock them and do not establish live quality.
+There are at most two drafts and two reviews, each one provider call (60-second timeout,
+configured generation-token cap, no provider retries), outside retrieval budgets.
+Vanilla/Hybrid/Hybrid + Rerank retain baseline named-paper gates and generation; baseline
+citation retry exhaustion remains a scored safe abstention, not a benchmark exception.
 
 Phase 7 is complete: Streamlit and the frozen-corpus runner expose Vanilla, Hybrid,
 Hybrid + Rerank and Agentic; Langfuse receives the LangGraph model/tool/stop hierarchy and
 separate Dataset Experiments. Benchmark results persist public Agentic execution metadata;
 summaries aggregate stop reasons, synthesis policies, tool usage, rounds, evidence and
-planner tokens, and manifests freeze the effective Agentic configuration. Preserve all four
+planner tokens, named-paper coverage and deterministic reviewed-paper coverage, and manifests
+freeze the effective Agentic configuration. Correctness/relevance and groundedness use
+separate judge requests so gold evidence cannot leak into grounding. Answerable abstentions are
+scored incorrect deterministically; claim-level grounding checks source/entity attribution
+against only the claim's cited chunks. Hybrid + Rerank results
+persist the complete Cohere candidate ordering for paper-diversity diagnosis. Preserve all four
 as controls. The next slice is controlled Agentic development reruns and cross-paper
 decomposition diagnosis. The agent must continue to
 respect SQL-active builds and evaluation-frozen build IDs, retain chunk/page/section

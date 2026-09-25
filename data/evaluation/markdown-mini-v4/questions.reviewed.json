@@ -3605,10 +3605,11 @@
     },
     {
       "id": "q0054",
+      "required_numeric_values": ["1130", "1627", "1514", "137", "26", "30", "45"],
       "kind": "cross_paper",
       "profile": "cross_multihop",
       "question": "Compare the concrete emission-line kinematic findings reported in \"SPURS: An Ultra-deep View Inside the Compact, Nitrogen-Enriched Nuclei of Little Red Dots\" with the dynamical constraint on the Galactic bar's pattern speed reported in \"Bar-induced migration of ω Centauri away from Gaia Sausage-Enceladus\". Specifically: (a) What are the reported FWHM ranges for broad [O III] components across the Little Red Dots, and the best-fit broad N IV] FWHM for GN-2, as given in SPURS? (b) What minimum bar pattern speed (Ω_b,min) does Dillamore et al. report is required for the retrograde 1:1 resonance to migrate objects from the GSE debris to ω Cen's current orbit? (c) Based only on the cited values from these two papers, is the required Ω_b,min within, below, or above the typical recent estimates of the bar pattern speed cited by Dillamore et al. (give the comparison using the numeric ranges provided)?",
-      "reference_answer": "(a) SPURS reports broad [O III] components with FWHM = 1130–1627 km s⁻¹ across the four LRDs, and a best-fit broad N IV] component in GN-2 with FWHM = 1514 ± 137 km s⁻¹ (evidence: 07507c678ea7f30347e2e8bd; af6b3a52a30546f12aac4336). (b) Dillamore et al. report that the retrograde 1:1 resonance can cause the migration only if the minimum bar pattern speed was Ω_b,min ≳ 26 km s⁻¹ kpc⁻¹ (evidence: dfb7f5ab73b1b616d9550fde). (c) Dillamore et al. state most recent estimates lie in Ω_b = 30–45 km s⁻¹ kpc⁻¹; therefore the required Ω_b,min ≳ 26 km s⁻¹ kpc⁻¹ is below that typical recent range (26 < 30–45), i.e., the required minimum is lower than the commonly cited current values (evidence: dfb7f5ab73b1b616d9550fde).",
+      "reference_answer": "(a) SPURS reports broad [O III] components with FWHM = 1130–1627 km s⁻¹ across the four LRDs, and a best-fit broad N IV] component in GN-2 with FWHM = 1514 ± 137 km s⁻¹ (evidence: 07507c678ea7f30347e2e8bd; af6b3a52a30546f12aac4336). (b) Dillamore et al. report that the retrograde 1:1 resonance can cause the migration only if the minimum bar pattern speed throughout its evolution was Ω_b,min ≲ 26 km s⁻¹ kpc⁻¹ (evidence: dfb7f5ab73b1b616d9550fde). (c) Dillamore et al. state most recent estimates lie in Ω_b = 30–45 km s⁻¹ kpc⁻¹; therefore the required Ω_b,min ≲ 26 km s⁻¹ kpc⁻¹ is below that typical recent range (26 < 30–45), i.e., the required minimum is lower than the commonly cited current values (evidence: dfb7f5ab73b1b616d9550fde).",
       "review_status": "approved",
       "answerability_scope": "supplied_excerpts_only",
       "reference_evidence": [
@@ -3696,7 +3697,7 @@
           "evidence_id": "dfb7f5ab73b1b616d9550fde"
         }
       ],
-      "support_summary": "Paper A (SPURS) finds broad [O III] components (FWHM = 1130–1627 km/s) and a broad N IV] in GN-2 (FWHM = 1514 ±137 km/s) with BIC strongly favoring broad+ narrow fits; Paper B (Bar-induced migration) constrains the bar pattern speed minimum for migration to Ω_b,min ≳ 26 km s⁻¹ kpc⁻¹ and notes most recent estimates are 30–45 km s⁻¹ kpc⁻¹.",
+      "support_summary": "Paper A (SPURS) finds broad [O III] components (FWHM = 1130–1627 km/s) and a broad N IV] in GN-2 (FWHM = 1514 ±137 km/s) with BIC strongly favoring broad+ narrow fits; Paper B (Bar-induced migration) constrains the minimum bar pattern speed throughout its evolution for migration to Ω_b,min ≲ 26 km s⁻¹ kpc⁻¹ and notes most recent estimates are 30–45 km s⁻¹ kpc⁻¹.",
       "rebase_status": "needs_review",
       "previous_review": {
         "reviewer": "philippe",

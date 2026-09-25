@@ -1,0 +1,106 @@
+{
+  "schema_version": 1,
+  "run_id": "20260925T053412Z-29419319",
+  "results": [
+    {
+      "question_id": "q0011",
+      "kind": "single_paper",
+      "profile": "single_fact",
+      "mode": "agentic",
+      "question": "In the paper \"Open Clusters as Laboratories for Cool Star Evolution: Highlights from the Cool Stars 23 Splinter Session\", which neutron-capture elements are reported to show significantly shallower Galactic abundance-gradient slopes due to s-process enrichment?",
+      "reference_answer": "The paper reports that the neutron-capture elements showing significantly shallower Galactic abundance-gradient slopes due to s-process enrichment are Y, Sr, Zr, Ba, La, and Ce. (evidence: 00c7f505bf16fbdd5f2b60bb)",
+      "answer": "The Agentic model could not select a valid retrieval action.",
+      "retrieved_chunks": [],
+      "claims": [],
+      "cited_context_ids": [],
+      "metrics": {
+        "retrieval_hit": 0.0,
+        "retrieval_recall": 0.0,
+        "gold_citation_recall": 0.0,
+        "citation_from_retrieval": null,
+        "retrieved_count": 0,
+        "cited_count": 0,
+        "required_paper_count": 1,
+        "retrieved_required_paper_count": 0,
+        "cited_required_paper_count": 0,
+        "required_paper_retrieval_recall": 0.0,
+        "required_paper_citation_recall": 0.0,
+        "all_required_papers_retrieved": 0.0,
+        "answer_correctness": 0.0,
+        "groundedness": 0.5,
+        "answer_relevance": 0.5,
+        "correct_abstention": null
+      },
+      "judge": {
+        "correctness": 0.0,
+        "answer_relevance": 0.5,
+        "abstention": "incorrect",
+        "reason": "Reference assessment: The actual answer did not provide the requested elements; it returned an unrelated failure message. The correct elements are Y, Sr, Zr, Ba, La, and Ce, so the response is incorrect and not relevant. Grounding assessment: No claims were provided in the 'claims' array to evaluate; therefore grounding cannot be fully assessed. However, the question asks about specific neutron-capture elements reported in the paper; without provided claim statements or retrieved evidence excerpts, I cannot fully verify grounding. Partial grounding (0.5) reflects that the prompt requests a factual check but supplies no claims or evidence to evaluate.",
+        "groundedness": 0.5
+      },
+      "judge_request": {
+        "reference": {
+          "response_id": "resp_04c1646390b5b404016ab607dbd60487d282ca1bea59719e1e",
+          "response_ids": [
+            "resp_04c1646390b5b404016ab607dbd60487d282ca1bea59719e1e"
+          ],
+          "attempts": 1,
+          "request_id": "req_ef8947cbc44448f685f0a38014d625b7",
+          "model": "gpt-5-mini-2025-08-07",
+          "usage": {
+            "input_tokens": 881,
+            "output_tokens": 92,
+            "total_tokens": 973
+          }
+        },
+        "grounding": {
+          "response_id": "resp_0620a4bca21bec65016ab607de1df087d28b958468b7bddaf7",
+          "response_ids": [
+            "resp_0620a4bca21bec65016ab607de1df087d28b958468b7bddaf7"
+          ],
+          "attempts": 1,
+          "request_id": "req_bf6cfee6d5d54350b939e315115f10f3",
+          "model": "gpt-5-mini-2025-08-07",
+          "usage": {
+            "input_tokens": 307,
+            "output_tokens": 111,
+            "total_tokens": 418
+          }
+        }
+      },
+      "judge_safeguards": [
+        {
+          "metric": "correctness",
+          "from": 0.5,
+          "to": 0.0,
+          "reason": "answerable_item_abstained"
+        }
+      ],
+      "agent_execution": {
+        "question_scope": null,
+        "plan_summary": "The agent did not define valid question requirements.",
+        "stop_reason": "planner_failure",
+        "synthesis_policy": "hard_stop",
+        "rounds": 0,
+        "tool_calls": 0,
+        "evidence_count": 0,
+        "required_paper_count": 1,
+        "covered_required_paper_count": 0,
+        "missing_required_build_ids": [
+          "0b2916cd-d83a-5c04-bee9-7c05a9174c30"
+        ],
+        "required_evidence_need_count": 0,
+        "covered_evidence_need_count": 0,
+        "missing_evidence_need_ids": [],
+        "planner_tokens": 1246,
+        "elapsed_seconds": 5.662,
+        "actions": [],
+        "requirements": []
+      },
+      "retrieval_diagnostics": null,
+      "generation_diagnostics": null,
+      "elapsed_seconds": 10.304,
+      "error": null
+    }
+  ]
+}

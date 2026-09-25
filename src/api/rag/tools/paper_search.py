@@ -2,9 +2,45 @@
 from __future__ import annotations
 
 from collections.abc import Iterable
+import re
+import unicodedata
 
 from src.api.observability.tracing import observe, update_span
 from src.api.rag.contracts import PaperMatch, RetrievalScope
+
+
+QUOTED_TEXT = re.compile(r'["“]([^"”]{8,300})["”]')
+
+
+def _normalized_title(value: str) -> str:
+    normalized = unicodedata.normalize("NFKC", value).casefold()
+    return " ".join(re.sub(r"[^\w]+", " ", normalized).split())
+
+
+def quoted_title_phrases(question: str) -> list[str]:
+    """Return deduplicated, plausible full titles quoted in a question."""
+    return list(dict.fromkeys(
+        match.group(1).strip() for match in QUOTED_TEXT.finditer(question)
+        if len(match.group(1).split()) >= 3
+    ))
+
+
+def quoted_context_papers(question: str, contexts: Iterable[dict]) -> list[dict]:
+    """Resolve quoted full titles against already retrieved candidate metadata.
+
+    This deliberately requires an exact normalized title match. Quoted concepts or
+    partial titles therefore cannot force source diversity or citation coverage.
+    """
+    phrases = {_normalized_title(value) for value in quoted_title_phrases(question)}
+    matches: dict[str, dict] = {}
+    for context in contexts:
+        title = str(context.get("title") or "").strip()
+        if not title or _normalized_title(title) not in phrases:
+            continue
+        paper_id = str(context.get("paper_id") or "").strip()
+        key = paper_id or f"title:{_normalized_title(title)}"
+        matches.setdefault(key, {"paper_id": paper_id or None, "title": title})
+    return list(matches.values())
 
 
 def _authors(value: object) -> list[str]:
@@ -37,7 +73,7 @@ def search_papers(catalogue, scope: RetrievalScope, *, title: str | None = None,
         raise ValueError("Paper search limit must be positive")
     wanted_builds = set(scope.build_ids)
     wanted_terms = [str(term).strip().casefold() for term in terms if str(term).strip()]
-    title_query = title.strip().casefold() if title else None
+    title_query = _normalized_title(title) if title else None
     author_query = author.strip().casefold() if author else None
     matches: list[PaperMatch] = []
     if hasattr(catalogue, "scoped_ready_builds"):
@@ -62,7 +98,7 @@ def search_papers(catalogue, scope: RetrievalScope, *, title: str | None = None,
         row_authors = _authors(metadata.get("authors"))
         row_year = _year(metadata.get("year") or metadata.get("published"))
         searchable = " ".join((row_title, str(metadata.get("abstract") or ""))).casefold()
-        if title_query and title_query not in row_title.casefold():
+        if title_query and title_query not in _normalized_title(row_title):
             continue
         if author_query and not any(author_query in value.casefold() for value in row_authors):
             continue
@@ -84,3 +120,13 @@ def search_papers(catalogue, scope: RetrievalScope, *, title: str | None = None,
                 output={"build_ids": [row.build_id for row in result]},
                 metadata={"scope_kind": scope.kind, "result_count": len(result)})
     return result
+
+
+def resolve_quoted_papers(catalogue, scope: RetrievalScope, question: str) -> list[PaperMatch]:
+    """Resolve full paper titles explicitly quoted in a question within one safe scope."""
+    phrases = quoted_title_phrases(question)
+    matches: dict[str, PaperMatch] = {}
+    for phrase in phrases:
+        for paper in search_papers(catalogue, scope, title=phrase, limit=3):
+            matches[paper.build_id] = paper
+    return sorted(matches.values(), key=lambda row: (row.title.casefold(), row.build_id))

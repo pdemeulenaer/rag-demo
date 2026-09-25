@@ -257,6 +257,7 @@ EVAL_MODES ?= vanilla hybrid hybrid_rerank agentic
 EVAL_TOP_K ?= 5
 EVAL_LIMIT ?=
 EVAL_QUESTION_ID ?=
+EVAL_PROFILES ?=
 EVAL_GENERATION_MODEL ?=
 EVAL_JUDGE ?= false
 EVAL_JUDGE_MODEL ?= gpt-5-mini
@@ -296,7 +297,7 @@ eval-split:
 # Run the reviewed benchmark against one or more explicit retrieval modes.
 # This performs paid embedding/generation calls; EVAL_JUDGE=true adds a paid judge call.
 eval-run:
-	uv run python -m evals.run_benchmark --dataset "$(EVAL_REVIEWED)" --output-root "$(EVAL_RUNS_DIR)" --modes $(EVAL_MODES) --split "$(EVAL_SPLIT)" --top-k "$(EVAL_TOP_K)" $(if $(EVAL_GENERATION_MODEL),--generation-model "$(EVAL_GENERATION_MODEL)") $(if $(filter true 1 yes,$(EVAL_JUDGE)),--judge,--no-judge) --judge-model "$(EVAL_JUDGE_MODEL)" --judge-reasoning-effort "$(EVAL_JUDGE_REASONING_EFFORT)" --concurrency "$(EVAL_CONCURRENCY)" $(if $(EVAL_QUESTION_ID),--question-id "$(EVAL_QUESTION_ID)") $(if $(EVAL_LIMIT),--limit "$(EVAL_LIMIT)")
+	uv run python -m evals.run_benchmark --dataset "$(EVAL_REVIEWED)" --output-root "$(EVAL_RUNS_DIR)" --modes $(EVAL_MODES) --split "$(EVAL_SPLIT)" --top-k "$(EVAL_TOP_K)" $(if $(EVAL_GENERATION_MODEL),--generation-model "$(EVAL_GENERATION_MODEL)") $(if $(filter true 1 yes,$(EVAL_JUDGE)),--judge,--no-judge) --judge-model "$(EVAL_JUDGE_MODEL)" --judge-reasoning-effort "$(EVAL_JUDGE_REASONING_EFFORT)" --concurrency "$(EVAL_CONCURRENCY)" $(if $(EVAL_PROFILES),--profiles $(EVAL_PROFILES)) $(if $(EVAL_QUESTION_ID),--question-id "$(EVAL_QUESTION_ID)") $(if $(EVAL_LIMIT),--limit "$(EVAL_LIMIT)")
 
 .PHONY: build run docs docs-build docs-deploy
 

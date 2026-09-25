@@ -1,0 +1,102 @@
+{
+  "agentic": {
+    "questions": 1,
+    "errors": 0,
+    "mean_latency_seconds": 25.004,
+    "metrics": {
+      "all_required_papers_retrieved": 1.0,
+      "answer_correctness": 1.0,
+      "answer_relevance": 1.0,
+      "citation_from_retrieval": 1.0,
+      "gold_citation_recall": 1.0,
+      "groundedness": 1.0,
+      "required_paper_citation_recall": 1.0,
+      "required_paper_retrieval_recall": 1.0,
+      "retrieval_hit": 1.0,
+      "retrieval_recall": 1.0
+    },
+    "agent_execution": {
+      "runs": 1,
+      "stop_reasons": {
+        "tool_failure": 1
+      },
+      "synthesis_policies": {
+        "evidence_fallback": 1
+      },
+      "mean_rounds": 4.0,
+      "mean_tool_calls": 4.0,
+      "mean_evidence_count": 8.0,
+      "mean_planner_tokens": 16376.0,
+      "tool_usage": {
+        "get_neighbors": 2,
+        "get_section": 1,
+        "search_chunks": 1
+      },
+      "tool_errors": 1,
+      "named_paper_runs": 1,
+      "named_paper_full_coverage_rate": 1.0,
+      "mean_atomic_evidence_needs": 1.0,
+      "atomic_need_full_coverage_rate": 1.0
+    },
+    "generation_diagnostics": {
+      "runs": 1,
+      "statuses": {
+        "complete": 1
+      },
+      "reasons": {
+        "verified_answer": 1
+      }
+    },
+    "profiles": {
+      "single_fact": {
+        "questions": 1,
+        "errors": 0,
+        "mean_latency_seconds": 25.004,
+        "metrics": {
+          "all_required_papers_retrieved": 1.0,
+          "answer_correctness": 1.0,
+          "answer_relevance": 1.0,
+          "citation_from_retrieval": 1.0,
+          "gold_citation_recall": 1.0,
+          "groundedness": 1.0,
+          "required_paper_citation_recall": 1.0,
+          "required_paper_retrieval_recall": 1.0,
+          "retrieval_hit": 1.0,
+          "retrieval_recall": 1.0
+        },
+        "agent_execution": {
+          "runs": 1,
+          "stop_reasons": {
+            "tool_failure": 1
+          },
+          "synthesis_policies": {
+            "evidence_fallback": 1
+          },
+          "mean_rounds": 4.0,
+          "mean_tool_calls": 4.0,
+          "mean_evidence_count": 8.0,
+          "mean_planner_tokens": 16376.0,
+          "tool_usage": {
+            "get_neighbors": 2,
+            "get_section": 1,
+            "search_chunks": 1
+          },
+          "tool_errors": 1,
+          "named_paper_runs": 1,
+          "named_paper_full_coverage_rate": 1.0,
+          "mean_atomic_evidence_needs": 1.0,
+          "atomic_need_full_coverage_rate": 1.0
+        },
+        "generation_diagnostics": {
+          "runs": 1,
+          "statuses": {
+            "complete": 1
+          },
+          "reasons": {
+            "verified_answer": 1
+          }
+        }
+      }
+    }
+  }
+}

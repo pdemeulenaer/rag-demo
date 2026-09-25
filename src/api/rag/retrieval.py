@@ -2,7 +2,7 @@
 import os
 import instructor
 from groq import Groq
-from pydantic import BaseModel, ConfigDict, ValidationError
+from pydantic import BaseModel, ValidationError
 import json
 import cohere
 from qdrant_client import QdrantClient
@@ -16,9 +16,12 @@ from src.api.observability.tracing import observe, observation, trace_attributes
 from src.api.rag.utils.utils import prompt_template_config
 from src.api.rag.summarize import summarize_text
 from src.api.api.models import Source
+from src.api.rag.answer_contracts import RAGClaim, RAGGenerationResponse
+from src.api.rag.modes.agentic.answering import generate_agentic_answer
 from src.api.rag.search import search_points
 from src.api.rag.contracts import FederatedRetrievalScope, RetrievalScope
 from src.api.rag.tools.chunk_search import search_chunks
+from src.api.rag.tools.paper_search import quoted_context_papers, resolve_quoted_papers
 
 
 logger = logging.getLogger(__name__)
@@ -192,6 +195,14 @@ def retrieve_context(query, qdrant_client, top_k=5, mode="hybrid", collection=No
     return retrieved_context
 
 
+class RerankedContext(list):
+    """List-compatible rerank result carrying safe candidate-selection diagnostics."""
+
+    def __init__(self, values: list[dict], diagnostics: dict):
+        super().__init__(values)
+        self.diagnostics = diagnostics
+
+
 @observe(name="rerank_context", as_type="span", capture_input=False, capture_output=False)
 def rerank_context(query: str, retrieved_context: list, top_n: int = 5):
     """
@@ -199,31 +210,92 @@ def rerank_context(query: str, retrieved_context: list, top_n: int = 5):
     """
 
     if not retrieved_context:
-        return []
+        return RerankedContext([], {
+            "candidate_count": 0, "selected_count": 0,
+            "candidate_paper_ids": [], "selected_paper_ids": [],
+            "named_paper_ids": [], "named_paper_titles": [],
+            "reserved_candidate_ids": [],
+            "named_paper_diversity_guard_applied": False,
+            "ranked_candidates": [],
+        })
     docs = [c["text"] for c in retrieved_context]
 
     response = cohere_client.rerank(
         model="rerank-english-v3.0",
         query=query,
         documents=docs,
-        top_n=top_n
+        # Persist the full candidate ordering so cross-paper diversity loss can
+        # be distinguished from candidate-generation failure.
+        top_n=len(docs),
     )
 
     # Map reranked results back to original retrieved_context items
-    reranked = []
+    ranked_candidates = []
     for r in response.results:
         doc_idx = r.index
         doc_score = r.relevance_score
         chunk = retrieved_context[doc_idx]
-        reranked.append({
+        ranked = {
             **chunk,
             "rerank_score": doc_score
-        })
+        }
+        ranked_candidates.append(ranked)
+    # A chunk-level cross-encoder can rank many passages from one paper above every
+    # passage from another explicitly requested paper. Reserve the best passage from
+    # each full title quoted in the question, then fill the remaining slots by the
+    # Cohere ordering. Ordinary queries retain the unmodified global top-k.
+    named_papers = quoted_context_papers(query, ranked_candidates)
+    named_keys = [str(row.get("paper_id") or f"title:{row['title']}")
+                  for row in named_papers]
+    reserved_indexes = set()
+    reserved_ids = []
+    for key in named_keys:
+        for index, row in enumerate(ranked_candidates):
+            row_key = str(row.get("paper_id") or f"title:{row.get('title')}")
+            if row_key == key:
+                reserved_indexes.add(index)
+                reserved_ids.append(str(row.get("id")))
+                break
+    selected_indexes = set(reserved_indexes)
+    selection_limit = max(top_n, len(reserved_indexes))
+    for index in range(len(ranked_candidates)):
+        if len(selected_indexes) >= selection_limit:
+            break
+        selected_indexes.add(index)
+    reranked = [row for index, row in enumerate(ranked_candidates)
+                if index in selected_indexes]
+    naive_ids = [str(row.get("id")) for row in ranked_candidates[:selection_limit]]
+    selected_ids = [str(row.get("id")) for row in reranked]
+
+    candidate_papers = sorted({str(row.get("paper_id")) for row in retrieved_context
+                               if row.get("paper_id")})
+    selected_papers = sorted({str(row.get("paper_id")) for row in reranked
+                              if row.get("paper_id")})
+    diagnostics = {
+        "candidate_count": len(retrieved_context),
+        "selected_count": len(reranked),
+        "candidate_paper_ids": candidate_papers,
+        "selected_paper_ids": selected_papers,
+        "candidate_paper_count": len(candidate_papers),
+        "selected_paper_count": len(selected_papers),
+        "named_paper_ids": [row["paper_id"] for row in named_papers if row["paper_id"]],
+        "named_paper_titles": [row["title"] for row in named_papers],
+        "reserved_candidate_ids": reserved_ids,
+        "named_paper_diversity_guard_applied": selected_ids != naive_ids,
+        "ranked_candidates": [{
+            "id": str(row.get("id")), "paper_id": row.get("paper_id"),
+            "title": row.get("title"), "rerank_score": row.get("rerank_score"),
+        } for row in ranked_candidates],
+    }
 
     update_span(input={"query": query, "candidate_ids": [row["id"] for row in retrieved_context]},
                 output={"point_ids": [row["id"] for row in reranked]},
-                metadata={"model": "rerank-english-v3.0", "top_n": top_n})
-    return reranked
+                metadata={"model": "rerank-english-v3.0", "top_n": top_n,
+                          "candidate_paper_count": len(candidate_papers),
+                          "selected_paper_count": len(selected_papers),
+                          "named_paper_count": len(named_papers),
+                          "named_paper_diversity_guard_applied": selected_ids != naive_ids})
+    return RerankedContext(reranked, diagnostics)
 
 
 def optional_int(value: object) -> int | None:
@@ -248,12 +320,17 @@ def process_context(context):
 class InvalidCitationIdsError(ValueError):
     """The answer cited an unavailable or duplicate retrieved context ID."""
 
+    def __init__(self, code: str = "invalid_context_ids"):
+        self.code = code
+        super().__init__(code)
 
-class RAGGenerationResponse(BaseModel):
-    model_config = ConfigDict(extra="forbid")
 
-    answer: str
-    retrieved_context_ids: list[str]
+class MissingRequiredCitationError(ValueError):
+    """The answer omitted every available chunk from a required paper."""
+
+    def __init__(self, code: str = "missing_required_citation"):
+        self.code = code
+        super().__init__(code)
 
 
 # Keep the prompt, provider request and local parser on one schema.
@@ -333,18 +410,136 @@ def is_openai_model(model_name: str) -> bool:
     )
 
 
-def _validate_context_ids(response, allowed_context_ids):
-    if allowed_context_ids is None:
-        return response
-    allowed = {str(value) for value in allowed_context_ids}
+def _validate_context_ids(response, allowed_context_ids, required_context_groups=None):
+    """Baseline citation checks. Agentic reviews claims in agentic/answering.py."""
     selected = response.retrieved_context_ids
-    if len(selected) != len(set(selected)) or not set(selected).issubset(allowed):
-        raise InvalidCitationIdsError
+    for claim in response.claims:
+        if (not claim.cited_context_ids
+                or len(claim.cited_context_ids) != len(set(claim.cited_context_ids))):
+            raise InvalidCitationIdsError("duplicate_or_empty_claim_citations")
+    if allowed_context_ids is not None:
+        allowed = {str(value) for value in allowed_context_ids}
+        if not set(selected).issubset(allowed):
+            raise InvalidCitationIdsError("unknown_context_id")
+    selected_ids = set(selected)
+    for context_ids in (required_context_groups or {}).values():
+        if context_ids and selected_ids.isdisjoint({str(value) for value in context_ids}):
+            raise MissingRequiredCitationError("missing_required_source_group")
+    for claim in response.claims:
+        if claim.need_ids:
+            raise InvalidCitationIdsError("unexpected_claim_need_ids")
     return response
 
 
+def _required_citation_groups(question: str, contexts: list[dict],
+                              required_paper_ids=()) -> dict[str, set[str]]:
+    """Map named papers to available chunk IDs for baseline citation validation."""
+    groups = {}
+    named_papers = quoted_context_papers(question, contexts)
+    known_ids = {str(value) for value in required_paper_ids if value}
+    for paper_id in known_ids:
+        matching = next((row for row in contexts
+                         if str(row.get("paper_id") or "") == paper_id), None)
+        if matching:
+            named_papers.append({"paper_id": paper_id,
+                                 "title": str(matching.get("title") or paper_id)})
+    seen_papers = set()
+    for paper in named_papers:
+        paper_id = paper.get("paper_id")
+        title = str(paper["title"])
+        paper_key = str(paper_id or f"title:{title}")
+        if paper_key in seen_papers:
+            continue
+        seen_papers.add(paper_key)
+        ids = {
+            str(row["id"])
+            for row in contexts
+            if ((paper_id and str(row.get("paper_id") or "") == paper_id)
+                or (not paper_id and str(row.get("title") or "") == title))
+        }
+        if ids:
+            groups[title] = ids
+    return groups
+
+
+def _resolve_required_papers(catalogue, scope, question: str):
+    """Resolve full quoted titles across every collection in the request scope."""
+    if catalogue is None or not isinstance(scope, (RetrievalScope, FederatedRetrievalScope)):
+        return []
+    child_scopes = scope.scopes if isinstance(scope, FederatedRetrievalScope) else (scope,)
+    resolved = []
+    for child_scope in child_scopes:
+        resolved.extend(resolve_quoted_papers(catalogue, child_scope, question))
+    unique = {row.build_id: row for row in resolved}
+    return sorted(unique.values(), key=lambda row: (row.title.casefold(), row.build_id))
+
+
+def _missing_required_papers(required_papers, contexts: list[dict]):
+    covered_build_ids = {str(row.get("build_id") or "") for row in contexts}
+    return [paper for paper in required_papers if paper.build_id not in covered_build_ids]
+
+
+def _coverage_abstention(question: str, retrieved_context: list[dict], *, agent_run,
+                         retrieval_diagnostics, required_papers, missing_papers) -> dict:
+    """Return evidence and diagnostics without asking a model to bridge a missing paper."""
+    diagnostics = {
+        "status": "safe_abstention",
+        "reason": "named_paper_coverage_failed",
+        "required_paper_count": len(required_papers),
+        "missing_build_ids": [paper.build_id for paper in missing_papers],
+        "missing_titles": [paper.title for paper in missing_papers],
+    }
+    return {
+        "answer": (
+            "I could not retrieve evidence from every explicitly named paper, so I "
+            "abstained rather than combine retrieved text with unsupported claims."
+        ),
+        "sources": [],
+        "images": [],
+        "question": question,
+        "retrieved_context": [row["text"] for row in retrieved_context],
+        "retrieved_chunks": retrieved_context,
+        "cited_context_ids": [],
+        "claims": [],
+        "execution": agent_run.execution if agent_run else None,
+        "retrieval_diagnostics": retrieval_diagnostics,
+        "generation_diagnostics": diagnostics,
+    }
+
+
+def _citation_retry_prompt(prompt, required_context_groups, *, validation_code=None):
+    groups = required_context_groups or {}
+    failure = (
+        f" The previous output failed validation ({validation_code})."
+        if validation_code else ""
+    )
+    if not groups:
+        message = (
+            "Your previous response did not satisfy the citation schema."
+            f"{failure} Regenerate the answer and cite only distinct DOC IDs present "
+            "in the supplied context."
+        )
+    else:
+        paper_requirements = "\n".join(
+            f"- {label}: cite at least one of "
+            f"{sorted(str(value) for value in context_ids)}"
+            for label, context_ids in groups.items()
+            if not label.startswith("Atomic evidence need:")
+        )
+        requirements = paper_requirements
+        message = (
+            "Your previous response did not satisfy required source/need coverage."
+            f"{failure} Regenerate all atomic claims. Each claim must cite only chunks "
+            "that support that exact statement. Every listed need_id must appear in at "
+            "least one claim, paired with a citation from its allowed group. Do not invent "
+            "or rename need IDs.\n" + requirements
+        )
+    return [*prompt, {"role": "system", "content": message}]
+
+
 @observe(name="generate_answer", capture_input=False, capture_output=False)
-def generate_answer(prompt, generation_model=None, allowed_context_ids=None):
+def generate_answer(prompt, generation_model=None, allowed_context_ids=None,
+                    required_context_groups=None):
     """
     Unified generation for OpenAI & Groq.
 
@@ -365,10 +560,12 @@ def generate_answer(prompt, generation_model=None, allowed_context_ids=None):
         client = openai_client()
         usage = {"input_tokens": 0, "output_tokens": 0, "total_tokens": 0,
                  "attempts": 0}
+        request_prompt = prompt
+        validation_failures = []
         for attempt in range(2):
             response_json = client.chat.completions.create(
                 model=generation_model,
-                messages=prompt,
+                messages=request_prompt,
                 response_format={
                     "type": "json_schema",
                     "json_schema": {
@@ -387,12 +584,26 @@ def generate_answer(prompt, generation_model=None, allowed_context_ids=None):
                 response = RAGGenerationResponse.model_validate_json(
                     response_json.choices[0].message.content
                 )
-                _validate_context_ids(response, allowed_context_ids)
+                _validate_context_ids(
+                    response, allowed_context_ids, required_context_groups,
+                )
                 break
-            except (ValidationError, InvalidCitationIdsError):
+            except (ValidationError, InvalidCitationIdsError, MissingRequiredCitationError) as error:
+                validation_failures.append({
+                    "code": getattr(error, "code", "invalid_structured_response"),
+                    "exception_type": type(error).__name__,
+                })
                 if attempt == 1:
+                    try:
+                        error.validation_failures = validation_failures
+                    except (AttributeError, TypeError):
+                        pass
                     raise
-                logger.warning("Retrying one malformed structured RAG response")
+                logger.warning("Retrying one invalid or citation-incomplete RAG response")
+                request_prompt = _citation_retry_prompt(
+                    prompt, required_context_groups,
+                    validation_code=validation_failures[-1]["code"],
+                )
 
     else:
         # --------- Groq branch ----------
@@ -400,20 +611,44 @@ def generate_answer(prompt, generation_model=None, allowed_context_ids=None):
                          model=generation_model, input=prompt) as generation:
             groq_client = Groq(api_key=config.GROQ_API_KEY)
             instr_client = instructor.from_groq(groq_client, mode=instructor.Mode.JSON)
-            response, raw_response = instr_client.chat.completions.create_with_completion(
-                model=generation_model,
-                response_model=RAGGenerationResponse,
-                messages=prompt,
-                temperature=0,
-                max_tokens=config.GENERATION_MODEL_MAX_TOKENS,
-                max_retries=5,
-            )
-            _validate_context_ids(response, allowed_context_ids)
-            usage = {
-                "input_tokens": raw_response.usage.prompt_tokens,
-                "output_tokens": raw_response.usage.completion_tokens,
-                "total_tokens": raw_response.usage.total_tokens,
-            }
+            usage = {"input_tokens": 0, "output_tokens": 0, "total_tokens": 0,
+                     "attempts": 0}
+            request_prompt = prompt
+            validation_failures = []
+            for attempt in range(2):
+                response, raw_response = instr_client.chat.completions.create_with_completion(
+                    model=generation_model,
+                    response_model=RAGGenerationResponse,
+                    messages=request_prompt,
+                    temperature=0,
+                    max_tokens=config.GENERATION_MODEL_MAX_TOKENS,
+                    max_retries=5,
+                )
+                usage["attempts"] += 1
+                usage["input_tokens"] += raw_response.usage.prompt_tokens
+                usage["output_tokens"] += raw_response.usage.completion_tokens
+                usage["total_tokens"] += raw_response.usage.total_tokens
+                try:
+                    _validate_context_ids(
+                        response, allowed_context_ids, required_context_groups,
+                    )
+                    break
+                except (InvalidCitationIdsError, MissingRequiredCitationError) as error:
+                    validation_failures.append({
+                        "code": getattr(error, "code", "invalid_citation"),
+                        "exception_type": type(error).__name__,
+                    })
+                    if attempt == 1:
+                        try:
+                            error.validation_failures = validation_failures
+                        except (AttributeError, TypeError):
+                            pass
+                        raise
+                    logger.warning("Retrying one citation-incomplete Groq RAG response")
+                    request_prompt = _citation_retry_prompt(
+                        prompt, required_context_groups,
+                        validation_code=validation_failures[-1]["code"],
+                    )
             if generation is not None:
                 generation.update(output=response.model_dump(), usage_details=usage)
 
@@ -422,6 +657,78 @@ def generate_answer(prompt, generation_model=None, allowed_context_ids=None):
                           "model": generation_model, "usage": usage})
 
     return response
+
+
+
+def _agentic_structured_request(messages, response_model, stage, generation_model=None):
+    """One bounded provider request; Agentic answering owns the single repair."""
+    model = generation_model or config.GENERATION_MODEL
+    with observation(name=f"agentic_{stage}", as_type="generation",
+                     model=model, input=messages) as span:
+        if is_openai_model(model):
+            client = openai_client().with_options(timeout=60, max_retries=0)
+            raw = client.chat.completions.create(
+                model=model, messages=messages,
+                max_completion_tokens=config.GENERATION_MODEL_MAX_TOKENS,
+                response_format={"type": "json_schema", "json_schema": {
+                    "name": response_model.__name__, "strict": True,
+                    "schema": response_model.model_json_schema(),
+                }},
+            )
+            result = response_model.model_validate_json(raw.choices[0].message.content)
+        else:
+            client = instructor.from_groq(
+                Groq(api_key=config.GROQ_API_KEY, timeout=60, max_retries=0),
+                mode=instructor.Mode.JSON,
+            )
+            result, raw = client.chat.completions.create_with_completion(
+                model=model, messages=messages, response_model=response_model,
+                temperature=0, max_tokens=config.GENERATION_MODEL_MAX_TOKENS,
+                max_retries=0,
+            )
+        if span is not None:
+            usage = raw.usage
+            span.update(output=result.model_dump(), usage_details={
+                "input_tokens": getattr(usage, "prompt_tokens", 0),
+                "output_tokens": getattr(usage, "completion_tokens", 0),
+                "total_tokens": getattr(usage, "total_tokens", 0),
+            })
+        return result
+
+def _claim_citations(response: RAGGenerationResponse) -> list[dict]:
+    """Serialize claim provenance for the API, UI and offline evaluator."""
+    return [{
+        "text": claim.text,
+        "cited_context_ids": list(dict.fromkeys(claim.cited_context_ids)),
+        "need_ids": list(dict.fromkeys(claim.need_ids)),
+    } for claim in response.claims]
+
+
+def _citation_source_key(row: dict) -> tuple:
+    page = row.get("page")
+    page_key = tuple(sorted(str(value) for value in page)) if isinstance(page, list) else str(page or "")
+    return (
+        str(row.get("paper_id") or ""), str(row.get("paper_version") or ""),
+        str(row.get("build_id") or ""), str(row.get("collection") or ""),
+        str(row.get("source_url") or ""), tuple(row.get("authors") or []),
+        str(row.get("title") or ""), str(row.get("year") or ""), page_key,
+    )
+
+
+def _render_claims(response: RAGGenerationResponse, contexts: list[dict]) -> tuple[str, dict[str, int]]:
+    """Render inline numbered references and map each point ID to its source entry."""
+    context_by_id = {str(row["id"]): row for row in contexts}
+    source_numbers: dict[tuple, int] = {}
+    context_source_number: dict[str, int] = {}
+    for context_id in response.retrieved_context_ids:
+        key = _citation_source_key(context_by_id[context_id])
+        source_numbers.setdefault(key, len(source_numbers) + 1)
+        context_source_number[context_id] = source_numbers[key]
+    rendered = []
+    for claim in response.claims:
+        numbers = sorted({context_source_number[value] for value in claim.cited_context_ids})
+        rendered.append(f"{claim.text} " + " ".join(f"[{value}]" for value in numbers))
+    return "\n\n".join(rendered), context_source_number
 
 
 @observe(name="rag_pipeline", capture_input=False, capture_output=False)
@@ -433,6 +740,8 @@ def rag_pipeline(question, qdrant_client, session_id, generation_model=None, top
         "generation_model": generation_model or config.GENERATION_MODEL, "top_k": top_k})
 
     agent_run = None
+    retrieval_diagnostics = None
+    required_papers = []
     # Agentic retrieval owns its bounded multi-round orchestration but reuses the
     # same final answer/citation path below.
     if mode == "agentic":
@@ -480,7 +789,9 @@ def rag_pipeline(question, qdrant_client, session_id, generation_model=None, top
                 "retrieved_context": [row["text"] for row in retrieved_context],
                 "retrieved_chunks": retrieved_context,
                 "cited_context_ids": [],
+                "claims": [],
                 "execution": agent_run.execution,
+                "retrieval_diagnostics": retrieval_diagnostics,
             }
             update_span(output={"answer": result["answer"],
                                 "retrieved_ids": [row["id"] for row in retrieved_context],
@@ -495,6 +806,8 @@ def rag_pipeline(question, qdrant_client, session_id, generation_model=None, top
             scope=scope, retrieve_context=retrieve_context,
             rerank_context=rerank_context,
         )
+        retrieval_diagnostics = getattr(retrieved_context, "diagnostics", None)
+        required_papers = _resolve_required_papers(catalogue, scope, question)
     elif os.getenv("EVALUATION_MODE") == "true":
         
         # just use hybrid retrieval without reranking
@@ -510,9 +823,26 @@ def rag_pipeline(question, qdrant_client, session_id, generation_model=None, top
     if not retrieved_context:
         result = {"answer": "I found no indexed evidence for this question in the selected corpus.",
                   "sources": [], "images": [], "question": question, "retrieved_context": [],
-                  "retrieved_chunks": [], "cited_context_ids": [],
-                  "execution": agent_run.execution if agent_run else None}
+                  "retrieved_chunks": [], "cited_context_ids": [], "claims": [],
+                  "execution": agent_run.execution if agent_run else None,
+                  "retrieval_diagnostics": retrieval_diagnostics}
         update_span(output={"answer": result["answer"], "retrieved_ids": [], "cited_ids": []})
+        return result
+
+    missing_required_papers = _missing_required_papers(required_papers, retrieved_context)
+    if missing_required_papers and agent_run is None:
+        result = _coverage_abstention(
+            question, retrieved_context, agent_run=agent_run,
+            retrieval_diagnostics=retrieval_diagnostics,
+            required_papers=required_papers,
+            missing_papers=missing_required_papers,
+        )
+        update_span(output={
+            "answer": result["answer"],
+            "retrieved_ids": [row["id"] for row in retrieved_context],
+            "cited_ids": [],
+            "generation_diagnostics": result["generation_diagnostics"],
+        })
         return result
 
     prompt = build_prompt(
@@ -525,13 +855,66 @@ def rag_pipeline(question, qdrant_client, session_id, generation_model=None, top
         question,
         session_id
     )
+    generation_diagnostics = None
+    answer_limitations = []
 
-    # Generate answer using LLM
+    # Baseline generation remains unchanged; Agentic has its own reviewed synthesis.
     try:
-        answer = generate_answer(
-            prompt, generation_model,
-            allowed_context_ids={str(c["id"]) for c in retrieved_context},
-        )
+        if agent_run is not None:
+            reviewed = generate_agentic_answer(
+                question=question, requirements=agent_run.requirements,
+                contexts=retrieved_context, prompt=prompt,
+                request=lambda messages, schema, stage: _agentic_structured_request(
+                    messages, schema, stage, generation_model),
+            )
+            answer = reviewed.response
+            generation_diagnostics = reviewed.diagnostics
+            answer_limitations = reviewed.limitations
+        else:
+            answer = generate_answer(
+                prompt, generation_model,
+                allowed_context_ids={str(c["id"]) for c in retrieved_context},
+                required_context_groups=_required_citation_groups(question, retrieved_context),
+            )
+    except (ValidationError, InvalidCitationIdsError, MissingRequiredCitationError) as error:
+        generation_diagnostics = {
+            "status": "safe_abstention",
+            "reason": "citation_validation_failed",
+            "exception_type": type(error).__name__,
+            "attempts": 2,
+        }
+        validation_failures = getattr(error, "validation_failures", None)
+        if validation_failures:
+            generation_diagnostics["validation_failures"] = validation_failures
+        result = {
+            "answer": (
+                "I found potentially relevant indexed evidence, but could not produce an "
+                "answer with valid source citations. I abstained rather than return an "
+                "unsupported answer."
+            ),
+            "sources": [],
+            "images": [],
+            "question": question,
+            "retrieved_context": [row["text"] for row in retrieved_context],
+            "retrieved_chunks": retrieved_context,
+            "cited_context_ids": [],
+            "claims": [],
+            "execution": agent_run.execution if agent_run else None,
+            "retrieval_diagnostics": retrieval_diagnostics,
+            "generation_diagnostics": generation_diagnostics,
+        }
+        trace_output = {
+            "answer": result["answer"],
+            "retrieved_ids": [row["id"] for row in retrieved_context],
+            "cited_ids": [],
+            "generation_diagnostics": generation_diagnostics,
+        }
+        if agent_run is not None:
+            trace_output["agent_execution"] = agent_run.execution.model_dump(mode="json")
+        if retrieval_diagnostics is not None:
+            trace_output["retrieval_diagnostics"] = retrieval_diagnostics
+        update_span(output=trace_output)
+        return result
     except Exception as error:
         # Preserve safe Agentic execution metadata for the benchmark failure record.
         # The original exception type/cause remains intact for diagnostics.
@@ -540,52 +923,75 @@ def rag_pipeline(question, qdrant_client, session_id, generation_model=None, top
                 error.agent_execution = agent_run.execution
             except Exception:
                 pass
+        if retrieval_diagnostics is not None:
+            try:
+                error.retrieval_diagnostics = retrieval_diagnostics
+            except Exception:
+                pass
         raise
 
-    # Deduplicate sources and aggregate page numbers
-    seen = {}
-    unique_sources = []
+    if not answer.claims:
+        generation_diagnostics = generation_diagnostics or {
+            "status": "safe_abstention",
+            "reason": "no_supported_claims",
+            "attempts": 1,
+        }
+        result = {
+            "answer": "I could not find sufficient indexed evidence to answer this question.",
+            "sources": [],
+            "images": [],
+            "question": question,
+            "retrieved_context": [row["text"] for row in retrieved_context],
+            "retrieved_chunks": retrieved_context,
+            "cited_context_ids": [],
+            "claims": [],
+            "execution": agent_run.execution if agent_run else None,
+            "retrieval_diagnostics": retrieval_diagnostics,
+            "generation_diagnostics": generation_diagnostics,
+        }
+        update_span(output={
+            "answer": result["answer"],
+            "retrieved_ids": [row["id"] for row in retrieved_context],
+            "cited_ids": [],
+            "generation_diagnostics": generation_diagnostics,
+        })
+        return result
 
+    # Build numbered source entries in the same first-use order as inline claim citations.
+    claims = _claim_citations(answer)
+    rendered_answer, context_source_numbers = _render_claims(answer, retrieved_context)
+    if answer_limitations:
+        rendered_answer += "\n\nI could not verify these requested details from the retrieved evidence:\n" + "\n".join(
+            f"- {detail}" for detail in dict.fromkeys(answer_limitations))
     used_ids = set(answer.retrieved_context_ids)
-    for c in retrieved_context:
-        if str(c["id"]) not in used_ids:
-            continue
-        key = (c.get("paper_id"), c.get("paper_version"), tuple(c.get("authors") or []), c.get("title"), c.get("year"))
-        page_num = c.get("page")
+    context_by_id = {str(row["id"]): row for row in retrieved_context}
+    source_rows: dict[int, list[dict]] = {}
+    for context_id in answer.retrieved_context_ids:
+        number = context_source_numbers[context_id]
+        source_rows.setdefault(number, []).append(context_by_id[context_id])
 
-        # Ensure page_num is always an integer if present
-        if page_num is not None:
-            if isinstance(page_num, list):
-                page_num = [int(p) for p in page_num]
-            else:
-                page_num = [int(page_num)]
-        else:
-            page_num = []
+    unique_sources = []
+    for number in sorted(source_rows):
+        rows = source_rows[number]
+        first = rows[0]
+        pages = sorted({parsed_page for row in rows
+                        for raw_page in (row.get("page") if isinstance(row.get("page"), list)
+                                         else [row.get("page")])
+                        if (parsed_page := optional_int(raw_page)) is not None})
+        unique_sources.append(Source(
+            id=str(first["id"]),
+            evidence_ids=[str(row["id"]) for row in rows],
+            title=first.get("title"),
+            authors=first.get("authors") or [],
+            paper_id=first.get("paper_id"),
+            arxiv_id=first.get("arxiv_id"),
+            paper_version=first.get("paper_version"),
+            source_url=first.get("source_url"),
+            year=optional_int(first.get("year")),
+            page=pages,
+        ))
 
-        if key not in seen:
-            s = Source(
-                id=str(c["id"]),
-                title=c.get("title"),
-                authors=c.get("authors") or [],
-                paper_id=c.get("paper_id"),
-                arxiv_id=c.get("arxiv_id"),
-                paper_version=c.get("paper_version"),
-                source_url=c.get("source_url"),
-                year=optional_int(c.get("year")),
-                page=page_num
-            )
-            seen[key] = s
-            unique_sources.append(s)
-        else:
-            # Aggregate page numbers for duplicate sources
-            # if page_num is not None and page_num not in seen[key].page:
-            #     seen[key].page.append(page_num)
-            existing_pages = set(seen[key].page)
-            existing_pages.update(page_num)
-            seen[key].page = sorted(existing_pages)            
-
-    # Only cited chunks were grouped, so uncited pages cannot enter these sources.
-    logger.info(f"Unique sources after filtering: {unique_sources}")
+    logger.info("Numbered sources after claim-level citation mapping: %s", unique_sources)
 
     # Extract Used Images (NEW LOGIC)
     used_images = []
@@ -603,7 +1009,7 @@ def rag_pipeline(question, qdrant_client, session_id, generation_model=None, top
     retrieved_context_texts = [c["text"] for c in retrieved_context]
 
     result = {
-        "answer": answer.answer,
+        "answer": rendered_answer,
         "sources": unique_sources, # Text sources
         "images": used_images,     # Image sources
         "question": question,
@@ -612,13 +1018,20 @@ def rag_pipeline(question, qdrant_client, session_id, generation_model=None, top
         # deliberately does not expose full chunks or model-selected point IDs.
         "retrieved_chunks": retrieved_context,
         "cited_context_ids": sorted(used_ids.intersection(c["id"] for c in retrieved_context)),
+        "claims": claims,
         "execution": agent_run.execution if agent_run else None,
+        "retrieval_diagnostics": retrieval_diagnostics,
+        "generation_diagnostics": generation_diagnostics,
     }
     trace_output = {"answer": result["answer"],
         "retrieved_ids": [row["id"] for row in retrieved_context],
-        "cited_ids": result["cited_context_ids"]}
+        "cited_ids": result["cited_context_ids"],
+        "claims": claims,
+        "generation_diagnostics": generation_diagnostics}
     if agent_run is not None:
         trace_output["agent_execution"] = agent_run.execution.model_dump(mode="json")
+    if retrieval_diagnostics is not None:
+        trace_output["retrieval_diagnostics"] = retrieval_diagnostics
     update_span(output=trace_output)
     return result
 
@@ -634,7 +1047,7 @@ def rag_pipeline_wrapper(question, session_id, generation_model=None, top_k=5,
         
     catalogue = None
     try:
-        if mode == "agentic":
+        if mode in {"vanilla", "hybrid", "hybrid_rerank", "agentic"}:
             from src.api.papers.catalogue import Catalogue
             from src.api.papers.settings import PaperSettings
 
@@ -656,4 +1069,6 @@ def rag_pipeline_wrapper(question, session_id, generation_model=None, top_k=5,
         "sources": result.get("sources", []),
         "images": result.get("images", []),
         "execution": result.get("execution"),
+        "claims": result.get("claims", []),
+        "generation_diagnostics": result.get("generation_diagnostics"),
     }
