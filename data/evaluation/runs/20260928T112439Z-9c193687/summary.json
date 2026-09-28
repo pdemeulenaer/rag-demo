@@ -1,0 +1,100 @@
+{
+  "agentic": {
+    "questions": 1,
+    "errors": 0,
+    "mean_latency_seconds": 50.681,
+    "metrics": {
+      "all_required_papers_retrieved": 1.0,
+      "answer_correctness": 0.0,
+      "answer_relevance": 0.5,
+      "citation_from_retrieval": 1.0,
+      "gold_citation_recall": 0.3333,
+      "groundedness": 1.0,
+      "required_numeric_value_recall": 0.5714,
+      "required_paper_citation_recall": 1.0,
+      "required_paper_retrieval_recall": 1.0,
+      "retrieval_hit": 1.0,
+      "retrieval_recall": 1.0
+    },
+    "agent_execution": {
+      "runs": 1,
+      "stop_reasons": {
+        "sufficient": 1
+      },
+      "synthesis_policies": {
+        "model_finish": 1
+      },
+      "mean_rounds": 1.0,
+      "mean_tool_calls": 4.0,
+      "mean_evidence_count": 22.0,
+      "mean_planner_tokens": 17098.0,
+      "tool_usage": {
+        "search_chunks": 4
+      },
+      "tool_errors": 0,
+      "named_paper_runs": 1,
+      "named_paper_full_coverage_rate": 1.0,
+      "mean_atomic_evidence_needs": 4.0,
+      "atomic_need_full_coverage_rate": 1.0
+    },
+    "generation_diagnostics": {
+      "runs": 1,
+      "statuses": {
+        "partial": 1
+      },
+      "reasons": {
+        "incomplete_answer": 1
+      }
+    },
+    "profiles": {
+      "cross_multihop": {
+        "questions": 1,
+        "errors": 0,
+        "mean_latency_seconds": 50.681,
+        "metrics": {
+          "all_required_papers_retrieved": 1.0,
+          "answer_correctness": 0.0,
+          "answer_relevance": 0.5,
+          "citation_from_retrieval": 1.0,
+          "gold_citation_recall": 0.3333,
+          "groundedness": 1.0,
+          "required_numeric_value_recall": 0.5714,
+          "required_paper_citation_recall": 1.0,
+          "required_paper_retrieval_recall": 1.0,
+          "retrieval_hit": 1.0,
+          "retrieval_recall": 1.0
+        },
+        "agent_execution": {
+          "runs": 1,
+          "stop_reasons": {
+            "sufficient": 1
+          },
+          "synthesis_policies": {
+            "model_finish": 1
+          },
+          "mean_rounds": 1.0,
+          "mean_tool_calls": 4.0,
+          "mean_evidence_count": 22.0,
+          "mean_planner_tokens": 17098.0,
+          "tool_usage": {
+            "search_chunks": 4
+          },
+          "tool_errors": 0,
+          "named_paper_runs": 1,
+          "named_paper_full_coverage_rate": 1.0,
+          "mean_atomic_evidence_needs": 4.0,
+          "atomic_need_full_coverage_rate": 1.0
+        },
+        "generation_diagnostics": {
+          "runs": 1,
+          "statuses": {
+            "partial": 1
+          },
+          "reasons": {
+            "incomplete_answer": 1
+          }
+        }
+      }
+    }
+  }
+}

@@ -33,10 +33,12 @@ class Config(BaseSettings):
     GENERATION_MODEL: str
     GENERATION_MODEL_PROVIDER: str
 
-    # Bounded Agentic RAG planner. Answer synthesis still uses GENERATION_MODEL.
+    # Bounded Agentic planner and independent answer verifier; synthesis uses GENERATION_MODEL.
     AGENT_MODEL: str = "gpt-5-mini"
     AGENT_REASONING_EFFORT: str = "minimal"
     AGENT_MAX_COMPLETION_TOKENS: int = 2000
+    AGENT_VERIFIER_REASONING_EFFORT: str = "minimal"
+    AGENT_VERIFIER_MAX_COMPLETION_TOKENS: int = 8192
     AGENT_MAX_ROUNDS: int = 3
     AGENT_MAX_TOOL_CALLS: int = 12
     AGENT_MAX_EVIDENCE_CHUNKS: int = 30

@@ -1,0 +1,92 @@
+{
+  "agentic": {
+    "questions": 1,
+    "errors": 0,
+    "mean_latency_seconds": 120.869,
+    "metrics": {
+      "all_required_papers_retrieved": 1.0,
+      "gold_citation_recall": 0.0,
+      "required_paper_citation_recall": 0.0,
+      "required_paper_retrieval_recall": 1.0,
+      "retrieval_hit": 1.0,
+      "retrieval_recall": 0.3333
+    },
+    "agent_execution": {
+      "runs": 1,
+      "stop_reasons": {
+        "token_budget": 1
+      },
+      "synthesis_policies": {
+        "evidence_fallback": 1
+      },
+      "mean_rounds": 3.0,
+      "mean_tool_calls": 3.0,
+      "mean_evidence_count": 7.0,
+      "mean_planner_tokens": 22912.0,
+      "tool_usage": {
+        "get_neighbors": 1,
+        "search_chunks": 2
+      },
+      "tool_errors": 0,
+      "named_paper_runs": 1,
+      "named_paper_full_coverage_rate": 1.0,
+      "mean_atomic_evidence_needs": 3.0,
+      "atomic_need_full_coverage_rate": 0.0
+    },
+    "generation_diagnostics": {
+      "runs": 1,
+      "statuses": {
+        "safe_abstention": 1
+      },
+      "reasons": {
+        "no_verified_claims": 1
+      }
+    },
+    "profiles": {
+      "single_synthesis": {
+        "questions": 1,
+        "errors": 0,
+        "mean_latency_seconds": 120.869,
+        "metrics": {
+          "all_required_papers_retrieved": 1.0,
+          "gold_citation_recall": 0.0,
+          "required_paper_citation_recall": 0.0,
+          "required_paper_retrieval_recall": 1.0,
+          "retrieval_hit": 1.0,
+          "retrieval_recall": 0.3333
+        },
+        "agent_execution": {
+          "runs": 1,
+          "stop_reasons": {
+            "token_budget": 1
+          },
+          "synthesis_policies": {
+            "evidence_fallback": 1
+          },
+          "mean_rounds": 3.0,
+          "mean_tool_calls": 3.0,
+          "mean_evidence_count": 7.0,
+          "mean_planner_tokens": 22912.0,
+          "tool_usage": {
+            "get_neighbors": 1,
+            "search_chunks": 2
+          },
+          "tool_errors": 0,
+          "named_paper_runs": 1,
+          "named_paper_full_coverage_rate": 1.0,
+          "mean_atomic_evidence_needs": 3.0,
+          "atomic_need_full_coverage_rate": 0.0
+        },
+        "generation_diagnostics": {
+          "runs": 1,
+          "statuses": {
+            "safe_abstention": 1
+          },
+          "reasons": {
+            "no_verified_claims": 1
+          }
+        }
+      }
+    }
+  }
+}

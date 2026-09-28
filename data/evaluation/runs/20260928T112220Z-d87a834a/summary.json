@@ -1,0 +1,96 @@
+{
+  "agentic": {
+    "questions": 1,
+    "errors": 0,
+    "mean_latency_seconds": 57.133,
+    "metrics": {
+      "all_required_papers_retrieved": 1.0,
+      "answer_correctness": 0.0,
+      "answer_relevance": 0.5,
+      "gold_citation_recall": 0.0,
+      "groundedness": 1.0,
+      "required_paper_citation_recall": 0.0,
+      "required_paper_retrieval_recall": 1.0,
+      "retrieval_hit": 1.0,
+      "retrieval_recall": 1.0
+    },
+    "agent_execution": {
+      "runs": 1,
+      "stop_reasons": {
+        "sufficient": 1
+      },
+      "synthesis_policies": {
+        "model_finish": 1
+      },
+      "mean_rounds": 1.0,
+      "mean_tool_calls": 3.0,
+      "mean_evidence_count": 14.0,
+      "mean_planner_tokens": 13546.0,
+      "tool_usage": {
+        "search_chunks": 3
+      },
+      "tool_errors": 0,
+      "named_paper_runs": 1,
+      "named_paper_full_coverage_rate": 1.0,
+      "mean_atomic_evidence_needs": 3.0,
+      "atomic_need_full_coverage_rate": 1.0
+    },
+    "generation_diagnostics": {
+      "runs": 1,
+      "statuses": {
+        "safe_abstention": 1
+      },
+      "reasons": {
+        "no_verified_claims": 1
+      }
+    },
+    "profiles": {
+      "single_synthesis": {
+        "questions": 1,
+        "errors": 0,
+        "mean_latency_seconds": 57.133,
+        "metrics": {
+          "all_required_papers_retrieved": 1.0,
+          "answer_correctness": 0.0,
+          "answer_relevance": 0.5,
+          "gold_citation_recall": 0.0,
+          "groundedness": 1.0,
+          "required_paper_citation_recall": 0.0,
+          "required_paper_retrieval_recall": 1.0,
+          "retrieval_hit": 1.0,
+          "retrieval_recall": 1.0
+        },
+        "agent_execution": {
+          "runs": 1,
+          "stop_reasons": {
+            "sufficient": 1
+          },
+          "synthesis_policies": {
+            "model_finish": 1
+          },
+          "mean_rounds": 1.0,
+          "mean_tool_calls": 3.0,
+          "mean_evidence_count": 14.0,
+          "mean_planner_tokens": 13546.0,
+          "tool_usage": {
+            "search_chunks": 3
+          },
+          "tool_errors": 0,
+          "named_paper_runs": 1,
+          "named_paper_full_coverage_rate": 1.0,
+          "mean_atomic_evidence_needs": 3.0,
+          "atomic_need_full_coverage_rate": 1.0
+        },
+        "generation_diagnostics": {
+          "runs": 1,
+          "statuses": {
+            "safe_abstention": 1
+          },
+          "reasons": {
+            "no_verified_claims": 1
+          }
+        }
+      }
+    }
+  }
+}

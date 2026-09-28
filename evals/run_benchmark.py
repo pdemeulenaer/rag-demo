@@ -794,6 +794,8 @@ def run(args) -> Path:
             "model": config.AGENT_MODEL,
             "reasoning_effort": config.AGENT_REASONING_EFFORT,
             "max_completion_tokens": config.AGENT_MAX_COMPLETION_TOKENS,
+            "verifier_reasoning_effort": config.AGENT_VERIFIER_REASONING_EFFORT,
+            "verifier_max_completion_tokens": config.AGENT_VERIFIER_MAX_COMPLETION_TOKENS,
             "max_rounds": config.AGENT_MAX_ROUNDS,
             "max_tool_calls": config.AGENT_MAX_TOOL_CALLS,
             "max_evidence_chunks": config.AGENT_MAX_EVIDENCE_CHUNKS,

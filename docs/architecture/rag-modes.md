@@ -115,6 +115,9 @@ capabilities in a constrained LangGraph tool loop plus Agentic-specific reviewed
 1. call `define_requirements` once before retrieval, listing the facts the question requests;
 2. freeze these descriptions with graph-assigned IDs `r1`, `r2`, etc.; retrieval calls reuse
    these IDs and cannot add requirements through searches or reformulations;
+   for multi-part questions, the graph runs one focused baseline hybrid search per requirement
+   before allowing the planner to spend calls on expansions or repeated searches; each actual
+   query is retained in action diagnostics;
 3. use PostgreSQL paper discovery and scoped Qdrant dense, sparse or hybrid chunk search;
 4. expand an exact section or neighbouring chunks when initial evidence is incomplete;
 5. assess evidence sufficiency and either stop, reformulate or perform another retrieval;
@@ -174,7 +177,10 @@ evaluation remain necessary.
 
 This adds one planning call for requirement definition. Synthesis uses two calls normally
 (draft + review), at most four with repair (draft + review + repair + review), with provider
-retries disabled. Each call uses a 60-second timeout and `GENERATION_MODEL_MAX_TOKENS`.
+retries disabled. Each call uses a 60-second timeout. The independent GPT-5 verifier uses
+`AGENT_VERIFIER_REASONING_EFFORT` and `AGENT_VERIFIER_MAX_COMPLETION_TOKENS`; draft and repair
+continue using the generation-model token limit. Reasoning tokens count against the provider's
+completion cap, so the verifier reserves a separate budget for its structured JSON response.
 These calls are separate from the Agentic retrieval budgets; planner-token/elapsed diagnostics
 describe retrieval, while benchmark latency includes synthesis. There is no fallback to another
 RAG mode, no re-indexing requirement and no need to regenerate evaluation questions.

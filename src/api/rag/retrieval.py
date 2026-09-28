@@ -17,7 +17,7 @@ from src.api.rag.utils.utils import prompt_template_config
 from src.api.rag.summarize import summarize_text
 from src.api.api.models import Source
 from src.api.rag.answer_contracts import RAGClaim, RAGGenerationResponse
-from src.api.rag.modes.agentic.answering import generate_agentic_answer
+from src.api.rag.modes.agentic.answering import AgenticStructuredOutputError, generate_agentic_answer
 from src.api.rag.search import search_points
 from src.api.rag.contracts import FederatedRetrievalScope, RetrievalScope
 from src.api.rag.tools.chunk_search import search_chunks
@@ -667,15 +667,59 @@ def _agentic_structured_request(messages, response_model, stage, generation_mode
                      model=model, input=messages) as span:
         if is_openai_model(model):
             client = openai_client().with_options(timeout=60, max_retries=0)
-            raw = client.chat.completions.create(
-                model=model, messages=messages,
-                max_completion_tokens=config.GENERATION_MODEL_MAX_TOKENS,
-                response_format={"type": "json_schema", "json_schema": {
+            verifier = stage == "verify"
+            reasoning_model = str(model).casefold().startswith(("gpt-5", "o1", "o3", "o4"))
+            completion_limit = (
+                config.AGENT_VERIFIER_MAX_COMPLETION_TOKENS if verifier
+                else config.GENERATION_MODEL_MAX_TOKENS
+            )
+            request_options = {
+                "model": model,
+                "messages": messages,
+                "max_completion_tokens": completion_limit,
+                "response_format": {"type": "json_schema", "json_schema": {
                     "name": response_model.__name__, "strict": True,
                     "schema": response_model.model_json_schema(),
                 }},
+            }
+            if verifier and reasoning_model and config.AGENT_VERIFIER_REASONING_EFFORT not in ("", "none"):
+                request_options["reasoning_effort"] = config.AGENT_VERIFIER_REASONING_EFFORT
+            raw = client.chat.completions.create(
+                **request_options,
             )
-            result = response_model.model_validate_json(raw.choices[0].message.content)
+            choice = raw.choices[0]
+            message = choice.message
+            content = message.content or ""
+            try:
+                result = response_model.model_validate_json(content)
+            except ValidationError as error:
+                issues = error.errors(include_input=False)
+                safe_diagnostics = {
+                    "validation_error_codes": sorted({
+                        str(issue.get("type", "invalid")) for issue in issues
+                    })[:10],
+                    "validation_error_locations": sorted({
+                        ".".join(str(part) for part in issue.get("loc", ()))[:128]
+                        for issue in issues
+                    })[:10],
+                    "provider_finish_reason": str(choice.finish_reason or "unknown")[:32],
+                    "provider_completion_tokens": getattr(raw.usage, "completion_tokens", None),
+                    "provider_content_chars": len(content),
+                    "provider_refusal": bool(getattr(message, "refusal", None)),
+                }
+                if span is not None:
+                    usage = raw.usage
+                    span.update(
+                        output={"structured_output_valid": False,
+                                "finish_reason": safe_diagnostics["provider_finish_reason"],
+                                "refusal": safe_diagnostics["provider_refusal"]},
+                        usage_details={
+                            "input_tokens": getattr(usage, "prompt_tokens", 0),
+                            "output_tokens": getattr(usage, "completion_tokens", 0),
+                            "total_tokens": getattr(usage, "total_tokens", 0),
+                        },
+                    )
+                raise AgenticStructuredOutputError(safe_diagnostics) from error
         else:
             client = instructor.from_groq(
                 Groq(api_key=config.GROQ_API_KEY, timeout=60, max_retries=0),
@@ -683,7 +727,10 @@ def _agentic_structured_request(messages, response_model, stage, generation_mode
             )
             result, raw = client.chat.completions.create_with_completion(
                 model=model, messages=messages, response_model=response_model,
-                temperature=0, max_tokens=config.GENERATION_MODEL_MAX_TOKENS,
+                temperature=0, max_tokens=(
+                    config.AGENT_VERIFIER_MAX_COMPLETION_TOKENS
+                    if stage == "verify" else config.GENERATION_MODEL_MAX_TOKENS
+                ),
                 max_retries=0,
             )
         if span is not None:
@@ -864,8 +911,11 @@ def rag_pipeline(question, qdrant_client, session_id, generation_model=None, top
             reviewed = generate_agentic_answer(
                 question=question, requirements=agent_run.requirements,
                 contexts=retrieved_context, prompt=prompt,
+                evidence_by_requirement=agent_run.evidence_by_requirement,
                 request=lambda messages, schema, stage: _agentic_structured_request(
-                    messages, schema, stage, generation_model),
+                    messages, schema, stage,
+                    config.AGENT_MODEL if stage == "verify" else generation_model),
+                reviewer_model=config.AGENT_MODEL,
             )
             answer = reviewed.response
             generation_diagnostics = reviewed.diagnostics

@@ -166,6 +166,46 @@ def test_openai_generation_uses_model_schema_and_retries_invalid_citations(runti
     assert "used_chunks_rationale" not in schema["schema"]["properties"]
 
 
+def test_agentic_malformed_openai_json_exposes_safe_finish_diagnostics(runtime, monkeypatch):
+    retrieval, _ = runtime
+    usage = SimpleNamespace(prompt_tokens=25, completion_tokens=4096, total_tokens=4121)
+    choice = SimpleNamespace(
+        message=SimpleNamespace(content='{"claims":', refusal=None),
+        finish_reason="length",
+    )
+    raw = SimpleNamespace(usage=usage, choices=[choice])
+    client = Mock()
+    client.with_options.return_value = client
+    client.chat.completions.create.return_value = raw
+    monkeypatch.setattr(retrieval, "openai_client", Mock(return_value=client))
+    monkeypatch.setattr(retrieval, "is_openai_model", lambda model: True)
+    span = Mock()
+
+    class SpanContext:
+        def __enter__(self):
+            return span
+
+        def __exit__(self, *_args):
+            return False
+
+    monkeypatch.setattr(retrieval, "observation", lambda **_kwargs: SpanContext())
+    with pytest.raises(retrieval.AgenticStructuredOutputError) as caught:
+        retrieval._agentic_structured_request(
+            [{"role": "user", "content": "private prompt"}],
+            retrieval.RAGGenerationResponse, "verify", "gpt-5-mini",
+        )
+
+    details = caught.value.safe_diagnostics
+    assert details["validation_error_codes"] == ["json_invalid"]
+    assert details["provider_finish_reason"] == "length"
+    assert details["provider_completion_tokens"] == 4096
+    assert details["provider_content_chars"] == len('{"claims":')
+    assert details["provider_refusal"] is False
+    assert "private prompt" not in str(details)
+    span.update.assert_called_once()
+    assert span.update.call_args.kwargs["output"]["structured_output_valid"] is False
+
+
 def test_openai_generation_retries_missing_required_paper_citation(runtime, monkeypatch):
     retrieval, _ = runtime
     usage = SimpleNamespace(prompt_tokens=10, completion_tokens=2, total_tokens=12)
@@ -253,7 +293,8 @@ def test_agentic_partial_answer_survives_missing_named_paper_and_exposes_diagnos
         SimpleNamespace(build_id="build-a"), SimpleNamespace(build_id="build-b"),
     ]))
     monkeypatch.setattr(retrieval, "build_prompt", Mock(return_value=[]))
-    review = AnswerReview(claims=[{"claim_index": 0, "supported": True, "feedback": ""}],
+    review = AnswerReview(claims=[{"claim_index": 0, "supported": True, "feedback": "",
+        "evidence_quotes": [{"context_id": "a", "quote": "The mass is 2 solar masses."}]}],
         requirements=[
             {"requirement_id": "r1", "status": "satisfied", "claim_indices": [0], "feedback": ""},
             {"requirement_id": "r2", "status": "missing", "claim_indices": [],
@@ -292,14 +333,15 @@ def test_agentic_openai_adapter_is_schema_strict_and_has_no_hidden_retries(runti
         choices=[SimpleNamespace(message=SimpleNamespace(
             content='{"claims":[],"requirements":[],"unplanned_requests":[]}'))])
     monkeypatch.setattr(retrieval, "openai_client", Mock(return_value=client))
-    result = retrieval._agentic_structured_request([], AnswerReview, "verify", "gpt-4.1-nano")
+    result = retrieval._agentic_structured_request([], AnswerReview, "verify", "gpt-5-mini")
 
     assert result.claims == []
     client.with_options.assert_called_once_with(timeout=60, max_retries=0)
     kwargs = client.chat.completions.create.call_args.kwargs
     assert kwargs["response_format"]["json_schema"]["strict"] is True
     assert kwargs["response_format"]["json_schema"]["schema"] == AnswerReview.model_json_schema()
-    assert kwargs["max_completion_tokens"] == retrieval.config.GENERATION_MODEL_MAX_TOKENS
+    assert kwargs["max_completion_tokens"] == retrieval.config.AGENT_VERIFIER_MAX_COMPLETION_TOKENS
+    assert kwargs["reasoning_effort"] == retrieval.config.AGENT_VERIFIER_REASONING_EFFORT
     assert client.chat.completions.create.call_count == 1
 
 

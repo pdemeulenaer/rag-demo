@@ -18,9 +18,11 @@ Copy `.env.sample` to `.env` and populate it:
 | `EMBEDDING_MODEL_PROVIDER` | Embedding provider, e.g. `openai` |
 | `GENERATION_MODEL` | Generation model name, e.g. `gpt-4.1` |
 | `GENERATION_MODEL_PROVIDER` | Generation provider, e.g. `openai` |
-| `AGENT_MODEL` | OpenAI model used for Agentic planning/sufficiency; final answers use `GENERATION_MODEL` |
+| `AGENT_MODEL` | OpenAI model used for Agentic planning, sufficiency, and independent evidence review; answer drafts use `GENERATION_MODEL` |
 | `AGENT_REASONING_EFFORT` | Reasoning effort for supported Agentic planner models (`minimal` by default) |
 | `AGENT_MAX_COMPLETION_TOKENS` | Per-call Agentic planner output limit |
+| `AGENT_VERIFIER_REASONING_EFFORT` | Reasoning effort for the independent structured-answer verifier (`minimal` by default) |
+| `AGENT_VERIFIER_MAX_COMPLETION_TOKENS` | Verifier output limit, including any hidden reasoning tokens (`8192` by default) |
 | `AGENT_MAX_ROUNDS` | Retrieval-round limit; application maximum is three |
 | `AGENT_MAX_TOOL_CALLS` | Total read-only tool-call limit per request |
 | `AGENT_MAX_EVIDENCE_CHUNKS` | Maximum distinct chunks accumulated by the agent |

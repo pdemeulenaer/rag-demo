@@ -149,11 +149,8 @@ def test_agent_cannot_finish_with_an_atomic_need_that_has_no_evidence(monkeypatc
     monkeypatch.setattr(
         "src.api.rag.modes.agentic.tools.scoped_chunk_search", search_tool,
     )
-    model = FakeToolCallingModel([
-        search("mass", "cluster mass", "r1"),
-        search("radius", "cluster radius", "r2"),
-        finish(),
-    ], requirements=("Report the mass.", "Report the radius."))
+    model = FakeToolCallingModel(
+        [finish()], requirements=("Report the mass.", "Report the radius."))
 
     result = run_agentic(
         "Report the mass and radius.", client=Mock(), catalogue=Mock(), scope=scope(),
@@ -329,14 +326,30 @@ def test_retrieval_before_requirement_definition_is_rejected(monkeypatch):
     assert result.requirements == []
 
 
-def test_unsearched_requirement_remains_visible_without_blocking_partial_synthesis(monkeypatch):
+def test_multi_need_question_runs_a_baseline_search_for_every_requirement(monkeypatch):
     result = run(FakeToolCallingModel(
         [search(), finish()], requirements=("Report the mass.", "Report the age.")),
         monkeypatch)
     assert [row.id for row in result.requirements] == ["r1", "r2"]
+    assert [row.need_id for row in result.execution.actions[:2]] == ["r1", "r2"]
+    assert [row.query for row in result.execution.actions[:2]] == [
+        "Report the mass.", "Report the age.",
+    ]
+    assert result.execution.missing_evidence_need_ids == []
+    assert result.should_synthesize is True
+    assert result.execution.synthesis_policy == "model_finish"
+
+
+def test_coverage_first_stops_safely_when_tool_budget_cannot_cover_all_needs(monkeypatch):
+    result = run(FakeToolCallingModel(
+        [finish()], requirements=("Report the mass.", "Report the age.")),
+        monkeypatch, budget=AgentBudget(max_tool_calls=1))
+
+    assert result.execution.stop_reason == StopReason.TOOL_CALL_BUDGET
+    assert result.execution.tool_calls == 1
+    assert [row.need_id for row in result.execution.actions] == ["r1"]
     assert result.execution.missing_evidence_need_ids == ["r2"]
     assert result.should_synthesize is True
-    assert result.execution.synthesis_policy == "evidence_fallback"
 
 
 def test_search_cannot_create_new_answer_requirement(monkeypatch):

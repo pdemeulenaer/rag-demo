@@ -225,9 +225,10 @@ def define_requirements(
     descriptions: Annotated[list[Annotated[str, Field(min_length=1, max_length=2000)]],
                       Field(min_length=1, max_length=20)],
 ) -> str:
-    """Declare each distinct requested fact once before searching, including units/qualifiers.
+    """Declare one need per independently answerable question part or requested metric.
 
     The graph assigns immutable r1, r2, ... IDs. Repeated searches reuse those IDs;
-    retrieval actions cannot add answer requirements.
+    retrieval actions cannot add answer requirements. Keep requested comparison/range
+    endpoints together and include their units/qualifiers; do not create metadata-only needs.
     """
     return "Requirements are registered by the graph guard."

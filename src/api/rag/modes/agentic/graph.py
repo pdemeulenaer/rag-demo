@@ -30,10 +30,12 @@ SYSTEM_PROMPT = """You are a retrieval agent for a scientific-paper RAG system.
 Use the supplied read-only tools to gather answer evidence from the approved corpus.
 
 Rules:
-- Your FIRST response must call define_requirements alone. List every distinct requested
-  fact in plain language, including numerical values, units, range endpoints, uncertainties,
-  assumptions and comparisons requested by the user. Do not supply answers or invent facts.
-  Avoid duplicate requirements for the same fact. Include all parts of the original question.
+- Your FIRST response must call define_requirements alone. Create one requirement per
+  independently answerable subquestion or requested metric. Keep both ends of a range or
+  comparison together in one requirement; do not create separate requirements for its
+  endpoints, units, paper identity, or other context already supplied by the question.
+  Preserve all requested values, units, uncertainties, assumptions, and comparisons within
+  the relevant requirement. Avoid duplicates and include every actual part of the question.
 - The graph assigns stable r1, r2, ... IDs. Use only these IDs as need_id on retrieval calls.
   Reformulations, metadata lookups and expansion reuse an existing ID. The list cannot grow
   with tool history. A chunk found for any need may support any other need.
@@ -102,6 +104,14 @@ def _missing_evidence_needs(state: AgentState) -> list[str]:
                   if not evidence_ids)
 
 
+def _unsearched_requirements(state: AgentState, requirements=None):
+    """Requirements with no initial chunk-search attempt yet."""
+    requirements = requirements if requirements is not None else state.get("requirements", [])
+    searched = {row.need_id for row in state.get("actions", [])
+                if row.tool == "search_chunks"}
+    return [row for row in requirements if row.id not in searched]
+
+
 def _terminate(state: AgentState, reason: StopReason, *, summary: str | None = None) -> dict:
     """Stop retrieval, but preserve already collected evidence for grounded synthesis."""
     use_evidence = (
@@ -165,6 +175,69 @@ def build_agent_graph(*, model, retrieval_tools: list, budget: AgentBudget):
         [define_requirements], tool_choice="define_requirements", parallel_tool_calls=False)
     bound_model = model.bind_tools([define_requirements, *retrieval_tools, *TERMINAL_TOOLS])
 
+    def schedule_requirement_searches(state: AgentState, requirements, *, defer_calls=(),
+                                      prefix_messages=()):
+        """Guarantee one focused baseline search for every decomposed need first."""
+        pending = _unsearched_requirements(state, requirements)
+        if not pending:
+            return None
+        if monotonic() - state["started_at"] >= budget.max_elapsed_seconds:
+            return {**_terminate(state, StopReason.TIME_BUDGET),
+                    "messages": list(prefix_messages)}
+        if state.get("planner_tokens", 0) >= budget.max_planner_tokens:
+            return {**_terminate(state, StopReason.TOKEN_BUDGET),
+                    "messages": list(prefix_messages)}
+        if state.get("rounds", 0) >= budget.max_rounds:
+            return {**_terminate(state, StopReason.MAX_ROUNDS),
+                    "messages": list(prefix_messages)}
+        if len(state.get("evidence", [])) >= budget.max_evidence_chunks:
+            return {**_terminate(state, StopReason.EVIDENCE_BUDGET),
+                    "messages": list(prefix_messages)}
+
+        available = budget.max_tool_calls - state.get("tool_calls", 0)
+        if available <= 0:
+            return {**_terminate(state, StopReason.TOOL_CALL_BUDGET),
+                    "messages": list(prefix_messages)}
+        selected = pending[:available]
+        generated = []
+        new_fingerprints = []
+        existing = set(state.get("fingerprints", []))
+        for index, requirement in enumerate(selected):
+            args = {
+                "need_id": requirement.id,
+                "query": requirement.description[:500],
+                "retrieval_mode": "hybrid",
+                "build_ids": [],
+                "paper_ids": [],
+                "limit": 8,
+            }
+            fingerprint = action_fingerprint("search_chunks", args)
+            if fingerprint not in existing:
+                existing.add(fingerprint)
+                new_fingerprints.append(fingerprint)
+            generated.append({
+                "name": "search_chunks",
+                "args": args,
+                "id": f"coverage_{requirement.id}_{state.get('tool_calls', 0) + index + 1}",
+                "type": "tool_call",
+            })
+        if not generated:
+            return {**_terminate(state, StopReason.REPEATED_ACTION),
+                    "messages": list(prefix_messages)}
+
+        deferred = [ToolMessage(
+            name=call["name"], tool_call_id=call["id"],
+            content="Deferred until each atomic evidence need has received its initial search.",
+        ) for call in defer_calls]
+        scheduled = AIMessage(content="", tool_calls=generated)
+        logger.info("Agentic coverage-first search scheduled %d of %d pending needs",
+                    len(generated), len(pending))
+        return {
+            "messages": [*prefix_messages, *deferred, scheduled],
+            "fingerprints": [*state.get("fingerprints", []), *new_fingerprints],
+            "plan_summary": "Running a focused baseline search for each atomic evidence need.",
+        }
+
     def call_agent(state: AgentState) -> dict:
         try:
             active_model = bound_model if state.get("requirements") else definition_model
@@ -191,6 +264,14 @@ def build_agent_graph(*, model, retrieval_tools: list, budget: AgentBudget):
             return {}
         message = state["messages"][-1]
         calls = message.tool_calls if isinstance(message, AIMessage) else []
+        if state.get("requirements"):
+            pending_searches = _unsearched_requirements(state)
+            if pending_searches and len(state.get("requirements", [])) > 1:
+                update = schedule_requirement_searches(
+                    state, state["requirements"], defer_calls=calls,
+                )
+                if update is not None:
+                    return update
         if not calls:
             return _terminate(
                 state, StopReason.PLANNER_FAILURE,
@@ -211,8 +292,10 @@ def build_agent_graph(*, model, retrieval_tools: list, budget: AgentBudget):
                 seen_descriptions = set()
                 for description in args.descriptions:
                     normalized = " ".join(description.casefold().split())
-                    if not normalized or normalized in seen_descriptions:
-                        continue
+                    if not normalized:
+                        raise ValueError("empty_requirement")
+                    if normalized in seen_descriptions:
+                        raise ValueError("duplicate_requirements")
                     seen_descriptions.add(normalized)
                     requirements.append(AnswerRequirement(
                         id=f"r{len(requirements) + 1}", description=description.strip()))
@@ -234,11 +317,20 @@ def build_agent_graph(*, model, retrieval_tools: list, budget: AgentBudget):
                     state, StopReason.PLANNER_FAILURE,
                     summary="Question requirements were invalid (" + code + ").",
                 )
-            return {"requirements": requirements, "messages": [ToolMessage(
+            definition_reply = ToolMessage(
                 name="define_requirements", tool_call_id=definitions[0]["id"],
                 content="Use these fixed requirement IDs for all searches: " + str(
                     [row.model_dump() for row in requirements]),
-            )]}
+            )
+            if len(requirements) > 1:
+                seeded_state = {**state, "requirements": requirements}
+                update = schedule_requirement_searches(
+                    seeded_state, requirements, prefix_messages=[definition_reply],
+                )
+                if update is not None:
+                    update["requirements"] = requirements
+                    return update
+            return {"requirements": requirements, "messages": [definition_reply]}
         if not state.get("requirements"):
             return _terminate(state, StopReason.PLANNER_FAILURE,
                               summary="Question requirements must be defined before retrieval.")
@@ -402,6 +494,17 @@ def build_agent_graph(*, model, retrieval_tools: list, budget: AgentBudget):
             update.update(_terminate(update, StopReason.TOOL_FAILURE))
         elif next_no_progress >= 2:
             update.update(_terminate(update, StopReason.NO_PROGRESS))
+        elif _unsearched_requirements(update) and len(update.get("requirements", [])) > 1:
+            if update["rounds"] >= budget.max_rounds:
+                update.update(_terminate(update, StopReason.MAX_ROUNDS))
+            elif update["tool_calls"] >= budget.max_tool_calls:
+                update.update(_terminate(update, StopReason.TOOL_CALL_BUDGET))
+            elif update.get("planner_tokens", 0) >= budget.max_planner_tokens:
+                update.update(_terminate(update, StopReason.TOKEN_BUDGET))
+            elif len(update.get("evidence", [])) >= budget.max_evidence_chunks:
+                update.update(_terminate(update, StopReason.EVIDENCE_BUDGET))
+            elif monotonic() - state["started_at"] >= budget.max_elapsed_seconds:
+                update.update(_terminate(update, StopReason.TIME_BUDGET))
         elif monotonic() - state["started_at"] >= budget.max_elapsed_seconds:
             update.update(_terminate(update, StopReason.TIME_BUDGET))
         return update
