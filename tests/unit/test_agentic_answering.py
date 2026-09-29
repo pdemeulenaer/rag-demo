@@ -31,6 +31,11 @@ def draft(*claims):
 
 def review(supported=(True,), statuses=("satisfied",), indices=None, unplanned=()):
     indices = indices or [[0] for _ in statuses]
+    original_status = ("satisfied" if all(status == "satisfied" for status in statuses)
+                       else "partial" if any(status != "missing" for status in statuses)
+                       else "missing")
+    original_indices = sorted({index for status, row in zip(statuses, indices)
+                               if status != "missing" for index in row})
     return AnswerReview(
         claims=[{"claim_index": i, "supported": value,
                  "feedback": "" if value else "The cited text does not support this value."}
@@ -38,7 +43,11 @@ def review(supported=(True,), statuses=("satisfied",), indices=None, unplanned=(
         requirements=[{"requirement_id": f"r{i+1}", "status": status,
                        "claim_indices": [] if status == "missing" else indices[i],
                        "feedback": "" if status == "satisfied" else "The numeric value and units are missing."}
-                      for i, status in enumerate(statuses)],
+                      for i, status in enumerate(statuses)] + [{
+                          "requirement_id": "q_original", "status": original_status,
+                          "claim_indices": original_indices,
+                          "feedback": "" if original_status == "satisfied" else "A detail is missing.",
+                      }],
         unplanned_requests=list(unplanned),
     )
 
@@ -46,7 +55,7 @@ def review(supported=(True,), statuses=("satisfied",), indices=None, unplanned=(
 def run(responses, descriptions=("Report the inflow.",), evidence_by_requirement=None):
     request = Mock(side_effect=responses)
     result = generate_agentic_answer(
-        question="Report the inflow and its rate.",
+        question=" ".join(descriptions),
         requirements=[AnswerRequirement(id=f"r{i+1}", description=value)
                       for i, value in enumerate(descriptions)],
         contexts=CONTEXTS, prompt=[{"role": "user", "content": "Scoped evidence"}],

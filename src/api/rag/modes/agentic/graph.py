@@ -16,7 +16,7 @@ from src.api.rag.modes.agentic.contracts import (
     AnswerRequirement,
     StopReason,
 )
-from src.api.rag.modes.agentic.policies import action_fingerprint
+from src.api.rag.modes.agentic.policies import action_fingerprint, scoped_requirement_query
 from src.api.rag.modes.agentic.state import AgentState
 from src.api.rag.modes.agentic.tools import TERMINAL_TOOLS, define_requirements
 
@@ -203,11 +203,14 @@ def build_agent_graph(*, model, retrieval_tools: list, budget: AgentBudget):
         new_fingerprints = []
         existing = set(state.get("fingerprints", []))
         for index, requirement in enumerate(selected):
+            query, build_ids = scoped_requirement_query(
+                requirement.description, state.get("required_build_ids", []),
+            )
             args = {
                 "need_id": requirement.id,
-                "query": requirement.description[:500],
+                "query": query,
                 "retrieval_mode": "hybrid",
-                "build_ids": [],
+                "build_ids": build_ids,
                 "paper_ids": [],
                 "limit": 8,
             }

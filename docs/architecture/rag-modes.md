@@ -163,6 +163,11 @@ repeatedly expanding the same answer. This is model guidance, not a guaranteed r
   An invalid claim is removed without discarding other valid claims.
 - **Claim support:** a model reviews each claim against only its own cited excerpts and source
   metadata. It checks attribution, values, units, range endpoints and qualifications.
+  The reviewer sees a read-only OCR-normalized view of retrieved chunk text; contiguous
+  quotes are matched back to the original stored chunk after equivalent formatting
+  normalization. This does not rerun PDF extraction or alter Qdrant points. Exact
+  fraction-to-percentage conversions are allowed only with cited numeric evidence.
+  Internal chunk UUIDs stay in citation fields, not answer prose.
 - **Answer completeness:** the review checks the actual answer against the frozen requirements
   and original question. A `need_id` label or a value present only in evidence is not an answer.
 

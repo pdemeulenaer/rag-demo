@@ -42,6 +42,7 @@ from src.api.observability.tracing import (
     trace_attributes,
 )
 from src.api.rag.contracts import RetrievalScope, ScopedBuild
+from src.api.rag.question_coverage import has_explicit_comparison, requests_explicit_comparison
 
 
 class BenchmarkError(ValueError):
@@ -99,13 +100,26 @@ COUNT_METRICS = {
 _NUMBER_RE = re.compile(
     r"(?<![\w.])[+-]?(?:\d{1,3}(?:,\d{3})+|\d+)(?:\.\d+)?(?:[eE][+-]?\d+)?"
 )
+_POWER10_RE = re.compile(
+    r"(?<![\w.])(?:(?P<c>\d+(?:[.,]\d+)?)\s*[×x]\s*)?10\s*\^\s*\{?"
+    r"\s*(?P<e>[+-]?\d+(?:\.\d+)?)\s*\}?"
+)
+_SUPER_POWER_RE = re.compile(r"(?<!\w)10([⁺⁻⁰¹²³⁴⁵⁶⁷⁸⁹]+)")
+_SUPERSCRIPTS = str.maketrans("⁺⁻⁰¹²³⁴⁵⁶⁷⁸⁹", "+-0123456789")
 
 
 def _decimal_numbers(text: str) -> set[Decimal]:
-    return {
-        Decimal(token.replace(",", ""))
-        for token in _NUMBER_RE.findall(str(text).replace("−", "-"))
-    }
+    value = _SUPER_POWER_RE.sub(lambda match: "10^" + match.group(1).translate(_SUPERSCRIPTS),
+                                 str(text))
+    value = value.translate(_SUPERSCRIPTS).replace("−", "-")
+    numbers = {Decimal(token.replace(",", "")) for token in _NUMBER_RE.findall(value)}
+    for match in _POWER10_RE.finditer(value):
+        exponent = Decimal(match.group("e"))
+        numbers.add(exponent)
+        if exponent == int(exponent) and -30 <= exponent <= 30:
+            coefficient = Decimal((match.group("c") or "1").replace(",", "."))
+            numbers.add(coefficient * (Decimal(10) ** int(exponent)))
+    return numbers
 
 
 def _missing_required_numeric_values(question: dict, answer: str) -> list[str]:
@@ -361,6 +375,15 @@ def apply_judge_safeguards(question: dict, metrics: dict, cited_ids: list[str],
             "to": adjusted["correctness"],
             "reason": "missing_required_numeric_values",
             "missing_values": missing_numeric_values,
+        })
+    if (answerable and not explicit_abstention
+            and requests_explicit_comparison(question.get("question", ""))
+            and not has_explicit_comparison(answer)):
+        previous = adjusted.get("correctness")
+        adjusted["correctness"] = min(float(previous), 0.5) if previous is not None else 0.5
+        adjustments.append({
+            "metric": "correctness", "from": previous, "to": adjusted["correctness"],
+            "reason": "missing_explicit_comparison",
         })
     incomplete_required_coverage = metrics.get("all_required_papers_retrieved") == 0.0
     # A response with citations makes substantive use of retrieved evidence. If a
