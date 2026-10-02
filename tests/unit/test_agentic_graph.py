@@ -319,6 +319,45 @@ def test_action_fingerprint_ignores_observability_need_id():
     assert first == renamed
 
 
+def test_compound_named_paper_requirements_use_qdrant_build_filter(monkeypatch):
+    title = "A Detailed Scientific Paper About Cluster Masses"
+    required = SimpleNamespace(build_id="build-1", paper_id="paper-1", title=title)
+    monkeypatch.setattr(
+        "src.api.rag.modes.agentic.executor.resolve_quoted_papers",
+        Mock(return_value=[required]),
+    )
+    tool = Mock(return_value=[chunk()])
+    monkeypatch.setattr(
+        "src.api.rag.modes.agentic.tools.scoped_chunk_search", tool,
+    )
+    corpus = RetrievalScope("papers", ("build-1", "build-2"), builds=(
+        ScopedBuild("build-1", "paper-1"), ScopedBuild("build-2", "paper-2"),
+    ))
+    descriptions = (
+        f"Report cluster mass as reported in {title} "
+        "(paper_id=paper-1; required_build_id=build-1).",
+        f"Report cluster radius as reported in {title} "
+        "(paper_id=paper-1; required_build_id=build-1).",
+    )
+    result = run_agentic(
+        f'Compare mass and radius in "{title}".',
+        client=Mock(), catalogue=Mock(), scope=corpus,
+        embed=Mock(return_value=[1.0]),
+        model=FakeToolCallingModel([finish()], requirements=descriptions),
+        budget=AgentBudget(),
+    )
+    assert result.execution.stop_reason == StopReason.SUFFICIENT
+    assert result.execution.tool_calls == 2
+    assert tool.call_count == 2
+    for call_args in tool.call_args_list:
+        assert call_args.args[1].build_ids == ("build-1",)
+        assert title not in call_args.kwargs["query"]
+        assert "required_build_id" not in call_args.kwargs["query"]
+        assert "paper_id" not in call_args.kwargs["query"]
+    assert "cluster mass" in result.execution.actions[0].query
+    assert "cluster radius" in result.execution.actions[1].query
+
+
 def test_retrieval_before_requirement_definition_is_rejected(monkeypatch):
     result = run(FakeToolCallingModel([search()], define=False), monkeypatch)
     assert result.execution.stop_reason == StopReason.PLANNER_FAILURE
@@ -421,3 +460,23 @@ def test_expanded_text_reaches_planner_even_when_chunk_was_already_retrieved(mon
     assert result.execution.rounds == 2
     assert result.execution.evidence_count == 1
     assert result.evidence[0].text == row.text
+
+def test_planner_reserves_next_prompt_and_output_before_call(monkeypatch):
+    class CountingModel(FakeToolCallingModel):
+        max_tokens = 20
+
+        def get_num_tokens_from_messages(self, messages):
+            return 220 if len(self.responses) == 1 else 30
+
+        def get_num_tokens(self, text):
+            return 10
+
+    model = CountingModel([search(), finish()])
+    result = run(model, monkeypatch, budget=AgentBudget(max_planner_tokens=512))
+
+    assert result.execution.stop_reason == StopReason.TOKEN_BUDGET
+    assert result.execution.planner_tokens == 30
+    assert result.execution.next_call_estimated_tokens == 506
+    assert result.execution.evidence_count == 1
+    assert result.execution.synthesis_policy == 'evidence_fallback'
+    assert len(model.responses) == 1

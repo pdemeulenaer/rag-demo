@@ -1,6 +1,7 @@
 """LangGraph orchestration for bounded, tool-calling Agentic retrieval."""
 from __future__ import annotations
 
+import json
 import logging
 from time import monotonic
 
@@ -135,6 +136,32 @@ def _token_usage(message: AIMessage) -> int:
     return int(getattr(usage, "total_tokens", 0) or 0)
 
 
+def _estimated_next_call_tokens(model, messages, tools) -> int | None:
+    """Reserve prompt, tool-schema and maximum output tokens before a model call."""
+    count_messages = getattr(model, "get_num_tokens_from_messages", None)
+    if not callable(count_messages):
+        return None
+    try:
+        prompt_tokens = int(count_messages(messages))
+        schemas = [{
+            "name": tool.name,
+            "description": tool.description,
+            "parameters": (tool.args_schema.model_json_schema()
+                           if tool.args_schema is not None else {}),
+        } for tool in tools]
+        serialized = json.dumps(schemas, ensure_ascii=False, sort_keys=True)
+        count_text = getattr(model, "get_num_tokens", None)
+        schema_tokens = (int(count_text(serialized)) if callable(count_text)
+                         else (len(serialized) + 2) // 3)
+        completion_cap = int(getattr(model, "max_tokens", None)
+                             or getattr(model, "max_completion_tokens", None) or 0)
+    except (TypeError, ValueError, NotImplementedError, AttributeError):
+        return None
+    # LangChain's prompt counter does not include bound tool schemas. The extra
+    # margin covers provider-side framing and token-estimation differences.
+    return max(0, prompt_tokens) + max(0, schema_tokens) + max(0, completion_cap) + 256
+
+
 def _recorded_query(tool_name: str, args: dict) -> str | None:
     """Return the bounded, non-reasoning lookup text used by a retrieval tool."""
     if tool_name == "search_chunks":
@@ -205,6 +232,7 @@ def build_agent_graph(*, model, retrieval_tools: list, budget: AgentBudget):
         for index, requirement in enumerate(selected):
             query, build_ids = scoped_requirement_query(
                 requirement.description, state.get("required_build_ids", []),
+                state.get("required_paper_titles", {}),
             )
             args = {
                 "need_id": requirement.id,
@@ -243,7 +271,20 @@ def build_agent_graph(*, model, retrieval_tools: list, budget: AgentBudget):
 
     def call_agent(state: AgentState) -> dict:
         try:
-            active_model = bound_model if state.get("requirements") else definition_model
+            has_requirements = bool(state.get("requirements"))
+            active_model = bound_model if has_requirements else definition_model
+            available_tools = ([define_requirements, *retrieval_tools, *TERMINAL_TOOLS]
+                               if has_requirements else [define_requirements])
+            reserved = _estimated_next_call_tokens(
+                model, state["messages"], available_tools)
+            spent = state.get("planner_tokens", 0)
+            if spent >= budget.max_planner_tokens or (
+                reserved is not None and spent + reserved > budget.max_planner_tokens
+            ):
+                return {
+                    **_terminate(state, StopReason.TOKEN_BUDGET),
+                    "next_call_estimated_tokens": reserved,
+                }
             response = active_model.invoke(state["messages"])
         except Exception as exc:
             logger.exception("Agentic model call failed (%s)", type(exc).__name__)

@@ -9,6 +9,7 @@ from qdrant_client import QdrantClient
 import logging
 import redis
 import pickle
+from time import monotonic
 
 from src.api.core.config import config
 from src.api.core.clients import openai_client
@@ -781,14 +782,23 @@ def _render_claims(response: RAGGenerationResponse, contexts: list[dict]) -> tup
 @observe(name="rag_pipeline", capture_input=False, capture_output=False)
 def rag_pipeline(question, qdrant_client, session_id, generation_model=None, top_k=5,
                  mode=None, collection=None, scope=None, catalogue=None, agent_model=None,
-                 agent_budget=None):
+                 agent_budget=None, stage_timings: dict[str, float] | None = None):
     update_span(input={"question": question}, metadata={"mode": mode or "legacy",
         "collection": collection or config.QDRANT_COLLECTION_NAME,
         "generation_model": generation_model or config.GENERATION_MODEL, "top_k": top_k})
 
+    retrieval_started = monotonic()
     agent_run = None
     retrieval_diagnostics = None
     required_papers = []
+    def timed_rerank_context(*args, **kwargs):
+        started = monotonic()
+        try:
+            return rerank_context(*args, **kwargs)
+        finally:
+            if stage_timings is not None:
+                stage_timings["rerank_seconds"] = round(monotonic() - started, 3)
+
     # Agentic retrieval owns its bounded multi-round orchestration but reuses the
     # same final answer/citation path below.
     if mode == "agentic":
@@ -818,6 +828,8 @@ def rag_pipeline(question, qdrant_client, session_id, generation_model=None, top
         )
         retrieved_context = [row.model_dump() for row in agent_run.evidence]
         if not agent_run.should_synthesize:
+            if stage_timings is not None:
+                stage_timings["retrieval_seconds"] = round(monotonic() - retrieval_started, 3)
             stop_reason = agent_run.execution.stop_reason.value
             if stop_reason == "planner_failure":
                 answer_text = "The Agentic model could not select a valid retrieval action."
@@ -851,7 +863,7 @@ def rag_pipeline(question, qdrant_client, session_id, generation_model=None, top
         retrieved_context = retrieve_for_mode(
             mode, question, qdrant_client, top_k=top_k, collection=collection,
             scope=scope, retrieve_context=retrieve_context,
-            rerank_context=rerank_context,
+            rerank_context=timed_rerank_context,
         )
         retrieval_diagnostics = getattr(retrieved_context, "diagnostics", None)
         required_papers = _resolve_required_papers(catalogue, scope, question)
@@ -865,7 +877,10 @@ def rag_pipeline(question, qdrant_client, session_id, generation_model=None, top
         retrieved_context = retrieve_context(question, qdrant_client, top_k=20)  # fetch more initially, because we will rerank
         
         # Rerank with Cohere
-        retrieved_context = rerank_context(question, retrieved_context, top_n=top_k)
+        retrieved_context = timed_rerank_context(question, retrieved_context, top_n=top_k)
+
+    if stage_timings is not None:
+        stage_timings["retrieval_seconds"] = round(monotonic() - retrieval_started, 3)
 
     if not retrieved_context:
         result = {"answer": "I found no indexed evidence for this question in the selected corpus.",
@@ -906,6 +921,7 @@ def rag_pipeline(question, qdrant_client, session_id, generation_model=None, top
     answer_limitations = []
 
     # Baseline generation remains unchanged; Agentic has its own reviewed synthesis.
+    generation_started = monotonic()
     try:
         if agent_run is not None:
             reviewed = generate_agentic_answer(
@@ -979,6 +995,9 @@ def rag_pipeline(question, qdrant_client, session_id, generation_model=None, top
             except Exception:
                 pass
         raise
+    finally:
+        if stage_timings is not None:
+            stage_timings["generation_seconds"] = round(monotonic() - generation_started, 3)
 
     if not answer.claims:
         generation_diagnostics = generation_diagnostics or {

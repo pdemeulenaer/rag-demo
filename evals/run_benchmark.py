@@ -230,7 +230,8 @@ def _judge_request(*, instructions: str, payload: dict, schema: type[BaseModel],
 
 
 def judge(question: dict, answer: str, retrieved: list[dict], model: str,
-          reasoning_effort: str, claims: list[dict] | None = None) -> tuple[dict, dict]:
+          reasoning_effort: str, claims: list[dict] | None = None,
+          stage_timings: dict[str, float] | None = None) -> tuple[dict, dict]:
     """Run isolated reference and grounding judges to prevent gold-evidence leakage."""
     evidence = [{"point_id": row.get("id"), "paper_id": row.get("paper_id"),
                  "title": row.get("title"), "page": row.get("page"),
@@ -243,12 +244,17 @@ def judge(question: dict, answer: str, retrieved: list[dict], model: str,
     shared = {"kind": question["kind"], "profile": question.get("profile"),
               "question": question["question"], "actual_answer": answer,
               "required_numeric_values": question.get("required_numeric_values", [])}
-    reference_result, reference_meta = _judge_request(
-        instructions=REFERENCE_JUDGE_INSTRUCTIONS,
-        payload={**shared, "reference_answer": question["reference_answer"],
-                 "reference_evidence": reference},
-        schema=ReferenceJudgeResult, model=model, reasoning_effort=reasoning_effort,
-    )
+    reference_started = monotonic()
+    try:
+        reference_result, reference_meta = _judge_request(
+            instructions=REFERENCE_JUDGE_INSTRUCTIONS,
+            payload={**shared, "reference_answer": question["reference_answer"],
+                     "reference_evidence": reference},
+            schema=ReferenceJudgeResult, model=model, reasoning_effort=reasoning_effort,
+        )
+    finally:
+        if stage_timings is not None:
+            stage_timings["judge_reference_seconds"] = round(monotonic() - reference_started, 3)
     retrieved_by_id = {str(row.get("id")): row for row in retrieved}
     grounded_claims = []
     for claim in claims or []:
@@ -266,12 +272,18 @@ def judge(question: dict, answer: str, retrieved: list[dict], model: str,
             "need_ids": claim.get("need_ids", []),
             "cited_evidence": cited_evidence,
         })
-    grounding_result, grounding_meta = _judge_request(
-        instructions=GROUNDING_JUDGE_INSTRUCTIONS,
-        payload={"question": question["question"], "actual_answer": answer,
-                 "claims": grounded_claims, "retrieved_evidence": evidence if claims is None else []},
-        schema=GroundingJudgeResult, model=model, reasoning_effort=reasoning_effort,
-    )
+    grounding_started = monotonic()
+    try:
+        grounding_result, grounding_meta = _judge_request(
+            instructions=GROUNDING_JUDGE_INSTRUCTIONS,
+            payload={"question": question["question"], "actual_answer": answer,
+                     "claims": grounded_claims,
+                     "retrieved_evidence": evidence if claims is None else []},
+            schema=GroundingJudgeResult, model=model, reasoning_effort=reasoning_effort,
+        )
+    finally:
+        if stage_timings is not None:
+            stage_timings["judge_grounding_seconds"] = round(monotonic() - grounding_started, 3)
     combined = {
         **reference_result,
         "groundedness": grounding_result["groundedness"],
@@ -443,16 +455,21 @@ def evaluate_item(question: dict, mode: str, *, qdrant: QdrantClient, collection
     from src.api.rag.retrieval import rag_pipeline
 
     started = monotonic()
+    stage_timings: dict[str, float] = {}
     with trace_attributes(session_id=run_id, tags=["evaluation", f"mode:{mode}"],
             metadata={"evaluation_run_id": run_id, "question_id": question["id"],
                       "question_profile": question.get("profile"), "mode": mode}):
         with observation(name="evaluate_rag_question", input={"question_id": question["id"],
                          "question": question["question"], "mode": mode}) as span:
             try:
-                result = rag_pipeline(question["question"], qdrant,
-                    f"eval:{run_id}:{mode}:{question['id']}", generation_model=generation_model,
-                    top_k=top_k, mode=mode, collection=collection, scope=scope,
-                    catalogue=catalogue)
+                pipeline_started = monotonic()
+                try:
+                    result = rag_pipeline(question["question"], qdrant,
+                        f"eval:{run_id}:{mode}:{question['id']}", generation_model=generation_model,
+                        top_k=top_k, mode=mode, collection=collection, scope=scope,
+                        catalogue=catalogue, stage_timings=stage_timings)
+                finally:
+                    stage_timings["pipeline_seconds"] = round(monotonic() - pipeline_started, 3)
                 chunks = result.get("retrieved_chunks", [])
                 cited_ids = result.get("cited_context_ids", [])
                 agent_execution = _execution_payload(result.get("execution"))
@@ -467,10 +484,15 @@ def evaluate_item(question: dict, mode: str, *, qdrant: QdrantClient, collection
                 judge_safeguards = []
                 if judge_enabled:
                     claims = result.get("claims", [])
-                    judge_result, judge_meta = judge(
-                        question, result["answer"], chunks, judge_model,
-                        judge_reasoning_effort, claims=claims,
-                    )
+                    judge_started = monotonic()
+                    try:
+                        judge_result, judge_meta = judge(
+                            question, result["answer"], chunks, judge_model,
+                            judge_reasoning_effort, claims=claims,
+                            stage_timings=stage_timings,
+                        )
+                    finally:
+                        stage_timings["judge_seconds"] = round(monotonic() - judge_started, 3)
                     judge_result, judge_safeguards = apply_judge_safeguards(
                         question, metrics, cited_ids, judge_result, result["answer"], claims,
                     )
@@ -495,6 +517,7 @@ def evaluate_item(question: dict, mode: str, *, qdrant: QdrantClient, collection
                     "agent_execution": agent_execution,
                     "retrieval_diagnostics": retrieval_diagnostics,
                     "generation_diagnostics": generation_diagnostics,
+                    "stage_timings": stage_timings,
                     "elapsed_seconds": round(monotonic() - started, 3), "error": None,
                 }
                 for name, value in metrics.items():
@@ -505,7 +528,8 @@ def evaluate_item(question: dict, mode: str, *, qdrant: QdrantClient, collection
                                         "claim_count": len(result.get("claims", [])),
                                         "agent_execution": agent_execution,
                                         "retrieval_diagnostics": retrieval_diagnostics,
-                                        "generation_diagnostics": generation_diagnostics})
+                                        "generation_diagnostics": generation_diagnostics,
+                                        "stage_timings": stage_timings})
                 return record
             except Exception as error:  # continue the benchmark and retain a safe failure record
                 details = error_details(error)
@@ -531,6 +555,7 @@ def evaluate_item(question: dict, mode: str, *, qdrant: QdrantClient, collection
                         "agent_execution": agent_execution,
                         "retrieval_diagnostics": retrieval_diagnostics,
                         "generation_diagnostics": None,
+                        "stage_timings": stage_timings,
                         "elapsed_seconds": round(monotonic() - started, 3), "error": details}
 
 
@@ -544,6 +569,9 @@ def _summarize_agent_execution(rows: list[dict]) -> dict | None:
     required = [row for row in executions if int(row.get("required_paper_count") or 0) > 0]
     with_needs = [row for row in executions
                   if int(row.get("required_evidence_need_count") or 0) > 0]
+    preflight_stops = [row for row in executions
+                       if row.get("stop_reason") == "token_budget"
+                       and isinstance(row.get("next_call_estimated_tokens"), int)]
     return {
         "runs": len(executions),
         "stop_reasons": dict(sorted(Counter(
@@ -559,6 +587,13 @@ def _summarize_agent_execution(rows: list[dict]) -> dict | None:
                                              for row in executions), 3),
         "mean_planner_tokens": round(fmean(float(row.get("planner_tokens") or 0)
                                              for row in executions), 3),
+        "preflight_stop_runs": len(preflight_stops),
+        "mean_preflight_required_total_tokens": (
+            round(fmean(float(row.get("planner_tokens") or 0)
+                        + float(row["next_call_estimated_tokens"])
+                        for row in preflight_stops), 3)
+            if preflight_stops else None
+        ),
         "tool_usage": dict(sorted(Counter(
             str(action.get("tool") or "unknown") for action in actions
         ).items())),
@@ -646,6 +681,23 @@ def _summarize_generation_diagnostics(rows: list[dict]) -> dict | None:
     }
 
 
+def _summarize_stage_timings(rows: list[dict]) -> dict | None:
+    timed = [row["stage_timings"] for row in rows
+             if isinstance(row.get("stage_timings"), dict) and row["stage_timings"]]
+    if not timed:
+        return None
+    names = sorted({name for entry in timed for name, value in entry.items()
+                    if isinstance(value, (int, float)) and not isinstance(value, bool)})
+    return {
+        "runs": len(timed),
+        "mean_seconds": {
+            name: round(fmean(float(entry[name]) for entry in timed if name in entry), 3)
+            for name in names
+        },
+        "sample_counts": {name: sum(name in entry for entry in timed) for name in names},
+    }
+
+
 def _summarize_rows(rows: list[dict]) -> dict:
     names = sorted({name for row in rows for name, value in row.get("metrics", {}).items()
                     if isinstance(value, (int, float)) and name not in COUNT_METRICS})
@@ -664,6 +716,9 @@ def _summarize_rows(rows: list[dict]) -> dict:
     generation_diagnostics = _summarize_generation_diagnostics(rows)
     if generation_diagnostics is not None:
         result["generation_diagnostics"] = generation_diagnostics
+    stage_timings = _summarize_stage_timings(rows)
+    if stage_timings is not None:
+        result["stage_timings"] = stage_timings
     return result
 
 
@@ -696,6 +751,25 @@ def report_markdown(manifest: dict, summary: dict) -> str:
         lines.append(f"| {mode} | {row['questions']} | {row['errors']} | {row['mean_latency_seconds']} | "
                      f"{show('retrieval_recall')} | {show('answer_correctness')} | "
                      f"{show('groundedness')} | {show('answer_relevance')} |")
+    if any(summary[mode].get("stage_timings") for mode in manifest["modes"]):
+        lines.extend([
+            "", "## Mean stage timings (seconds)", "",
+            "The total includes judging and local evaluation work. Retrieval includes reranking;",
+            "rerank and judge sub-stages overlap their parent timings and must not be added again.",
+            "A dash means the stage was not run or was not measured.", "",
+            "| Mode | RAG pipeline | Retrieval | Rerank | Generation | Reference judge | Grounding judge | Total |",
+            "| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |",
+        ])
+        for mode in manifest["modes"]:
+            row = summary[mode]
+            means = (row.get("stage_timings") or {}).get("mean_seconds", {})
+            show_time = lambda key: "—" if key not in means else f"{means[key]:.3f}"
+            lines.append(
+                f"| {mode} | {show_time('pipeline_seconds')} | "
+                f"{show_time('retrieval_seconds')} | {show_time('rerank_seconds')} | "
+                f"{show_time('generation_seconds')} | {show_time('judge_reference_seconds')} | "
+                f"{show_time('judge_grounding_seconds')} | {row['mean_latency_seconds']} |"
+            )
     for mode in manifest["modes"]:
         profiles = summary[mode].get("profiles", {})
         if not profiles:
@@ -726,6 +800,13 @@ def report_markdown(manifest: dict, summary: dict) -> str:
         lines.extend(["", "Synthesis policy counts: " + ", ".join(
             f"`{name}`={count}" for name, count in agent["synthesis_policies"].items()
         ) + "."])
+        if agent.get("preflight_stop_runs"):
+            lines.append(
+                f"Planner preflight stopped {agent['preflight_stop_runs']} run(s); "
+                "mean spent-plus-estimated-next-call tokens: "
+                f"`{agent['mean_preflight_required_total_tokens']}` "
+                "(conservative estimate, not billed usage)."
+            )
     rerank = summary.get("hybrid_rerank", {}).get("retrieval_diagnostics")
     if rerank:
         lines.extend([

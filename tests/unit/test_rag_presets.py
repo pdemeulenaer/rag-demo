@@ -44,7 +44,14 @@ def test_pipeline_modes_and_citation_filter_order(runtime, monkeypatch, mode, re
     claim = retrieval.RAGClaim(text="Grounded", cited_context_ids=["cited"], need_ids=[])
     response = retrieval.RAGGenerationResponse(claims=[claim])
     monkeypatch.setattr(retrieval, "generate_answer", Mock(return_value=response))
-    result = retrieval.rag_pipeline("question", Mock(), "session", mode=mode, collection="papers", scope="ready")
+    timings = {}
+    result = retrieval.rag_pipeline(
+        "question", Mock(), "session", mode=mode, collection="papers", scope="ready",
+        stage_timings=timings,
+    )
+    assert timings["retrieval_seconds"] >= 0
+    assert timings["generation_seconds"] >= 0
+    assert ("rerank_seconds" in timings) == (mode == "hybrid_rerank")
     assert rerank.call_count == rerank_calls  # Explicit mode overrides legacy EVALUATION_MODE.
     assert retrieve.call_args.kwargs["collection"] == "papers"
     assert retrieve.call_args.kwargs["scope"] == "ready"

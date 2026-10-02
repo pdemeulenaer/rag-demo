@@ -1,4 +1,5 @@
 import json
+from contextlib import nullcontext
 from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import Mock
@@ -148,6 +149,18 @@ def test_summary_includes_agentic_termination_and_cost_metadata():
     assert summary["atomic_need_full_coverage_rate"] == 0.0
 
 
+def test_agentic_summary_reports_preflight_token_requirement():
+    row = {"mode": "agentic", "profile": "cross_multihop", "kind": "cross_paper",
+           "metrics": {}, "elapsed_seconds": 1.0, "error": None,
+           "agent_execution": {
+               "stop_reason": "token_budget", "planner_tokens": 10000,
+               "next_call_estimated_tokens": 12000, "actions": [],
+           }}
+    execution = runner.summarize([row], ["agentic"])["agentic"]["agent_execution"]
+    assert execution["preflight_stop_runs"] == 1
+    assert execution["mean_preflight_required_total_tokens"] == 22000.0
+
+
 def test_summary_counts_safe_generation_abstentions():
     rows = [{
         "mode": "hybrid", "profile": "cross_multihop", "kind": "cross_paper",
@@ -165,6 +178,32 @@ def test_summary_counts_safe_generation_abstentions():
         "statuses": {"safe_abstention": 1},
         "reasons": {"citation_validation_failed": 1},
     }
+
+
+def test_stage_timings_aggregate_only_measured_stages():
+    rows = [
+        {"mode": "hybrid_rerank", "profile": "single_fact", "kind": "single_paper",
+         "metrics": {}, "elapsed_seconds": 8.0, "error": None,
+         "stage_timings": {"pipeline_seconds": 5.0, "retrieval_seconds": 2.0,
+                           "rerank_seconds": 1.0, "judge_reference_seconds": 1.5,
+                           "judge_grounding_seconds": 1.0}},
+        {"mode": "hybrid_rerank", "profile": "single_fact", "kind": "single_paper",
+         "metrics": {}, "elapsed_seconds": 10.0, "error": None,
+         "stage_timings": {"pipeline_seconds": 7.0, "retrieval_seconds": 4.0,
+                           "judge_reference_seconds": 1.5,
+                           "judge_grounding_seconds": 1.0}},
+    ]
+    summary = runner.summarize(rows, ["hybrid_rerank"])["hybrid_rerank"]
+    assert summary["stage_timings"]["mean_seconds"]["pipeline_seconds"] == 6.0
+    assert summary["stage_timings"]["mean_seconds"]["retrieval_seconds"] == 3.0
+    assert summary["stage_timings"]["mean_seconds"]["rerank_seconds"] == 1.0
+    assert summary["stage_timings"]["sample_counts"]["rerank_seconds"] == 1
+    report = runner.report_markdown(
+        {"run_id": "run", "dataset_hash": "hash", "modes": ["hybrid_rerank"]},
+        {"hybrid_rerank": summary},
+    )
+    assert "Mean stage timings" in report
+    assert "| hybrid_rerank | 6.000 | 3.000 | 1.000 |" in report
 
 
 def test_rerank_diagnostics_distinguish_candidate_and_selection_coverage():
@@ -189,6 +228,45 @@ def test_rerank_diagnostics_distinguish_candidate_and_selection_coverage():
     assert summary["all_required_papers_selected_rate"] == 0.0
 
 
+def test_evaluate_item_persists_pipeline_and_judge_stage_timings(monkeypatch):
+    import src.api.rag.retrieval as retrieval
+
+    def fake_pipeline(*args, stage_timings, **kwargs):
+        stage_timings.update(retrieval_seconds=0.2, generation_seconds=0.3)
+        return {"answer": "A result.", "retrieved_chunks": [], "cited_context_ids": [],
+                "claims": [], "execution": None}
+
+    def fake_judge(*args, stage_timings, **kwargs):
+        stage_timings.update(judge_reference_seconds=0.1,
+                             judge_grounding_seconds=0.1)
+        return ({"correctness": 1.0, "groundedness": 1.0,
+                 "answer_relevance": 1.0, "abstention": "not_applicable",
+                 "reason": "Offline fixture."}, {})
+
+    monkeypatch.setattr(retrieval, "rag_pipeline", fake_pipeline)
+    monkeypatch.setattr(runner, "judge", fake_judge)
+    monkeypatch.setattr(runner, "trace_attributes", lambda **kwargs: nullcontext())
+    monkeypatch.setattr(runner, "observation", lambda **kwargs: nullcontext(None))
+    monkeypatch.setattr(runner, "score_trace", Mock())
+
+    record = runner.evaluate_item(
+        {"id": "q1", "kind": "single_paper", "profile": "single_fact",
+         "question": "What happened?", "reference_answer": "A result.",
+         "reference_evidence": []},
+        "hybrid", qdrant=Mock(), collection="papers", scope=Mock(), top_k=5,
+        generation_model="offline", judge_enabled=True, judge_model="offline",
+        judge_reasoning_effort="minimal", run_id="offline", catalogue=Mock(),
+    )
+    assert record["error"] is None
+    timings = record["stage_timings"]
+    assert timings["retrieval_seconds"] == 0.2
+    assert timings["generation_seconds"] == 0.3
+    assert timings["judge_reference_seconds"] == 0.1
+    assert timings["judge_grounding_seconds"] == 0.1
+    assert timings["pipeline_seconds"] >= 0
+    assert timings["judge_seconds"] >= 0
+
+
 def test_judge_retries_one_invalid_structured_response(monkeypatch):
     invalid = SimpleNamespace(id="response-1", model="judge", output_text="{}",
                               usage=SimpleNamespace(model_dump=lambda: {"input_tokens": 10}))
@@ -205,9 +283,13 @@ def test_judge_retries_one_invalid_structured_response(monkeypatch):
     client = SimpleNamespace(responses=SimpleNamespace(create=create))
     monkeypatch.setattr("src.api.core.clients.openai_client", Mock(return_value=client))
 
+    timings = {}
     result, metadata = runner.judge(
         {"kind": "single_paper", "question": "Question?", "reference_answer": "Answer.",
-         "reference_evidence": []}, "Answer.", [], "gpt-5-mini", "minimal")
+         "reference_evidence": []}, "Answer.", [], "gpt-5-mini", "minimal",
+        stage_timings=timings)
+    assert timings["judge_reference_seconds"] >= 0
+    assert timings["judge_grounding_seconds"] >= 0
 
     assert result["correctness"] == 1
     assert result["groundedness"] == 0.5

@@ -80,6 +80,7 @@ class AgentExecutionMetadata(ContractModel):
     covered_evidence_need_count: int = Field(default=0, ge=0, le=20)
     missing_evidence_need_ids: list[str] = Field(default_factory=list, max_length=20)
     planner_tokens: int = Field(ge=0)
+    next_call_estimated_tokens: int | None = Field(default=None, ge=0)
     elapsed_seconds: float = Field(ge=0)
     actions: list[AgentActionRecord] = Field(max_length=20)
     requirements: list[AnswerRequirement] = Field(default_factory=list, max_length=20)

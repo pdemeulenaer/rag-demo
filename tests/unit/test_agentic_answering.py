@@ -8,7 +8,8 @@ from src.api.rag.answer_contracts import RAGGenerationResponse
 from src.api.rag.modes.agentic.answering import (
     AgenticStructuredOutputError, AnswerReview, ClaimCheck, EvidenceQuote,
     _numeric_evidence_error, _numeric_tokens, _safe_validation_details,
-    _rank_requirement_evidence, _unit_markers, generate_agentic_answer,
+    _rank_requirement_evidence, _strip_internal_citation_refs, _unit_markers,
+    generate_agentic_answer,
 )
 from src.api.rag.modes.agentic.contracts import AnswerRequirement
 
@@ -336,6 +337,62 @@ def test_numeric_tokens_normalize_pdf_bracketed_scientific_notation():
     expected = {"1e5.1", "1e7.4", "1e2.9", "10000", "0.005", "0.2"}
     assert _numeric_tokens(answer) == expected
     assert _numeric_tokens(extracted) == expected
+
+
+def test_q0046_scientific_numbers_survive_markdown_ocr_markup():
+    source = (
+        "Stellar disruption rates of (1 _−_ 3) _×_ 10 _[−]_[3] "
+        "_M⊙_ yr _[−]_[1]; R_dTDE = 10 _[−]_[4] pc. "
+        "Cluster mass 2 _×_ 10[5] M⊙; IMBH mass 3 _×_ 10[3] M⊙; "
+        "approximately 3 _._ 7 _×_ 10[5] particles."
+    )
+    values = _numeric_tokens(source)
+    assert {"0.001", "0.0001", "200000", "3000", "370000"} <= values
+    assert "-3" not in values
+    assert "-4" not in values
+    assert "-1" not in values
+
+
+def test_q0046_cited_ocr_rate_and_radius_pass_but_unsupported_value_fails():
+    source = (
+        "The rate is (1 _−_ 3) _×_ 10 _[−]_[3] M⊙ yr _[−]_[1]. "
+        "The inner radius is R_dTDE = 10 _[−]_[4] pc."
+    )
+    check = ClaimCheck(
+        claim_index=0, supported=True, feedback="",
+        evidence_quotes=[EvidenceQuote(context_id="paper", quote=source)],
+    )
+
+    def validate(text):
+        row = RAGGenerationResponse(claims=[{
+            "text": text, "cited_context_ids": ["paper"], "need_ids": [],
+        }]).claims[0]
+        return _numeric_evidence_error(row, check, {"paper": {"text": source}})
+
+    assert validate("The rate is (1–3) × 10^-3 M⊙ yr^-1 and R_dTDE is 10^-4 pc.") is None
+    error = validate("The rate is 10^-2 M⊙ yr^-1 and R_dTDE is 10^-4 pc.")
+    assert "0.01" in error["missing_values"]
+
+
+def test_q0046_outer_radius_sensitivity_values_normalize_from_indexed_text():
+    source = (
+        "Extending R_out from R_sg to 3 R_sg leads to a slight decrease "
+        "from _∼_ 8 _×_ 10 _[−]_[4] to _∼_ 6 _×_ 10 _[−]_[4] "
+        "_M⊙_ yr _[−]_[1]."
+    )
+    assert {"0.0008", "0.0006"} <= _numeric_tokens(source)
+    claim = RAGGenerationResponse(claims=[{
+        "text": "The rate drops from ~8×10^-4 to ~6×10^-4 M⊙ yr^-1.",
+        "cited_context_ids": ["paper"], "need_ids": [],
+    }]).claims[0]
+    check = ClaimCheck(claim_index=0, supported=True, feedback="", evidence_quotes=[])
+    assert _numeric_evidence_error(claim, check, {"paper": {"text": source}}) is None
+
+
+def test_short_hex_evidence_ids_in_prose_are_not_numeric_claims():
+    text = "The rate is 10^-3 M⊙ yr^-1 (citations: 19f1f525; 74cc4dba; 4a856248)."
+    assert _numeric_tokens(text) == {"0.001"}
+    assert _strip_internal_citation_refs(text) == "The rate is 10^-3 M⊙ yr^-1."
 
 
 def test_resonance_ratio_and_author_year_are_not_measurement_values():

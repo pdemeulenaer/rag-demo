@@ -10,24 +10,46 @@ from qdrant_client.models import FieldCondition, Filter, MatchAny
 from src.api.rag.contracts import RetrievalScope
 
 
-_BUILD_HINT = re.compile(r"\s*\(required_build_id=([A-Za-z0-9-]{1,128})\)")
+_ROUTING_HINT = re.compile(
+    r"\s*\(\s*(?:paper_id|required_build_id)\s*=\s*[A-Za-z0-9-]{1,128}"
+    r"(?:\s*;\s*(?:paper_id|required_build_id)\s*=\s*[A-Za-z0-9-]{1,128})*\s*\)"
+)
+_BUILD_ID_FIELD = re.compile(r"(?:\(|;)\s*required_build_id\s*=\s*([A-Za-z0-9-]{1,128})")
 _LONG_TITLE = re.compile(r"['\"“]([^'\"“”]{25,})['\"”]")
 
 
 def focused_requirement_text(description: str) -> str:
     """Remove routing metadata and a resolved paper title from a fact query."""
-    without_hint = _BUILD_HINT.sub(" ", description)
+    without_hint = _ROUTING_HINT.sub(" ", description)
     without_title = _LONG_TITLE.sub(" ", without_hint)
     return " ".join(without_title.split()).strip() or " ".join(without_hint.split()).strip()
 
 
-def scoped_requirement_query(description: str, required_build_ids: list[str]) -> tuple[str, list[str]]:
+def scoped_requirement_query(description: str, required_build_ids: list[str],
+                             required_titles: dict[str, str] | None = None) -> tuple[str, list[str]]:
     """Use a resolved build as a filter, never as dense/sparse search text."""
     allowed = set(required_build_ids)
     builds = list(dict.fromkeys(
-        build_id for build_id in _BUILD_HINT.findall(description) if build_id in allowed
+        match.group(1)
+        for hint in _ROUTING_HINT.finditer(description)
+        for match in _BUILD_ID_FIELD.finditer(hint.group())
+        if match.group(1) in allowed
     ))
-    query = focused_requirement_text(description) if builds else _BUILD_HINT.sub(" ", description)
+    query = _ROUTING_HINT.sub(" ", description)
+    for build_id in builds:
+        title = (required_titles or {}).get(build_id)
+        if title:
+            # Remove only catalogue-confirmed titles; a science phrase that merely
+            # resembles a title may still be essential to the factual query.
+            query = re.sub(
+                r"(?:\b(?:as reported in|in|from)\s+)?[\"“”']?"
+                + re.escape(title) + r"[\"“”']?",
+                " ", query, flags=re.IGNORECASE,
+            )
+    if builds and not required_titles:
+        query = _LONG_TITLE.sub(" ", query)
+    query = re.sub(r"\s+([.,;:])", r"\1", query)
+    query = query.strip(" ,:;")
     return (" ".join(query.split())[:500] or description[:500], builds)
 
 

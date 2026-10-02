@@ -380,6 +380,32 @@ synthesis policies, tool usage and mean Agentic budget consumption. `manifest.js
 the effective Agentic model and limits so runs made with different budgets are not mistaken
 for like-for-like comparisons. These fields contain no hidden chain-of-thought.
 
+New benchmark runs also save `stage_timings` in each `results.json` row and mean timings
+with sample counts in `summary.json` and `report.md`. `retrieval_seconds` covers
+embedding/search, catalogue resolution and Agentic planning/tool calls; its optional
+`rerank_seconds` sub-stage measures Cohere and is already included in retrieval.
+`generation_seconds` covers answer-model calls and validation (Agentic draft, review
+and possible repair). `pipeline_seconds` includes these stages plus prompt/rendering
+overhead. When judging is enabled, `judge_reference_seconds` and
+`judge_grounding_seconds` measure the two separate judge requests;
+`judge_seconds` includes both and judge preparation. `elapsed_seconds` still includes
+the whole evaluated question. Do not add overlapping parent/sub-stage values together;
+a missing stage means it was skipped or not measured. Older runs have no stage timings,
+so they cannot be retroactively decomposed. Timing instrumentation needs no re-index or
+new evaluation dataset.
+
+`AGENT_MAX_PLANNER_TOKENS` defaults to 20,000 and is currently capped at 20,000 by
+`AgentBudget`. It counts only LangGraph planner prompt/output usage, not answer
+generation, verification or judging. The next planner call is preflight-estimated from
+its growing message history, tool schemas, full possible output allowance and a margin;
+therefore `token_budget` can occur well below 20,000 *spent* tokens. Do not raise the
+ceiling merely because this stop reason appears; first inspect spent tokens, retrieved
+evidence, answer status and stage timings. New token-budget stops also record
+`next_call_estimated_tokens`; `summary.json` reports the mean of spent plus
+estimated next-call tokens for preflight stops. This is a conservative planning
+estimate, not billed usage. The previous run cannot provide this estimate
+retroactively.
+
 The three synthesis policies are:
 
 - `model_finish`: the planner explicitly declared its collected evidence sufficient;

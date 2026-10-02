@@ -31,6 +31,33 @@ def test_resolved_paper_title_and_build_id_become_filter_not_search_text():
     assert build_id not in query
 
 
+
+def test_q0054_compound_paper_hint_becomes_a_scoped_factual_query():
+    build_id = "857f03f5-5a9d-5259-9c13-3fb2366b96f1"
+    paper_id = "0cfebf74-be71-5769-b950-6ed045b3bdb0"
+    title = "SPURS: An Ultra-deep View Inside the Compact, Nitrogen-Enriched Nuclei of Little Red Dots"
+    description = (
+        "FWHM ranges for broad [O III] components and best-fit broad N IV] FWHM "
+        f"as reported in {title} (paper_id={paper_id}; required_build_id={build_id})."
+    )
+    query, builds = scoped_requirement_query(description, [build_id], {build_id: title})
+    assert builds == [build_id]
+    assert "FWHM ranges for broad [O III]" in query
+    assert "best-fit broad N IV] FWHM" in query
+    assert title not in query
+    assert paper_id not in query
+    assert build_id not in query
+
+
+def test_compound_hint_cannot_select_an_unapproved_build():
+    description = "Report the FWHM (paper_id=paper-1; required_build_id=outside)."
+    query, builds = scoped_requirement_query(description, ["approved"])
+    assert builds == []
+    assert "FWHM" in query
+    assert "paper_id" not in query
+    assert "outside" not in query
+
+
 def test_q0030_ocr_fraction_and_units_are_normalized():
     extracted = (
         "The fraction rises from 0 _._ 25 to 0 _._ 34 and 0 _._ 38 above "
@@ -193,3 +220,59 @@ def test_agentic_synthesis_sees_later_direct_passages_and_citation_guidance():
     assert '"context_id": "c7"' in instruction
     assert "broad versus narrow" in instruction
     assert result.diagnostics["status"] == "complete"
+
+def test_q0030_ignores_question_context_but_requires_reported_values():
+    question = 'For 10^10 M☉ haloes, compare z=0 and z=10 surface densities.'
+    source = ('Maximum surface densities reach 10[2] _[.]_[9] and '
+              '> 10[4] _[.]_[0] M⊙ pc[−][2] for z=0 and z=10.')
+    claim = RAGGenerationResponse(claims=[{
+        'text': 'For 10^10 M☉ haloes, the maximum surface density rises '
+                'from 10^2.9 to >10^4.0 M☉ pc^-2 at z=0 and z=10.',
+        'cited_context_ids': ['paper-chunk'], 'need_ids': [],
+    }]).claims[0]
+    check = ClaimCheck(claim_index=0, supported=True, feedback='', evidence_quotes=[])
+    assert _numeric_evidence_error(
+        claim, check, {'paper-chunk': {'text': source}}, question=question,
+    ) is None
+    unsupported = source.replace('10[4] _[.]_[0]', '10[3] _[.]_[0]')
+    error = _numeric_evidence_error(
+        claim, check, {'paper-chunk': {'text': unsupported}}, question=question,
+    )
+    assert error['missing_values'] == ['10000']
+
+
+def test_q0054_ocr_figure_can_verify_range_without_verbatim_quote():
+    source = ('Data FWHMbroad = 1627 km s [−] [1]; '
+              'Data FWHMbroad = 1130 km s [−] [1].')
+    claim = RAGGenerationResponse(claims=[{
+        'text': 'The broad [O III] FWHM spans 1130–1627 km s^-1.',
+        'cited_context_ids': ['figure'], 'need_ids': [],
+    }]).claims[0]
+    check = ClaimCheck(claim_index=0, supported=True, feedback='', evidence_quotes=[])
+    assert _numeric_evidence_error(claim, check, {'figure': {'text': source}}) is None
+
+
+def test_q0030_snapshot_only_requires_requested_redshift_endpoints():
+    import json
+    from pathlib import Path
+
+    root = Path(__file__).resolve().parents[2] / 'data/evaluation/markdown-mini-v4'
+    for name in ('questions.reviewed.json', 'questions.split.json'):
+        dataset = json.loads((root / name).read_text())
+        question = next(row for row in dataset['questions'] if row['id'] == 'q0030')
+        assert '0.34' not in question['required_numeric_values']
+        assert 'z = 6' not in question['reference_answer']
+
+def test_q0030_plural_fraction_in_cited_ocr_chunk_is_accepted():
+    question = 'For 10^10 M☉ haloes, compare the z=0 and z=10 clump fractions.'
+    source = ('The fractions of gas clumps above Σc,th = 300 M⊙ pc[−][2] '
+              'are 0 _._ 25, 0 _._ 34, and 0 _._ 38 for z=0, 6, and 10.')
+    claim = RAGGenerationResponse(claims=[{
+        'text': 'For 10^10 M☉ haloes, the fraction of clumps above '
+                '300 M⊙ pc^-2 rises from 0.25 at z=0 to 0.38 at z=10.',
+        'cited_context_ids': ['paper-chunk'], 'need_ids': [],
+    }]).claims[0]
+    check = ClaimCheck(claim_index=0, supported=True, feedback='', evidence_quotes=[])
+    assert _numeric_evidence_error(
+        claim, check, {'paper-chunk': {'text': source}}, question=question,
+    ) is None

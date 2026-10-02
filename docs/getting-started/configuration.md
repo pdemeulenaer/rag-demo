@@ -18,16 +18,17 @@ Copy `.env.sample` to `.env` and populate it:
 | `EMBEDDING_MODEL_PROVIDER` | Embedding provider, e.g. `openai` |
 | `GENERATION_MODEL` | Generation model name, e.g. `gpt-4.1` |
 | `GENERATION_MODEL_PROVIDER` | Generation provider, e.g. `openai` |
+| `GENERATION_MODEL_MAX_TOKENS` | Per-call answer draft/repair completion cap, including reasoning tokens when applicable |
 | `AGENT_MODEL` | OpenAI model used for Agentic planning, sufficiency, and independent evidence review; answer drafts use `GENERATION_MODEL` |
 | `AGENT_REASONING_EFFORT` | Reasoning effort for supported Agentic planner models (`minimal` by default) |
 | `AGENT_MAX_COMPLETION_TOKENS` | Per-call Agentic planner output limit |
 | `AGENT_VERIFIER_REASONING_EFFORT` | Reasoning effort for the independent structured-answer verifier (`minimal` by default) |
-| `AGENT_VERIFIER_MAX_COMPLETION_TOKENS` | Verifier output limit, including any hidden reasoning tokens (`8192` by default) |
-| `AGENT_MAX_ROUNDS` | Retrieval-round limit; application maximum is three |
+| `AGENT_VERIFIER_MAX_COMPLETION_TOKENS` | Verifier output limit, including any hidden reasoning tokens (`16384` by default); increasing it can raise latency and cost |
+| `AGENT_MAX_ROUNDS` | Retrieval-round limit; application maximum is five |
 | `AGENT_MAX_TOOL_CALLS` | Total read-only tool-call limit per request |
 | `AGENT_MAX_EVIDENCE_CHUNKS` | Maximum distinct chunks accumulated by the agent |
 | `AGENT_MAX_ELAPSED_SECONDS` | Agentic retrieval wall-time budget |
-| `AGENT_MAX_PLANNER_TOKENS` | Combined planner/sufficiency token budget (`20000` by default) |
+| `AGENT_MAX_PLANNER_TOKENS` | Cumulative planner prompt-and-output budget (`20000` by default); the next call is preflight-estimated with a margin, so retrieval may stop before reaching the limit |
 | `COHERE_API_KEY` | Cohere API key, used only by `hybrid_rerank` |
 | `PAPERS_COLLECTION` | Separate arXiv dense+BM25 collection (`arxiv_papers_v2` by default) |
 | `OPENAI_API_KEY` | OpenAI API key |

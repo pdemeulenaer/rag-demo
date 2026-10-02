@@ -74,7 +74,7 @@ _SUPERSCRIPTS = str.maketrans({"⁰": "0", "¹": "1", "²": "2", "³": "3", "⁴
 _POWER10 = re.compile(r"(?<![\w.])(?:(?P<c>\d+(?:[.,]\d+)?)\s*[×x]\s*)?10\s*\^\s*\{?\s*(?P<e>[+-]?\d+(?:[.,]\d+)?)\s*\}?")
 _NUMBER = re.compile(r"(?<![\w.])[+-]?(?:\d+(?:[.,]\d+)?|\.\d+)(?:[eE][+-]?\d+)?")
 _BRACKETED_POWER10 = re.compile(
-    r"(?<![\w.])10(?P<sign>\s*\[\s*[-+−]\s*\])?\s*"
+    r"(?<![\w.])10\s*_?\s*(?P<sign>\[\s*[-+−]\s*\]\s*_?\s*)?"
     r"(?P<exponent>\[+\s*\d+\s*\]+)"
     r"(?P<fraction>\s*_\s*\[\s*\.\s*\]\s*_\s*\[\s*\d+\s*\])?"
 )
@@ -91,7 +91,7 @@ _UNIT_PATTERNS = {
     "solar_mass": re.compile(r"M\s*(?:⊙|☉|_\s*(?:sun|\\odot))|\bsolar\s+masses?\b", re.I),
     "pc^-2": re.compile(r"\bpc\s*(?:\^\s*\{?[-−]?2\}?|[-−]2)\b", re.I),
     "percent": re.compile(r"%|\bpercent(?:age)?\b", re.I),
-    "fraction": re.compile(r"\bfraction\b", re.I),
+    "fraction": re.compile(r"\bfractions?\b", re.I),
     "year": re.compile(r"(?:/\s*(?:yr|year)|\bper\s+year\b|\byr\s*(?:\^\s*[-−]?1|[-−]1))", re.I),
     "kpc": re.compile(r"\bkpc\b", re.I),
     "Mpc": re.compile(r"\bMpc\b"),
@@ -120,6 +120,12 @@ _NUMBERED_OBJECT = re.compile(
 _CONTEXT_ID = re.compile(
     r"\b[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\b", re.I
 )
+_SHORT_CONTEXT_ID = re.compile(r"\b[0-9a-f]{8}\b", re.I)
+_INLINE_CITATION_LABELS = re.compile(
+    r"\s*\(\s*citations?\s*:\s*[0-9a-f]{8}(?:\s*[;,]\s*[0-9a-f]{8})*\s*\)",
+    re.I,
+)
+_OCR_MULTIPLICATION = re.compile(r"(?<=\d)\s*_\s*([×x])\s*_\s*(?=\s*10\b)")
 
 
 def _normalize_extracted_units(text: str) -> str:
@@ -180,6 +186,7 @@ _ROTATION_NUMBERS = {
 def _normalize_extracted_numbers(text: str) -> str:
     """Normalize common OCR number markup without changing stored source text."""
     value = _normalize_bracketed_scientific_notation(_normalize_extracted_units(text))
+    value = _OCR_MULTIPLICATION.sub(r" \1 ", value)
     value = _OCR_DECIMAL.sub(
         lambda match: f"{match.group('whole')}.{match.group('fraction')}", value,
     )
@@ -193,6 +200,11 @@ def _numeric_tokens(text: str) -> set[str]:
     """Extract comparable numeric literals, treating common 2×10^-3 forms alike."""
     text = _normalize_extracted_numbers(text)
     text = _CONTEXT_ID.sub(" ", text)
+    # Short hexadecimal evidence labels are identifiers, not measured values.
+    text = _SHORT_CONTEXT_ID.sub(
+        lambda match: " " if any(char in "abcdef" for char in match.group().lower())
+        else match.group(), text,
+    )
     text = _AUTHOR_YEAR_CITATION.sub(" ", text)
     # 1:1 resonance names a resonance type rather than a measured value.
     text = _STRUCTURAL_RESONANCE_RATIO.sub(" ", text)
@@ -241,7 +253,7 @@ def _contains_quote(source: str, quote: str) -> bool:
             and normalized_quote in _quote_match_text(source))
 
 
-def _numeric_evidence_error(claim, check, context_by_id):
+def _numeric_evidence_error(claim, check, context_by_id, *, question=""):
     numbers, units = _numeric_tokens(claim.text), _unit_markers(claim.text)
     if not numbers and not units:
         return None
@@ -252,11 +264,12 @@ def _numeric_evidence_error(claim, check, context_by_id):
                         str(context_by_id.get(item.context_id, {}).get("text") or ""),
                         item.quote,
                     )]
-    # A valid quote anchors the claim to its cited source, but may omit an endpoint
-    # or lose glyphs in OCR. Check the cited chunk; semantic review separately judges
-    # whether those values support the claim in context.
-    cited_texts = [str(context_by_id[item.context_id].get("text") or "")
-                   for item in valid_quotes]
+    # Exact quotes are useful diagnostics, but PDF extraction can defeat verbatim
+    # matching. The model must first assess support; this deterministic backstop
+    # checks new values and units across only the claim's cited chunks. Context
+    # numbers copied from the question remain the model reviewer's responsibility.
+    cited_texts = [str(context_by_id[context_id].get("text") or "")
+                   for context_id in cited if context_id in context_by_id]
     cited_numbers = set().union(*(_numeric_tokens(text) for text in cited_texts)) if cited_texts else set()
     cited_units = set().union(*(_unit_markers(text) for text in cited_texts)) if cited_texts else set()
     # A cited dimensionless fraction can also be reported as its exact percentage.
@@ -272,11 +285,12 @@ def _numeric_evidence_error(claim, check, context_by_id):
         if percent_equivalents & numbers:
             cited_numbers.update(percent_equivalents)
             cited_units.add("percent")
-    missing_numbers, missing_units = sorted(numbers - cited_numbers), sorted(units - cited_units)
-    if valid_quotes and not missing_numbers and not missing_units:
+    missing_numbers = sorted(numbers - cited_numbers - _numeric_tokens(question))
+    missing_units = sorted(units - cited_units)
+    if cited_texts and not missing_numbers and not missing_units:
         return None
     return {"code": "numeric_evidence_not_verified",
-            "feedback": "No exact cited passage verifies every claimed value and unit in context.",
+            "feedback": "Cited chunks do not contain every newly claimed value and unit.",
             "missing_values": missing_numbers, "missing_units": missing_units,
             "valid_quote_count": len(valid_quotes)}
 
@@ -292,9 +306,11 @@ one or more evidence_quotes: each must identify one of that claim's cited contex
 a contiguous, exact excerpt from that chunk's supplied OCR-normalized text view. The quote
 must include the value, unit, and enough
 surrounding text/table labels to establish which quantity, object, and condition the value
-belongs to. Do not use a quote that merely contains the same number elsewhere. If no exact
-supporting quote exists, mark the claim unsupported. Approved claims from the first pass are
-fixed: reject new claims that contradict them.
+belongs to. Do not use a quote that merely contains the same number elsewhere. If OCR
+noise prevents an exact contiguous quote, provide the closest source excerpt and
+judge support against the entire cited chunk. If no supporting passage exists, mark
+the claim unsupported. Approved claims from the first pass are fixed: reject new
+claims that contradict them.
 
 Separately assess EVERY requirement against the actual supported answer text. Requirements
 with q_ IDs come directly from the original user question and must be checked independently
@@ -316,10 +332,11 @@ def _claim_key(claim: RAGClaim) -> tuple:
 
 def _strip_internal_citation_refs(text: str) -> str:
     """Keep internal chunk UUIDs in citation fields, never in answer prose."""
+    value = _INLINE_CITATION_LABELS.sub("", text)
     value = re.sub(
         r",?\s+as supported by (?:the )?(?:excerpt from )?context ID\s+"
         + r"[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}",
-        "", text, flags=re.I,
+        "", value, flags=re.I,
     )
     value = _CONTEXT_ID.sub("", value)
     value = re.sub(r"\b(?:context|chunk)\s+ID\s*(?=[.,;)]|$)", "", value, flags=re.I)
@@ -366,14 +383,15 @@ def _review_messages(question, requirements, claims, context_by_id, approved_cou
 
 
 def _assess(review, claims, requirements, approved_count, context_by_id=None,
-            require_numeric_evidence=False):
+            require_numeric_evidence=False, question=""):
     checks = Counter(row.claim_index for row in review.claims)
     supported = set(range(approved_count))
     rejected = []
     for index in range(approved_count, len(claims)):
         check = next((row for row in review.claims if row.claim_index == index), None)
         numeric_error = (
-            _numeric_evidence_error(claims[index], check, context_by_id or {})
+            _numeric_evidence_error(claims[index], check, context_by_id or {},
+                                    question=question)
             if require_numeric_evidence and check is not None and checks[index] == 1 and check.supported
             else None
         )
@@ -617,7 +635,8 @@ def generate_agentic_answer(*, question: str, requirements: list[AnswerRequireme
                 ))
                 assessed, all_coverage, rejected = _assess(
                     review, combined, review_requirements, len(approved), context_by_id,
-                    require_numeric_evidence=reviewer_model is not None)
+                    require_numeric_evidence=reviewer_model is not None,
+                    question=question)
                 approved = [claim.model_copy(update={
                     "need_ids": [need_id for need_id in claim.need_ids if need_id in planned_ids],
                 }) for claim in assessed]

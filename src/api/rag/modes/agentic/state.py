@@ -15,12 +15,14 @@ class AgentState(TypedDict, total=False):
     evidence: list[EvidenceChunk]
     requirements: list[AnswerRequirement]
     required_build_ids: list[str]
+    required_paper_titles: dict[str, str]
     required_paper_ids: list[str]
     actions: list[AgentActionRecord]
     fingerprints: list[str]
     rounds: int
     tool_calls: int
     planner_tokens: int
+    next_call_estimated_tokens: int | None
     no_progress_rounds: int
     started_at: float
     question_scope: str | None
