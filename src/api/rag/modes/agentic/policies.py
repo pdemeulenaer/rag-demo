@@ -26,7 +26,8 @@ def focused_requirement_text(description: str) -> str:
 
 
 def scoped_requirement_query(description: str, required_build_ids: list[str],
-                             required_titles: dict[str, str] | None = None) -> tuple[str, list[str]]:
+                             required_titles: dict[str, str] | None = None, *,
+                             explicit_build_ids: bool = False) -> tuple[str, list[str]]:
     """Use a resolved build as a filter, never as dense/sparse search text."""
     allowed = set(required_build_ids)
     builds = list(dict.fromkeys(
@@ -35,6 +36,8 @@ def scoped_requirement_query(description: str, required_build_ids: list[str],
         for match in _BUILD_ID_FIELD.finditer(hint.group())
         if match.group(1) in allowed
     ))
+    if explicit_build_ids:
+        builds = list(dict.fromkeys(required_build_ids))
     query = _ROUTING_HINT.sub(" ", description)
     for build_id in builds:
         title = (required_titles or {}).get(build_id)

@@ -406,6 +406,15 @@ estimated next-call tokens for preflight stops. This is a conservative planning
 estimate, not billed usage. The previous run cannot provide this estimate
 retroactively.
 
+Agentic execution also records `initial_searches` separately from answer `requirements`.
+Action `need_ids` can associate one search with several requirements; synthesis-only tasks
+remain part of final answer review, not the factual search-coverage denominator.
+`AGENT_MAX_PARALLEL_TOOLS` defaults to four simultaneous tools per request (1–8), including
+additional independent searches in a later round. The run manifest freezes this value;
+request-level `EVAL_CONCURRENCY` is a separate setting, so increasing both multiplies load.
+Compare stage timings before claiming a speedup: planner rounds and answer reviews remain
+sequential. This change needs neither re-indexing nor new reviewed questions.
+
 The three synthesis policies are:
 
 - `model_finish`: the planner explicitly declared its collected evidence sufficient;

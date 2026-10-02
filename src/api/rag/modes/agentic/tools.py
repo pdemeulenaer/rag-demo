@@ -16,6 +16,7 @@ from src.api.rag.contracts import (
     RetrievalScope,
 )
 from src.api.rag.modes.agentic.policies import narrow_scope
+from src.api.rag.modes.agentic.contracts import InitialSearch
 from src.api.rag.tools.chunk_search import search_chunks as scoped_chunk_search
 from src.api.rag.tools.neighbor_retrieval import (
     MAX_NEIGHBORS_PER_SIDE,
@@ -42,7 +43,7 @@ EvidenceNeedId = Annotated[str, Field(
 SearchQuery = Annotated[str, Field(
     min_length=1,
     max_length=500,
-    description="Focused query for one atomic evidence need, not the full user question.",
+    description="Focused evidence lookup, not a copy of the full multi-part question.",
 )]
 
 
@@ -162,9 +163,10 @@ def build_retrieval_tools(*, client, catalogue, scope: RetrievalBoundary,
     ) -> tuple[str, dict]:
         """Search dense/BM25/hybrid chunks. Text is a 700-character preview; expand truncated hits."""
         bounded_limit = min(max(limit, 1), 20)
+        action_scopes = _action_scopes(scope, build_ids, paper_ids)
         vector = None if retrieval_mode == "sparse" else embed(query)
         chunks = []
-        for action_scope in _action_scopes(scope, build_ids, paper_ids):
+        for action_scope in action_scopes:
             chunks.extend(scoped_chunk_search(
                 client, action_scope, query=query, vector=vector,
                 limit=bounded_limit, mode=retrieval_mode,
@@ -224,11 +226,18 @@ TERMINAL_TOOLS = [finish_with_evidence, abstain]
 def define_requirements(
     descriptions: Annotated[list[Annotated[str, Field(min_length=1, max_length=2000)]],
                       Field(min_length=1, max_length=20)],
+    initial_searches: Annotated[list[InitialSearch], Field(max_length=20)],
+    synthesis_indices: Annotated[list[Annotated[int, Field(strict=True, ge=1, le=20)]],
+                                Field(max_length=20)] = [],
 ) -> str:
     """Declare one need per independently answerable question part or requested metric.
 
     The graph assigns immutable r1, r2, ... IDs. Repeated searches reuse those IDs;
     retrieval actions cannot add answer requirements. Keep requested comparison/range
     endpoints together and include their units/qualifiers; do not create metadata-only needs.
+    Supply focused initial_searches separately, linked to 1-based description indices.
+    One query may support multiple requirements. Mark comparison/derivation-only tasks
+    with synthesis_indices; these do not need their own search. Use an empty search list
+    only when metadata discovery must happen first. Independent searches run in parallel.
     """
     return "Requirements are registered by the graph guard."

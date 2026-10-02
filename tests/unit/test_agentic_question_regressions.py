@@ -16,6 +16,13 @@ from src.api.rag.question_coverage import (
 )
 
 
+def test_explicit_plan_filter_is_retained_without_inline_routing_hints():
+    query, builds = scoped_requirement_query(
+        "dynamical mass uncertainty", ["approved"], {}, explicit_build_ids=True)
+    assert query == "dynamical mass uncertainty"
+    assert builds == ["approved"]
+
+
 def test_resolved_paper_title_and_build_id_become_filter_not_search_text():
     build_id = "bd741810-69a6-56af-b2dd-4a8f3c409cb4"
     description = (

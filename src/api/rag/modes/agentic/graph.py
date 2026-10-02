@@ -15,6 +15,7 @@ from src.api.rag.modes.agentic.contracts import (
     AgentActionRecord,
     AgentBudget,
     AnswerRequirement,
+    InitialSearch,
     StopReason,
 )
 from src.api.rag.modes.agentic.policies import action_fingerprint, scoped_requirement_query
@@ -37,13 +38,22 @@ Rules:
   endpoints, units, paper identity, or other context already supplied by the question.
   Preserve all requested values, units, uncertainties, assumptions, and comparisons within
   the relevant requirement. Avoid duplicates and include every actual part of the question.
+- In that SAME define_requirements call, supply initial_searches with concise retrieval
+  queries and 1-based requirement_indices. A requirement describes what the answer must
+  establish; a query contains the terms likely to locate the evidence. Do not mechanically
+  copy descriptions into queries. One search can support several requirements when the
+  facts are likely colocated. Mark purely comparative/derived tasks with synthesis_indices;
+  combine retrieved facts for these instead of inventing an extra search. For a simple
+  question use one hybrid query. Split only independently located facts, not sentence length.
+  Set build_ids/paper_ids as filters for resolved papers; leave titles and IDs out of queries.
+  Use initial_searches=[] only if metadata discovery must precede chunk retrieval.
 - The graph assigns stable r1, r2, ... IDs. Use only these IDs as need_id on retrieval calls.
   Reformulations, metadata lookups and expansion reuse an existing ID. The list cannot grow
   with tool history. A chunk found for any need may support any other need.
-- Each search_chunks query must target exactly one atomic need and contain only the terms
-  useful for that fact. Never submit the entire multi-part user question as one search query.
-- If one paper is asked for several distinct measurements, issue separate focused searches
-  for those measurements. Calls for independent needs may run in parallel.
+- Each search_chunks query must contain the terms useful for its evidence needs, not the
+  whole multi-part question. Search independently located measurements separately, but
+  do not duplicate searches for facts likely in the same passage. Independent calls run
+  in parallel; dependent expansion waits for the earlier results and exact identifiers.
 - For a broad factual question, start with one focused hybrid search_chunks call.
 - Use sparse search for exact identifiers, acronyms, catalogue numbers and named objects;
   use dense search for conceptual paraphrases; use hybrid when both signals are useful.
@@ -89,28 +99,6 @@ def _missing_required_builds(state: AgentState) -> list[str]:
     covered = {row.build_id for row in state.get("evidence", [])}
     return [build_id for build_id in state.get("required_build_ids", [])
             if build_id not in covered]
-
-
-def _missing_evidence_needs(state: AgentState) -> list[str]:
-    """Return atomic retrieval needs for which no answer evidence was retained."""
-    evidence_by_need: dict[str, set[str]] = {
-        row.id: set() for row in state.get("requirements", [])
-    }
-    for action in state.get("actions", []):
-        if action.tool == "search_papers":
-            continue
-        need_id = action.need_id
-        evidence_by_need.setdefault(need_id, set()).update(action.evidence_ids)
-    return sorted(need_id for need_id, evidence_ids in evidence_by_need.items()
-                  if not evidence_ids)
-
-
-def _unsearched_requirements(state: AgentState, requirements=None):
-    """Requirements with no initial chunk-search attempt yet."""
-    requirements = requirements if requirements is not None else state.get("requirements", [])
-    searched = {row.need_id for row in state.get("actions", [])
-                if row.tool == "search_chunks"}
-    return [row for row in requirements if row.id not in searched]
 
 
 def _terminate(state: AgentState, reason: StopReason, *, summary: str | None = None) -> dict:
@@ -200,76 +188,60 @@ def build_agent_graph(*, model, retrieval_tools: list, budget: AgentBudget):
     # Enforce the first action through the native provider tool protocol, not just prose.
     definition_model = model.bind_tools(
         [define_requirements], tool_choice="define_requirements", parallel_tool_calls=False)
-    bound_model = model.bind_tools([define_requirements, *retrieval_tools, *TERMINAL_TOOLS])
+    bound_model = model.bind_tools(
+        [define_requirements, *retrieval_tools, *TERMINAL_TOOLS], parallel_tool_calls=True)
 
-    def schedule_requirement_searches(state: AgentState, requirements, *, defer_calls=(),
-                                      prefix_messages=()):
-        """Guarantee one focused baseline search for every decomposed need first."""
-        pending = _unsearched_requirements(state, requirements)
+    def schedule_initial_searches(state: AgentState):
+        """Execute the explicit initial plan without an additional planner call."""
+        pending = state.get("pending_initial_searches", [])
         if not pending:
             return None
         if monotonic() - state["started_at"] >= budget.max_elapsed_seconds:
-            return {**_terminate(state, StopReason.TIME_BUDGET),
-                    "messages": list(prefix_messages)}
+            return _terminate(state, StopReason.TIME_BUDGET)
         if state.get("planner_tokens", 0) >= budget.max_planner_tokens:
-            return {**_terminate(state, StopReason.TOKEN_BUDGET),
-                    "messages": list(prefix_messages)}
+            return _terminate(state, StopReason.TOKEN_BUDGET)
         if state.get("rounds", 0) >= budget.max_rounds:
-            return {**_terminate(state, StopReason.MAX_ROUNDS),
-                    "messages": list(prefix_messages)}
+            return _terminate(state, StopReason.MAX_ROUNDS)
         if len(state.get("evidence", [])) >= budget.max_evidence_chunks:
-            return {**_terminate(state, StopReason.EVIDENCE_BUDGET),
-                    "messages": list(prefix_messages)}
+            return _terminate(state, StopReason.EVIDENCE_BUDGET)
 
         available = budget.max_tool_calls - state.get("tool_calls", 0)
         if available <= 0:
-            return {**_terminate(state, StopReason.TOOL_CALL_BUDGET),
-                    "messages": list(prefix_messages)}
+            return _terminate(state, StopReason.TOOL_CALL_BUDGET)
         selected = pending[:available]
         generated = []
-        new_fingerprints = []
-        existing = set(state.get("fingerprints", []))
-        for index, requirement in enumerate(selected):
-            query, build_ids = scoped_requirement_query(
-                requirement.description, state.get("required_build_ids", []),
-                state.get("required_paper_titles", {}),
-            )
+        associations = {}
+        for index, search in enumerate(selected):
+            need_ids = [f"r{number}" for number in search.requirement_indices]
             args = {
-                "need_id": requirement.id,
-                "query": query,
-                "retrieval_mode": "hybrid",
-                "build_ids": build_ids,
-                "paper_ids": [],
-                "limit": 8,
+                "need_id": need_ids[0],
+                "query": search.query,
+                "retrieval_mode": search.retrieval_mode,
+                "build_ids": search.build_ids,
+                "paper_ids": search.paper_ids,
+                "limit": search.limit,
             }
-            fingerprint = action_fingerprint("search_chunks", args)
-            if fingerprint not in existing:
-                existing.add(fingerprint)
-                new_fingerprints.append(fingerprint)
+            action_id = f"initial_{state.get('tool_calls', 0) + index + 1}"
+            associations[action_id] = need_ids
             generated.append({
                 "name": "search_chunks",
                 "args": args,
-                "id": f"coverage_{requirement.id}_{state.get('tool_calls', 0) + index + 1}",
+                "id": action_id,
                 "type": "tool_call",
             })
-        if not generated:
-            return {**_terminate(state, StopReason.REPEATED_ACTION),
-                    "messages": list(prefix_messages)}
-
-        deferred = [ToolMessage(
-            name=call["name"], tool_call_id=call["id"],
-            content="Deferred until each atomic evidence need has received its initial search.",
-        ) for call in defer_calls]
         scheduled = AIMessage(content="", tool_calls=generated)
-        logger.info("Agentic coverage-first search scheduled %d of %d pending needs",
+        logger.info("Agentic initial plan scheduled %d of %d pending searches",
                     len(generated), len(pending))
         return {
-            "messages": [*prefix_messages, *deferred, scheduled],
-            "fingerprints": [*state.get("fingerprints", []), *new_fingerprints],
-            "plan_summary": "Running a focused baseline search for each atomic evidence need.",
+            "messages": [scheduled],
+            "pending_initial_searches": pending[len(selected):],
+            "action_need_ids": associations,
+            "plan_summary": "Running the focused initial search plan with bounded parallel tools.",
         }
 
     def call_agent(state: AgentState) -> dict:
+        if state.get("pending_initial_searches"):
+            return schedule_initial_searches(state)
         try:
             has_requirements = bool(state.get("requirements"))
             active_model = bound_model if has_requirements else definition_model
@@ -300,6 +272,7 @@ def build_agent_graph(*, model, retrieval_tools: list, budget: AgentBudget):
             )
         return {
             "messages": [response],
+            "action_need_ids": {},
             "planner_tokens": state.get("planner_tokens", 0) + _token_usage(response),
         }
 
@@ -308,14 +281,6 @@ def build_agent_graph(*, model, retrieval_tools: list, budget: AgentBudget):
             return {}
         message = state["messages"][-1]
         calls = message.tool_calls if isinstance(message, AIMessage) else []
-        if state.get("requirements"):
-            pending_searches = _unsearched_requirements(state)
-            if pending_searches and len(state.get("requirements", [])) > 1:
-                update = schedule_requirement_searches(
-                    state, state["requirements"], defer_calls=calls,
-                )
-                if update is not None:
-                    return update
         if not calls:
             return _terminate(
                 state, StopReason.PLANNER_FAILURE,
@@ -334,7 +299,10 @@ def build_agent_graph(*, model, retrieval_tools: list, budget: AgentBudget):
                 args = define_requirements.args_schema.model_validate(definitions[0].get("args") or {})
                 requirements = []
                 seen_descriptions = set()
-                for description in args.descriptions:
+                if (len(args.synthesis_indices) != len(set(args.synthesis_indices))
+                        or any(index > len(args.descriptions) for index in args.synthesis_indices)):
+                    raise ValueError("invalid_synthesis_indices")
+                for index, description in enumerate(args.descriptions, start=1):
                     normalized = " ".join(description.casefold().split())
                     if not normalized:
                         raise ValueError("empty_requirement")
@@ -342,9 +310,34 @@ def build_agent_graph(*, model, retrieval_tools: list, budget: AgentBudget):
                         raise ValueError("duplicate_requirements")
                     seen_descriptions.add(normalized)
                     requirements.append(AnswerRequirement(
-                        id=f"r{len(requirements) + 1}", description=description.strip()))
+                        id=f"r{index}", description=description.strip(),
+                        kind="synthesis" if index in args.synthesis_indices else "fact"))
                 if not requirements:
                     raise ValueError("empty_requirements")
+                searches = []
+                seen_searches = {}
+                for search in args.initial_searches:
+                    if (len(search.requirement_indices) != len(set(search.requirement_indices))
+                            or any(index > len(requirements) for index in search.requirement_indices)):
+                        raise ValueError("invalid_search_requirement_indices")
+                    if not set(search.build_ids).issubset(state.get("approved_build_ids", [])):
+                        raise ValueError("initial_search_outside_build_scope")
+                    if not set(search.paper_ids).issubset(state.get("approved_paper_ids", [])):
+                        raise ValueError("initial_search_outside_paper_scope")
+                    query, build_ids = scoped_requirement_query(
+                        search.query, search.build_ids, state.get("required_paper_titles", {}),
+                        explicit_build_ids=True)
+                    normalized_search = InitialSearch(**{
+                        **search.model_dump(), "query": query, "build_ids": build_ids})
+                    fingerprint = action_fingerprint("search_chunks", {
+                        **normalized_search.model_dump(exclude={"requirement_indices"})})
+                    if fingerprint in seen_searches:
+                        previous = searches[seen_searches[fingerprint]]
+                        previous.requirement_indices = list(dict.fromkeys([
+                            *previous.requirement_indices, *normalized_search.requirement_indices]))
+                        continue
+                    seen_searches[fingerprint] = len(searches)
+                    searches.append(normalized_search)
             except ValidationError as error:
                 # Report validation codes only. Do not leak model inputs into logs/results.
                 codes = sorted({str(item.get("type", "invalid"))
@@ -366,15 +359,9 @@ def build_agent_graph(*, model, retrieval_tools: list, budget: AgentBudget):
                 content="Use these fixed requirement IDs for all searches: " + str(
                     [row.model_dump() for row in requirements]),
             )
-            if len(requirements) > 1:
-                seeded_state = {**state, "requirements": requirements}
-                update = schedule_requirement_searches(
-                    seeded_state, requirements, prefix_messages=[definition_reply],
-                )
-                if update is not None:
-                    update["requirements"] = requirements
-                    return update
-            return {"requirements": requirements, "messages": [definition_reply]}
+            plan_state = {"requirements": requirements, "initial_searches": searches,
+                          "pending_initial_searches": searches}
+            return {**plan_state, "messages": [definition_reply]}
         if not state.get("requirements"):
             return _terminate(state, StopReason.PLANNER_FAILURE,
                               summary="Question requirements must be defined before retrieval.")
@@ -406,12 +393,10 @@ def build_agent_graph(*, model, retrieval_tools: list, budget: AgentBudget):
                     summary="The agent returned an invalid question scope.",
                 )
             missing_required = _missing_required_builds(state)
-            missing_needs = _missing_evidence_needs(state)
             can_finish = (
                 call["name"] == "finish_with_evidence"
                 and bool(state.get("evidence"))
                 and not missing_required
-                and not missing_needs
             )
             if can_finish:
                 return {
@@ -425,11 +410,6 @@ def build_agent_graph(*, model, retrieval_tools: list, budget: AgentBudget):
                 summary = (
                     "The agent attempted to finish before retrieving every explicitly named "
                     f"paper ({len(missing_required)} missing)."
-                )
-            elif call["name"] == "finish_with_evidence" and missing_needs:
-                summary = (
-                    "The agent attempted to finish before finding evidence for every atomic "
-                    f"need ({len(missing_needs)} missing)."
                 )
             update = _terminate(state, StopReason.INSUFFICIENT_EVIDENCE, summary=summary)
             update["question_scope"] = scope
@@ -512,6 +492,8 @@ def build_agent_graph(*, model, retrieval_tools: list, budget: AgentBudget):
             records.append(AgentActionRecord(
                 action_id=str(message.tool_call_id),
                 need_id=str(call_args.get("need_id") or "unassigned")[:128],
+                need_ids=state.get("action_need_ids", {}).get(
+                    message.tool_call_id, [str(call_args.get("need_id") or "unassigned")]),
                 tool=name,
                 query=_recorded_query(name, call_args),
                 status="error" if is_error else "success",
@@ -538,17 +520,6 @@ def build_agent_graph(*, model, retrieval_tools: list, budget: AgentBudget):
             update.update(_terminate(update, StopReason.TOOL_FAILURE))
         elif next_no_progress >= 2:
             update.update(_terminate(update, StopReason.NO_PROGRESS))
-        elif _unsearched_requirements(update) and len(update.get("requirements", [])) > 1:
-            if update["rounds"] >= budget.max_rounds:
-                update.update(_terminate(update, StopReason.MAX_ROUNDS))
-            elif update["tool_calls"] >= budget.max_tool_calls:
-                update.update(_terminate(update, StopReason.TOOL_CALL_BUDGET))
-            elif update.get("planner_tokens", 0) >= budget.max_planner_tokens:
-                update.update(_terminate(update, StopReason.TOKEN_BUDGET))
-            elif len(update.get("evidence", [])) >= budget.max_evidence_chunks:
-                update.update(_terminate(update, StopReason.EVIDENCE_BUDGET))
-            elif monotonic() - state["started_at"] >= budget.max_elapsed_seconds:
-                update.update(_terminate(update, StopReason.TIME_BUDGET))
         elif monotonic() - state["started_at"] >= budget.max_elapsed_seconds:
             update.update(_terminate(update, StopReason.TIME_BUDGET))
         return update

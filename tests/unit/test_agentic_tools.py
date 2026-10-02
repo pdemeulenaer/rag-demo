@@ -10,7 +10,32 @@ from src.api.rag.contracts import (
     RetrievalScope,
     ScopedBuild,
 )
-from src.api.rag.modes.agentic.tools import TERMINAL_TOOLS, build_retrieval_tools
+from src.api.rag.modes.agentic.tools import TERMINAL_TOOLS, build_retrieval_tools, define_requirements
+
+
+def test_initial_plan_uses_native_typed_tool_schema():
+    from langchain_core.utils.function_calling import convert_to_openai_tool
+
+    schema = define_requirements.args_schema.model_json_schema()
+    assert "initial_searches" in schema["required"]
+    assert set(schema["properties"]) == {
+        "descriptions", "initial_searches", "synthesis_indices"}
+    assert "requirement_indices" in schema["$defs"]["InitialSearch"]["required"]
+    provider_schema = convert_to_openai_tool(define_requirements)["function"]["parameters"]
+    search_schema = provider_schema["properties"]["initial_searches"]["items"]
+    assert {"query", "requirement_indices", "retrieval_mode", "build_ids", "paper_ids",
+            "limit"} == set(search_schema["properties"])
+    assert "$ref" not in json.dumps(provider_schema)
+
+
+def test_out_of_scope_search_is_rejected_before_embedding():
+    embed = Mock()
+    scope = RetrievalScope("papers", ("build",), builds=(ScopedBuild("build", "paper"),))
+    tools = build_retrieval_tools(client=Mock(), catalogue=Mock(), scope=scope, embed=embed)
+    search = next(item for item in tools if item.name == "search_chunks")
+    with pytest.raises(ValueError, match="outside"):
+        search.invoke({"need_id": "r1", "query": "mass", "build_ids": ["outside"]})
+    embed.assert_not_called()
 
 
 def test_model_sees_small_individual_tool_schemas():

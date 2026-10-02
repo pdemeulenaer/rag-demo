@@ -144,7 +144,16 @@ future KG retriever as another typed tool only after deterministic KG retrieval 
 
 Agentic must call `define_requirements` once before searching; the graph freezes semantic
 descriptions and assigns r1/r2/etc. Retrieval calls use these IDs as `need_id`; reformulation
-cannot add requirements. Queries target requested facts, with query/need IDs persisted in
+cannot add requirements. The same native definition call supplies separate typed
+`initial_searches` with queries/filters and 1-based `requirement_indices`, plus optional
+`synthesis_indices`. Execute those explicit queries, never automatically copy descriptions
+into searches. One search may cover multiple facts; synthesis tasks still receive final
+answer review but require no mandatory search. Native `ToolNode` handles parallel initial
+and later independent calls, with `AGENT_MAX_PARALLEL_TOOLS` (default 4, range 1–8) passed
+through runnable `max_concurrency`. Dependent planner rounds remain sequential. Preserve
+deterministic call-order merging, shared budgets and successful sibling results on failures;
+do not replace native tool concurrency with a custom executor. Queries target requested facts,
+with query/need IDs persisted in
 evaluation output and Langfuse. `need_id` is excluded from duplicate fingerprints. Per-need
 search coverage is diagnostic only: ANY scoped retrieved chunk may support ANY requirement.
 Never reinstate per-search citation groups as answer-validation gates.

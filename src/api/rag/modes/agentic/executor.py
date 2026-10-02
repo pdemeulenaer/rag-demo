@@ -52,7 +52,7 @@ def _default_model():
     return ChatOpenAI(**kwargs)
 
 
-def _failed(started: float, reason: StopReason) -> AgentRunResult:
+def _failed(started: float, reason: StopReason, *, max_parallel_tools: int = 4) -> AgentRunResult:
     return AgentRunResult(
         evidence=[],
         execution=AgentExecutionMetadata(
@@ -66,6 +66,7 @@ def _failed(started: float, reason: StopReason) -> AgentRunResult:
             planner_tokens=0,
             elapsed_seconds=round(max(0.0, monotonic() - started), 3),
             actions=[],
+            max_parallel_tools=max_parallel_tools,
         ),
         should_synthesize=False,
     )
@@ -92,7 +93,8 @@ def run_agentic(question: str, *, client, catalogue, scope: RetrievalBoundary,
         graph = build_agent_graph(
             model=model or _default_model(), retrieval_tools=tools, budget=budget,
         )
-        invoke_config = {"recursion_limit": budget.max_rounds * 4 + 8}
+        invoke_config = {"recursion_limit": budget.max_rounds * 4 + 8,
+                         "max_concurrency": budget.max_parallel_tools}
         callback = langchain_callback()
         if callback is not None:
             invoke_config["callbacks"] = [callback]
@@ -113,6 +115,12 @@ def run_agentic(question: str, *, client, catalogue, scope: RetrievalBoundary,
             "messages": messages,
             "evidence": [],
             "requirements": [],
+            "initial_searches": [],
+            "pending_initial_searches": [],
+            "action_need_ids": {},
+            "approved_build_ids": list(scope.build_ids),
+            "approved_paper_ids": list({build.paper_id for child in child_scopes
+                                         for build in child.builds if build.paper_id}),
             "required_build_ids": [row.build_id for row in required_papers],
             "required_paper_titles": {row.build_id: row.title for row in required_papers},
             "required_paper_ids": [row.paper_id for row in required_papers],
@@ -132,7 +140,8 @@ def run_agentic(question: str, *, client, catalogue, scope: RetrievalBoundary,
         }, config=invoke_config)
     except Exception as exc:
         logger.exception("Agentic graph failed (%s)", type(exc).__name__)
-        return _failed(started, StopReason.PLANNER_FAILURE)
+        return _failed(started, StopReason.PLANNER_FAILURE,
+                       max_parallel_tools=budget.max_parallel_tools)
 
     evidence = list(state.get("evidence", []))
     actions = list(state.get("actions", []))
@@ -140,11 +149,11 @@ def run_agentic(question: str, *, client, catalogue, scope: RetrievalBoundary,
     # Only chunk-producing actions count toward diagnostic search coverage.
     evidence_actions = [action for action in actions if action.tool != "search_papers"]
     requirements = list(state.get("requirements", []))
-    need_ids = [row.id for row in requirements]
+    need_ids = [row.id for row in requirements if row.kind == "fact"]
     citation_groups = {
         need_id: tuple(dict.fromkeys(
             evidence_id
-            for action in evidence_actions if action.need_id == need_id
+            for action in evidence_actions if need_id in (action.need_ids or [action.need_id])
             for evidence_id in action.evidence_ids
         ))
         for need_id in need_ids
@@ -175,6 +184,8 @@ def run_agentic(question: str, *, client, catalogue, scope: RetrievalBoundary,
         elapsed_seconds=round(max(0.0, monotonic() - started), 3),
         actions=actions,
         requirements=requirements,
+        initial_searches=state.get("initial_searches", []),
+        max_parallel_tools=budget.max_parallel_tools,
     )
     result = AgentRunResult(
         evidence=evidence,

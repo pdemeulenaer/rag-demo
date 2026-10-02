@@ -26,6 +26,7 @@ Copy `.env.sample` to `.env` and populate it:
 | `AGENT_VERIFIER_MAX_COMPLETION_TOKENS` | Verifier output limit, including any hidden reasoning tokens (`16384` by default); increasing it can raise latency and cost |
 | `AGENT_MAX_ROUNDS` | Retrieval-round limit; application maximum is five |
 | `AGENT_MAX_TOOL_CALLS` | Total read-only tool-call limit per request |
+| `AGENT_MAX_PARALLEL_TOOLS` | Concurrent native LangGraph tools per request (`4` by default; `1`–`8`); rounds and dependent planner/generation calls stay sequential |
 | `AGENT_MAX_EVIDENCE_CHUNKS` | Maximum distinct chunks accumulated by the agent |
 | `AGENT_MAX_ELAPSED_SECONDS` | Agentic retrieval wall-time budget |
 | `AGENT_MAX_PLANNER_TOKENS` | Cumulative planner prompt-and-output budget (`20000` by default); the next call is preflight-estimated with a margin, so retrieval may stop before reaching the limit |

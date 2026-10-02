@@ -1,5 +1,8 @@
 from unittest.mock import Mock
 from types import SimpleNamespace
+from threading import Barrier, Event, Lock
+
+import pytest
 
 from langchain_core.messages import AIMessage
 
@@ -47,8 +50,11 @@ def finish(call_id="call_finish"):
 
 
 class FakeToolCallingModel:
-    def __init__(self, responses, requirements=("Report the mass.",), *, define=True):
-        self.responses = ([call("define_requirements", {"descriptions": list(requirements)},
+    def __init__(self, responses, requirements=("Report the mass.",), *, define=True,
+                 initial_searches=(), synthesis_indices=()):
+        self.responses = ([call("define_requirements", {
+            "descriptions": list(requirements), "initial_searches": list(initial_searches),
+            "synthesis_indices": list(synthesis_indices)},
                                 "define")] if define else []) + list(responses)
         self.bound_tools = []
         self.bind_options = []
@@ -144,13 +150,13 @@ def test_duplicate_chunk_is_mapped_to_each_atomic_evidence_need(monkeypatch):
     }
 
 
-def test_agent_cannot_finish_with_an_atomic_need_that_has_no_evidence(monkeypatch):
+def test_search_labels_do_not_gate_final_answer_coverage(monkeypatch):
     search_tool = Mock(side_effect=[[chunk()], []])
     monkeypatch.setattr(
         "src.api.rag.modes.agentic.tools.scoped_chunk_search", search_tool,
     )
     model = FakeToolCallingModel(
-        [finish()], requirements=("Report the mass.", "Report the radius."))
+        [search(), finish()], requirements=("Report the mass.", "Report the radius."))
 
     result = run_agentic(
         "Report the mass and radius.", client=Mock(), catalogue=Mock(), scope=scope(),
@@ -158,7 +164,7 @@ def test_agent_cannot_finish_with_an_atomic_need_that_has_no_evidence(monkeypatc
     )
 
     assert result.should_synthesize is True
-    assert result.execution.stop_reason == StopReason.INSUFFICIENT_EVIDENCE
+    assert result.execution.stop_reason == StopReason.SUFFICIENT
     assert result.execution.missing_evidence_need_ids == ["r2"]
     assert result.execution.covered_evidence_need_count == 1
 
@@ -343,7 +349,12 @@ def test_compound_named_paper_requirements_use_qdrant_build_filter(monkeypatch):
         f'Compare mass and radius in "{title}".',
         client=Mock(), catalogue=Mock(), scope=corpus,
         embed=Mock(return_value=[1.0]),
-        model=FakeToolCallingModel([finish()], requirements=descriptions),
+        model=FakeToolCallingModel([finish()], requirements=descriptions, initial_searches=[
+            {"query": f"cluster mass in {title} (required_build_id=build-1)",
+             "requirement_indices": [1], "build_ids": ["build-1"]},
+            {"query": f"cluster radius in {title} (paper_id=paper-1)",
+             "requirement_indices": [2], "build_ids": ["build-1"]},
+        ]),
         budget=AgentBudget(),
     )
     assert result.execution.stop_reason == StopReason.SUFFICIENT
@@ -365,23 +376,30 @@ def test_retrieval_before_requirement_definition_is_rejected(monkeypatch):
     assert result.requirements == []
 
 
-def test_multi_need_question_runs_a_baseline_search_for_every_requirement(monkeypatch):
+def test_initial_queries_are_distinct_from_answer_requirements(monkeypatch):
     result = run(FakeToolCallingModel(
-        [search(), finish()], requirements=("Report the mass.", "Report the age.")),
+        [finish()], requirements=("Report the mass.", "Report the age."), initial_searches=[
+            {"query": "cluster mass estimates", "requirement_indices": [1]},
+            {"query": "cluster age fits", "requirement_indices": [2]},
+        ]),
         monkeypatch)
     assert [row.id for row in result.requirements] == ["r1", "r2"]
     assert [row.need_id for row in result.execution.actions[:2]] == ["r1", "r2"]
     assert [row.query for row in result.execution.actions[:2]] == [
-        "Report the mass.", "Report the age.",
+        "cluster mass estimates", "cluster age fits",
     ]
     assert result.execution.missing_evidence_need_ids == []
     assert result.should_synthesize is True
     assert result.execution.synthesis_policy == "model_finish"
 
 
-def test_coverage_first_stops_safely_when_tool_budget_cannot_cover_all_needs(monkeypatch):
-    result = run(FakeToolCallingModel(
-        [finish()], requirements=("Report the mass.", "Report the age.")),
+def test_initial_plan_stops_safely_when_tool_budget_is_exhausted(monkeypatch):
+    model = FakeToolCallingModel(
+        [finish()], requirements=("Report the mass.", "Report the age."), initial_searches=[
+            {"query": "cluster mass", "requirement_indices": [1]},
+            {"query": "cluster age", "requirement_indices": [2]},
+        ])
+    result = run(model,
         monkeypatch, budget=AgentBudget(max_tool_calls=1))
 
     assert result.execution.stop_reason == StopReason.TOOL_CALL_BUDGET
@@ -389,6 +407,7 @@ def test_coverage_first_stops_safely_when_tool_budget_cannot_cover_all_needs(mon
     assert [row.need_id for row in result.execution.actions] == ["r1"]
     assert result.execution.missing_evidence_need_ids == ["r2"]
     assert result.should_synthesize is True
+    assert len(model.responses) == 1  # No paid planner call after the budget stop.
 
 
 def test_search_cannot_create_new_answer_requirement(monkeypatch):
@@ -480,3 +499,188 @@ def test_planner_reserves_next_prompt_and_output_before_call(monkeypatch):
     assert result.execution.evidence_count == 1
     assert result.execution.synthesis_policy == 'evidence_fallback'
     assert len(model.responses) == 1
+
+
+def run_with_backend(monkeypatch, backend, model, *, budget=None, embed=None):
+    monkeypatch.setattr("src.api.rag.modes.agentic.tools.scoped_chunk_search", backend)
+    return run_agentic(
+        "Report the requested cluster properties.", client=Mock(), catalogue=Mock(),
+        scope=scope(), embed=embed or Mock(return_value=[1.0]), model=model,
+        budget=budget or AgentBudget())
+
+
+def test_initial_searches_actually_overlap(monkeypatch):
+    both_started = Barrier(2)
+
+    def backend(*_args, **kwargs):
+        both_started.wait(timeout=5)  # Sequential execution fails, regardless of machine speed.
+        return [chunk(kwargs["query"])]
+
+    model = FakeToolCallingModel([finish()], requirements=("Report mass.", "Report age."),
+                                initial_searches=[
+        {"query": "stellar mass estimate", "requirement_indices": [1]},
+        {"query": "isochrone age fit", "requirement_indices": [2]},
+    ])
+    result = run_with_backend(monkeypatch, backend, model)
+    assert result.execution.stop_reason == StopReason.SUFFICIENT
+    assert result.execution.rounds == 1
+    assert result.execution.tool_calls == 2
+    assert result.execution.planner_tokens == 30  # Definition plus finish; no search-plan call.
+    assert result.execution.max_parallel_tools == 4
+    assert model.bind_options[1]["parallel_tool_calls"] is True
+    assert [row.query for row in result.execution.initial_searches] == [
+        "stellar mass estimate", "isochrone age fit"]
+
+
+def test_additional_searches_actually_overlap_after_initial_results(monkeypatch):
+    both_started = Barrier(2)
+
+    def backend(*_args, **kwargs):
+        if kwargs["query"] != "initial properties":
+            both_started.wait(timeout=5)
+        return [chunk(kwargs["query"])]
+
+    additional = AIMessage(content="", tool_calls=[
+        search("mass_followup", "dynamical mass", "r1").tool_calls[0],
+        search("age_followup", "age uncertainties", "r2").tool_calls[0],
+    ])
+
+    class Model(FakeToolCallingModel):
+        def invoke(self, messages):
+            if self.responses and self.responses[0] is additional:
+                assert any(getattr(message, "name", None) == "search_chunks"
+                           for message in messages)
+            return super().invoke(messages)
+
+    result = run_with_backend(monkeypatch, backend, Model(
+        [additional, finish()], requirements=("Report mass.", "Report age."),
+        initial_searches=[{"query": "initial properties", "requirement_indices": [1, 2]}]))
+    assert result.execution.stop_reason == StopReason.SUFFICIENT
+    assert result.execution.rounds == 2
+    assert result.execution.tool_calls == 3
+    assert [row.query for row in result.execution.actions] == [
+        "initial properties", "dynamical mass", "age uncertainties"]
+
+
+def test_concurrency_cap_is_honored_without_splitting_a_round(monkeypatch):
+    lock = Lock()
+    two_started = Barrier(2)
+    active = peak = 0
+
+    def backend(*_args, **kwargs):
+        nonlocal active, peak
+        with lock:
+            active += 1
+            peak = max(peak, active)
+        try:
+            two_started.wait(timeout=5)
+            return [chunk(kwargs["query"])]
+        finally:
+            with lock:
+                active -= 1
+
+    model = FakeToolCallingModel([finish()], initial_searches=[
+        {"query": f"property {i}", "requirement_indices": [1]} for i in range(4)])
+    result = run_with_backend(monkeypatch, backend, model,
+                              budget=AgentBudget(max_parallel_tools=2))
+    assert peak == 2
+    assert result.execution.rounds == 1
+    assert result.execution.tool_calls == 4
+    assert result.execution.stop_reason == StopReason.SUFFICIENT
+
+
+def test_parallel_results_merge_in_plan_order_under_evidence_cap(monkeypatch):
+    second_completed = Event()
+
+    def backend(*_args, **kwargs):
+        if kwargs["query"] == "first":
+            assert second_completed.wait(timeout=5)
+        else:
+            second_completed.set()
+        return [chunk(kwargs["query"])]
+
+    result = run_with_backend(monkeypatch, backend, FakeToolCallingModel(
+        [finish()], initial_searches=[
+            {"query": "first", "requirement_indices": [1]},
+            {"query": "second", "requirement_indices": [1]},
+        ]), budget=AgentBudget(max_evidence_chunks=1))
+    assert [row.id for row in result.evidence] == ["first"]
+    assert result.execution.actions[1].result_count == 1
+    assert result.execution.actions[1].evidence_ids == []
+
+
+def test_parallel_failure_preserves_successful_sibling(monkeypatch):
+    both_started = Barrier(2)
+
+    def backend(*_args, **kwargs):
+        both_started.wait(timeout=5)
+        if kwargs["query"] == "broken":
+            raise RuntimeError("offline")
+        return [chunk()]
+
+    result = run_with_backend(monkeypatch, backend, FakeToolCallingModel(
+        [finish()], initial_searches=[
+            {"query": "broken", "requirement_indices": [1]},
+            {"query": "working", "requirement_indices": [1]},
+        ]))
+    assert result.execution.stop_reason == StopReason.SUFFICIENT
+    assert [row.status for row in result.execution.actions] == ["error", "success"]
+    assert result.should_synthesize
+    assert result.execution.evidence_count == 1
+
+
+def test_one_search_can_support_multiple_facts_and_a_synthesis_task(monkeypatch):
+    result = run(FakeToolCallingModel(
+        [finish()], requirements=("Report mass.", "Report age.", "Compare both estimates."),
+        synthesis_indices=[3], initial_searches=[
+            {"query": "cluster mass age estimates", "requirement_indices": [1, 2]},
+        ]), monkeypatch)
+    assert result.execution.stop_reason == StopReason.SUFFICIENT
+    assert result.execution.tool_calls == 1
+    assert result.execution.required_evidence_need_count == 2
+    assert result.execution.covered_evidence_need_count == 2
+    assert result.execution.actions[0].need_ids == ["r1", "r2"]
+    assert result.evidence_by_requirement == {"r1": ("point-1",), "r2": ("point-1",)}
+    assert result.requirements[2].kind == "synthesis"
+    assert len(result.requirements) == 3  # Still passed to final semantic answer coverage.
+
+
+@pytest.mark.parametrize("plan", [
+    {"query": "mass", "requirement_indices": [2]},
+    {"query": "mass", "requirement_indices": [1, 1]},
+    {"query": "mass", "requirement_indices": []},
+    {"query": "mass", "requirement_indices": [0]},
+    {"query": "mass", "requirement_indices": [1], "build_ids": ["outside"]},
+    {"query": "mass", "requirement_indices": [1], "paper_ids": ["outside"]},
+    {"query": "mass", "requirement_indices": [1], "limit": 21},
+])
+def test_invalid_initial_plan_does_not_embed_or_search(monkeypatch, plan):
+    embed = Mock(return_value=[1.0])
+    backend = Mock(return_value=[chunk()])
+    result = run_with_backend(monkeypatch, backend,
+                              FakeToolCallingModel([finish()], initial_searches=[plan]),
+                              embed=embed)
+    assert result.execution.stop_reason == StopReason.PLANNER_FAILURE
+    assert result.execution.tool_calls == 0
+    embed.assert_not_called()
+    backend.assert_not_called()
+
+
+def test_duplicate_initial_queries_merge_requirement_associations(monkeypatch):
+    backend = Mock(return_value=[chunk()])
+    result = run_with_backend(monkeypatch, backend, FakeToolCallingModel(
+        [finish()], requirements=("Mass.", "Age."), initial_searches=[
+            {"query": "same search", "requirement_indices": [1]},
+            {"query": "same search", "requirement_indices": [2]},
+        ]))
+    assert result.execution.stop_reason == StopReason.SUFFICIENT
+    backend.assert_called_once()
+    assert result.execution.actions[0].need_ids == ["r1", "r2"]
+    assert result.execution.covered_evidence_need_count == 2
+
+
+@pytest.mark.parametrize("limit", [0, 9])
+def test_invalid_concurrency_budget_is_rejected(limit):
+    from pydantic import ValidationError
+    with pytest.raises(ValidationError):
+        AgentBudget(max_parallel_tools=limit)

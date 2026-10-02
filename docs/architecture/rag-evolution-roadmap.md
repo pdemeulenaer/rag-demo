@@ -113,21 +113,28 @@ Phase 6; benchmark exposure was added in Phase 7.
 The explicit `agentic` mode uses LangGraph tool calling followed by reviewed synthesis:
 
 1. Classify whether the question needs one paper, multiple papers or metadata discovery.
-2. Call `define_requirements` once; freeze requested facts with graph-assigned r1/r2/etc. IDs.
-3. Select tools and explicit paper/build filters.
+2. Call `define_requirements` once; freeze answer requirements with graph-assigned r1/r2/etc.
+   IDs and supply separate focused initial queries. One query can support several facts;
+   synthesis-only requirements are checked in the answer without a mandatory extra search.
+3. Execute independent planned searches using native bounded parallel tools and explicit
+   paper/build filters. Later independent searches also run in parallel within a round.
 4. Assess evidence sufficiency after each retrieval round.
 5. Reformulate or narrow an unsuccessful search when useful.
 6. Generate claims from accumulated evidence, review support and completeness separately,
    then repair at most once while preserving verified claims and disclosing missing details.
 
-Every retrieval call has a required atomic `need_id`. Chunk searches must use a focused
-query for one requested fact rather than the complete multi-part question; distinct facts
-from the same paper require distinct searches. Execution records persist the actual bounded
+Every retrieval call has a required `need_id`; initial calls can additionally be associated
+with multiple `need_ids`. Queries target evidence locations, not copied answer descriptions:
+independently located facts need focused searches; colocated facts may share one query.
+Execution records persist the initial plan, concurrency setting and actual bounded
 lookup query next to the need ID so evaluation can inspect decomposition without relying on
 private reasoning. Calls must reuse IDs from the frozen requirements; searches cannot add
 mandatory answer requirements. Per-need retrieval coverage is diagnostic only, not semantic
 entailment or a citation allowlist. Any scoped chunk may support any requested fact.
 Catalogue-only discovery actions are routing steps, not answer evidence.
+`AGENT_MAX_PARALLEL_TOOLS` defaults to four (1–8); one batch is one round while every
+call consumes the shared tool budget. Dependent rounds stay sequential. See
+[search planning and parallel execution](rag-modes.md#search-planning-and-parallel-execution).
 
 The loop terminates after at most three retrieval rounds by default (operators may select up
 to five for controlled experiments). It must also stop

@@ -813,6 +813,7 @@ def rag_pipeline(question, qdrant_client, session_id, generation_model=None, top
             agent_budget = AgentBudget(
                 max_rounds=config.AGENT_MAX_ROUNDS,
                 max_tool_calls=config.AGENT_MAX_TOOL_CALLS,
+                max_parallel_tools=config.AGENT_MAX_PARALLEL_TOOLS,
                 max_evidence_chunks=config.AGENT_MAX_EVIDENCE_CHUNKS,
                 max_elapsed_seconds=config.AGENT_MAX_ELAPSED_SECONDS,
                 max_planner_tokens=config.AGENT_MAX_PLANNER_TOKENS,

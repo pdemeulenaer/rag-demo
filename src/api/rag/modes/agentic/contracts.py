@@ -12,10 +12,23 @@ class ContractModel(BaseModel):
 
 
 class AnswerRequirement(ContractModel):
-    """A requested fact, fixed before retrieval and independent of tool calls."""
+    """An answer task, fixed before retrieval and independent of tool calls."""
 
     id: str = Field(min_length=1, max_length=128)
     description: str = Field(min_length=1, max_length=2000)
+    kind: Literal["fact", "synthesis"] = "fact"
+
+
+class InitialSearch(ContractModel):
+    """Native tool input: a search strategy, distinct from answer requirements."""
+
+    query: str = Field(min_length=1, max_length=500)
+    requirement_indices: list[Annotated[int, Field(strict=True, ge=1, le=20)]] = Field(
+        min_length=1, max_length=20)
+    retrieval_mode: Literal["dense", "sparse", "hybrid"] = "hybrid"
+    build_ids: list[str] = Field(default_factory=list, max_length=20)
+    paper_ids: list[str] = Field(default_factory=list, max_length=20)
+    limit: int = Field(default=8, strict=True, ge=1, le=20)
 
 
 class QuestionScope(StrEnum):
@@ -44,6 +57,7 @@ class AgentBudget(ContractModel):
 
     max_rounds: int = Field(default=3, ge=1, le=5)
     max_tool_calls: int = Field(default=12, ge=1, le=20)
+    max_parallel_tools: int = Field(default=4, ge=1, le=8)
     max_evidence_chunks: int = Field(default=30, ge=1, le=50)
     max_elapsed_seconds: float = Field(default=120.0, ge=5.0, le=300.0)
     max_planner_tokens: int = Field(default=20000, ge=256, le=20000)
@@ -54,6 +68,7 @@ class AgentActionRecord(ContractModel):
 
     action_id: Annotated[str, Field(min_length=1, max_length=128)]
     need_id: Annotated[str, Field(min_length=1, max_length=128)]
+    need_ids: list[str] = Field(default_factory=list, max_length=20)
     tool: Literal["search_papers", "search_chunks", "get_section", "get_neighbors"]
     query: Annotated[str, Field(min_length=1, max_length=500)] | None = None
     status: Literal["success", "error", "skipped"]
@@ -84,3 +99,5 @@ class AgentExecutionMetadata(ContractModel):
     elapsed_seconds: float = Field(ge=0)
     actions: list[AgentActionRecord] = Field(max_length=20)
     requirements: list[AnswerRequirement] = Field(default_factory=list, max_length=20)
+    initial_searches: list[InitialSearch] = Field(default_factory=list, max_length=20)
+    max_parallel_tools: int = Field(default=4, ge=1, le=8)

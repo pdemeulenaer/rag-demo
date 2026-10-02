@@ -112,12 +112,12 @@ Agentic RAG is available through `POST /rag2` with `mode: "agentic"` and through
 Streamlit retrieval-mode selector. Its runtime wraps the existing read-only retrieval
 capabilities in a constrained LangGraph tool loop plus Agentic-specific reviewed synthesis:
 
-1. call `define_requirements` once before retrieval, listing the facts the question requests;
+1. call `define_requirements` once before retrieval, listing answer requirements **and** a
+   separate initial search plan;
 2. freeze these descriptions with graph-assigned IDs `r1`, `r2`, etc.; retrieval calls reuse
    these IDs and cannot add requirements through searches or reformulations;
-   for multi-part questions, the graph runs one focused baseline hybrid search per requirement
-   before allowing the planner to spend calls on expansions or repeated searches; each actual
-   query is retained in action diagnostics;
+   execute the planned queries directly, not the requirement descriptions. One query can
+   support several requirements; synthesis-only requirements need no separate search;
 3. use PostgreSQL paper discovery and scoped Qdrant dense, sparse or hybrid chunk search;
 4. expand an exact section or neighbouring chunks when initial evidence is incomplete;
 5. assess evidence sufficiency and either stop, reformulate or perform another retrieval;
@@ -132,12 +132,47 @@ the corpus scope and budgets. Tool calls, evidence IDs, budgets and stop reason 
 Langfuse. The implementation sequence and acceptance criteria are in the
 [RAG evolution roadmap](rag-evolution-roadmap.md).
 
-Paper-level coverage is necessary but not sufficient: when one named paper is queried for
-several measurements, the agent must search those measurements separately and assess each
-need against the returned text. Per-action `need_id` and bounded query text are persisted in
+Paper-level coverage is necessary but not sufficient: assess each requested fact against
+the returned text. Search independently located measurements separately; facts likely in
+one passage may share a query. Per-action `need_id`, `need_ids` and bounded query text are persisted in
 evaluation `results.json` and Langfuse, but are not presented as hidden model reasoning.
 Search coverage is diagnostic, not proof that a fact is answered. Any scoped retrieved chunk
 can support any requirement, regardless of which search found it.
+
+### Search planning and parallel execution
+
+Complexity is about evidence locations and dependencies, not question length. The existing
+planner decides this in its first call; there is no extra classification request or fixed
+question-specific rule. A single fact can use one Hybrid query. Independent facts in different
+papers/sections may need several queries. A comparison combines the retrieved facts and does
+not automatically require a third search.
+
+For example, an answer requirement might be “Report the measured cluster mass with its
+uncertainty,” while its search query is “dynamical mass uncertainty.” A second requirement
+“Compare the two mass estimates” can be marked `kind: synthesis`; the final answer review
+still checks it, but retrieval does not invent a mandatory comparison query.
+
+The native `define_requirements` schema accepts `descriptions`, `initial_searches` (query,
+1-based `requirement_indices`, mode, filters and limit), and optional `synthesis_indices`.
+Use an empty initial list when catalogue discovery must happen first. This replaces the old
+automatic one-description/one-search mapping; it does not add another planner call.
+
+LangGraph's native `ToolNode` runs independent calls **within a batch** concurrently.
+This applies both to initial searches and to additional searches/reads chosen together in
+a later planner response. `AGENT_MAX_PARALLEL_TOOLS=4` defaults to four simultaneous tools
+per request (allowed range 1–8; set 1 for sequential execution). Rounds remain sequential:
+the planner must see earlier results before reformulating or expanding an observed chunk.
+A batch counts as one round, but every call counts against the total tool budget. Evidence
+is deduplicated and merged in call order after the batch completes, under the same evidence
+cap; a failed sibling does not discard successful results. Parallelism is not an extra retry
+budget and can increase provider rate-limit pressure.
+
+Execution metadata and Langfuse retain the normalized initial plan, actual action queries,
+requirement associations and concurrency setting. Evaluation manifests freeze this setting.
+Search labels remain diagnostics, not proof of semantic coverage or a finish gate; the
+existing final review checks **all** requirements, including synthesis tasks. No re-indexing
+or evaluation-dataset recreation is needed. Parallel tools may reduce retrieval wall time;
+sequential generation/review/repair latency is unchanged and no speedup is guaranteed.
 
 ### Previews and targeted reading
 
