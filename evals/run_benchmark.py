@@ -588,6 +588,8 @@ def _summarize_agent_execution(rows: list[dict]) -> dict | None:
         "mean_planner_tokens": round(fmean(float(row.get("planner_tokens") or 0)
                                              for row in executions), 3),
         "preflight_stop_runs": len(preflight_stops),
+        "planner_context_compaction_runs": sum(
+            int(row.get("planner_context_compactions") or 0) > 0 for row in executions),
         "mean_preflight_required_total_tokens": (
             round(fmean(float(row.get("planner_tokens") or 0)
                         + float(row["next_call_estimated_tokens"])
@@ -806,6 +808,11 @@ def report_markdown(manifest: dict, summary: dict) -> str:
                 "mean spent-plus-estimated-next-call tokens: "
                 f"`{agent['mean_preflight_required_total_tokens']}` "
                 "(conservative estimate, not billed usage)."
+            )
+        if agent.get("planner_context_compaction_runs"):
+            lines.append(
+                f"Planner context was compacted in {agent['planner_context_compaction_runs']} "
+                "run(s), preserving original evidence and token limits."
             )
     rerank = summary.get("hybrid_rerank", {}).get("retrieval_diagnostics")
     if rerank:

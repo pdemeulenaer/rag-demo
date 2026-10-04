@@ -9,7 +9,9 @@ from langchain_core.messages import AIMessage
 from src.api.rag.contracts import EvidenceChunk, RetrievalScope, ScopedBuild
 from src.api.rag.modes.agentic.contracts import AgentBudget, StopReason
 from src.api.rag.modes.agentic.executor import run_agentic
-from src.api.rag.modes.agentic.policies import action_fingerprint, narrow_scope
+from src.api.rag.modes.agentic.policies import (
+    action_fingerprint, narrow_scope, observed_section_header, scoped_requirement_query,
+)
 
 
 def scope():
@@ -105,7 +107,7 @@ def test_tool_call_then_terminal_call_synthesizes(monkeypatch):
     assert result.execution.covered_evidence_need_count == 1
     assert {tool.name for tool in model.bound_tools} == {
         "search_papers", "search_chunks", "get_section", "get_neighbors",
-        "define_requirements", "finish_with_evidence", "abstain",
+        "finish_with_evidence", "abstain",
     }
 
 
@@ -498,6 +500,147 @@ def test_planner_reserves_next_prompt_and_output_before_call(monkeypatch):
     assert result.execution.next_call_estimated_tokens == 506
     assert result.execution.evidence_count == 1
     assert result.execution.synthesis_policy == 'evidence_fallback'
+    assert len(model.responses) == 1
+
+
+def test_catalogue_confirmed_titles_and_references_become_filters_not_search_terms():
+    titles = {"build-1": "Scientific Results. V. Cluster Masses", "build-2": "Another Paper About Stars"}
+    query, builds = scoped_requirement_query(
+        "Scientific Results V Cluster Masses mass supply arXiv 2609.00001v2", [], titles,
+        explicit_build_ids=True, required_source_ids={"build-1": "2609.00001"})
+    assert query == "mass supply"
+    assert builds == ["build-1"]
+    query, builds = scoped_requirement_query("cluster masses in galaxies", [], titles,
+                                             explicit_build_ids=True)
+    assert query == "cluster masses in galaxies"
+    assert builds == []  # Partial titles/concepts must not narrow the scope.
+    query, builds = scoped_requirement_query("Scientific Results. V. Cluster Masses", [], titles,
+                                             explicit_build_ids=True)
+    assert query == "paper findings"  # Never put a removed title back into a fact query.
+    assert builds == ["build-1"]
+    query, builds = scoped_requirement_query(
+        "mass supply https://arxiv.org/pdf/2609.00001v2.pdf", [], titles,
+        explicit_build_ids=True, required_source_ids={"build-1": "2609.00001"})
+    assert query == "mass supply"
+    assert builds == ["build-1"]
+
+
+def test_initial_and_recovery_searches_use_explicit_arxiv_filters(monkeypatch):
+    title = "An Unquoted Scientific Paper About Cluster Measurements"
+    rows = [{"id": "build-1", "paper_id": "paper-1", "source": "arxiv",
+             "source_id": "2609.00001", "active_build": "build-1", "deleted": 0,
+             "collection": "papers", "version": 2, "status": "ready",
+             "metadata": {"title": title}}]
+    lookup = Mock(side_effect=[[chunk()], [chunk("sensitivity")]])
+    monkeypatch.setattr("src.api.rag.modes.agentic.tools.scoped_chunk_search", lookup)
+    model = FakeToolCallingModel([
+        search("recovery", f"outer radius sensitivity {title} arXiv:2609.00001v2"), finish(),
+    ], requirements=("Report the mass supply and its radius sensitivity.",), initial_searches=[
+        {"query": f"{title} mass supply arXiv 2609.00001v2", "requirement_indices": [1]},
+    ])
+    result = run_agentic(
+        f"Report the mass supply and its radius sensitivity in {title} (arXiv:2609.00001v2).",
+        client=Mock(), catalogue=SimpleNamespace(all_builds=lambda: rows), scope=scope(),
+        embed=Mock(return_value=[1.0]), model=model,
+        budget=AgentBudget(max_rounds=2, max_tool_calls=2),
+    )
+    assert result.execution.stop_reason == StopReason.SUFFICIENT
+    assert result.execution.required_paper_count == 1
+    assert result.execution.tool_calls == 2
+    assert [row.query for row in result.execution.actions] == ["mass supply", "outer radius sensitivity"]
+    assert all(args.args[1].build_ids == ("build-1",) for args in lookup.call_args_list)
+    assert [row.id for row in result.evidence] == ["point-1", "sensitivity"]
+
+
+def test_observed_markdown_section_heading_is_used_exactly(monkeypatch):
+    heading = "## **2.2 Clustering around Massive Stars**"
+    row = chunk().model_copy(update={"section_header": heading})
+    lookup = Mock(return_value=[row])
+    monkeypatch.setattr("src.api.rag.modes.agentic.tools.scoped_section", lookup)
+    section_call = call("get_section", {
+        "need_id": "r1", "build_id": "build-1", "paper_id": "paper-1",
+        "section_header": "2.2 Clustering around Massive Stars",
+    }, "section")
+    result = run(FakeToolCallingModel([search(), section_call, finish()]), monkeypatch, chunks=[row])
+    assert lookup.call_args.kwargs["section_header"] == heading
+    assert result.execution.actions[1].query == f"section_header={heading}"
+    assert result.execution.stop_reason == StopReason.SUFFICIENT
+
+
+def test_section_header_recovery_never_guesses_or_crosses_paper_identity():
+    row = chunk().model_copy(update={"section_header": "## **Clustering around Massive Stars**"})
+    assert observed_section_header("Clustering", [row], build_id="build-1", paper_id="paper-1") == "Clustering"
+    assert observed_section_header("Clustering around Massive Stars", [row], build_id="build-2",
+                                   paper_id="paper-1") == "Clustering around Massive Stars"
+    scientific = chunk().model_copy(update={"section_header": "## **M* populations**"})
+    assert observed_section_header("M populations", [scientific], build_id="build-1",
+                                   paper_id="paper-1") == "M populations"
+    ambiguous = row.model_copy(update={"section_header": "Clustering around Massive Stars"})
+    assert observed_section_header("## Clustering around Massive Stars", [row, ambiguous],
+                                   build_id="build-1", paper_id="paper-1") == "## Clustering around Massive Stars"
+
+
+def test_budget_compaction_allows_existing_recovery_round_without_changing_evidence(monkeypatch):
+    import json
+    from langchain_core.messages import ToolMessage
+
+    row = chunk().model_copy(update={
+        "text": "Background without the requested fact. " * 250
+        + "The sensitivity is measured by varying the parameter and comparing rates."})
+    monkeypatch.setattr("src.api.rag.modes.agentic.tools.scoped_neighbors", Mock(return_value=[row]))
+    expand = call("get_neighbors", {
+        "need_id": "r1", "build_id": "build-1", "paper_id": "paper-1",
+        "chunk_index": 4, "before": 0, "after": 0,
+    }, "expand")
+
+    class CountingModel(FakeToolCallingModel):
+        max_tokens = 20
+        seen = None
+
+        def get_num_tokens_from_messages(self, messages):
+            large = any(isinstance(message, ToolMessage) and len(message.content) > 8000
+                        for message in messages)
+            return 220 if large else 30
+
+        def get_num_tokens(self, text):
+            return 10
+
+        def invoke(self, messages):
+            self.seen = list(messages)
+            return super().invoke(messages)
+
+    model = CountingModel([search(), expand, finish()], requirements=("Report the sensitivity.",))
+    result = run(model, monkeypatch, chunks=[row], budget=AgentBudget(max_planner_tokens=512))
+    assert result.execution.stop_reason == StopReason.SUFFICIENT
+    assert result.execution.planner_context_compactions == 1
+    assert result.execution.planner_tokens == 60
+    assert result.execution.rounds == 2
+    assert result.evidence[0].text == row.text
+    expanded = next(message for message in model.seen
+                    if isinstance(message, ToolMessage) and message.tool_call_id == "expand")
+    payload = json.loads(expanded.content)
+    assert payload["planner_context_compacted"] is True
+    assert "sensitivity is measured" in payload["evidence"][0]["text"]
+    assert payload["evidence"][0]["text_truncated"] is True
+    assert len(model.responses) == 0
+
+
+def test_compaction_token_counter_failure_does_not_bypass_budget(monkeypatch):
+    class CountingModel(FakeToolCallingModel):
+        max_tokens = 20
+
+        def get_num_tokens_from_messages(self, messages):
+            if any("planner_context_compacted" in str(message.content) for message in messages):
+                raise NotImplementedError("No compacted count available")
+            return 220 if len(self.responses) == 1 else 30
+
+        def get_num_tokens(self, text):
+            return 10
+
+    model = CountingModel([search(), finish()])
+    result = run(model, monkeypatch, budget=AgentBudget(max_planner_tokens=512))
+    assert result.execution.stop_reason == StopReason.TOKEN_BUDGET
+    assert result.execution.next_call_estimated_tokens == 506
     assert len(model.responses) == 1
 
 

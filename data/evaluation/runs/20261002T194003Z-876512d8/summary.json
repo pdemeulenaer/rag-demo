@@ -1,0 +1,140 @@
+{
+  "agentic": {
+    "questions": 1,
+    "errors": 0,
+    "mean_latency_seconds": 137.847,
+    "metrics": {
+      "all_required_papers_retrieved": 1.0,
+      "answer_correctness": 0.5,
+      "answer_relevance": 1.0,
+      "citation_from_retrieval": 1.0,
+      "gold_citation_recall": 0.5,
+      "groundedness": 1.0,
+      "required_paper_citation_recall": 1.0,
+      "required_paper_retrieval_recall": 1.0,
+      "retrieval_hit": 1.0,
+      "retrieval_recall": 0.5
+    },
+    "agent_execution": {
+      "runs": 1,
+      "stop_reasons": {
+        "token_budget": 1
+      },
+      "synthesis_policies": {
+        "evidence_fallback": 1
+      },
+      "mean_rounds": 2.0,
+      "mean_tool_calls": 5.0,
+      "mean_evidence_count": 29.0,
+      "mean_planner_tokens": 12684.0,
+      "preflight_stop_runs": 1,
+      "mean_preflight_required_total_tokens": 32153.0,
+      "tool_usage": {
+        "search_chunks": 5
+      },
+      "tool_errors": 0,
+      "named_paper_runs": 0,
+      "named_paper_full_coverage_rate": null,
+      "mean_atomic_evidence_needs": 4.0,
+      "atomic_need_full_coverage_rate": 1.0
+    },
+    "generation_diagnostics": {
+      "runs": 1,
+      "statuses": {
+        "partial": 1
+      },
+      "reasons": {
+        "incomplete_answer": 1
+      }
+    },
+    "stage_timings": {
+      "runs": 1,
+      "mean_seconds": {
+        "generation_seconds": 121.523,
+        "judge_grounding_seconds": 3.514,
+        "judge_reference_seconds": 2.202,
+        "judge_seconds": 5.716,
+        "pipeline_seconds": 132.131,
+        "retrieval_seconds": 10.598
+      },
+      "sample_counts": {
+        "generation_seconds": 1,
+        "judge_grounding_seconds": 1,
+        "judge_reference_seconds": 1,
+        "judge_seconds": 1,
+        "pipeline_seconds": 1,
+        "retrieval_seconds": 1
+      }
+    },
+    "profiles": {
+      "cross_multihop": {
+        "questions": 1,
+        "errors": 0,
+        "mean_latency_seconds": 137.847,
+        "metrics": {
+          "all_required_papers_retrieved": 1.0,
+          "answer_correctness": 0.5,
+          "answer_relevance": 1.0,
+          "citation_from_retrieval": 1.0,
+          "gold_citation_recall": 0.5,
+          "groundedness": 1.0,
+          "required_paper_citation_recall": 1.0,
+          "required_paper_retrieval_recall": 1.0,
+          "retrieval_hit": 1.0,
+          "retrieval_recall": 0.5
+        },
+        "agent_execution": {
+          "runs": 1,
+          "stop_reasons": {
+            "token_budget": 1
+          },
+          "synthesis_policies": {
+            "evidence_fallback": 1
+          },
+          "mean_rounds": 2.0,
+          "mean_tool_calls": 5.0,
+          "mean_evidence_count": 29.0,
+          "mean_planner_tokens": 12684.0,
+          "preflight_stop_runs": 1,
+          "mean_preflight_required_total_tokens": 32153.0,
+          "tool_usage": {
+            "search_chunks": 5
+          },
+          "tool_errors": 0,
+          "named_paper_runs": 0,
+          "named_paper_full_coverage_rate": null,
+          "mean_atomic_evidence_needs": 4.0,
+          "atomic_need_full_coverage_rate": 1.0
+        },
+        "generation_diagnostics": {
+          "runs": 1,
+          "statuses": {
+            "partial": 1
+          },
+          "reasons": {
+            "incomplete_answer": 1
+          }
+        },
+        "stage_timings": {
+          "runs": 1,
+          "mean_seconds": {
+            "generation_seconds": 121.523,
+            "judge_grounding_seconds": 3.514,
+            "judge_reference_seconds": 2.202,
+            "judge_seconds": 5.716,
+            "pipeline_seconds": 132.131,
+            "retrieval_seconds": 10.598
+          },
+          "sample_counts": {
+            "generation_seconds": 1,
+            "judge_grounding_seconds": 1,
+            "judge_reference_seconds": 1,
+            "judge_seconds": 1,
+            "pipeline_seconds": 1,
+            "retrieval_seconds": 1
+          }
+        }
+      }
+    }
+  }
+}

@@ -151,8 +151,9 @@ state that a requested detail is missing. A stop with zero collected evidence re
 abstention. Execution metadata distinguishes `model_finish`, `evidence_fallback` and
 `hard_stop` synthesis policies.
 
-For questions that explicitly quote full indexed paper titles, a deterministic catalogue
-step resolves those titles inside the active/frozen scope. Their build IDs become required
+For questions that explicitly quote full indexed paper titles or supply arXiv ID/URL
+references, a deterministic catalogue step resolves those references inside the active/frozen
+scope (including requested version checks for arXiv). Their build IDs become required
 coverage. The planner receives the authoritative IDs, searches each independently (parallel
 tool calls are allowed). Missing required builds prevent a sufficient-evidence finish but do
 not prevent verified partial synthesis via evidence fallback. The answer must disclose gaps.
@@ -160,6 +161,12 @@ Chunk search gives the planner 700-character previews with truncation flags. Tar
 neighbour expansion exposes full text within a 12,000-text-character response budget; neighbour
 reads prioritize the anchor and expose the 0–5 per-side bounds in the native tool schema.
 Full evidence remains unchanged for Agentic synthesis and cited excerpts for its support review.
+Confirmed titles/IDs become build filters on initial and recovery queries; unseen or partial
+titles cannot narrow scope. If expansion misses a requested measurement/sensitivity, the
+planner is guided toward another focused in-paper search. Before an otherwise over-budget
+call, deterministic tool-preview compaction may make the call fit; it preserves native
+protocol IDs and full evidence and never increases the hard token limit. See
+[previews and targeted reading](rag-modes.md#previews-and-targeted-reading).
 
 This is intentionally a constrained retrieval agent. Merely asking an LLM to choose between
 the existing Vanilla and Hybrid functions, without decomposition, evidence checking or

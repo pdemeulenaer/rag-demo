@@ -135,6 +135,11 @@ into Agentic's reviewed answer generator; this avoids making the planner a secon
 gate. Resolve quoted full paper titles inside the bounded catalogue scope and ask the planner
 to retrieve every resolved build. Missing builds/needs remain observable but may lead to
 verified partial synthesis with explicit gaps, not automatic whole-answer abstention.
+Agentic also resolves explicit arXiv ID/URL references, requiring a matching version when
+specified. Confirmed full titles/IDs narrow initial and later queries to build filters;
+partial titles/concepts cannot narrow scope. Measurements/sensitivities remain factual
+needs within comparisons. Exact observed section headers may recover Markdown formatting,
+not fuzzy or invented headings. Baseline mode resolution remains unchanged.
 Search tool messages use 700-character previews with explicit truncation flags. Section/neighbour
 expansion exposes full text within a 12,000-text-character per-response budget; neighbours give
 the anchor priority. Native neighbour schemas enforce non-negative chunk ordinals and 0–5 per
@@ -157,6 +162,12 @@ with query/need IDs persisted in
 evaluation output and Langfuse. `need_id` is excluded from duplicate fingerprints. Per-need
 search coverage is diagnostic only: ANY scoped retrieved chunk may support ANY requirement.
 Never reinstate per-search citation groups as answer-validation gates.
+After freezing requirements, do not expose define_requirements again. On an over-budget
+next-call reservation, `planner_context.py` supplies read-only query-focused tool previews
+(400 chars/chunk, 6000 total), with truncation/deduplication flags and protocol IDs intact.
+Recount before invocation; hard budgets still apply. Never mutate full evidence/artifacts
+or interpret hidden preview text as missing source evidence. Execution/evaluation records
+planner_context_compactions; no additional provider call or q-specific recovery is added.
 
 Agentic's review checks each claim using only its cited excerpts, and actual answer coverage
 against the question/requirements (values, units, ranges, uncertainty, comparisons). No gold
@@ -166,6 +177,21 @@ records complete/partial/safe_abstention and per-requirement assessments in API/
 Langfuse. Model support checks are fallible; tests mock them and do not establish live quality.
 There are at most two drafts and two reviews, each one provider call (60-second timeout,
 configured generation-token cap, no provider retries), outside retrieval budgets.
+General citation repair supplies claim-specific missing values/units and supplementary
+retrieved-chunk navigation hints, preferring the same paper and windows around missing
+details (up to 8 rejected claims, 3 candidates each, 900 chars per excerpt/6000 chars total).
+If a measurement and its condition are in separate chunks, prompt for both citations; if an
+optional qualifier lacks support, remove that qualifier without dropping the supported fact
+or hiding a user-requested gap. Never auto-attach candidate citations, relax numeric checks,
+or treat a numeric match as semantic entailment. Repaired claims still undergo the same
+independent review; no additional retrieval/model call or question-specific rule is allowed.
+The first validation attempt records `citation_repair` diagnostics for candidate/missing-value
+inspection in results and Langfuse.
+Presentation-only normalization handles mathematical-font solar masses, braced inverse
+units and attached Unicode scientific exponents; preserve signs, magnitudes and dimensions.
+Malformed generated control characters fail screening with `invalid_control_character`
+and use the existing repair. Never guess their glyphs or strip them into phantom values.
+Stored chunks remain unchanged; retain citation-scoped numeric and semantic checks.
 Vanilla/Hybrid/Hybrid + Rerank retain baseline named-paper gates and generation; baseline
 citation retry exhaustion remains a scored safe abstention, not a benchmark exception.
 

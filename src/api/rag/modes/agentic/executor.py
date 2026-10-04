@@ -24,7 +24,7 @@ from src.api.rag.modes.agentic.contracts import (
 )
 from src.api.rag.modes.agentic.graph import SYSTEM_PROMPT, build_agent_graph
 from src.api.rag.modes.agentic.tools import build_retrieval_tools
-from src.api.rag.tools.paper_search import resolve_quoted_papers
+from src.api.rag.tools.paper_search import resolve_arxiv_papers, resolve_quoted_papers
 
 
 logger = logging.getLogger(__name__)
@@ -84,6 +84,7 @@ def run_agentic(question: str, *, client, catalogue, scope: RetrievalBoundary,
         required_papers = []
         for child_scope in child_scopes:
             required_papers.extend(resolve_quoted_papers(catalogue, child_scope, question))
+            required_papers.extend(resolve_arxiv_papers(catalogue, child_scope, question))
         required_papers = list({row.build_id: row for row in required_papers}.values())
         required_papers.sort(key=lambda row: (row.title.casefold(), row.build_id))
 
@@ -106,8 +107,9 @@ def run_agentic(question: str, *, client, catalogue, scope: RetrievalBoundary,
                 for row in required_papers
             )
             messages.append(SystemMessage(content=(
-                "The catalogue deterministically resolved these full paper titles quoted in "
-                "the question. Treat every listed build as required evidence coverage and "
+                "The catalogue deterministically resolved these explicit paper references in "
+                "the question. Use build/paper IDs as filters, not search text. "
+                "Treat every listed build as required evidence coverage and "
                 "search each build independently before finishing:\n" + resolved
             )))
         messages.append(HumanMessage(content=question))
@@ -123,6 +125,9 @@ def run_agentic(question: str, *, client, catalogue, scope: RetrievalBoundary,
                                          for build in child.builds if build.paper_id}),
             "required_build_ids": [row.build_id for row in required_papers],
             "required_paper_titles": {row.build_id: row.title for row in required_papers},
+            "required_paper_source_ids": {
+                row.build_id: row.source_id for row in required_papers
+                if getattr(row, "source", None) == "arxiv"},
             "required_paper_ids": [row.paper_id for row in required_papers],
             "actions": [],
             "fingerprints": [],
@@ -130,6 +135,7 @@ def run_agentic(question: str, *, client, catalogue, scope: RetrievalBoundary,
             "tool_calls": 0,
             "planner_tokens": 0,
             "next_call_estimated_tokens": None,
+            "planner_context_compactions": 0,
             "no_progress_rounds": 0,
             "started_at": started,
             "question_scope": None,
@@ -181,6 +187,7 @@ def run_agentic(question: str, *, client, catalogue, scope: RetrievalBoundary,
         missing_evidence_need_ids=missing_evidence_need_ids,
         planner_tokens=state.get("planner_tokens", 0),
         next_call_estimated_tokens=state.get("next_call_estimated_tokens"),
+        planner_context_compactions=state.get("planner_context_compactions", 0),
         elapsed_seconds=round(max(0.0, monotonic() - started), 3),
         actions=actions,
         requirements=requirements,

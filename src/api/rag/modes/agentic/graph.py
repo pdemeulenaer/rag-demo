@@ -18,7 +18,10 @@ from src.api.rag.modes.agentic.contracts import (
     InitialSearch,
     StopReason,
 )
-from src.api.rag.modes.agentic.policies import action_fingerprint, scoped_requirement_query
+from src.api.rag.modes.agentic.policies import (
+    action_fingerprint, observed_section_header, scoped_requirement_query,
+)
+from src.api.rag.modes.agentic.planner_context import compact_planner_messages
 from src.api.rag.modes.agentic.state import AgentState
 from src.api.rag.modes.agentic.tools import TERMINAL_TOOLS, define_requirements
 
@@ -47,6 +50,10 @@ Rules:
   question use one hybrid query. Split only independently located facts, not sentence length.
   Set build_ids/paper_ids as filters for resolved papers; leave titles and IDs out of queries.
   Use initial_searches=[] only if metadata discovery must precede chunk retrieval.
+- Requested measurements, dependencies, sensitivity tests and analysis capabilities are
+  factual evidence needs even inside a comparative question. Only a purely derived
+  comparison is synthesis-only. A baseline value and its parameter sensitivity may live
+  in different passages: use separate focused queries when their evidence is not colocated.
 - The graph assigns stable r1, r2, ... IDs. Use only these IDs as need_id on retrieval calls.
   Reformulations, metadata lookups and expansion reuse an existing ID. The list cannot grow
   with tool history. A chunk found for any need may support any other need.
@@ -73,6 +80,10 @@ Rules:
 - Tool metadata alone is not answer evidence; answers require retrieved chunks.
 - After every retrieval round, check every atomic need against the returned text. Reformulate
   and search again for unsupported needs; paper-level coverage alone is not sufficient.
+- If an expansion does not expose a requested fact, try a focused hybrid search for that
+  fact within the observed paper/build, rather than repeatedly expanding the baseline hit.
+  Do not guess section headings. Empty sections or shortened previews do not prove absence.
+  Recovery reuses the existing need IDs and hard budgets; do not search for redundant facts.
 - When chunks provide potentially useful answer evidence, call finish_with_evidence with a
   concise public summary. The reviewed grounded generator, not this planner, makes the final
   answer from those chunks and may still state that a detail is unsupported.
@@ -189,7 +200,7 @@ def build_agent_graph(*, model, retrieval_tools: list, budget: AgentBudget):
     definition_model = model.bind_tools(
         [define_requirements], tool_choice="define_requirements", parallel_tool_calls=False)
     bound_model = model.bind_tools(
-        [define_requirements, *retrieval_tools, *TERMINAL_TOOLS], parallel_tool_calls=True)
+        [*retrieval_tools, *TERMINAL_TOOLS], parallel_tool_calls=True)
 
     def schedule_initial_searches(state: AgentState):
         """Execute the explicit initial plan without an additional planner call."""
@@ -245,11 +256,18 @@ def build_agent_graph(*, model, retrieval_tools: list, budget: AgentBudget):
         try:
             has_requirements = bool(state.get("requirements"))
             active_model = bound_model if has_requirements else definition_model
-            available_tools = ([define_requirements, *retrieval_tools, *TERMINAL_TOOLS]
+            available_tools = ([*retrieval_tools, *TERMINAL_TOOLS]
                                if has_requirements else [define_requirements])
-            reserved = _estimated_next_call_tokens(
-                model, state["messages"], available_tools)
+            messages = state["messages"]
+            reserved = _estimated_next_call_tokens(model, messages, available_tools)
             spent = state.get("planner_tokens", 0)
+            compacted = False
+            if (has_requirements and spent < budget.max_planner_tokens
+                    and reserved is not None and spent + reserved > budget.max_planner_tokens):
+                compact_messages = compact_planner_messages(messages, state["requirements"])
+                compact_reserved = _estimated_next_call_tokens(model, compact_messages, available_tools)
+                if compact_reserved is not None:
+                    messages, reserved, compacted = compact_messages, compact_reserved, True
             if spent >= budget.max_planner_tokens or (
                 reserved is not None and spent + reserved > budget.max_planner_tokens
             ):
@@ -257,7 +275,7 @@ def build_agent_graph(*, model, retrieval_tools: list, budget: AgentBudget):
                     **_terminate(state, StopReason.TOKEN_BUDGET),
                     "next_call_estimated_tokens": reserved,
                 }
-            response = active_model.invoke(state["messages"])
+            response = active_model.invoke(messages)
         except Exception as exc:
             logger.exception("Agentic model call failed (%s)", type(exc).__name__)
             return _terminate(
@@ -270,10 +288,27 @@ def build_agent_graph(*, model, retrieval_tools: list, budget: AgentBudget):
                 state, StopReason.PLANNER_FAILURE,
                 summary="The LangGraph agent returned an invalid response.",
             )
+        # Normalize only confirmed identities/observed headings before fingerprints,
+        # invocation and diagnostics, so records describe the actual lookup.
+        normalized_calls = []
+        for call in response.tool_calls:
+            args = dict(call.get("args") or {})
+            if call["name"] == "search_chunks":
+                args["query"], args["build_ids"] = scoped_requirement_query(
+                    str(args.get("query") or ""), args.get("build_ids") or [],
+                    state.get("required_paper_titles", {}), explicit_build_ids=True,
+                    required_source_ids=state.get("required_paper_source_ids", {}))
+            elif call["name"] == "get_section":
+                args["section_header"] = observed_section_header(
+                    str(args.get("section_header") or ""), state.get("evidence", []),
+                    build_id=args.get("build_id"), paper_id=args.get("paper_id"))
+            normalized_calls.append({**call, "args": args})
+        response = response.model_copy(update={"tool_calls": normalized_calls})
         return {
             "messages": [response],
             "action_need_ids": {},
             "planner_tokens": state.get("planner_tokens", 0) + _token_usage(response),
+            "planner_context_compactions": state.get("planner_context_compactions", 0) + int(compacted),
         }
 
     def guard(state: AgentState) -> dict:
@@ -326,7 +361,8 @@ def build_agent_graph(*, model, retrieval_tools: list, budget: AgentBudget):
                         raise ValueError("initial_search_outside_paper_scope")
                     query, build_ids = scoped_requirement_query(
                         search.query, search.build_ids, state.get("required_paper_titles", {}),
-                        explicit_build_ids=True)
+                        explicit_build_ids=True,
+                        required_source_ids=state.get("required_paper_source_ids", {}))
                     normalized_search = InitialSearch(**{
                         **search.model_dump(), "query": query, "build_ids": build_ids})
                     fingerprint = action_fingerprint("search_chunks", {

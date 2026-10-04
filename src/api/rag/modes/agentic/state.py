@@ -21,6 +21,7 @@ class AgentState(TypedDict, total=False):
     approved_paper_ids: list[str]
     required_build_ids: list[str]
     required_paper_titles: dict[str, str]
+    required_paper_source_ids: dict[str, str]
     required_paper_ids: list[str]
     actions: list[AgentActionRecord]
     fingerprints: list[str]
@@ -28,6 +29,7 @@ class AgentState(TypedDict, total=False):
     tool_calls: int
     planner_tokens: int
     next_call_estimated_tokens: int | None
+    planner_context_compactions: int
     no_progress_rounds: int
     started_at: float
     question_scope: str | None

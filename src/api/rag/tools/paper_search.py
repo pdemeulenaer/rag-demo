@@ -10,6 +10,11 @@ from src.api.rag.contracts import PaperMatch, RetrievalScope
 
 
 QUOTED_TEXT = re.compile(r'["“]([^"”]{8,300})["”]')
+ARXIV_REFERENCE = re.compile(
+    r"(?:\barxiv\s*:\s*|(?:https?://)?(?:export\.)?arxiv\.org/(?:abs|pdf)/)"
+    r"(?P<id>\d{4}\.\d{4,5}|[a-z][a-z.-]*/\d{7})"
+    r"(?:v(?P<version>[1-9]\d*))?(?![\w])", re.I,
+)
 
 
 def _normalized_title(value: str) -> str:
@@ -130,3 +135,21 @@ def resolve_quoted_papers(catalogue, scope: RetrievalScope, question: str) -> li
         for paper in search_papers(catalogue, scope, title=phrase, limit=3):
             matches[paper.build_id] = paper
     return sorted(matches.values(), key=lambda row: (row.title.casefold(), row.build_id))
+
+
+def resolve_arxiv_papers(catalogue, scope: RetrievalScope, question: str) -> list[PaperMatch]:
+    """Resolve explicit arXiv IDs/URLs, including unquoted titles, inside this scope.
+
+    A supplied version must match the ready scoped build. Bare numbers and topic
+    mentions are deliberately not paper references; no broader catalogue fallback.
+    """
+    references = {(match.group("id").casefold(),
+                   int(match.group("version")) if match.group("version") else None)
+                  for match in ARXIV_REFERENCE.finditer(question)}
+    if not references:
+        return []
+    papers = search_papers(catalogue, scope, source="arxiv", limit=len(scope.build_ids))
+    return [paper for paper in papers
+            if any(paper.source_id.casefold() == source_id
+                   and (version is None or version == paper.version)
+                   for source_id, version in references)]

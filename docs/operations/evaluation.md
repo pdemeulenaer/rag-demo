@@ -367,6 +367,11 @@ For Agentic runs, each `results.json` item also contains the public `agent_execu
 record: stop reason, synthesis policy, rounds, tool calls, evidence count, planner-token
 usage, explicitly named-paper coverage and safe action metadata. Every action includes its
 atomic `need_id` and bounded lookup query, which makes decomposition directly inspectable.
+For recovery diagnosis, check that named-paper queries omit titles/arXiv IDs and use the
+resolved build filters. `agent_execution.planner_context_compactions` counts planner calls
+using shortened, deduplicated tool previews when the full history would exceed the token
+budget; summaries report `planner_context_compaction_runs`. Full retrieved chunks remain
+unchanged, so this is not re-extraction or a smaller answer evidence set.
 Execution metadata includes the frozen requirement descriptions and covered/missing search
 needs. These counts describe retrieval results, not semantic answer coverage. Search origin
 does not constrain which claim may cite a chunk.
@@ -374,6 +379,15 @@ Agentic `generation_diagnostics` separately records model-assessed claim support
 coverage, rejected-claim codes, repair attempts and `complete`/`partial`/`safe_abstention`.
 Inspect this alongside actual claim text: a citation or need label alone does not prove that
 a requested value, unit, range or comparison was answered.
+For citation-repair diagnosis, inspect
+`generation_diagnostics.validation_attempts[0].citation_repair`: it records per-rejected-claim
+missing values/units and candidate context IDs. Compare these with the repaired claims'
+actual `cited_context_ids` and the next validation attempt. Suggestions are drawn only from
+retrieved context and are not automatically validated citations; no extra model call is added.
+`invalid_control_character` means a generated claim contains malformed notation; the same
+bounded repair must regenerate readable Unicode/ASCII from cited evidence. It is not a PDF
+extraction failure. Equivalent unit formatting (e.g. `yr^{-1}` and `_𝑀_ ⊙`) is normalized
+for validation without rewriting artifacts or weakening value/unit support checks.
 `summary.json` and
 `report.md` aggregate stop reasons,
 synthesis policies, tool usage and mean Agentic budget consumption. `manifest.json` records

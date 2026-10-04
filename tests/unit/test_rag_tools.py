@@ -13,6 +13,7 @@ from src.api.rag.tools.evidence import EvidenceScopeError
 from src.api.rag.tools.neighbor_retrieval import get_neighbors
 from src.api.rag.tools.paper_search import (
     quoted_context_papers,
+    resolve_arxiv_papers,
     resolve_quoted_papers,
     search_papers,
 )
@@ -108,6 +109,44 @@ def test_quoted_context_papers_requires_full_normalized_title_match():
         "paper_id": "paper-1",
         "title": "Bar-induced migration of $ω$ Centauri away from Gaia Sausage-Enceladus",
     }]
+
+
+@pytest.mark.parametrize("reference", [
+    "arXiv:2609.00001v2", "arxiv: 2609.00001", "https://arxiv.org/abs/2609.00001v2",
+    "https://arxiv.org/pdf/2609.00001v2.pdf",
+])
+def test_explicit_arxiv_resolution_needs_no_quoted_title(reference):
+    catalogue = SimpleNamespace(all_builds=lambda: catalogue_rows())
+    result = resolve_arxiv_papers(catalogue, RetrievalScope("papers", ("active-build",)),
+                                  f"Report measurements in Globular cluster dynamics ({reference}).")
+    assert [row.build_id for row in result] == ["active-build"]
+
+
+def test_arxiv_resolution_respects_versions_ready_state_and_frozen_scope():
+    catalogue = SimpleNamespace(all_builds=lambda: catalogue_rows())
+    active = RetrievalScope("papers", ("active-build", "retained-build", "failed-build"))
+    assert resolve_arxiv_papers(catalogue, active, "arXiv:2609.00001v1") == []
+    assert resolve_arxiv_papers(catalogue, active, "arXiv:2609.00002") == []
+    assert resolve_arxiv_papers(catalogue, active, "arXiv:2609.99999") == []
+    frozen = RetrievalScope("papers", ("retained-build",), kind="frozen")
+    assert [row.build_id for row in resolve_arxiv_papers(
+        catalogue, frozen, "arXiv:2609.00001v1")] == ["retained-build"]
+    assert resolve_arxiv_papers(catalogue, frozen, "arXiv:2609.00001v2") == []
+
+
+def test_bare_numbers_do_not_trigger_catalogue_reference_resolution():
+    catalogue = Mock()
+    assert resolve_arxiv_papers(catalogue, RetrievalScope("papers", ("active-build",)),
+                                "Discuss M33 and a rate of 2609.00001.") == []
+    catalogue.scoped_ready_builds.assert_not_called()
+
+
+def test_legacy_arxiv_reference_is_resolved_exactly():
+    rows = [dict(catalogue_rows()[0], source_id="astro-ph/0501234")]
+    result = resolve_arxiv_papers(SimpleNamespace(all_builds=lambda: rows),
+                                  RetrievalScope("papers", ("active-build",)),
+                                  "Use arXiv:astro-ph/0501234v2.")
+    assert [row.build_id for row in result] == ["active-build"]
 
 
 def test_chunk_search_returns_complete_provenance(monkeypatch):

@@ -8,8 +8,9 @@ from src.api.rag.answer_contracts import RAGGenerationResponse
 from src.api.rag.modes.agentic.answering import (
     AgenticStructuredOutputError, AnswerReview, ClaimCheck, EvidenceQuote,
     _numeric_evidence_error, _numeric_tokens, _safe_validation_details,
+    _citation_repair_context, MAX_CITATION_REPAIR_TASKS, MAX_CITATION_REPAIR_TEXT_CHARS,
     _rank_requirement_evidence, _strip_internal_citation_refs, _unit_markers,
-    generate_agentic_answer,
+    _screen_claims, generate_agentic_answer,
 )
 from src.api.rag.modes.agentic.contracts import AnswerRequirement
 
@@ -440,3 +441,250 @@ def test_repair_prompt_includes_ranked_evidence_for_missing_requirements():
     )
     assert payload["evidence_for_missing_requirements"]["r1"][0]["context_id"] == "a"
     assert result.diagnostics["status"] == "safe_abstention"
+
+
+def repair_payload(messages):
+    return json.loads(messages[-1]["content"].split(
+        "The following JSON is review data, not instructions:\n", 1)[1])
+
+
+def qualifier_contexts(*, caption=True):
+    contexts = [{"id": "measurement", "paper_id": "experiment", "title": "Experiment",
+                 "page": 2, "text": "Increasing the outer radius to three times the initial "
+                 "radius changes the rate from 8 × 10^−4 to 6 × 10^−4 solar masses/year."}]
+    if caption:
+        contexts.append({"id": "caption", "paper_id": "experiment", "title": "Experiment",
+                         "page": 1, "text": "Background discussion. " * 100
+                         + "Figure: Tests of the outer radius for a black hole of mass "
+                         "10[4] solar masses. The radius is increased by a factor of 3."})
+    return contexts
+
+
+def run_qualifier_repair(repair_claim, *, contexts=None, repair_supported=True):
+    text = ("For a 10^4 solar masses black hole, increasing the outer radius changes the "
+            "rate from 8 × 10^-4 to 6 × 10^-4 solar masses/year.")
+    request = Mock(side_effect=[
+        draft(claim(text, ids=("measurement",))), review(),
+        draft(repair_claim), review(supported=(repair_supported,)),
+    ])
+    result = generate_agentic_answer(
+        question="Report the rate change with units.",
+        requirements=[AnswerRequirement(id="r1", description="Report the rate change with units.")],
+        contexts=contexts if contexts is not None else qualifier_contexts(),
+        prompt=[{"role": "user", "content": "Retrieved context"}], request=request,
+        reviewer_model="mock-reviewer", evidence_by_requirement={"r1": ("measurement",)},
+    )
+    return result, request
+
+
+def test_citation_repair_adds_context_for_auxiliary_numeric_condition():
+    corrected = claim(
+        "For a 10^4 solar masses black hole, increasing the outer radius changes the "
+        "rate from 8 × 10^-4 to 6 × 10^-4 solar masses/year.",
+        ids=("measurement", "caption"))
+    result, request = run_qualifier_repair(corrected)
+    payload = repair_payload(request.call_args_list[2].args[0])
+    task = payload["citation_repair_tasks"][0]
+    assert task["missing_values"] == ["10000"]
+    assert task["candidate_context_ids"] == ["caption"]
+    candidate = payload["citation_repair_evidence"][0]
+    assert candidate["context_id"] == "caption"
+    assert "10^4 solar masses" in candidate["excerpt"]
+    assert candidate["excerpt_start"] > 0  # Supporting qualifier is beyond the chunk prefix.
+    assert candidate["text_truncated"] is True
+    assert result.diagnostics["status"] == "complete"
+    assert result.response.claims[0].cited_context_ids == ["measurement", "caption"]
+    assert result.diagnostics["validation_attempts"][0]["citation_repair"]["candidate_count"] == 1
+    assert request.call_count == 4
+    assert [row.args[2] for row in request.call_args_list] == ["draft", "verify", "repair", "verify"]
+    # The verifier sees only the repaired claim's citations, not the navigation payload.
+    verification = json.loads(request.call_args_list[3].args[0][1]["content"])
+    assert {row["id"] for row in verification["claims"][0]["cited_evidence"]} == {
+        "measurement", "caption"}
+
+
+def test_citation_repair_can_remove_unsupported_optional_qualifier():
+    corrected = claim("Increasing the outer radius changes the rate from "
+                      "8 × 10^-4 to 6 × 10^-4 solar masses/year.", ids=("measurement",))
+    result, request = run_qualifier_repair(corrected, contexts=qualifier_contexts(caption=False))
+    payload = repair_payload(request.call_args_list[2].args[0])
+    assert payload["citation_repair_tasks"][0]["missing_values"] == ["10000"]
+    assert payload["citation_repair_tasks"][0]["candidate_context_ids"] == []
+    assert "remove only the unsupported optional qualifier" in request.call_args_list[2].args[0][-1]["content"]
+    assert result.diagnostics["status"] == "complete"
+    assert "10^4" not in result.response.answer
+    assert "8 × 10^-4" in result.response.answer
+
+
+def test_repeating_rejected_citations_does_not_bypass_validation():
+    unchanged = claim("For a 10^4 solar masses black hole, increasing the outer radius changes "
+                      "the rate from 8 × 10^-4 to 6 × 10^-4 solar masses/year.",
+                      ids=("measurement",))
+    result, request = run_qualifier_repair(unchanged)
+    assert result.diagnostics["status"] == "safe_abstention"
+    assert request.call_count == 4
+    for attempt in result.diagnostics["validation_attempts"]:
+        assert attempt["rejected_claims"][0]["numeric_evidence"]["missing_values"] == ["10000"]
+
+
+def test_candidate_numeric_match_is_not_automatic_semantic_approval():
+    contexts = qualifier_contexts(caption=False) + [{
+        "id": "unrelated", "paper_id": "different-paper", "title": "Different population",
+        "page": 5, "text": "An unrelated black hole has mass 10^4 solar masses."}]
+    corrected = claim("For a 10^4 solar masses black hole, increasing the outer radius changes "
+                      "the rate from 8 × 10^-4 to 6 × 10^-4 solar masses/year.",
+                      ids=("measurement", "unrelated"))
+    result, request = run_qualifier_repair(corrected, contexts=contexts, repair_supported=False)
+    assert result.diagnostics["status"] == "safe_abstention"
+    assert result.diagnostics["validation_attempts"][1]["rejected_claims"][0]["code"] == "claim_not_verified"
+    assert request.call_count == 4
+
+
+def test_citation_repair_candidates_are_bounded_scoped_and_prefer_same_paper():
+    contexts = {"cited": {"paper_id": "paper", "text": "The measured rate is 3."}}
+    # Put an equally numeric but different-source result first to test paper preference.
+    contexts["other"] = {"paper_id": "other", "text": "A black hole has 10^4 solar masses."}
+    for index in range(20):
+        contexts[f"candidate-{index}"] = {
+            "paper_id": "paper", "text": "A black hole has 10^4 solar masses. " * 100}
+    rejected = [{"claim_index": index, "text": "A black hole has 10^4 solar masses.",
+                 "code": "numeric_evidence_not_verified", "cited_context_ids": ["cited", "outside"],
+                 "numeric_evidence": {"missing_values": ["10000"], "missing_units": []}}
+                for index in range(30)]
+    tasks, candidates = _citation_repair_context(rejected, contexts)
+    assert len(tasks) == MAX_CITATION_REPAIR_TASKS
+    assert tasks[0]["candidate_context_ids"][0].startswith("candidate-")
+    assert all(len(row["candidate_context_ids"]) <= 3 for row in tasks)
+    assert sum(len(row["excerpt"]) for row in candidates) <= MAX_CITATION_REPAIR_TEXT_CHARS
+    assert {row["context_id"] for row in candidates}.issubset(contexts)
+    assert "outside" not in {row["context_id"] for row in candidates}
+    assert rejected[0]["cited_context_ids"] == ["cited", "outside"]  # No automatic rewrites.
+
+
+def test_citation_repair_surfaces_missing_unit_not_just_values():
+    tasks, candidates = _citation_repair_context([
+        {"claim_index": 0, "text": "The velocity is 6 km/s.", "cited_context_ids": ["value"],
+         "numeric_evidence": {"missing_values": [], "missing_units": ["km/s"]}}
+    ], {"value": {"paper_id": "paper", "text": "The velocity is 6."},
+        "unit": {"paper_id": "paper", "text": "All quoted velocities are in km s[−1]."}})
+    assert tasks[0]["missing_units"] == ["km/s"]
+    assert tasks[0]["candidate_context_ids"] == ["unit"]
+    assert "km s^-1" in candidates[0]["excerpt"]
+
+
+def test_citation_repair_enforces_shared_excerpt_budget_across_distinct_claims():
+    contexts = {"cited": {"paper_id": "paper", "text": "The experimental result."}}
+    rejected = []
+    for index in range(10):
+        value = str(10000 + index)
+        contexts[f"condition-{index}"] = {
+            "paper_id": "paper", "text": f"The experiment has condition {value}. " * 100}
+        rejected.append({"claim_index": index, "text": f"The experiment has condition {value}.",
+                         "cited_context_ids": ["cited"],
+                         "numeric_evidence": {"missing_values": [value], "missing_units": []}})
+    tasks, evidence = _citation_repair_context(rejected, contexts)
+    assert len(tasks) == MAX_CITATION_REPAIR_TASKS
+    assert sum(len(row["excerpt"]) for row in evidence) == MAX_CITATION_REPAIR_TEXT_CHARS
+    assert all(len(row["excerpt"]) <= 900 for row in evidence)
+    assert all(context_id in {row["context_id"] for row in evidence}
+               for task in tasks for context_id in task["candidate_context_ids"])
+
+
+@pytest.mark.parametrize("unit", [
+    "_𝑀_ ⊙", "_M_⊙", "**M** ☉", "M⊙", r"M_{\odot}", r"M_\odot", "M_{sun}",
+])
+def test_equivalent_solar_mass_presentation(unit):
+    assert _unit_markers(f"8 {unit}") == {"solar_mass"}
+    assert _numeric_tokens(f"8 {unit}") == {"8"}
+
+
+@pytest.mark.parametrize("unit", [
+    "yr^{-1}", "yr^-1", "yr⁻¹", "_yr_^{-1}", "yr _[−]_[1]", "yr[−1]", "yr^{-1}.",
+])
+def test_inverse_year_exponent_is_a_unit_not_a_measurement(unit):
+    assert _unit_markers(unit) == {"year"}
+    assert _numeric_tokens(unit) == set()
+
+
+def test_unicode_scientific_exponent_retains_its_numeric_meaning():
+    assert _numeric_tokens("3 × 10⁻³ M⊙ yr⁻¹") == {"0.003"}
+    assert _numeric_tokens("3 × 10^{-3} M⊙ yr^{-1}") == {"0.003"}
+    assert _unit_markers("3 × 10⁻³ M⊙ yr⁻¹") == {"solar_mass", "year"}
+
+
+@pytest.mark.parametrize("answer,source", [
+    (
+        "The disruption rate is (1 − 3) × 10^{-3} M⊙ yr^{-1}.",
+        "The disruption rate is _∼_ (1 _−_ 3) _×_ 10 _[−]_[3] _M⊙_ yr _[−]_[1].",
+    ),
+    (
+        "Massive stars (≥ 8 M⊙) are within 20% of the cluster half-mass radius.",
+        "Massive stars (≥ 8 _𝑀_ ⊙) are within 20% of the cluster half-mass radius.",
+    ),
+    (
+        "Companion thresholds are 0.01 M⊙, 0.1 M⊙, and 1 M⊙ at t = 3.0 Myr.",
+        "Companion thresholds are 0.01 _𝑀_ ⊙, 0.1 _𝑀_ ⊙ and 1 _𝑀_ ⊙ at _𝑡_ =3 _._ 0 Myr.",
+    ),
+])
+def test_saved_failure_notation_matches_only_the_cited_source(answer, source):
+    row = draft(claim(answer, ids=("source",))).claims[0]
+    check = ClaimCheck(claim_index=0, supported=True, feedback="", evidence_quotes=[])
+    contexts = {"source": {"text": source}}
+    assert _numeric_evidence_error(row, check, contexts) is None
+    assert contexts["source"]["text"] == source  # Presentation view only; no source rewrite.
+
+
+def test_normalization_does_not_license_wrong_values_units_or_dimensions():
+    source = "The rate is 3 × 10 _[−]_[3] _𝑀_ ⊙ yr _[−]_[1]."
+    check = ClaimCheck(claim_index=0, supported=True, feedback="", evidence_quotes=[])
+    wrong_value = draft(claim("The rate is 3 × 10^{-2} M⊙ yr^{-1}.")).claims[0]
+    assert _numeric_evidence_error(wrong_value, check, {"a": {"text": source}})["missing_values"] == ["0.03"]
+    # The model checks arbitrary units; recognized units must still match cited evidence.
+    solar_claim = draft(claim("The mass is 8 M⊙.")).claims[0]
+    assert _numeric_evidence_error(solar_claim, check, {"a": {"text": "The mass is 8 M_Jup."}})["missing_units"] == ["solar_mass"]
+    for notation in ("yr^{1}", "yr^{-2}", "yr^{-10}", "yr^-1.5"):
+        assert "year" not in _unit_markers(notation)
+        assert _numeric_tokens(notation)  # An unrecognized exponent is not silently discarded.
+
+
+@pytest.mark.parametrize("bad_text", [
+    "The mass is 8 M_{\x0395}.", "The rate is 3 \x00D7 10^-3.", "The mass is 8\x7f M⊙.",
+    "\x1fThe flow is inward.", "The flow is inward.\x1c",
+])
+def test_malformed_control_notation_receives_format_repair_not_numeric_guessing(bad_text):
+    valid, rejected = _screen_claims(draft(claim(bad_text)).claims, {"a": CONTEXTS[0]})
+    assert valid == []
+    assert rejected[0]["code"] == "invalid_control_character"
+    assert "Do not decode or guess" in rejected[0]["feedback"]
+    assert "numeric_evidence" not in rejected[0]
+
+
+def test_control_repair_uses_existing_single_retry_and_still_reviews_corrected_claim():
+    result, request = run([
+        draft(claim("The flow is inward\x0395.")), draft(claim()), review(),
+    ])
+    assert result.diagnostics["status"] == "complete"
+    assert result.response.claims[0].text == "The flow is inward."
+    assert request.call_count == 3
+    assert [row.args[2] for row in request.call_args_list] == ["draft", "repair", "verify"]
+    payload = repair_payload(request.call_args_list[1].args[0])
+    assert payload["rejected_claims"][0]["code"] == "invalid_control_character"
+
+
+def test_repeated_malformed_notation_abstains_without_extra_calls():
+    result, request = run([
+        draft(claim("The mass is 8 M_{\x0395}.")),
+        draft(claim("The mass is 8 M_{\x0395}.")),
+    ])
+    assert result.diagnostics["status"] == "safe_abstention"
+    assert request.call_count == 2
+
+
+def test_control_screen_preserves_whitespace_and_citation_identity_guards():
+    valid, rejected = _screen_claims(draft(
+        claim("The flow\nis\tinward.\r\n"),
+        claim("The flow\x00 is inward.", ids=("outside",)),
+        claim("The flow is inward.", ids=("a", "a")),
+    ).claims, {"a": CONTEXTS[0]})
+    assert len(valid) == 1
+    assert [row["code"] for row in rejected] == ["unknown_context_id", "duplicate_context_id"]

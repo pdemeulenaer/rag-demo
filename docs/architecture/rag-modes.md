@@ -101,6 +101,10 @@ Every explicit mode resolves quoted full titles against PostgreSQL and compares 
 build IDs with retrieved chunks. Baseline modes abstain before generation when a resolved
 paper is absent. Agentic may instead return a verified partial answer, explicitly identifying
 missing requested details; it must not supply a missing paper's findings from prior knowledge.
+Agentic also resolves explicit `arXiv:ID[vN]` references and arXiv abs/pdf URLs, without
+requiring quotation marks. Resolution stays inside the active/frozen build scope and checks
+an explicitly requested version. Confirmed full titles/IDs become build filters, not search
+terms, on both initial and later queries. Baseline modes retain their quoted-title behavior.
 
 Earlier recorded results called the old full-text-constrained, Cohere-reranked pipeline
 “Hybrid.” Treat those as historical baselines, not results for the new sparse implementation.
@@ -189,6 +193,20 @@ and non-negative chunk ordinals; it does not silently clamp invalid requests.
 
 Once the requested facts are visible, the planner is instructed to finish instead of
 repeatedly expanding the same answer. This is model guidance, not a guaranteed round count.
+Requested measurements and parameter sensitivities remain factual needs even within a
+comparison. If an expansion misses a fact, the planner is instructed to use a focused Hybrid
+query within the observed paper rather than repeatedly reading the same baseline passage.
+Section reads recover an exact observed heading when only Markdown bold/heading markers
+differ; they do not guess or fuzzy-match unseen section names.
+
+Requirement definition is removed from the available tools after the requirements freeze.
+If a subsequent planner call would exceed its cumulative token allowance, a read-only
+compaction shortens tool text to query-focused windows (400 characters per chunk, 6,000
+total), deduplicates repeated text, and marks truncation. The original question, requirements,
+tool-call/result IDs, paper/build/chunk identifiers and full generation evidence remain
+unchanged. The graph recomputes the reservation and still stops if the call cannot fit;
+compaction neither increases limits nor adds a model call. These tool instructions follow
+[OpenAI's function-calling guidance](https://developers.openai.com/api/docs/guides/function-calling).
 
 ### Agentic answer checks and repair
 
@@ -210,8 +228,34 @@ If necessary, one repair requests only corrected/additional claims and preserves
 verified ones. Remaining gaps appear in the displayed answer. No verified claims means a safe
 abstention; partial evidence no longer forces the entire answer to disappear.
 
+Formatting normalization recognizes equivalent solar-mass notation (`_𝑀_ ⊙`, `M⊙`,
+`M_{\odot}`) and inverse-year notation (`yr^{-1}`, `yr⁻¹`, extracted bracketed
+superscripts). Unit exponents are not newly claimed measurements; scientific powers such
+as `10⁻³` retain their numeric meaning. Different values and dimensions still fail checks.
+Malformed generated control characters produce `invalid_control_character` feedback for
+the existing repair, not guessed symbols or numbers. Stored source text remains unchanged.
+
+Citation repair is claim-specific: it receives the exact missing numeric values/units or
+semantic rejection feedback and candidate **additional** citations from the already retrieved
+corpus. Candidates prefer the cited paper and matching details. Short OCR-normalized windows
+are centred on the missing value/unit instead of always showing the start of a chunk; the
+original full supplied chunks remain authoritative. Navigation is bounded to eight rejected
+claims, three candidates each, 900 characters per excerpt and 6,000 excerpt characters total.
+No extra retrieval or model call is added.
+
+The generator is instructed to cite both the measurement passage and any separate passage
+establishing its condition/qualifier. When an optional qualifier is unsupported, it may remove
+that qualifier while retaining the supported measurement; it must not silently remove a
+requested detail. Numeric matches are **not proof of support**: candidates are not automatically
+attached or approved. The repaired claim must still pass citation identity, numeric/unit and
+independent semantic review. This explicit multi-source instruction follows
+[official OpenAI citation guidance](https://developers.openai.com/api/docs/guides/citation-formatting)
+while keeping this application's existing structured chunk-ID citation format.
+
 The API, benchmark results and Langfuse record `generation_diagnostics`: `complete`,
 `partial` or `safe_abstention`, per-requirement coverage and validation attempts.
+The first validation attempt's `citation_repair` records candidate IDs, missing values/units
+and excerpt size so a rerun can distinguish effective citation repair from repeated rejection.
 Semantic support is a model assessment, not a deterministic proof; human review and independent
 evaluation remain necessary.
 

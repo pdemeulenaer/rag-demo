@@ -161,6 +161,16 @@ def test_agentic_summary_reports_preflight_token_requirement():
     assert execution["mean_preflight_required_total_tokens"] == 22000.0
 
 
+def test_agentic_summary_records_planner_context_compaction():
+    rows = [{"mode": "agentic", "profile": "single_fact", "kind": "single_paper",
+             "metrics": {}, "elapsed_seconds": 1.0, "error": None,
+             "agent_execution": {"stop_reason": "sufficient", "actions": [],
+                                 "planner_context_compactions": count}}
+            for count in (0, 1, 2)]
+    summary = runner.summarize(rows, ["agentic"])["agentic"]["agent_execution"]
+    assert summary["planner_context_compaction_runs"] == 2
+
+
 def test_summary_counts_safe_generation_abstentions():
     rows = [{
         "mode": "hybrid", "profile": "cross_multihop", "kind": "cross_paper",

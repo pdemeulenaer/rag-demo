@@ -7,7 +7,7 @@ from hashlib import sha256
 
 from qdrant_client.models import FieldCondition, Filter, MatchAny
 
-from src.api.rag.contracts import RetrievalScope
+from src.api.rag.contracts import EvidenceChunk, RetrievalScope
 
 
 _ROUTING_HINT = re.compile(
@@ -27,7 +27,8 @@ def focused_requirement_text(description: str) -> str:
 
 def scoped_requirement_query(description: str, required_build_ids: list[str],
                              required_titles: dict[str, str] | None = None, *,
-                             explicit_build_ids: bool = False) -> tuple[str, list[str]]:
+                             explicit_build_ids: bool = False,
+                             required_source_ids: dict[str, str] | None = None) -> tuple[str, list[str]]:
     """Use a resolved build as a filter, never as dense/sparse search text."""
     allowed = set(required_build_ids)
     builds = list(dict.fromkeys(
@@ -39,21 +40,46 @@ def scoped_requirement_query(description: str, required_build_ids: list[str],
     if explicit_build_ids:
         builds = list(dict.fromkeys(required_build_ids))
     query = _ROUTING_HINT.sub(" ", description)
+    # Infer a filter only from a catalogue-confirmed full title/reference, never
+    # a topic word, partial title or arbitrary paper identity suggested by the model.
+    candidate_builds = builds or list(required_titles or {})
+    inferred = []
+    for build_id in candidate_builds:
+        title = (required_titles or {}).get(build_id, "")
+        words = re.findall(r"\w+", title)
+        title_pattern = (r"(?<!\w)" + r"[\W_]+".join(map(re.escape, words)) + r"(?!\w)"
+                         if words else None)
+        source_id = (required_source_ids or {}).get(build_id)
+        source_pattern = (r"(?<![\w.])" + re.escape(source_id) + r"(?:v[1-9]\d*)?(?!\w)"
+                          if source_id else None)
+        if ((title_pattern and re.search(title_pattern, query, re.I))
+                or (source_pattern and re.search(source_pattern, query, re.I))):
+            inferred.append(build_id)
+    if not builds:
+        builds = inferred
     for build_id in builds:
         title = (required_titles or {}).get(build_id)
         if title:
             # Remove only catalogue-confirmed titles; a science phrase that merely
             # resembles a title may still be essential to the factual query.
+            words = re.findall(r"\w+", title)
             query = re.sub(
-                r"(?:\b(?:as reported in|in|from)\s+)?[\"“”']?"
-                + re.escape(title) + r"[\"“”']?",
+                r"(?:\b(?:as reported in|in|from)\s+)?[\"“”']?(?<!\w)"
+                + r"[\W_]+".join(map(re.escape, words)) + r"(?!\w)[\"“”']?",
                 " ", query, flags=re.IGNORECASE,
+            )
+        source_id = (required_source_ids or {}).get(build_id)
+        if source_id:
+            query = re.sub(
+                r"(?:(?:https?://)?(?:export\.)?arxiv\.org/(?:abs|pdf)/"
+                r"|\(?\s*arxiv\s*:?\s*)?(?<![\w.])" + re.escape(source_id)
+                + r"(?:v[1-9]\d*)?(?!\w)(?:\.pdf)?\)?", " ", query, flags=re.I,
             )
     if builds and not required_titles:
         query = _LONG_TITLE.sub(" ", query)
     query = re.sub(r"\s+([.,;:])", r"\1", query)
     query = query.strip(" ,:;")
-    return (" ".join(query.split())[:500] or description[:500], builds)
+    return (" ".join(query.split())[:500] or ("paper findings" if builds else description[:500]), builds)
 
 
 def action_fingerprint(name: str, arguments: dict) -> str:
@@ -64,6 +90,21 @@ def action_fingerprint(name: str, arguments: dict) -> str:
     payload = json.dumps({"name": name, "arguments": effective_arguments}, sort_keys=True,
                          separators=(",", ":"), default=str)
     return sha256(payload.encode()).hexdigest()
+
+
+def observed_section_header(header: str, evidence: list[EvidenceChunk], *,
+                            build_id: str | None, paper_id: str | None) -> str:
+    """Recover presentation-only heading changes from this exact observed paper."""
+    def normalize(text):
+        value = re.sub(r"^\s*#{1,6}\s+", "", str(text)).strip()
+        if value.startswith("**") and value.endswith("**"):
+            value = value[2:-2]
+        return " ".join(value.split())
+
+    observed = {row.section_header for row in evidence
+                if row.build_id == build_id and row.paper_id == paper_id and row.section_header
+                and normalize(row.section_header) == normalize(header)}
+    return observed.pop() if len(observed) == 1 else header
 
 
 def narrow_scope(scope: RetrievalScope, build_ids: list[str] | None,
