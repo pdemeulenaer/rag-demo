@@ -108,6 +108,14 @@ def test_evaluation_runner_forwards_question_id_filter():
     assert command[-2:] == ["--question-id", "q0033"]
 
 
+def test_eval_draft_reasoning_override_is_opt_in_and_preserves_the_judge_settings():
+    baseline = dry_run("eval-run", "EVAL_DRAFT_REASONING_EFFORT=")
+    trial = dry_run("eval-run", "EVAL_DRAFT_REASONING_EFFORT=low")
+    assert baseline[0] == "uv"
+    assert trial == ["AGENT_DRAFT_REASONING_EFFORT=low", *baseline]
+    assert trial[trial.index("--judge-reasoning-effort") + 1] == "minimal"
+
+
 def test_evaluation_runner_forwards_profile_filters():
     command = dry_run(
         "eval-run", "EVAL_PROFILES=cross_comparison cross_multihop",

@@ -3,6 +3,79 @@
 This page records named comparison baselines. Local run artifacts remain the authoritative
 per-question record, and Langfuse holds the corresponding traces and Dataset Experiments.
 
+!!! warning "Answer anchoring in newer evaluations"
+    Manual inspection of q0046 in run `20261005T072551Z-f040caaa` found that the
+    reference judge awarded full correctness while attributing reference-only sensitivity
+    values to the generated answer. Treat that score as unreliable, not evidence of full
+    coverage. New runs record `judge_policy: answer-anchored-v7` and require actual-answer
+    quotes and numeric checks. Historical artifacts remain unchanged; compare modes using
+    fresh runs with the same judge policy. See [the evaluation guide](evaluation.md).
+
+Inspection of q0046 in `20261005T100735Z-d2bf7141` found a different problem: the answer
+contained the requested rate range and outer-radius values, but v2's deterministic guard
+lowered the raw judge's correctness from `1.0` to `0.5` because of range/percentage parsing
+and quote formatting. Runtime completeness also demanded an optional percentage format
+and an unrequested quantitative derivation. The code now normalizes those numeric formats,
+bounds quote-format repair, and guides completeness by the original question. This is a
+diagnosis of that development item, not proof that its whole answer is correct or that the
+new pipeline is faster. Historical scores remain unchanged; rerun under v3 before comparing.
+
+Inspection of the subsequent q0046 run `20261005T122901Z-35da5381` found a real missing
+detail: it listed the tested outer-radius settings but did not report their outcome effect.
+Runtime review nevertheless marked the answer complete. The reference judge also returned
+malformed numeric targets (`"[]"` and symbolic settings), so its correctness penalty was not
+a reliable diagnosis of that gap. The run took 84.806 s, versus 120.412 s in the preceding
+run, but that single timing is not a general latency result.
+
+The next revision requires explicit reported-effect assessments linked to supported claims,
+constrains judge numeric targets to decimal strings (`answer-anchored-v4`), and guides
+bounded in-paper recovery toward outcome/parameter-change passages. It adds no normal-path
+provider calls or budget increases. These are implemented safeguards, not evidence of live
+quality improvements: rerun q0046, then the development split with all four modes, under the
+same judge policy. Historical results and reviewed answers remain unchanged.
+
+In q0046 run `20261006T052603Z-53f27afa`, the outer-radius effect was correctly included
+and the enlarged judge budget succeeded on the first reference/grounding requests (1,511
+reference output tokens). The reference judge's aggregate assessment said the answer matched,
+but it labelled the quoted mass-dependent rates `partial` without naming a missing detail.
+The safeguard therefore lowered raw correctness from 1.0 to 0.5. Manual comparison found
+that quoted rate statement matched the retrieved source, making this an unexplained judge
+disagreement rather than an established generation deficit. Historical scores stay unchanged.
+
+Total latency was 173.188 s: a first draft timed out after 60.155 s, its replacement took
+45.279 s, and verification took 24.168 s. Retrieval took 25.393 s; judging took 17.852 s.
+This motivated v5's explicit per-check deficit explanations and an opt-in low-draft-reasoning
+trial, not relaxed safeguards, higher timeouts or extra retries. The changes need fresh
+live evaluation; offline tests alone cannot establish speed or quality improvements.
+
+The low-draft-reasoning trial `20261006T095229Z-97635aa2` took 82.351 s, with generation
+33.821 s and a 54.165 s RAG pipeline excluding evaluation judges. This is promising compared
+with the previous timed-out draft, but one run is not a controlled estimate of the speedup.
+Runtime marked the answer complete and groundedness was 1.0. Reference correctness remained
+0.5; inspection found that the judge alleged a missing "20%" threshold while quoting that
+threshold, and penalized an inner-radius value over damaged picture text. The cited retrieved
+prose supports the radius, but the reviewed reference selection lacks that clear prose/caption.
+Thus the reference judge cannot independently settle it from its limited material. The schema
+warning recovered via the existing retry; there was no final benchmark error.
+
+Version 6 exposes omission contradictions and unresolved reference ambiguity, with one shared
+repair and persistent review flags rather than automatic score promotion. Retrieval, generation,
+reasoning defaults, historical scores and reference evidence stay unchanged. Rerun under the
+current judge policy before comparing modes; manually inspect flagged reference assessments.
+
+Run `20261006T101036Z-ba887282` failed during reference judging because a check marked
+`answered` also supplied a nonempty deficit; v6's cross-field Pydantic validator exhausted
+the bounded retry and discarded the per-item answer/metrics. This is a judge consistency
+failure, not evidence that retrieval failed or generation was incorrect. Total time was
+163.784 s, including 99.455 s generation and 35.225 s reference judging; no grounding judge
+ran, so this run has no usable correctness or grounding score.
+
+Version 7 retains structurally valid contradictory assessments for one bounded repair. If
+unresolved, reference correctness is null/unscored, the RAG result is preserved, and isolated
+grounding still runs. Summaries/reports show scored/unscored counts; judge failures must not
+be mistaken for zero correctness or inflated success. Historical runs are untouched. Offline
+tests exercise the native SDK and item-persistence path; live improvement needs a fresh run.
+
 ## Baseline 1 — Vanilla versus legacy Hybrid
 
 Run `20260915T092511Z-afa2f2d4`, completed on 15 September 2026 with no errors.

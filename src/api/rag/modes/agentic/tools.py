@@ -235,6 +235,12 @@ def define_requirements(
     The graph assigns immutable r1, r2, ... IDs. Repeated searches reuse those IDs;
     retrieval actions cannot add answer requirements. Keep requested comparison/range
     endpoints together and include their units/qualifiers; do not create metadata-only needs.
+    Preserve the original question's scope; optional examples/formats are not mandatory needs.
+    A proposed cross-paper test needs supported inputs and a labelled proposal, not an
+    unrequested numerical derivation or a claim that the papers already prove the linkage.
+    Parameter sensitivity needs the reported outcome change, not just tested settings;
+    do not require an analytic exponent unless requested. Focus queries on the outcome
+    and parameter; confirmed full/short build IDs belong in filters, not search text.
     Supply focused initial_searches separately, linked to 1-based description indices.
     One query may support multiple requirements. Mark comparison/derivation-only tasks
     with synthesis_indices; these do not need their own search. Use an empty search list

@@ -1,5 +1,6 @@
 import asyncio
 import importlib
+import json
 from types import SimpleNamespace
 from unittest.mock import Mock, patch
 
@@ -7,6 +8,18 @@ import pytest
 from fastapi import HTTPException, Request, Response
 
 from src.api.api.models import RAGRequest
+
+
+def native_chat_client(parse):
+    client = Mock()
+    client.with_options.return_value = client
+    client.chat.completions.parse = parse
+    return client
+
+
+def parsed_completion(raw, schema):
+    raw.choices[0].message.parsed = schema.model_validate_json(raw.choices[0].message.content)
+    return raw
 
 
 @pytest.fixture
@@ -159,18 +172,17 @@ def test_openai_generation_uses_model_schema_and_retries_invalid_citations(runti
         content='{"claims":[{"text":"Unsupported","cited_context_ids":["unknown"],"need_ids":[]}]}'))])
     valid = SimpleNamespace(usage=usage, choices=[SimpleNamespace(message=SimpleNamespace(
         content='{"claims":[{"text":"Grounded","cited_context_ids":["allowed"],"need_ids":[]}]}'))])
-    create = Mock(side_effect=[invalid, valid])
-    client = SimpleNamespace(chat=SimpleNamespace(completions=SimpleNamespace(create=create)))
+    create = Mock(side_effect=[parsed_completion(row, retrieval.RAGGenerationResponse)
+                               for row in (invalid, valid)])
+    client = native_chat_client(create)
     monkeypatch.setattr(retrieval, "openai_client", Mock(return_value=client))
 
     response = retrieval.generate_answer([], "gpt-4.1-nano", {"allowed"})
 
     assert response.answer == "Grounded"
     assert create.call_count == 2
-    schema = create.call_args.kwargs["response_format"]["json_schema"]
-    assert schema["strict"] is True
-    assert schema["schema"] == retrieval.RAGGenerationResponse.model_json_schema()
-    assert "used_chunks_rationale" not in schema["schema"]["properties"]
+    assert create.call_args.kwargs["response_format"] is retrieval.RAGGenerationResponse
+    client.with_options.assert_called_once_with(max_retries=0)
 
 
 def test_agentic_malformed_openai_json_exposes_safe_finish_diagnostics(runtime, monkeypatch):
@@ -183,7 +195,8 @@ def test_agentic_malformed_openai_json_exposes_safe_finish_diagnostics(runtime, 
     raw = SimpleNamespace(usage=usage, choices=[choice])
     client = Mock()
     client.with_options.return_value = client
-    client.chat.completions.create.return_value = raw
+    from openai import LengthFinishReasonError
+    client.chat.completions.parse.side_effect = LengthFinishReasonError(completion=raw)
     monkeypatch.setattr(retrieval, "openai_client", Mock(return_value=client))
     monkeypatch.setattr(retrieval, "is_openai_model", lambda model: True)
     span = Mock()
@@ -203,7 +216,7 @@ def test_agentic_malformed_openai_json_exposes_safe_finish_diagnostics(runtime, 
         )
 
     details = caught.value.safe_diagnostics
-    assert details["validation_error_codes"] == ["json_invalid"]
+    assert details["validation_error_codes"] == ["completion_limit"]
     assert details["provider_finish_reason"] == "length"
     assert details["provider_completion_tokens"] == 4096
     assert details["provider_content_chars"] == len('{"claims":')
@@ -213,6 +226,27 @@ def test_agentic_malformed_openai_json_exposes_safe_finish_diagnostics(runtime, 
     assert span.update.call_args.kwargs["output"]["structured_output_valid"] is False
 
 
+def test_baseline_structured_failure_uses_only_existing_retry_and_abstains(runtime, monkeypatch):
+    from src.api.core.structured import StructuredOutputError
+
+    retrieval, _ = runtime
+    parse = Mock(side_effect=StructuredOutputError({"validation_error_codes": ["provider_refusal"]}))
+    client = native_chat_client(parse)
+    monkeypatch.setattr(retrieval, "openai_client", Mock(return_value=client))
+    monkeypatch.setattr(retrieval, "retrieve_context", Mock(return_value=[
+        {"id": "a", "title": "Study", "text": "Evidence", "paper_id": "paper-a"},
+    ]))
+    monkeypatch.setattr(retrieval, "build_prompt", Mock(return_value=[]))
+
+    result = retrieval.rag_pipeline("Question", Mock(), "session", mode="hybrid")
+
+    assert parse.call_count == 2
+    assert result["claims"] == []
+    assert result["generation_diagnostics"]["status"] == "safe_abstention"
+    assert len(result["generation_diagnostics"]["validation_failures"]) == 2
+    client.with_options.assert_called_once_with(max_retries=0)
+
+
 def test_openai_generation_retries_missing_required_paper_citation(runtime, monkeypatch):
     retrieval, _ = runtime
     usage = SimpleNamespace(prompt_tokens=10, completion_tokens=2, total_tokens=12)
@@ -220,8 +254,9 @@ def test_openai_generation_retries_missing_required_paper_citation(runtime, monk
         content='{"claims":[{"text":"Only A","cited_context_ids":["a"],"need_ids":[]}]}'))])
     complete = SimpleNamespace(usage=usage, choices=[SimpleNamespace(message=SimpleNamespace(
         content='{"claims":[{"text":"A and B","cited_context_ids":["a","b"],"need_ids":[]}]}'))])
-    create = Mock(side_effect=[incomplete, complete])
-    client = SimpleNamespace(chat=SimpleNamespace(completions=SimpleNamespace(create=create)))
+    create = Mock(side_effect=[parsed_completion(row, retrieval.RAGGenerationResponse)
+                               for row in (incomplete, complete)])
+    client = native_chat_client(create)
     monkeypatch.setattr(retrieval, "openai_client", Mock(return_value=client))
 
     response = retrieval.generate_answer(
@@ -335,21 +370,139 @@ def test_agentic_openai_adapter_is_schema_strict_and_has_no_hidden_retries(runti
 
     client = Mock()
     client.with_options.return_value = client
-    client.chat.completions.create.return_value = SimpleNamespace(
+    client.chat.completions.parse.return_value = parsed_completion(SimpleNamespace(
         usage=SimpleNamespace(prompt_tokens=10, completion_tokens=20, total_tokens=30),
         choices=[SimpleNamespace(message=SimpleNamespace(
-            content='{"claims":[],"requirements":[],"unplanned_requests":[]}'))])
+            content='{"claims":[],"requirements":[],"unplanned_requests":[]}'))]), AnswerReview)
     monkeypatch.setattr(retrieval, "openai_client", Mock(return_value=client))
     result = retrieval._agentic_structured_request([], AnswerReview, "verify", "gpt-5-mini")
 
     assert result.claims == []
     client.with_options.assert_called_once_with(timeout=60, max_retries=0)
-    kwargs = client.chat.completions.create.call_args.kwargs
-    assert kwargs["response_format"]["json_schema"]["strict"] is True
-    assert kwargs["response_format"]["json_schema"]["schema"] == AnswerReview.model_json_schema()
+    kwargs = client.chat.completions.parse.call_args.kwargs
+    assert kwargs["response_format"] is AnswerReview
     assert kwargs["max_completion_tokens"] == retrieval.config.AGENT_VERIFIER_MAX_COMPLETION_TOKENS
     assert kwargs["reasoning_effort"] == retrieval.config.AGENT_VERIFIER_REASONING_EFFORT
-    assert client.chat.completions.create.call_count == 1
+    assert client.chat.completions.parse.call_count == 1
+
+
+@pytest.mark.parametrize("omit_original", [False, True])
+def test_agentic_provider_round_trip_enforces_required_coverage_keys(runtime, monkeypatch,
+                                                                   omit_original):
+    import json
+    from src.api.rag.modes.agentic.answering import _parse_review, _review_schema
+    from src.api.rag.modes.agentic.contracts import AnswerRequirement
+
+    retrieval, _ = runtime
+    requirements = [
+        AnswerRequirement(id="r1", description="Report the measured mass."),
+        AnswerRequirement(id="q_original", description="Report mass and uncertainty."),
+    ]
+    schema = _review_schema(requirements)
+    coverage = {row.id: {"status": "missing", "claim_indices": [], "feedback": "Not answered."}
+                for row in requirements}
+    if omit_original:
+        coverage.pop("q_original")
+    client = Mock()
+    client.with_options.return_value = client
+    raw = SimpleNamespace(
+        usage=SimpleNamespace(prompt_tokens=10, completion_tokens=20, total_tokens=30),
+        choices=[SimpleNamespace(finish_reason="stop", message=SimpleNamespace(
+            refusal=None, content=json.dumps({"claims": [], "requirements": coverage,
+                                             "unplanned_requests": []})))])
+    if omit_original:
+        from pydantic import ValidationError
+        try:
+            parsed_completion(raw, schema)
+        except ValidationError as error:
+            client.chat.completions.parse.side_effect = error
+    else:
+        client.chat.completions.parse.return_value = parsed_completion(raw, schema)
+    monkeypatch.setattr(retrieval, "openai_client", Mock(return_value=client))
+
+    if omit_original:
+        with pytest.raises(retrieval.AgenticStructuredOutputError) as caught:
+            retrieval._agentic_structured_request([], schema, "verify", "gpt-5-mini")
+        assert "requirements.q_original" in caught.value.safe_diagnostics["validation_error_locations"]
+    else:
+        result = _parse_review(
+            retrieval._agentic_structured_request([], schema, "verify", "gpt-5-mini"), schema)
+        assert [row.requirement_id for row in result.requirements] == ["r1", "q_original"]
+
+    sent_model = client.chat.completions.parse.call_args.kwargs["response_format"]
+    assert sent_model is schema
+    sent = sent_model.model_json_schema()
+    assert set(sent["$defs"]["RequiredCoverage"]["required"]) == {"r1", "q_original"}
+    for field in sent["$defs"]["RequiredCoverage"]["properties"].values():
+        # Pydantic permits description + $ref; the observed OpenAI endpoint does not.
+        assert field == {"$ref": "#/$defs/CoverageCheck"}
+    assert client.chat.completions.parse.call_count == 1
+
+
+@pytest.mark.parametrize("contract", ["review", "reference_judge", "grounding_judge", "draft"])
+def test_structured_answer_and_judge_schemas_use_standalone_resolved_refs(runtime, contract):
+    from evals.run_benchmark import _reference_judge_schema, GroundingJudgeResult
+    from src.api.rag.modes.agentic.answering import _review_schema
+    from src.api.rag.modes.agentic.contracts import AnswerRequirement
+
+    retrieval, _ = runtime
+    schemas = {
+        "review": _review_schema([
+            AnswerRequirement(id="r1", description="Report the measured mass."),
+            AnswerRequirement(id="q_original", description="Report mass and uncertainty."),
+        ]),
+        "reference_judge": _reference_judge_schema([
+            ("q_1", "Report mass."), ("q_2", "Report uncertainty."),
+        ]),
+        "grounding_judge": GroundingJudgeResult,
+        "draft": retrieval.RAGGenerationResponse,
+    }
+    schema = schemas[contract].model_json_schema()
+
+    def check(node):
+        if isinstance(node, dict):
+            if "$ref" in node:
+                assert set(node) == {"$ref"}, "OpenAI rejected siblings beside $ref"
+                assert node["$ref"].startswith("#/$defs/")
+                assert node["$ref"].split("/")[-1] in schema["$defs"]
+            if node.get("type") == "object":
+                assert node["additionalProperties"] is False
+                assert set(node.get("required", [])) == set(node.get("properties", {}))
+            for value in node.values():
+                check(value)
+        elif isinstance(node, list):
+            for value in node:
+                check(value)
+
+    check(schema)
+
+
+@pytest.mark.parametrize("stage,model,effort,expected", [
+    ("draft", "gpt-5-mini", "low", "low"),
+    ("repair", "gpt-5-mini", "minimal", "minimal"),
+    ("draft", "gpt-5-mini", "", None),
+    ("draft", "gpt-4.1", "low", None),
+    ("verify", "gpt-5-mini", "low", "minimal"),
+])
+def test_agentic_draft_reasoning_is_opt_in_and_independent_of_review(runtime, monkeypatch,
+                                                                  stage, model, effort, expected):
+    retrieval, _ = runtime
+    client = Mock()
+    client.with_options.return_value = client
+    client.chat.completions.parse.return_value = parsed_completion(SimpleNamespace(
+        usage=SimpleNamespace(prompt_tokens=10, completion_tokens=20, total_tokens=30),
+        choices=[SimpleNamespace(message=SimpleNamespace(content='{"claims":[]}'))]),
+        retrieval.RAGGenerationResponse)
+    monkeypatch.setattr(retrieval, "openai_client", Mock(return_value=client))
+    monkeypatch.setattr(retrieval.config, "AGENT_DRAFT_REASONING_EFFORT", effort)
+    monkeypatch.setattr(retrieval.config, "AGENT_VERIFIER_REASONING_EFFORT", "minimal")
+    retrieval._agentic_structured_request([], retrieval.RAGGenerationResponse, stage, model)
+    kwargs = client.chat.completions.parse.call_args.kwargs
+    assert kwargs.get("reasoning_effort") == expected
+    assert kwargs["max_completion_tokens"] == (
+        retrieval.config.AGENT_VERIFIER_MAX_COMPLETION_TOKENS if stage == "verify"
+        else retrieval.config.GENERATION_MODEL_MAX_TOKENS)
+    assert client.chat.completions.parse.call_count == 1
 
 
 def request():
@@ -492,7 +645,12 @@ def test_agentic_abstention_skips_answer_generation(runtime, monkeypatch):
     generate.assert_not_called()
 
 
-def test_successful_agentic_execution_reaches_reviewed_generator_and_trace(runtime, monkeypatch):
+@pytest.mark.parametrize("call_timings", [
+    {}, {"draft_seconds": 2.0, "verify_seconds": 3.0},
+    {"draft_seconds": 2.0, "verify_seconds": 6.0, "repair_seconds": 1.0},
+])
+def test_successful_agentic_execution_reaches_reviewed_generator_and_trace(runtime, monkeypatch,
+                                                                         call_timings):
     retrieval, _ = runtime
     from src.api.rag.contracts import EvidenceChunk, RetrievalScope
     from src.api.rag.modes.agentic.contracts import AgentExecutionMetadata
@@ -517,18 +675,24 @@ def test_successful_agentic_execution_reaches_reviewed_generator_and_trace(runti
     claim = retrieval.RAGClaim(text="Grounded", cited_context_ids=["point"], need_ids=[])
     response = retrieval.RAGGenerationResponse(claims=[claim])
     monkeypatch.setattr(retrieval, "generate_agentic_answer", Mock(return_value=
-        AgenticAnswer(response, {"status": "complete"}, [])))
+        AgenticAnswer(response, {"status": "complete", "stage_timings": call_timings}, [])))
     update = Mock()
     monkeypatch.setattr(retrieval, "update_span", update)
 
+    timings = {}
     result = retrieval.rag_pipeline(
         "question", Mock(), "session", mode="agentic", collection="papers",
         scope=RetrievalScope("papers", ("build",)), catalogue=Mock(), agent_model=Mock(),
+        stage_timings=timings,
     )
 
     assert result["answer"] == "Grounded [1]"
     assert result["sources"][0].id == "point"
     assert result["execution"].stop_reason.value == "sufficient"
+    assert {key: value for key, value in timings.items() if key.startswith("agentic_")} == {
+        f"agentic_{key}": value for key, value in call_timings.items()
+    }
+    assert timings["generation_seconds"] >= 0
     trace_outputs = [call.kwargs.get("output", {}) for call in update.call_args_list]
     assert any(output.get("agent_execution", {}).get("stop_reason") == "sufficient"
                for output in trace_outputs)

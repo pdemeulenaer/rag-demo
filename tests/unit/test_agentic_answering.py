@@ -11,6 +11,7 @@ from src.api.rag.modes.agentic.answering import (
     _citation_repair_context, MAX_CITATION_REPAIR_TASKS, MAX_CITATION_REPAIR_TEXT_CHARS,
     _rank_requirement_evidence, _strip_internal_citation_refs, _unit_markers,
     _screen_claims, generate_agentic_answer,
+    _review_schema, _parse_review,
 )
 from src.api.rag.modes.agentic.contracts import AnswerRequirement
 
@@ -338,6 +339,39 @@ def test_numeric_tokens_normalize_pdf_bracketed_scientific_notation():
     expected = {"1e5.1", "1e7.4", "1e2.9", "10000", "0.005", "0.2"}
     assert _numeric_tokens(answer) == expected
     assert _numeric_tokens(extracted) == expected
+
+
+@pytest.mark.parametrize("text,expected", [
+    ("(1–3) × 10^-3 M⊙ yr^-1", {"0.001", "0.003"}),
+    ("(2 _−_ 5) _×_ 10 _[−]_[4] M⊙ yr _[−]_[1]", {"0.0002", "0.0005"}),
+    ("2 to 5 × 10⁻⁴ M⊙ yr⁻¹", {"0.0002", "0.0005"}),
+    ("(-2–-1) × 10^{-4} M⊙ yr^{-1}", {"-0.0002", "-0.0001"}),
+    ("(2.5–4.5) × 10^3", {"2500", "4500"}),
+])
+def test_shared_scientific_multiplier_applies_to_both_endpoints_only(text, expected):
+    assert _numeric_tokens(text) == expected
+
+
+@pytest.mark.parametrize("percentage", ["50%", "50 percent", "50 percentage"])
+def test_answer_anchor_percentage_equivalence_requires_explicit_notation(percentage):
+    assert _numeric_tokens(percentage) == {"50"}
+    assert _numeric_tokens(percentage, percentage_fractions=True) == {"50", "0.5"}
+    assert _numeric_tokens("50 systems", percentage_fractions=True) == {"50"}
+
+
+def test_scientific_exponent_is_not_mistaken_for_a_percentage_value():
+    # Unsupported percentage presentations must fail closed, never invent -0.03.
+    assert "-0.03" not in _numeric_tokens("5 × 10^-3%", percentage_fractions=True)
+
+
+def test_shared_range_does_not_license_wrong_endpoints_or_unscaled_coefficients():
+    check = ClaimCheck(claim_index=0, supported=True, feedback="", evidence_quotes=[])
+    context = {"a": {"text": "The rate is (2–5) × 10^-4 M⊙ yr^-1."}}
+    row = draft(claim("The rate is 0.0002–0.0005 M⊙ yr^-1.")).claims[0]
+    assert _numeric_evidence_error(row, check, context) is None
+    for value in ("0.0006", "5"):
+        wrong = draft(claim(f"The rate is {value} M⊙ yr^-1.")).claims[0]
+        assert value in _numeric_evidence_error(wrong, check, context)["missing_values"]
 
 
 def test_q0046_scientific_numbers_survive_markdown_ocr_markup():
@@ -688,3 +722,366 @@ def test_control_screen_preserves_whitespace_and_citation_identity_guards():
     ).claims, {"a": CONTEXTS[0]})
     assert len(valid) == 1
     assert [row["code"] for row in rejected] == ["unknown_context_id", "duplicate_context_id"]
+
+
+@pytest.mark.parametrize("unit", [
+    "g cm^-2", "g cm^{-2}", "g cm⁻²", "g cm[−2]", "g cm[−][2]",
+    "_g_ _cm_ _[−]_[2]", "g/cm^2", "g/cm²", "g/cm2", "g cm-2",
+])
+def test_surface_density_unit_exponent_is_not_a_measurement(unit):
+    assert _numeric_tokens(f"Surface densities are 0.1 and 1.0 {unit}.") == {"0.1", "1"}
+    assert _unit_markers(unit) == {"g/cm^2"}
+
+
+@pytest.mark.parametrize("unit", [
+    "g cm^2", "g cm^-3", "g cm^-20", "g cm^-2.5", "kg cm^-2", "g m^-2",
+    "G cm^-2", "g/cm^-2", "g/cm^20",
+])
+def test_surface_density_normalization_does_not_erase_other_dimensions(unit):
+    assert "g/cm^2" not in _unit_markers(unit)
+    assert _numeric_tokens(unit)  # Unknown exponents cannot silently disappear.
+
+
+@pytest.mark.parametrize("source", [
+    "The cloud surface densities are 0 _._ 1 g cm[−][2] and 1 _._ 0 g cm[−][2].",
+    "The cloud surface densities are 0.1 g/cm² and 1.0 g/cm².",
+])
+def test_surface_density_claim_matches_only_cited_values_and_units(source):
+    check = ClaimCheck(claim_index=0, supported=True, feedback="", evidence_quotes=[])
+    row = draft(claim("Cloud surface densities are 0.1 and 1.0 g cm^-2.")).claims[0]
+    assert _numeric_evidence_error(row, check, {"a": {"text": source}}) is None
+    wrong_value = draft(claim("Cloud surface densities are 0.2 and 1.0 g cm^-2.")).claims[0]
+    assert _numeric_evidence_error(wrong_value, check, {"a": {"text": source}})["missing_values"] == ["0.2"]
+    assert _numeric_evidence_error(row, check, {
+        "a": {"text": "Densities are 0.1 and 1.0 kg cm^-2."},
+        "uncited": {"text": source},
+    })["missing_units"] == ["g/cm^2"]
+
+
+@pytest.mark.parametrize("source", [
+    "The simulations involve 50% of systems being primordial binaries.",
+    "The simulations involve 50 percent of systems being primordial binaries.",
+    "The primordial binary fraction is 0.5.",
+])
+def test_percentage_fraction_does_not_require_literal_fraction_in_source(source):
+    check = ClaimCheck(claim_index=0, supported=True, feedback="", evidence_quotes=[])
+    row = draft(claim("The initial primordial binary fraction is 50%.")).claims[0]
+    assert _numeric_evidence_error(row, check, {"a": {"text": source}}) is None
+    wrong_value = draft(claim("The initial primordial binary fraction is 75%.")).claims[0]
+    assert _numeric_evidence_error(wrong_value, check, {"a": {"text": source}})["missing_values"] == ["75"]
+
+
+def test_percentage_fraction_still_requires_percentage_support_from_own_citations():
+    check = ClaimCheck(claim_index=0, supported=True, feedback="", evidence_quotes=[])
+    row = draft(claim("The primordial binary fraction is 50%.")).claims[0]
+    error = _numeric_evidence_error(row, check, {
+        "a": {"text": "There are 50 binary systems."},
+        "uncited": {"text": "50% of systems are binaries."},
+    })
+    assert "percent" in error["missing_units"]
+
+
+@pytest.mark.parametrize("supported", [True, False])
+def test_fixed_unit_formats_keep_semantic_review_and_avoid_unnecessary_repair(supported):
+    response = draft(claim("The primordial binary fraction is 50%."),
+                     claim("Cloud surface densities are 0.1 and 1.0 g cm^-2."))
+    assessment = review(supported=(supported, supported), indices=[[0, 1]])
+    request = Mock(side_effect=[response, assessment, response, assessment])
+    result = generate_agentic_answer(
+        question="Report the initial conditions.",
+        requirements=[AnswerRequirement(id="r1", description="Report the initial conditions.")],
+        contexts=[{"id": "a", "text": (
+            "The simulations involve 50% of systems being primordial binaries. "
+            "Cloud surface densities are 0 _._ 1 g cm[−][2] and 1 _._ 0 g cm[−][2]."
+        )}], prompt=[], request=request, reviewer_model="offline",
+    )
+    assert result.diagnostics["status"] == ("complete" if supported else "safe_abstention")
+    assert request.call_count == (2 if supported else 4)
+    if not supported:
+        assert all(row["code"] == "claim_not_verified"
+                   for attempt in result.diagnostics["validation_attempts"]
+                   for row in attempt["rejected_claims"])
+
+
+def test_answer_stage_timings_cover_each_call_and_aggregate_reviews(monkeypatch):
+    monkeypatch.setattr("src.api.rag.modes.agentic.answering.monotonic",
+                        Mock(side_effect=[0, 2, 2, 5, 5, 9, 9, 14]))
+    result, request = run([
+        draft(claim()), review(statuses=("partial",)), draft(), review(),
+    ])
+    assert request.call_count == 4
+    assert result.diagnostics["stage_timings"] == {
+        "draft_seconds": 2, "verify_seconds": 8, "repair_seconds": 4,
+    }
+    assert [row["stage_timings"] for row in result.diagnostics["validation_attempts"]] == [
+        {"draft_seconds": 2, "verify_seconds": 3},
+        {"repair_seconds": 4, "verify_seconds": 5},
+    ]
+
+
+def test_failed_answer_requests_are_timed_without_inventing_skipped_reviews(monkeypatch):
+    monkeypatch.setattr("src.api.rag.modes.agentic.answering.monotonic",
+                        Mock(side_effect=[0, 2, 2, 5]))
+    result, request = run([RuntimeError("offline"), RuntimeError("offline")])
+    assert request.call_count == 2
+    assert result.diagnostics["stage_timings"] == {"draft_seconds": 2, "repair_seconds": 3}
+    assert "verify_seconds" not in result.diagnostics["stage_timings"]
+
+
+def test_compact_prompt_preserves_scientific_checks_and_review_schema():
+    _, request = run([draft(claim()), review()])
+    drafting = request.call_args_list[0].args[0][-1]["content"]
+    reviewing = request.call_args_list[1].args[0][0]["content"]
+    assert "omit unrequested background and tangents, not requested details" in drafting
+    assert "Use empty feedback for supported claims and satisfied requirements" in reviewing
+    assert "shortest contiguous passage(s)" in reviewing
+    assert "ONLY that claim's cited excerpts" in reviewing
+    assert "Check source attribution, entities, quantities, units" in reviewing
+
+
+def test_method_role_error_uses_existing_repair_without_crediting_a_related_pipeline_step():
+    """Fixture exercises rejection/repair, not live-model semantic accuracy."""
+    source = "Gate groups records into a dataset. Link separately finds pairs within that dataset."
+    wrong = review(supported=(False,), statuses=("missing",))
+    wrong.claims[0].feedback = "Gate selects membership; Link, not Gate, finds pairs."
+    request = Mock(side_effect=[draft(claim("Gate finds pairs.", ids=("method",))), wrong,
+                               draft(claim("Link finds pairs.", ids=("method",))), review()])
+    result = generate_agentic_answer(
+        question="Which method finds pairs?",
+        requirements=[AnswerRequirement(id="r1", description="Identify the pair-finding method.")],
+        contexts=[{"id": "method", "paper_id": "paper", "text": source}],
+        prompt=[{"role": "user", "content": "Scoped evidence"}], request=request)
+    assert request.call_count == 4  # Existing draft/review/repair/review bound.
+    assert result.diagnostics["status"] == "complete"
+    assert [row.text for row in result.response.claims] == ["Link finds pairs."]
+    reviewing = request.call_args_list[1].args[0][0]["content"]
+    assert "method purpose, target population and pipeline step" in reviewing
+    assert "Gate finds" in reviewing
+    repair = request.call_args_list[2].args[0][-1]["content"]
+    assert "Link, not Gate" in repair
+
+
+def test_planner_optional_percentage_format_does_not_force_a_repair():
+    assessment = review()
+    assessment.requirements[-1].effect_status = "reported_effect"
+    assessment.requirements[-1].effect_claim_indices = [0]
+    request = Mock(side_effect=[
+        draft(claim("The rate decreases from 8 × 10^-4 to 6 × 10^-4 M⊙ yr^-1.")),
+        assessment,
+    ])
+    result = generate_agentic_answer(
+        question="Report the rate and its sensitivity to the outer radius.",
+        requirements=[AnswerRequirement(id="r1", description=(
+            "Report the numerical rate and sensitivity: quantitative scaling, percent "
+            "changes, formulas or descriptive statements."))],
+        contexts=[{"id": "a", "text": "The rate decreases from 8 × 10^-4 to 6 × 10^-4 M⊙ yr^-1."}],
+        prompt=[], request=request, reviewer_model="offline")
+    assert result.diagnostics["status"] == "complete"
+    assert result.diagnostics["coverage_policy"] == "original-question-effects-v2"
+    assert result.limitations == []
+    assert request.call_count == 2
+
+
+def test_explicit_user_requested_units_still_gate_completeness():
+    request = Mock(side_effect=[draft(claim("The mass is 2.")), review(), draft(), review()])
+    result = generate_agentic_answer(
+        question="Report the mass in solar masses.",
+        requirements=[AnswerRequirement(id="r1", description="Report the mass in solar masses.")],
+        contexts=[{"id": "a", "text": "The mass is 2 solar masses."}], prompt=[], request=request)
+    assert result.diagnostics["status"] == "partial"
+    assert result.diagnostics["requirements"][0]["feedback"] == (
+        "Required units are absent from supported answer claims.")
+    assert request.call_count == 4
+
+
+@pytest.mark.parametrize("supported,expected", [(True, "complete"), (False, "safe_abstention")])
+def test_conceptual_synthesis_is_not_forced_to_invent_a_numerical_derivation(supported, expected):
+    question = "How could the clustering method test the feeding assumptions?"
+    text = "We propose measuring companion counts to test the assumed stellar supply, not a proven feeding rate."
+    request = Mock(side_effect=[draft(claim(text)), review(supported=(supported,)),
+                               draft(claim(text)), review(supported=(supported,))])
+    result = generate_agentic_answer(
+        question=question,
+        requirements=[AnswerRequirement(id="r1", kind="synthesis", description=(
+            "Synthesize how the measured clustering could constrain the mass-supply rate."))],
+        contexts=[{"id": "a", "text": "The method counts companions; the feeding model assumes a stellar supply."}],
+        prompt=[], request=request, reviewer_model="offline")
+    assert result.diagnostics["status"] == expected
+    assert request.call_count == (2 if supported else 4)
+    drafting = request.call_args_list[0].args[0][-1]["content"]
+    reviewing = request.call_args_list[1].args[0][0]["content"]
+    assert "explicitly label proposed uses" in drafting
+    assert "original question defines the mandatory scope" in reviewing
+    assert "Do not demand a numerical conversion" in reviewing
+    assert "unsupported causal or quantitative relationship as established" in reviewing
+
+
+def test_review_schema_requires_every_request_specific_coverage_key():
+    from pydantic import ValidationError
+
+    requirements = [AnswerRequirement(id=key, description="Report this requested fact.")
+                    for key in ("r1", "q_1", "q_2")]
+    schema = _review_schema(requirements)
+    definition = schema.model_json_schema()["$defs"]["RequiredCoverage"]
+    assert definition["required"] == ["r1", "q_1", "q_2"]
+    assert definition["additionalProperties"] is False
+    assessment = {"status": "satisfied", "claim_indices": [0], "feedback": ""}
+    payload = {"claims": review().model_dump()["claims"],
+               "requirements": {key: dict(assessment) for key in ("r1", "q_1", "q_2")},
+               "unplanned_requests": []}
+    normalized = _parse_review(payload, schema)
+    assert [row.requirement_id for row in normalized.requirements] == ["r1", "q_1", "q_2"]
+    del payload["requirements"]["q_2"]
+    with pytest.raises(ValidationError):
+        _parse_review(payload, schema)
+    payload["requirements"]["q_typo"] = assessment
+    with pytest.raises(ValidationError):
+        _parse_review(payload, schema)
+
+
+def test_review_prompt_keeps_requirement_descriptions_outside_schema_refs():
+    from src.api.rag.modes.agentic.answering import _review_messages
+
+    requirements = [AnswerRequirement(id="r1", description="Report the measured mass and uncertainty.")]
+    messages = _review_messages("Report mass.", requirements, [], {}, 0)
+    payload = json.loads(messages[-1]["content"])
+    assert payload["requirements"] == [row.model_dump() for row in requirements]
+    schema = _review_schema(requirements).model_json_schema()
+    assert schema["$defs"]["RequiredCoverage"]["properties"]["r1"] == {
+        "$ref": "#/$defs/CoverageCheck",
+    }
+
+
+def test_numbered_original_requests_remain_separate_from_an_incomplete_plan():
+    def request(messages, schema, stage):
+        if stage != "verify":
+            return draft(claim())
+        payload = {"claims": review().model_dump()["claims"], "unplanned_requests": [],
+                   "requirements": {
+                       "r1": {"status": "satisfied", "claim_indices": [0], "feedback": ""},
+                       "q_1": {"status": "satisfied", "claim_indices": [0], "feedback": ""},
+                       "q_2": {"status": "missing", "claim_indices": [],
+                               "effect_status": "missing", "effect_claim_indices": [],
+                               "feedback": "Dependence on the specified parameter is absent."},
+                   }}
+        return schema.model_validate(payload)
+
+    result = generate_agentic_answer(
+        question="(1) Describe the flow. (2) State its dependence on the chosen parameter.",
+        requirements=[AnswerRequirement(id="r1", description="Describe the flow.")],
+        contexts=CONTEXTS, prompt=[], request=request, reviewer_model="offline")
+    assert result.diagnostics["status"] == "partial"
+    assert len(result.response.claims) == 1
+    assert result.limitations == ["Original question part (2): State its dependence on the chosen parameter"]
+    assert [row["requirement_id"] for row in result.diagnostics["original_question_parts"]] == ["q_1", "q_2"]
+
+
+def test_omitted_original_question_check_fails_validation_without_extra_review_calls():
+    calls = []
+
+    def request(messages, schema, stage):
+        calls.append(stage)
+        if stage != "verify":
+            return draft(claim())
+        return schema.model_validate({"claims": review().model_dump()["claims"],
+                                      "requirements": {"r1": {
+                                          "status": "satisfied", "claim_indices": [0], "feedback": ""}},
+                                      "unplanned_requests": []})
+
+    result = generate_agentic_answer(
+        question="Describe the flow.", requirements=[AnswerRequirement(id="r1", description="Describe the flow.")],
+        contexts=CONTEXTS, prompt=[], request=request)
+    assert calls == ["draft", "verify", "repair", "verify"]
+    assert result.diagnostics["status"] == "safe_abstention"
+    assert all(row["failed_stage"] == "verify" for row in result.diagnostics["validation_attempts"])
+    assert "requirements.q_original" in result.diagnostics["validation_attempts"][0]["validation_error_locations"]
+
+
+def test_effect_schema_requires_a_result_assessment_and_claim_links():
+    from pydantic import ValidationError
+
+    schema = _review_schema([
+        AnswerRequirement(id="r1", description="Report the mass sensitivity to distance."),
+        AnswerRequirement(id="r2", description="Report the measured mass."),
+    ])
+    payload = {"claims": [], "unplanned_requests": [], "requirements": {
+        "r1": {"status": "missing", "claim_indices": [], "feedback": "Effect absent."},
+        "r2": {"status": "missing", "claim_indices": [], "feedback": "Mass absent."},
+    }}
+    with pytest.raises(ValidationError) as caught:
+        schema.model_validate(payload)
+    assert {row["loc"] for row in caught.value.errors()} == {
+        ("requirements", "r1", "effect_status"),
+        ("requirements", "r1", "effect_claim_indices"),
+    }
+    payload["requirements"]["r1"].update(effect_status="missing", effect_claim_indices=[])
+    parsed = _parse_review(payload, schema)
+    assert parsed.requirements[0].effect_status == "missing"
+    assert parsed.requirements[1].effect_status is None
+
+
+@pytest.mark.parametrize("effect_status,effect_indices,expected", [
+    ("test_settings_only", [], "partial"),
+    ("missing", [], "partial"),
+    ("reported_effect", [], "partial"),
+    ("reported_effect", [3], "partial"),
+    ("reported_effect", [0], "complete"),
+])
+def test_effect_coverage_needs_supported_result_claims_not_settings(
+        effect_status, effect_indices, expected):
+    text = ("The mass is independent of distance; no analytic formula is reported."
+            if expected == "complete" else "The study tested two distances; no formula is given.")
+    stages = []
+
+    def request(messages, schema, stage):
+        stages.append(stage)
+        if stage == "repair":
+            return draft()  # No new verified result; retain the supported first claim.
+        if stage == "draft":
+            return draft(claim(text))
+        payload = json.loads(messages[-1]["content"])
+        assert payload["parameter_effect_requirements"] == ["r1", "q_original"]
+        coverage = {"status": "satisfied", "claim_indices": [0], "feedback": "",
+                    "effect_status": effect_status, "effect_claim_indices": effect_indices}
+        return schema.model_validate({
+            "claims": review().model_dump()["claims"], "unplanned_requests": [],
+            "requirements": {"r1": coverage, "q_original": coverage},
+        })
+
+    result = generate_agentic_answer(
+        question="Report the mass dependence on distance.",
+        requirements=[AnswerRequirement(id="r1", description="Report the mass dependence on distance.")],
+        contexts=[{"id": "a", "text": text}], prompt=[], request=request)
+    assert result.diagnostics["status"] == expected
+    assert result.diagnostics["coverage_contract"] == "required-keys-effects-v3"
+    assert len(result.response.claims) == 1
+    assert stages == (["draft", "verify"] if expected == "complete"
+                      else ["draft", "verify", "repair", "verify"])
+    if expected == "partial":
+        assert "reported effect on the outcome is missing" in result.diagnostics["requirements"][0]["feedback"]
+
+
+def test_qualitative_reported_rate_dependence_does_not_require_a_formula_or_number():
+    assessment = review()
+    for row in assessment.requirements:
+        row.effect_status = "reported_effect"
+        row.effect_claim_indices = [0]
+    result, request = run([
+        draft(claim("The rate is unchanged when distance varies.")), assessment,
+    ], descriptions=("Report the rate dependence on distance.",))
+    assert result.diagnostics["status"] == "complete"
+    assert request.call_count == 2
+
+
+def test_unsupported_result_cannot_satisfy_effect_coverage():
+    assessment = review(supported=(False, True), indices=[[0, 1]])
+    for row in assessment.requirements:
+        row.effect_status = "reported_effect"
+        row.effect_claim_indices = [0]
+    result, request = run([
+        draft(claim("The mass decreases with distance."), claim("Two distances were tested.")),
+        assessment, draft(), assessment,
+    ], descriptions=("Report the mass dependence on distance.",))
+    assert result.diagnostics["status"] == "partial"
+    assert [row.text for row in result.response.claims] == ["Two distances were tested."]
+    assert request.call_count == 4

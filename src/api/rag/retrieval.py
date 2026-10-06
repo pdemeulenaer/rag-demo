@@ -13,6 +13,7 @@ from time import monotonic
 
 from src.api.core.config import config
 from src.api.core.clients import openai_client
+from src.api.core.structured import StructuredOutputError, parse_chat
 from src.api.observability.tracing import observe, observation, trace_attributes, update_span
 from src.api.rag.utils.utils import prompt_template_config
 from src.api.rag.summarize import summarize_text
@@ -558,41 +559,42 @@ def generate_answer(prompt, generation_model=None, allowed_context_ids=None,
 
     if is_openai_model(generation_model):
         # --------- OpenAI branch ----------
-        client = openai_client()
+        client = openai_client().with_options(max_retries=0)
         usage = {"input_tokens": 0, "output_tokens": 0, "total_tokens": 0,
                  "attempts": 0}
         request_prompt = prompt
         validation_failures = []
         for attempt in range(2):
-            response_json = client.chat.completions.create(
-                model=generation_model,
-                messages=request_prompt,
-                response_format={
-                    "type": "json_schema",
-                    "json_schema": {
-                        "name": "RAGGenerationResponse",
-                        "strict": True,
-                        "schema": OUTPUT_SCHEMA,
-                    }
-                }
-            )
             usage["attempts"] += 1
-            if response_json.usage is not None:
-                usage["input_tokens"] += response_json.usage.prompt_tokens
-                usage["output_tokens"] += response_json.usage.completion_tokens
-                usage["total_tokens"] += response_json.usage.total_tokens
             try:
-                response = RAGGenerationResponse.model_validate_json(
-                    response_json.choices[0].message.content
+                response, response_json = parse_chat(
+                    client, RAGGenerationResponse, model=generation_model,
+                    messages=request_prompt,
                 )
+                if response_json.usage is not None:
+                    usage["input_tokens"] += response_json.usage.prompt_tokens
+                    usage["output_tokens"] += response_json.usage.completion_tokens
+                    usage["total_tokens"] += response_json.usage.total_tokens
                 _validate_context_ids(
                     response, allowed_context_ids, required_context_groups,
                 )
                 break
-            except (ValidationError, InvalidCitationIdsError, MissingRequiredCitationError) as error:
+            except (StructuredOutputError, ValidationError, InvalidCitationIdsError,
+                    MissingRequiredCitationError) as error:
+                if isinstance(error, StructuredOutputError):
+                    # SDK validation can fail before returning a completion. Do not
+                    # present available usage as a complete accounting of failed calls.
+                    usage["usage_incomplete"] = True
+                    failed_usage = getattr(error.completion, "usage", None)
+                    if failed_usage is not None:
+                        usage["input_tokens"] += failed_usage.prompt_tokens
+                        usage["output_tokens"] += failed_usage.completion_tokens
+                        usage["total_tokens"] += failed_usage.total_tokens
                 validation_failures.append({
                     "code": getattr(error, "code", "invalid_structured_response"),
                     "exception_type": type(error).__name__,
+                    **({"safe_diagnostics": error.safe_diagnostics}
+                       if isinstance(error, StructuredOutputError) else {}),
                 })
                 if attempt == 1:
                     try:
@@ -678,38 +680,19 @@ def _agentic_structured_request(messages, response_model, stage, generation_mode
                 "model": model,
                 "messages": messages,
                 "max_completion_tokens": completion_limit,
-                "response_format": {"type": "json_schema", "json_schema": {
-                    "name": response_model.__name__, "strict": True,
-                    "schema": response_model.model_json_schema(),
-                }},
             }
             if verifier and reasoning_model and config.AGENT_VERIFIER_REASONING_EFFORT not in ("", "none"):
                 request_options["reasoning_effort"] = config.AGENT_VERIFIER_REASONING_EFFORT
-            raw = client.chat.completions.create(
-                **request_options,
-            )
-            choice = raw.choices[0]
-            message = choice.message
-            content = message.content or ""
+            elif not verifier and config.AGENT_DRAFT_REASONING_EFFORT:
+                # Opt-in GPT-5 draft/repair control, independent of verifier/planner.
+                if str(model).casefold().startswith("gpt-5"):
+                    request_options["reasoning_effort"] = config.AGENT_DRAFT_REASONING_EFFORT
             try:
-                result = response_model.model_validate_json(content)
-            except ValidationError as error:
-                issues = error.errors(include_input=False)
-                safe_diagnostics = {
-                    "validation_error_codes": sorted({
-                        str(issue.get("type", "invalid")) for issue in issues
-                    })[:10],
-                    "validation_error_locations": sorted({
-                        ".".join(str(part) for part in issue.get("loc", ()))[:128]
-                        for issue in issues
-                    })[:10],
-                    "provider_finish_reason": str(choice.finish_reason or "unknown")[:32],
-                    "provider_completion_tokens": getattr(raw.usage, "completion_tokens", None),
-                    "provider_content_chars": len(content),
-                    "provider_refusal": bool(getattr(message, "refusal", None)),
-                }
+                result, raw = parse_chat(client, response_model, **request_options)
+            except StructuredOutputError as error:
+                safe_diagnostics = error.safe_diagnostics
                 if span is not None:
-                    usage = raw.usage
+                    usage = getattr(error.completion, "usage", None)
                     span.update(
                         output={"structured_output_valid": False,
                                 "finish_reason": safe_diagnostics["provider_finish_reason"],
@@ -937,13 +920,17 @@ def rag_pipeline(question, qdrant_client, session_id, generation_model=None, top
             answer = reviewed.response
             generation_diagnostics = reviewed.diagnostics
             answer_limitations = reviewed.limitations
+            if stage_timings is not None:
+                for name, seconds in reviewed.diagnostics.get("stage_timings", {}).items():
+                    stage_timings[f"agentic_{name}"] = seconds
         else:
             answer = generate_answer(
                 prompt, generation_model,
                 allowed_context_ids={str(c["id"]) for c in retrieved_context},
                 required_context_groups=_required_citation_groups(question, retrieved_context),
             )
-    except (ValidationError, InvalidCitationIdsError, MissingRequiredCitationError) as error:
+    except (StructuredOutputError, ValidationError, InvalidCitationIdsError,
+            MissingRequiredCitationError) as error:
         generation_diagnostics = {
             "status": "safe_abstention",
             "reason": "citation_validation_failed",

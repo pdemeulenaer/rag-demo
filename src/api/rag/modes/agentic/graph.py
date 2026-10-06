@@ -41,6 +41,11 @@ Rules:
   endpoints, units, paper identity, or other context already supplied by the question.
   Preserve all requested values, units, uncertainties, assumptions, and comparisons within
   the relevant requirement. Avoid duplicates and include every actual part of the question.
+  The original question is the scope authority: do not turn optional examples, alternative
+  reporting formats, paper-title terms, or proposed analyses into extra mandatory facts.
+  For a conceptual "how could these methods test these assumptions" synthesis, require
+  supported inputs and a clearly labelled proposed linkage, not a new numerical derivation
+  or an empirically established relationship unless the question explicitly asks for one.
 - In that SAME define_requirements call, supply initial_searches with concise retrieval
   queries and 1-based requirement_indices. A requirement describes what the answer must
   establish; a query contains the terms likely to locate the evidence. Do not mechanically
@@ -54,6 +59,18 @@ Rules:
   factual evidence needs even inside a comparative question. Only a purely derived
   comparison is synthesis-only. A baseline value and its parameter sensitivity may live
   in different passages: use separate focused queries when their evidence is not colocated.
+  For example, split "measured cluster mass" and "mass sensitivity to distance" into
+  factual requirements and focused searches; a third "compare the implications" task
+  is synthesis-only. Do not label the measured inputs as synthesis merely because they
+  feed a comparison. Distinguish the specifically requested parameter from other parameters
+  (e.g. projected versus physical radius); finding one is not evidence for another.
+  A sensitivity query names the parameter and its effect/dependence, not merely the
+  baseline measurement. Include reported changes, direction or scaling when asked.
+  "Sensitivity" does not automatically mean an analytic power law: a measured change
+  or an explicitly reported no-change result is also evidence. Do not invent a mandatory
+  exponent when the original question does not ask for one. Keep queries concise: name
+  the outcome and varied parameter, not every method, paper-title fragment or identifier.
+  Put both full and abbreviated build IDs in filters only, never content queries.
 - The graph assigns stable r1, r2, ... IDs. Use only these IDs as need_id on retrieval calls.
   Reformulations, metadata lookups and expansion reuse an existing ID. The list cannot grow
   with tool history. A chunk found for any need may support any other need.
@@ -67,7 +84,9 @@ Rules:
 - Use search_papers only to resolve a named paper or metadata constraint.
 - The system may provide authoritative `required_build_id` values for paper titles quoted in
   the question. When it does, issue one focused search_chunks call per required build (parallel
-  calls are allowed) and collect evidence from every required build before finishing.
+  calls are allowed), or several when that paper supplies independently located facts.
+  Collect evidence from every required build before finishing; one query per paper
+  is not a substitute for answering every factual need.
 - Call get_section/get_neighbors only with exact identifiers seen in tool results.
 - search_chunks returns compact previews. text_truncated=true means text was hidden, not
   that the evidence is absent. Read a promising hit with get_neighbors before=0, after=0,
@@ -84,6 +103,12 @@ Rules:
   fact within the observed paper/build, rather than repeatedly expanding the baseline hit.
   Do not guess section headings. Empty sections or shortened previews do not prove absence.
   Recovery reuses the existing need IDs and hard budgets; do not search for redundant facts.
+  In particular, a caption listing parameter settings is not a reported effect. If the
+  outcome change is still missing, prefer a focused in-paper search for the outcome and
+  parameter with terms such as change, decrease, increase, unchanged or dependence over
+  re-reading the same baseline/caption. For example, look up "measured mass distance
+  dependence change" rather than another general "mass measurement" passage. Do not
+  insert expected answers or numbers into the query; use only the question and observed text.
 - When chunks provide potentially useful answer evidence, call finish_with_evidence with a
   concise public summary. The reviewed grounded generator, not this planner, makes the final
   answer from those chunks and may still state that a detail is unsupported.
@@ -374,6 +399,12 @@ def build_agent_graph(*, model, retrieval_tools: list, budget: AgentBudget):
                         continue
                     seen_searches[fingerprint] = len(searches)
                     searches.append(normalized_search)
+                # An explicit search association means this need requires factual
+                # evidence. A mistaken synthesis label must not hide its coverage.
+                searched_indices = {index for search in searches for index in search.requirement_indices}
+                requirements = [row.model_copy(update={"kind": "fact"})
+                                if index in searched_indices else row
+                                for index, row in enumerate(requirements, start=1)]
             except ValidationError as error:
                 # Report validation codes only. Do not leak model inputs into logs/results.
                 codes = sorted({str(item.get("type", "invalid"))

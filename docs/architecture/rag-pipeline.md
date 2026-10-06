@@ -130,11 +130,40 @@ the session's conversation memory.
 ## 5. Generation
 
 `generate_answer` dispatches to OpenAI or Groq — `is_openai_model` decides — and returns a
-structured `RAGGenerationResponse` containing the answer text and the
-`retrieved_context_ids` the model actually used. The Pydantic response model is also the
-single source for the provider JSON schema. OpenAI generation uses strict structured output,
+structured `RAGGenerationResponse` containing atomic `claims`, their exact cited chunk IDs
+and Agentic need IDs. Flattened answer text and `retrieved_context_ids` are derived from
+those claims. The Pydantic response model is also the single source for the provider JSON
+schema. OpenAI generation uses native SDK Pydantic parsing and strict structured output,
 rejects duplicate or unavailable context IDs, and makes at most one additional model call
 when the first structured response is malformed.
+
+### Structured response enforcement
+
+`src/api/core/structured.py` calls `client.chat.completions.parse(response_format=Model)`
+for live OpenAI answers and Agentic drafts/reviews, and
+`client.responses.parse(text_format=Model)` for synchronous evaluation judges. The SDK
+converts Pydantic models into provider-compatible schemas and parses typed results, following
+[OpenAI's Structured Outputs guidance](https://developers.openai.com/api/docs/guides/structured-outputs).
+It handles schema reference normalization; the application does not hand-edit JSON schemas.
+
+The helpers perform one request and normalize safe failure codes for invalid JSON, missing
+fields, refusals, completion limits, content filtering and incomplete Responses output.
+Network/API errors propagate without another helper retry. SDK transport retries are
+explicitly disabled on these OpenAI calls; the existing caller-owned generation/repair
+limits remain authoritative. Agentic keeps its 60-second timeout and separate draft/verifier
+completion caps. Models, reasoning settings, prompts and scientific validation are unchanged.
+
+Instructor remains in Groq generation, extraction, summarization and legacy intent paths;
+LangGraph retains native typed tools. Background evaluation-question generation is deliberately
+unchanged: it must persist submission IDs, poll and resume rather than treating a queued
+response as missing output and submitting another paid request. No re-index or dataset
+regeneration is needed for this standardization.
+
+Typed output is not scientific proof. Citation identity, numeric/unit support, semantic
+review and required-answer coverage are still checked separately. Shared OpenAI clients retain
+Langfuse instrumentation of both native parsing methods. Offline tests exercise the installed
+SDK through mocked HTTP, including its schema conversion and trace hooks; they are not live
+quality or connectivity tests. See the [evaluation guide](../operations/evaluation.md).
 
 ## 6. Source and figure resolution
 

@@ -161,6 +161,13 @@ The native `define_requirements` schema accepts `descriptions`, `initial_searche
 Use an empty initial list when catalogue discovery must happen first. This replaces the old
 automatic one-description/one-search mapping; it does not add another planner call.
 
+A measured value and its dependence on a parameter can require separate passages and focused
+queries. Reporting the baseline, listing parameter variants, or discussing a different parameter
+does not establish that dependence. Requirements associated with explicit initial searches are
+normalized to factual needs even if the planner mistakenly labels them synthesis-only.
+For resolved-paper searches, confirmed titles and bare build IDs are removed from the search
+text and retained as filters; unknown identifiers and partial title text are not blindly removed.
+
 LangGraph's native `ToolNode` runs independent calls **within a batch** concurrently.
 This applies both to initial searches and to additional searches/reads chosen together in
 a later planner response. `AGENT_MAX_PARALLEL_TOOLS=4` defaults to four simultaneous tools
@@ -234,6 +241,36 @@ superscripts). Unit exponents are not newly claimed measurements; scientific pow
 as `10⁻³` retain their numeric meaning. Different values and dimensions still fail checks.
 Malformed generated control characters produce `invalid_control_character` feedback for
 the existing repair, not guessed symbols or numbers. Stored source text remains unchanged.
+Equivalent `g cm^-2`/`g/cm²`/bracketed inverse-centimetre notation is a surface-density
+unit: its exponent is not a measurement. “50% binary fraction” does not require the
+literal word `fraction` when the cited text supports that percentage of systems.
+Neither normalization changes values/dimensions or replaces semantic support review.
+
+Shared scientific multipliers apply to both range endpoints: `(1–3) × 10^-3` means
+`0.001–0.003`, not standalone coefficients `1` and `3`. Separately scaled endpoints keep
+their own multipliers. Answer-completeness unit checks enforce units explicitly requested
+by the user; they do not turn optional planner examples such as “percent changes” into
+mandatory output. The independent support reviewer still checks measurement units against
+the cited evidence.
+
+The original question defines mandatory scope. Frozen planner requirements organize it;
+examples and alternative reporting formats cannot enlarge it. A conceptual cross-paper
+question asking how one method **could** test another paper's assumptions needs supported
+facts from both papers and a clearly labelled proposed linkage. It does not require a new
+numerical conversion or proof that the papers already establish that relationship unless
+the user asks for it. Unsupported claims presented as established findings remain rejected.
+These rules guide planning, drafting and independent review without adding model calls.
+Diagnostics record `coverage_policy: original-question-effects-v2`; semantic judgments remain
+fallible and must be inspected in fresh evaluations.
+
+For explicit parameter-dependence requests, the reviewer must distinguish a **reported
+outcome effect**, **test settings only**, and **missing evidence**. It also identifies the
+supported answer claims that describe the effect. Listing tested parameter values, a
+baseline measurement, or saying “no formula is given” does not establish the effect.
+A reported decrease, weak dependence or unchanged outcome can answer a qualitative
+question without an analytic law. Quantitative details remain mandatory when requested.
+The semantic classification is model-assessed, not a keyword-based proof; claim support
+still uses only the claim's cited chunks. These fields use the existing review/repair calls.
 
 Citation repair is claim-specific: it receives the exact missing numeric values/units or
 semantic rejection feedback and candidate **additional** citations from the already retrieved
@@ -259,6 +296,22 @@ and excerpt size so a rerun can distinguish effective citation repair from repea
 Semantic support is a model assessment, not a deterministic proof; human review and independent
 evaluation remain necessary.
 
+The provider review uses a Pydantic-generated object with a required key for every frozen
+planner requirement and every original question part, including numbered and lettered parts.
+Omitted or renamed keys fail validation; reviewers must explicitly report missing coverage.
+The public diagnostics retain their list format and record
+`coverage_contract: required-keys-effects-v3`. Effect requirements additionally expose
+`effect_status` and `effect_claim_indices`; the native provider schema requires these fields.
+This uses the existing bounded repair, without adding model calls.
+
+If a sensitivity search finds only baseline values or a caption listing settings, the planner
+is guided to search the same paper for the outcome, parameter and reported change/dependence.
+It need not invent an exponent or repeat the caption lookup. Confirmed full build UUIDs and
+their prefixes of at least eight characters are removed from the content query **only when
+that build is already selected as a filter**. Unknown IDs are preserved; prefixes never resolve
+a paper or infer a filter. These are general query improvements, not automatic recovery calls
+or evaluation-answer hints. Existing round/tool/token limits and parallel tool execution remain.
+
 This adds one planning call for requirement definition. Synthesis uses two calls normally
 (draft + review), at most four with repair (draft + review + repair + review), with provider
 retries disabled. Each call uses a 60-second timeout. The independent GPT-5 verifier uses
@@ -268,6 +321,22 @@ completion cap, so the verifier reserves a separate budget for its structured JS
 These calls are separate from the Agentic retrieval budgets; planner-token/elapsed diagnostics
 describe retrieval, while benchmark latency includes synthesis. There is no fallback to another
 RAG mode, no re-indexing requirement and no need to regenerate evaluation questions.
+
+Drafts avoid unrequested background/repetition, and reviewers return empty success feedback
+and concise evidence quotes without omitting the quantity, units, entity or condition.
+Each validation attempt records draft/verify/repair request timings (including failures);
+`generation_diagnostics.stage_timings` totals them. Benchmark stage timings expose these
+as `agentic_draft_seconds`, `agentic_verify_seconds` and `agentic_repair_seconds`.
+These are sub-stages of generation, not extra latency. Preventing false rejections can
+avoid an entire repair/review pair; speedup is an evaluation hypothesis, not a guarantee.
+
+`AGENT_DRAFT_REASONING_EFFORT` optionally sets reasoning effort for compatible GPT-5
+Agentic draft and repair calls. Empty (the default) preserves provider behavior. For
+`gpt-5-mini`, try `low` in a controlled comparison; allowed settings are `minimal`, `low`,
+`medium` and `high`, subject to model support. This follows
+[OpenAI's reasoning-effort guidance](https://developers.openai.com/cookbook/examples/gpt-5/gpt-5_prompting_guide).
+It does not change completion limits, planner/verifier settings, or baseline modes, and is
+ignored for non-GPT-5 generation models. Evaluation manifests record the effective setting.
 
 ### Intent routing is not Agentic RAG
 

@@ -788,6 +788,51 @@ def test_one_search_can_support_multiple_facts_and_a_synthesis_task(monkeypatch)
     assert len(result.requirements) == 3  # Still passed to final semantic answer coverage.
 
 
+def test_searched_measurements_cannot_be_hidden_as_synthesis_requirements(monkeypatch):
+    result = run(FakeToolCallingModel(
+        [finish()], requirements=("Report mass.", "Report distance sensitivity.", "Compare implications."),
+        synthesis_indices=[1, 2, 3], initial_searches=[
+            {"query": "measured cluster mass", "requirement_indices": [1]},
+            {"query": "mass dependence on distance scaling", "requirement_indices": [2]},
+        ]), monkeypatch)
+    assert [row.kind for row in result.requirements] == ["fact", "fact", "synthesis"]
+    assert result.execution.required_evidence_need_count == 2
+    assert [row.query for row in result.execution.actions] == [
+        "measured cluster mass", "mass dependence on distance scaling"]
+
+
+def test_bare_resolved_build_id_is_removed_from_query_but_filter_remains():
+    build_id = "12345678-abcd-1234-abcd-123456789abc"
+    query, builds = scoped_requirement_query(
+        f"mass sensitivity to distance {build_id}", [build_id], {}, explicit_build_ids=True)
+    assert query == "mass sensitivity to distance"
+    assert builds == [build_id]
+    # Unknown identifiers never become filters or get silently interpreted as one.
+    query, builds = scoped_requirement_query(f"mass {build_id}", [], {})
+    assert query == f"mass {build_id}"
+    assert builds == []
+
+
+@pytest.mark.parametrize("prefix", ["12345678", "12345678-abcd", "12345678-abcd-1234"])
+def test_short_build_prefix_is_removed_only_with_a_confirmed_filter(prefix):
+    build_id = "12345678-abcd-1234-abcd-123456789abc"
+    query, builds = scoped_requirement_query(
+        f"measured mass distance dependence {prefix}", [build_id], {}, explicit_build_ids=True)
+    assert query == "measured mass distance dependence"
+    assert builds == [build_id]
+    query, builds = scoped_requirement_query(f"mass {prefix}", [], {})
+    assert query == f"mass {prefix}"
+    assert builds == []
+
+
+def test_unknown_short_id_and_short_scientific_numbers_are_not_removed():
+    build_id = "12345678-abcd-1234-abcd-123456789abc"
+    query, builds = scoped_requirement_query(
+        "mass 87654321 distance 1234", [build_id], {}, explicit_build_ids=True)
+    assert query == "mass 87654321 distance 1234"
+    assert builds == [build_id]
+
+
 @pytest.mark.parametrize("plan", [
     {"query": "mass", "requirement_indices": [2]},
     {"query": "mass", "requirement_indices": [1, 1]},

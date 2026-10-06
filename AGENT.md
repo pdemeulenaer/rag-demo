@@ -25,7 +25,8 @@ two ingestion modes. MkDocs documentation is in `docs/`; start at
   returns this provenance, while the UI renders numbered citations per claim. Only those
   cited sources/figures are returned, and the benchmark grounding judge sees only each claim's
   cited excerpts (including paper/entity metadata). The Pydantic response model owns the strict
-  OpenAI schema; duplicate/unavailable citation IDs are rejected, with one bounded
+  OpenAI schema. `core/structured.py` uses native SDK chat/Responses `.parse` with those
+  models, not manually serialized provider schemas; duplicate/unavailable citation IDs are rejected, with one bounded
   retry for malformed structured generation. Full paper titles quoted in the question also
   activate one-per-paper final selection in Hybrid + Rerank and one-citation-per-paper
   validation in baseline generation; citation coverage receives the same single retry.
@@ -162,6 +163,15 @@ with query/need IDs persisted in
 evaluation output and Langfuse. `need_id` is excluded from duplicate fingerprints. Per-need
 search coverage is diagnostic only: ANY scoped retrieved chunk may support ANY requirement.
 Never reinstate per-search citation groups as answer-validation gates.
+Initial searches normalize their associated needs to factual even if the planner labels
+them synthesis-only. Separate measurements and parameter-dependence facts when they need
+different passages; do not mandate extra searches for derived comparisons. Confirmed bare
+build UUIDs, like resolved full titles, belong in filters, not content queries. Remove an
+eight-or-more-character UUID prefix only when it matches an already-filtered confirmed build;
+never resolve/infer a filter from a prefix. For missing parameter effects, guide recovery toward
+outcome + parameter + change/dependence passages rather than repeatedly reading settings/captions.
+Do not inject expected values or mandate an analytic power law when an empirical effect suffices. Preserve
+unknown identifiers; never infer a new filter merely from a UUID in user text.
 After freezing requirements, do not expose define_requirements again. On an over-budget
 next-call reservation, `planner_context.py` supplies read-only query-focused tool previews
 (400 chars/chunk, 6000 total), with truncation/deduplication flags and protocol IDs intact.
@@ -177,6 +187,30 @@ records complete/partial/safe_abstention and per-requirement assessments in API/
 Langfuse. Model support checks are fallible; tests mock them and do not establish live quality.
 There are at most two drafts and two reviews, each one provider call (60-second timeout,
 configured generation-token cap, no provider retries), outside retrieval budgets.
+Provider coverage uses Pydantic-generated required object keys for every frozen requirement
+and original question part (lettered or numbered), not a free-ID list that permits omissions.
+Normalize successful reviews to the existing public list format; record coverage_contract
+required-keys-effects-v3. Explicit parameter-dependence requirements additionally require
+effect_status (reported_effect/test_settings_only/missing) and effect_claim_indices. Satisfied
+effects must link nonempty supported answer claims; baseline values, tested settings or an
+absent formula do not answer an effect request. Qualitative effects can satisfy qualitative
+requests without numbers/formulas. This is model-assessed semantics, not a keyword entailment
+gate. Original-question checks apply even when the planner omits the effect. Preserve supported
+partial answers and existing one-repair bounds. Missing/renamed keys use existing bounded repair/fail-closed handling.
+Requirement descriptions remain in the review payload. Native OpenAI SDK `.parse` owns
+schema serialization/normalization, including the $ref/description combination previously
+rejected when sent as raw Pydantic JSON Schema. Do not add a custom schema-rewrite layer.
+Offline tests exercise actual SDK HTTP serialization and required coverage keys; local
+Pydantic validation alone is not evidence that the provider accepts a schema.
+Live OpenAI answers/drafts/reviews use chat.completions.parse; synchronous benchmark judges
+use responses.parse. The shared helper performs one request, normalizes safe failure codes,
+and adds no retries. SDK transport retries are disabled; caller-owned repair limits remain.
+Preserve refusal/length/incomplete-output handling, available usage/IDs and Langfuse parse
+instrumentation. After a parse failure, usage_incomplete flags partial baseline/judge token
+accounting rather than claiming zero paid usage. Instructor/Groq and typed LangGraph tools
+remain unchanged. Background question generation retains its saved-ID polling/resume path;
+never convert a queued job into a retrying synchronous parse request. No models, caps,
+retrieval behavior, datasets or historical scores change as part of this standardization.
 General citation repair supplies claim-specific missing values/units and supplementary
 retrieved-chunk navigation hints, preferring the same paper and windows around missing
 details (up to 8 rejected claims, 3 candidates each, 900 chars per excerpt/6000 chars total).
@@ -192,6 +226,20 @@ units and attached Unicode scientific exponents; preserve signs, magnitudes and 
 Malformed generated control characters fail screening with `invalid_control_character`
 and use the existing repair. Never guess their glyphs or strip them into phantom values.
 Stored chunks remain unchanged; retain citation-scoped numeric and semantic checks.
+Surface-density validation recognizes equivalent g/cm² inverse-unit presentations and
+does not mistake their -2 exponent for a measured value. A percentage-bearing fraction
+does not require the noun "fraction" in a source supporting that percentage. Keep exact
+values, dimensions, citation scope and independent semantic assessment; no q-specific rule.
+Agentic synthesis prompts avoid repetitive/unrequested facts and verbose success feedback,
+while retaining necessary evidence quotes and all requested details. Each validation attempt
+records request stage_timings, including failures; generation_diagnostics totals draft/verify/
+repair seconds, also exposed as agentic_*_seconds in benchmark timing summaries. They overlap
+generation_seconds. No extra calls, smaller token caps, model changes or automatic paid tests.
+AGENT_DRAFT_REASONING_EFFORT optionally controls compatible GPT-5 draft/repair calls only;
+empty preserves provider defaults. It is independent of planner/verifier effort, ignored for
+non-GPT-5 models, and recorded in manifests. Do not silently enable it or change baselines.
+`make eval-run EVAL_DRAFT_REASONING_EFFORT=low` overrides it for the host process only;
+omitted/empty Make values preserve Config/.env. Never launch a paid trial implicitly.
 Vanilla/Hybrid/Hybrid + Rerank retain baseline named-paper gates and generation; baseline
 citation retry exhaustion remains a scored safe abstention, not a benchmark exception.
 
@@ -203,7 +251,69 @@ planner tokens, named-paper coverage and deterministic reviewed-paper coverage, 
 freeze the effective Agentic configuration. Correctness/relevance and groundedness use
 separate judge requests so gold evidence cannot leak into grounding. Answerable abstentions are
 scored incorrect deterministically; claim-level grounding checks source/entity attribution
-against only the claim's cited chunks. Hybrid + Rerank results
+against only the claim's cited chunks. New reference judging uses claim-anchored-v8:
+required per-question-part assessments, native-enum answer_claim_ids and required numeric values.
+The runner freezes exact rendered claim spans plus remaining answer spans (including refusals/gaps),
+assigns deterministic a0001/etc. IDs and resolves selections locally into answer_quotes for
+numeric safeguards. Never use unrendered claims, gold text or retrieved text as answer anchors;
+never truncate/rewrite resolved text or treat selection as proof of semantic correctness.
+Only the benchmark reference provider schema changes; runtime answer/citation contracts remain.
+Read the whole answer, not merely selected claims. Unknown IDs remain strict schema errors;
+empty answered selections/duplicate IDs share the existing one-retry validation budget.
+Persist judge.answer_anchors, per-check answer_claim_ids and reference answer_anchor_mode.
+flagged_runs includes quote/anchor and semantic-consistency failures, even when repaired;
+needs_review_question_ids records only unresolved conflicts. Historical runs remain unchanged.
+Runtime review and both judges explicitly check method purpose, population and pipeline step;
+sharing a paragraph or pipeline does not license assigning a separate method's operation.
+Offline generic method-role fixtures test rejection/repair and prompt wiring, not live accuracy.
+Genuine missing facts or absent quoted target numbers cap scorable correctness at 0.5 with
+observable safeguards; correct unanswerable refusals remain exempt from missing-fact penalties.
+No gold facts enter runtime verification or the grounding judge. Preserve historical scores;
+judge policy changes require fresh comparable runs, not retroactive edits.
+Every reference check requires missing_or_incorrect_detail: nonempty for partial/missing/
+incorrect, empty for answered. Native schema requires the field; contradictions in the
+pairing are semantic review flags, not Pydantic parse errors. They share the existing one-retry schema/quote bound, never
+auto-upgrade to full correctness. Prompts request a concrete expected-versus-actual deficit
+and overall/per-check consistency; optional reference examples do not enlarge user scope.
+Incorrect extra claims still affect correctness. Explained partials retain the same 0.5
+cap; explanation presence is not semantic proof. Preserve gold isolation and historical runs.
+Version 6 additionally requires deficit_basis (none/missing_content/incorrect_content/
+reference_ambiguity) and claimed_missing_answer_fragments. Exact omission fragments found
+in the whole answer and unresolved reference ambiguity share the existing schema/quote
+single retry. Clear reference prose/captions for the same quantity/entity/case may resolve
+damaged figure labels; never guess signs, invent unavailable text, or inject retrieved
+evidence/grounding verdicts into reference judging. A thin reference is not proof that an
+optional answer detail is false. Version 7 introduced leaving remaining semantic/quote conflicts unscored;
+version 8 preserves that policy for semantic/anchor conflicts:
+consistency_status needs_review, reference_score_status/score_status unscored_needs_review,
+effective correctness null, raw_correctness in reference metadata. Preserve answer/evidence,
+retrieval metrics, execution/generation diagnostics and timings; still run isolated grounding.
+Skip numeric Langfuse correctness scores and reference abstention accuracy for unscored items.
+Do not fabricate scores through correctness safeguards. Summary/profile metric_sample_counts
+and report scored/unscored denominators make exclusions explicit; null is not zero or success.
+Invalid JSON/types/missing fields/enums remain strict parsing failures with existing handling.
+Semantic omissions/incorrect statements still receive normal penalties. Offline native-SDK
+tests prove format, feedback, isolation and retry bounds, not live judge quality. No default
+reasoning/model changes, historical edits, reindex or implicit paid trials.
+Shared scientific range multipliers apply to both endpoints, without treating coefficients
+as measured values. Answer anchoring recognizes explicit percentage-to-fraction equivalence
+and whitespace/case-only quote differences. Legacy quote checks still reject bare counts,
+changed numbers and stitched/ellipsis quotes; new provider outputs select IDs instead of copying text.
+Anchor/quote-format correction shares the existing one-retry judge budget
+with schema failures. Record quote_validation_failures, response IDs and available usage.
+Native Pydantic numeric-target patterns permit only decimal strings; [] is the real empty
+list, never ["[]"] or symbolic settings. Settings belong in requested_fact, not numeric targets.
+Malformed schema feedback shares the existing one-retry budget; record schema_validation_failures.
+Exhausted schema retries remain judge errors, not false correctness penalties. Judges assess
+reported outcome effects independently of input settings; no gold facts enter runtime.
+Runtime coverage records original-question-effects-v2: original user requests define mandatory
+scope, not optional planner examples or paper-title words. Deterministic completeness-unit
+checks intersect plan units with those explicitly requested in the question; independent
+claim review still checks measurement units. Conceptual proposed cross-paper tests need
+supported inputs and a clearly labelled linkage, not an unrequested quantitative conversion.
+Do not present proposed relationships as paper-established results. No extra runtime calls,
+retrieval changes, budget increases or historical-result edits are implicit in these fixes.
+Hybrid + Rerank results
 persist the complete Cohere candidate ordering for paper-diversity diagnosis. Preserve all four
 as controls. The next slice is controlled Agentic development reruns and cross-paper
 decomposition diagnosis. The agent must continue to
@@ -443,6 +553,13 @@ manifest, per-item results, aggregate JSON and Markdown report. All four modes u
 questions, generation model, top-k and frozen scope. `EVAL_JUDGE=true` adds explicit
 paid Responses API judge calls. Partial item results survive interruption, but benchmark
 resume is not implemented; a retry is a new run. Never run a benchmark implicitly during tests.
+Benchmark judges read EVAL_JUDGE_MAX_OUTPUT_TOKENS from Config/.env (default 16384,
+range 256–128000), replacing the old hard-coded 1200. It applies per reference/grounding
+request, including reasoning and JSON, independently of generation/runtime-verifier caps.
+Preserve the single retry bound and do not escalate the cap automatically. Record
+judge_max_output_tokens in manifests and max_output_tokens in successful judge metadata.
+This is headroom, not guaranteed completion or a total-run spend cap; complex cases may
+need an explicitly configured 32768. Host make eval-run needs no container rebuild.
 
 Historical reviewed schema v1 remains runnable only as `split=all`. New schema-v2 review
 files are validated by `evals/review_dataset.py`: approved items require reviewer/source

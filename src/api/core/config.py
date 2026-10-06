@@ -1,6 +1,7 @@
 import os
 from pathlib import Path
-from typing import Optional
+from typing import Literal, Optional
+from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -45,6 +46,12 @@ class Config(BaseSettings):
     AGENT_MAX_EVIDENCE_CHUNKS: int = 30
     AGENT_MAX_ELAPSED_SECONDS: float = 120.0
     AGENT_MAX_PLANNER_TOKENS: int = 20000
+    # Opt-in Agentic draft/repair control; empty preserves the provider default.
+    AGENT_DRAFT_REASONING_EFFORT: Literal["", "minimal", "low", "medium", "high"] = ""
+
+    # Per reference/grounding judge request, including reasoning and structured output.
+    # Separate from answer generation and Agentic runtime verification budgets.
+    EVAL_JUDGE_MAX_OUTPUT_TOKENS: int = Field(default=16384, ge=256, le=128000)
 
     # Optional Langfuse observability. Disabled means a true no-op: the SDK is
     # not imported by the application tracing shim.

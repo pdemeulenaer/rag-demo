@@ -9,9 +9,10 @@ import json
 import re
 import unicodedata
 from decimal import Decimal, InvalidOperation
+from time import monotonic
 from typing import Callable, Literal
 
-from pydantic import Field, ValidationError, model_validator
+from pydantic import Field, ValidationError, create_model, model_validator
 
 from src.api.observability.tracing import observe, update_span
 from src.api.rag.answer_contracts import RAGClaim, RAGGenerationResponse
@@ -19,6 +20,7 @@ from src.api.rag.modes.agentic.contracts import AnswerRequirement, ContractModel
 from src.api.rag.modes.agentic.policies import focused_requirement_text
 from src.api.rag.question_coverage import (
     has_explicit_comparison, original_question_parts, requests_explicit_comparison,
+    requests_parameter_effect,
 )
 
 
@@ -41,17 +43,61 @@ class ClaimCheck(ContractModel):
         return value
 
 
-class RequirementCheck(ContractModel):
-    requirement_id: str = Field(min_length=1, max_length=128)
+class CoverageCheck(ContractModel):
     status: Literal["satisfied", "partial", "missing"]
     claim_indices: list[int] = Field(max_length=30)
     feedback: str = Field(max_length=500)
 
 
+EffectStatus = Literal["reported_effect", "test_settings_only", "missing"]
+
+
+class ParameterEffectCoverage(CoverageCheck):
+    effect_status: EffectStatus
+    effect_claim_indices: list[int] = Field(max_length=30)
+
+
+class RequirementCheck(CoverageCheck):
+    requirement_id: str = Field(min_length=1, max_length=128)
+    # Public normalized/legacy adapters; selected native schema fields above are required.
+    effect_status: EffectStatus | None = None
+    effect_claim_indices: list[int] = Field(default_factory=list, max_length=30)
+
+
 class AnswerReview(ContractModel):
     claims: list[ClaimCheck] = Field(max_length=30)
-    requirements: list[RequirementCheck] = Field(max_length=20)
+    requirements: list[RequirementCheck] = Field(max_length=40)
     unplanned_requests: list[str] = Field(max_length=20)
+
+
+def _review_schema(requirements: list[AnswerRequirement]):
+    """Pydantic owns a required field per frozen/user-question requirement.
+
+    A free-form ID array lets the provider omit, rename or duplicate entries.
+    Required object keys prevent that without extra calls or custom schema edits.
+    """
+    # Requirement descriptions are already in _review_messages. Adding them to
+    # referenced model fields emits description beside $ref, rejected by OpenAI.
+    coverage = create_model("RequiredCoverage", __base__=ContractModel, **{
+        row.id: (ParameterEffectCoverage if (
+            row.kind != "synthesis" and requests_parameter_effect(focused_requirement_text(row.description))
+        ) else CoverageCheck, ...) for row in requirements
+    })
+    return create_model("ScopedAnswerReview", __base__=ContractModel,
+                        claims=(list[ClaimCheck], Field(max_length=30)),
+                        requirements=(coverage, ...),
+                        unplanned_requests=(list[str], Field(max_length=20)))
+
+
+def _parse_review(value, schema) -> AnswerReview:
+    # Historical typed adapters/offline doubles retain the normalized list contract.
+    # Actual provider calls receive and validate the strict object schema above.
+    if isinstance(value, AnswerReview):
+        return value
+    scoped = schema.model_validate(value)
+    return AnswerReview(claims=scoped.claims, unplanned_requests=scoped.unplanned_requests,
+                        requirements=[RequirementCheck(requirement_id=key, **row)
+                                      for key, row in scoped.requirements.model_dump().items()])
 
 
 @dataclass
@@ -75,6 +121,16 @@ _ATTACHED_SUPERSCRIPT = re.compile(r"(?<=\w)[⁺⁻⁰¹²³⁴⁵⁶⁷⁸⁹]+
 # Tabs/newlines are legitimate prose; other C0/C1 characters are not math notation.
 _INVALID_CONTROL = re.compile(r"[\x00-\x08\x0b\x0c\x0e-\x1f\x7f-\x9f]")
 _POWER10 = re.compile(r"(?<![\w.])(?:(?P<c>\d+(?:[.,]\d+)?)\s*[×x]\s*)?10\s*\^\s*\{?\s*(?P<e>[+-]?\d+(?:[.,]\d+)?)\s*\}?")
+_SCALED_RANGE = re.compile(
+    r"(?<![\w.])(?:\(\s*)?(?P<a>[+-]?\d+(?:[.,]\d+)?)\s*_?\s*"
+    r"(?:[–—-]|\bto\b)\s*_?\s*(?P<b>[+-]?\d+(?:[.,]\d+)?)"
+    r"\s*(?:\)\s*)?_?\s*[×x]\s*_?\s*10\s*\^\s*\{?\s*"
+    r"(?P<e>[+-]?\d+(?:[.,]\d+)?)\s*\}?", re.I,
+)
+_PERCENT_VALUE = re.compile(
+    r"(?<![\w.])(?P<value>[+-]?(?:\d+(?:[.,]\d+)?|\.\d+))"
+    r"\s*(?:%|\bpercent(?:age)?\b)", re.I,
+)
 _NUMBER = re.compile(r"(?<![\w.])[+-]?(?:\d+(?:[.,]\d+)?|\.\d+)(?:[eE][+-]?\d+)?")
 _BRACKETED_POWER10 = re.compile(
     r"(?<![\w.])10\s*_?\s*(?P<sign>\[\s*[-+−]\s*\]\s*_?\s*)?"
@@ -88,6 +144,7 @@ _STRUCTURAL_RESONANCE_RATIO = re.compile(
     r"\b1\s*:\s*1(?=\s+(?:retrograde\s+)?(?:resonance|resonant)\b)", re.I
 )
 _UNIT_PATTERNS = {
+    "g/cm^2": re.compile(r"\bg\s*(?:cm\s*(?:\^\s*-2|-\s*2)|/\s*cm\s*(?:\^\s*)?\+?2)(?!\w|\.\d)"),
     "km/s/kpc": re.compile(r"\bkm\s*(?:/\s*s\s*/\s*kpc|s\s*(?:\^\s*\{?[-−]?1\}?|[-−]1)\s*kpc\s*(?:\^\s*\{?[-−]?1\}?|[-−]1))\b", re.I),
     "km/s": re.compile(r"\bkm\s*(?:/\s*s|s\s*(?:\^\s*\{?[-−]?1\}?|[-−]1))\b", re.I),
     "angstrom": re.compile(r"Å|\bangstroms?\b", re.I),
@@ -109,6 +166,10 @@ _UNIT_PATTERNS = {
     "Hz": re.compile(r"\bHz\b", re.I),
 }
 _QUANTITATIVE = re.compile(r"\b(?:numeric(?:al)?|value|number|rate|mass|density|velocity|speed|fwhm|fraction|percentage|percent|uncertaint(?:y|ies)|error bar|range|endpoint|measurement|how many|how much)\b", re.I)
+_EFFECT_NUMERIC_REQUEST = re.compile(
+    r"\b(?:numeric(?:al)?|quantitative|concrete|values?|magnitudes?|how many|how much|"
+    r"range|endpoints?|uncertaint(?:y|ies)|rates?\s+and)\b", re.I,
+)
 def _canonical_number(value: str) -> str:
     try:
         return format(Decimal(value).normalize(), "f")
@@ -143,17 +204,17 @@ def _normalize_extracted_units(text: str) -> str:
                     if unicodedata.category(char).startswith("L")
                     and "MATHEMATICAL" in unicodedata.name(char, "") else char
                     for char in value)
-    value = re.sub(r"(?<!\w)(?:\*\*|__|\*|_)(M|km|s|kpc|pc|yr)(?:\*\*|__|\*|_)(?!\w)",
+    value = re.sub(r"(?<!\w)(?:\*\*|__|\*|_)(M|g|cm|km|s|kpc|pc|yr)(?:\*\*|__|\*|_)(?!\w)",
                    r"\1", value)
     # Whitelist solar notation only: M_Jup and arbitrary M_{...} stay untouched.
     value = re.sub(r"(?<!\w)M\s*(?:[⊙☉]|_\s*(?:\{\s*(?:\\odot|sun)\s*\}|\\odot\b|sun\b))",
                    "M⊙", value)
     # LaTeX braces around a known unit's exponent do not introduce measured values.
-    value = re.sub(r"\b(s|kpc|pc|yr)\s*\^\s*\{\s*([+-]?\d+)\s*\}",
+    value = re.sub(r"\b(cm|s|kpc|pc|yr)\s*\^\s*\{\s*([+-]?\d+)\s*\}",
                    r"\1^\2", value, flags=re.I)
     value = value.replace("[[", "[").replace("]]", "]")
     # PyMuPDF4LLM can serialize superscript inverse units as adjacent bracketed glyphs.
-    for unit in ("s", "kpc", "pc", "yr"):
+    for unit in ("cm", "s", "kpc", "pc", "yr"):
         # Some extracted PDFs keep the signed exponent in one bracket, e.g. s[−1].
         value = re.sub(
             rf"(\b{unit})\s*[_^]?\s*\[\s*([+\-−]?)\s*(1|2)\s*\]",
@@ -216,7 +277,7 @@ def _normalize_extracted_numbers(text: str) -> str:
 
 
 
-def _numeric_tokens(text: str) -> set[str]:
+def _numeric_tokens(text: str, *, percentage_fractions: bool = False) -> set[str]:
     """Extract comparable numeric literals, treating common 2×10^-3 forms alike."""
     text = _normalize_extracted_numbers(text)
     text = _CONTEXT_ID.sub(" ", text)
@@ -230,9 +291,36 @@ def _numeric_tokens(text: str) -> set[str]:
     text = _STRUCTURAL_RESONANCE_RATIO.sub(" ", text)
     text = _NUMBERED_OBJECT.sub(" ", text)
     text = re.sub(r"\[\s*\d+\s*\]", " ", text)
+    # Explicit percentage notation alone licenses conversion to a decimal fraction.
+    # Keep this opt-in for answer anchoring, not a general unit-conversion license.
+    power_spans = [match.span() for match in _POWER10.finditer(text)]
+    percentages = {
+        _canonical_number(str(Decimal(match.group("value").replace(",", ".")) / 100))
+        for match in _PERCENT_VALUE.finditer(text)
+        # An exponent next to % is not the percentage's coefficient/value.
+        if not any(start <= match.start() < end for start, end in power_spans)
+    } if percentage_fractions else set()
     for unit_pattern in _UNIT_PATTERNS.values():
         text = unit_pattern.sub(" ", text)
-    values, spans = set(), []
+    values, spans = set(percentages), []
+    powers = [match.span() for match in _POWER10.finditer(text)]
+    for match in _SCALED_RANGE.finditer(text):
+        # "5 × 10^-3 to 2 × 10^-1" has two independently scaled values,
+        # not a coefficient range beginning at the first exponent's "-3".
+        if any(start <= match.start() < end for start, end in powers):
+            continue
+        exponent = _canonical_number(match.group("e").replace(",", "."))
+        for endpoint in ("a", "b"):
+            coefficient = match.group(endpoint).replace(",", ".")
+            values.add(_canonical_number(f"{coefficient}e{exponent}"))
+        spans.append(match.span())
+    # Mask whole ranges first: coefficients and the shared power are not standalone
+    # measurements, and the multiplier applies to BOTH endpoints.
+    chars = list(text)
+    for start, end in spans:
+        chars[start:end] = " " * (end - start)
+    text = "".join(chars)
+    spans = []
     for match in _POWER10.finditer(text):
         coefficient = (match.group("c") or "1").replace(",", ".")
         exponent = match.group("e").replace(",", ".")
@@ -305,6 +393,11 @@ def _numeric_evidence_error(claim, check, context_by_id, *, question=""):
         if percent_equivalents & numbers:
             cited_numbers.update(percent_equivalents)
             cited_units.add("percent")
+    # "50% binary fraction" and "50% of systems are binaries" use the same
+    # dimensionless unit. The source need not contain the noun "fraction".
+    # Still require a supported percentage/value and independent semantic review.
+    if {"fraction", "percent"}.issubset(units) and "percent" in cited_units:
+        cited_units.add("fraction")
     missing_numbers = sorted(numbers - cited_numbers - _numeric_tokens(question))
     missing_units = sorted(units - cited_units)
     if cited_texts and not missing_numbers and not missing_units:
@@ -320,7 +413,11 @@ For EVERY claim_index, assess factual support using ONLY that claim's cited exce
 source metadata. No other claim's excerpts, prior knowledge, or requirement label can support
 it. Check source attribution, entities, quantities, units, range endpoints, uncertainty,
 inequalities and qualifications. Reject an incorrect conversion, unsupported synthesis,
-contradiction, or an irrelevant claim. Do not infer numbers from a figure caption that only
+contradiction, or an irrelevant claim. Check method purpose, target population and pipeline step independently:
+"Gate groups records into a dataset; Link separately finds pairs" does NOT support "Gate finds
+pairs". A membership-selection procedure cannot be credited with a separate relationship-
+identification step just because they share inputs, a pipeline or a paragraph. Do not conflate
+methods. Do not infer numbers from a figure caption that only
 says the numbers are in an unavailable figure. For every claim containing a numeral, return
 one or more evidence_quotes: each must identify one of that claim's cited context IDs and copy
 a contiguous, exact excerpt from that chunk's supplied OCR-normalized text view. The quote
@@ -333,6 +430,18 @@ the claim unsupported. Approved claims from the first pass are fixed: reject new
 claims that contradict them.
 
 Separately assess EVERY requirement against the actual supported answer text. Requirements
+are required object fields keyed by their exact IDs in the output schema; never omit or rename
+a key. Explicitly use missing with no claim_indices when it is unanswered. Check every named
+parameter/dependency: reporting a baseline, listing variants, or discussing sensitivity to a
+different parameter does not establish the specifically requested effect or scaling.
+For requirements whose schema includes effect_status, distinguish reported_effect,
+test_settings_only and missing. effect_claim_indices must identify supported answer claims
+that explicitly describe the effect on the OUTCOME, not claims merely naming varied input
+settings. A direction, magnitude, qualitative weak dependence or no-change result can answer
+the request without an analytic formula. Copy any reported outcome values when requested;
+"no formula is provided" does not substitute for a reported change. Set partial when a
+baseline is answered but its requested parameter effect is not; do not label it satisfied.
+Requirements
 with q_ IDs come directly from the original user question and must be checked independently
 of the agent's plan. A matching need_id or a number appearing only in evidence does NOT answer
 the question. A direct numerical comparison is allowed when both values are in cited evidence,
@@ -342,7 +451,18 @@ Require all requested assumptions and an explicit comparison when requested. Use
 for incomplete answers and missing for absent answers. Include only the indices of supported
 claims actually answering that requirement. A missing requirement must have no claim_indices.
 Feedback must name the concrete missing/incorrect detail concisely, not private reasoning.
+Use empty feedback for supported claims and satisfied requirements. For other assessments,
+use one short sentence naming the problem. Quote only the shortest contiguous passage(s)
+needed to establish the value, units, entity and condition; do not repeat entire paragraphs.
 Use unplanned_requests for user-requested details absent from BOTH the requirements and answer.
+The original question defines the mandatory scope. Planner descriptions organize that scope;
+examples, optional formats, paper titles and proposed methods do not add mandatory facts or units.
+Do not demand a percentage when a reported rate change answers the requested sensitivity.
+For a conceptual synthesis asking how one paper's capabilities COULD test another's assumptions,
+check the supported facts from both papers and an explicit, clearly labelled proposed linkage.
+Do not demand a numerical conversion, new simulation result, or empirically proven relationship
+unless the original question asks for it. A proposal is not a reported finding: reject claims
+that present an unsupported causal or quantitative relationship as established by the papers.
 Return JSON matching the supplied schema. Do not create claims or attach new citations."""
 
 
@@ -407,6 +527,10 @@ def _review_messages(question, requirements, claims, context_by_id, approved_cou
             ],
         } for index, claim in enumerate(claims)],
     }
+    effects = [row.id for row in requirements if row.kind != "synthesis"
+               and requests_parameter_effect(focused_requirement_text(row.description))]
+    if effects:
+        payload["parameter_effect_requirements"] = effects
     return [{"role": "system", "content": REVIEW_INSTRUCTIONS},
             {"role": "user", "content": json.dumps(payload, ensure_ascii=False)}]
 
@@ -443,17 +567,26 @@ def _assess(review, claims, requirements, approved_count, context_by_id=None,
     for requirement in requirements:
         check = requirement_checks.get(requirement.id)
         status, feedback, indices = "missing", "No unique coverage assessment.", []
+        focused = focused_requirement_text(requirement.description)
+        effect_required = requirement.kind != "synthesis" and requests_parameter_effect(focused)
         if check is not None and requirement_counts[requirement.id] == 1:
             indices = list(dict.fromkeys(check.claim_indices))
             usable = [index for index in indices if index in supported]
             status, feedback = check.status, check.feedback
             if status in {"satisfied", "partial"} and (not usable or len(usable) != len(indices)):
                 status, feedback = "missing", "Coverage referenced absent or unsupported claims."
-            if status == "satisfied" and _QUANTITATIVE.search(requirement.description):
+            if (status == "satisfied" and requirement.kind != "synthesis"
+                    and _QUANTITATIVE.search(focused)
+                    and (not effect_required or _EFFECT_NUMERIC_REQUEST.search(focused)
+                         or _unit_markers(focused) & _unit_markers(focused_requirement_text(question)))):
                 if not any(_numeric_tokens(claims[index].text) for index in usable):
                     status, feedback = "missing", "No numeric value appears in a supported answer claim."
                 if status == "satisfied":
-                    required_units = _unit_markers(requirement.description)
+                    # The model assesses the natural units of a measurement. This
+                    # deterministic backstop enforces only units actually requested
+                    # by the user, not optional examples introduced by the planner.
+                    required_units = (_unit_markers(focused_requirement_text(requirement.description))
+                                      & _unit_markers(focused_requirement_text(question)))
                     answer_units = set().union(*(_unit_markers(claims[index].text) for index in usable))
                     alternatives = []
                     if {"fraction", "percent"}.issubset(required_units):
@@ -471,12 +604,23 @@ def _assess(review, claims, requirements, approved_count, context_by_id=None,
                 if not has_explicit_comparison(compared):
                     status = "partial"
                     feedback = "The answer gives values but does not state their comparison."
+            if status == "satisfied" and effect_required:
+                effect_indices = list(dict.fromkeys(check.effect_claim_indices))
+                if (check.effect_status != "reported_effect" or not effect_indices
+                        or any(index not in usable for index in effect_indices)):
+                    status = "partial"
+                    feedback = ("The reported effect on the outcome is missing; test settings "
+                                "or absence of a formula do not answer the parameter dependence.")
             if status == "missing":
                 usable = []
             for index in usable:
                 assignments[index].append(requirement.id)
-        coverage.append({"requirement_id": requirement.id, "description": requirement.description,
-                         "status": status, "feedback": feedback})
+        row = {"requirement_id": requirement.id, "description": requirement.description,
+               "status": status, "feedback": feedback}
+        if effect_required:
+            row.update(effect_status=check.effect_status if check else "missing",
+                       effect_claim_indices=check.effect_claim_indices if check else [])
+        coverage.append(row)
     kept = []
     for index in sorted(supported):
         claim = claims[index]
@@ -650,6 +794,7 @@ def generate_agentic_answer(*, question: str, requirements: list[AnswerRequireme
     question_parts = [AnswerRequirement(id=part_id, description=description)
                       for part_id, description in original_question_parts(question)]
     review_requirements = [*requirements, *question_parts]
+    review_schema = _review_schema(review_requirements)
     planned_ids = {row.id for row in requirements}
     context_by_id = {str(row["id"]): row for row in contexts}
     evidence_map = {
@@ -683,13 +828,23 @@ def generate_agentic_answer(*, question: str, requirements: list[AnswerRequireme
         "role": "system",
         "content": (
             "Answer each requested fact explicitly, including requested values, units, "
-            "range endpoints, uncertainty and comparisons. Any supplied chunk may support "
+            "range endpoints, uncertainty and comparisons. Keep claims concise and non-redundant; "
+            "For parameter sensitivity, report the effect on the measured outcome, not only "
+            "which input settings were tested. State a supported direction/magnitude or "
+            "no-change result; do not replace reported changes with an absence of a formula. "
+            "omit unrequested background and tangents, not requested details or necessary qualifiers. "
+            "Any supplied chunk may support "
             "any fact, regardless of which search found it. need_ids are optional associations "
             "(use [] if unsure), never evidence. Keep aggregate ranges aggregate; do not map "
             "their endpoints to individual objects unless the cited text explicitly does so. "
             "Do not fabricate unsupported details. State every requested comparison "
             "explicitly and cite the chunks supplying both values. Put chunk IDs only in "
             "cited_context_ids, never in claim text. "
+            "The original question sets the mandatory scope, not optional examples in the plan. "
+            "For a conceptual cross-paper synthesis, explicitly label proposed uses of "
+            "supported capabilities as proposals, cite the relevant facts from both papers, "
+            "and explain what assumption each proposed test could constrain. Do not present "
+            "a proposed linkage as a reported finding or invent a numerical conversion. "
             "Return only supported claims; unsupported parts may be left unanswered. For each "
             "claim, cite the chunk that states that exact measurement, not one that merely "
             "mentions a related threshold or concept. When a measurement and its experimental "
@@ -720,12 +875,22 @@ def generate_agentic_answer(*, question: str, requirements: list[AnswerRequireme
                           "status": "missing", "feedback": "Not yet verified."}
                          for row in question_parts]
     attempts, unplanned = [], []
+
+    def timed_request(messages, response_model, stage, record):
+        started = monotonic()
+        try:
+            return request(messages, response_model, stage)
+        finally:
+            # Include failed requests, but never fabricate timings for skipped stages.
+            record.setdefault("stage_timings", {})[f"{stage}_seconds"] = round(
+                monotonic() - started, 3)
+
     for attempt in range(2):
         record = {"attempt": attempt + 1, "rejected_claims": []}
         stage = "draft" if attempt == 0 else "repair"
         try:
             draft = RAGGenerationResponse.model_validate(
-                request(messages, RAGGenerationResponse, stage))
+                timed_request(messages, RAGGenerationResponse, stage, record))
             candidates, invalid = _screen_claims(draft.claims, context_by_id)
             record["rejected_claims"].extend(invalid)
             seen = {_claim_key(claim) for claim in approved}
@@ -737,11 +902,11 @@ def generate_agentic_answer(*, question: str, requirements: list[AnswerRequireme
                     combined.append(claim)
             if combined:
                 stage = "verify"
-                review = AnswerReview.model_validate(request(
+                review = _parse_review(timed_request(
                     _review_messages(question, review_requirements, combined, context_by_id,
                                      len(approved)),
-                    AnswerReview, "verify",
-                ))
+                    review_schema, "verify", record,
+                ), review_schema)
                 assessed, all_coverage, rejected = _assess(
                     review, combined, review_requirements, len(approved), context_by_id,
                     require_numeric_evidence=reviewer_model is not None,
@@ -837,6 +1002,14 @@ def generate_agentic_answer(*, question: str, requirements: list[AnswerRequireme
         "verified_claim_count": len(approved),
         "verifier": "independent_model_with_quote_validation" if reviewer_model else "model_assessment",
         "verifier_model": reviewer_model,
+        "coverage_contract": "required-keys-effects-v3",
+        "coverage_policy": "original-question-effects-v2",
+        "stage_timings": {
+            name: round(sum(record.get("stage_timings", {}).get(name, 0)
+                            for record in attempts), 3)
+            for name in sorted({name for record in attempts
+                                for name in record.get("stage_timings", {})})
+        },
     }
     update_span(output={"generation_diagnostics": diagnostics,
                         "cited_ids": [value for claim in approved for value in claim.cited_context_ids]})

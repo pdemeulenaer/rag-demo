@@ -58,6 +58,17 @@ def scoped_requirement_query(description: str, required_build_ids: list[str],
     if not builds:
         builds = inferred
     for build_id in builds:
+        # Confirmed build IDs belong in filters, even if emitted as bare UUIDs.
+        query = re.sub(r"(?<!\w)" + re.escape(build_id) + r"(?!\w)", " ", query, flags=re.I)
+        # Models also copy short UUID labels into content queries. Strip only an
+        # actual prefix (>=8 chars) of this already-filtered, confirmed UUID.
+        # A prefix never infers a filter, and unknown identifiers remain untouched.
+        if re.fullmatch(r"[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}", build_id, re.I):
+            query = re.sub(
+                r"(?<!\w)[0-9a-f-]{8,36}(?!\w)",
+                lambda match: " " if build_id.lower().startswith(match.group().lower())
+                else match.group(), query, flags=re.I,
+            )
         title = (required_titles or {}).get(build_id)
         if title:
             # Remove only catalogue-confirmed titles; a science phrase that merely

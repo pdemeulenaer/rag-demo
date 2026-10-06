@@ -1,0 +1,58 @@
+{
+  "agentic": {
+    "questions": 1,
+    "errors": 1,
+    "mean_latency_seconds": 104.591,
+    "metrics": {},
+    "stage_timings": {
+      "runs": 1,
+      "mean_seconds": {
+        "agentic_draft_seconds": 42.994,
+        "agentic_verify_seconds": 24.747,
+        "generation_seconds": 68.098,
+        "judge_reference_seconds": 22.354,
+        "judge_seconds": 22.354,
+        "pipeline_seconds": 82.236,
+        "retrieval_seconds": 14.13
+      },
+      "sample_counts": {
+        "agentic_draft_seconds": 1,
+        "agentic_verify_seconds": 1,
+        "generation_seconds": 1,
+        "judge_reference_seconds": 1,
+        "judge_seconds": 1,
+        "pipeline_seconds": 1,
+        "retrieval_seconds": 1
+      }
+    },
+    "profiles": {
+      "cross_multihop": {
+        "questions": 1,
+        "errors": 1,
+        "mean_latency_seconds": 104.591,
+        "metrics": {},
+        "stage_timings": {
+          "runs": 1,
+          "mean_seconds": {
+            "agentic_draft_seconds": 42.994,
+            "agentic_verify_seconds": 24.747,
+            "generation_seconds": 68.098,
+            "judge_reference_seconds": 22.354,
+            "judge_seconds": 22.354,
+            "pipeline_seconds": 82.236,
+            "retrieval_seconds": 14.13
+          },
+          "sample_counts": {
+            "agentic_draft_seconds": 1,
+            "agentic_verify_seconds": 1,
+            "generation_seconds": 1,
+            "judge_reference_seconds": 1,
+            "judge_seconds": 1,
+            "pipeline_seconds": 1,
+            "retrieval_seconds": 1
+          }
+        }
+      }
+    }
+  }
+}
