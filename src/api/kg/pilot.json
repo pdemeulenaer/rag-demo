@@ -1,0 +1,41 @@
+{
+  "schema_version": 1,
+  "name": "star-clusters-connected-v1",
+  "papers": [
+    {
+      "paper_id": "58fc9409-3fec-5fde-8a4c-67848a571dd7",
+      "title": "A Homogenized Catalogue of Variable Stars in the Globular Cluster M22: Membership, Physical Parameters, and Distance",
+      "group": "M22"
+    },
+    {
+      "paper_id": "20ae5d4a-c291-5ce9-ba9f-038fe2fd905c",
+      "title": "Tracing M22's origins: Spatial and chemical constraints on its formation history",
+      "group": "M22"
+    },
+    {
+      "paper_id": "0398c15c-c44e-5b90-bb2c-1e96a73da886",
+      "title": "The chemo-dynamical complexity of ω Centauri: different kinematics for different populations",
+      "group": "omega-centauri"
+    },
+    {
+      "paper_id": "f4441bd7-b28a-5316-a6c2-7f0df80bc846",
+      "title": "Bar-induced migration of $ω$ Centauri away from Gaia Sausage-Enceladus",
+      "group": "omega-centauri"
+    },
+    {
+      "paper_id": "d721dbd9-105c-5b13-883f-593ad7e55a63",
+      "title": "Axion Constraints from White Dwarf Cooling in 47 Tucanae",
+      "group": "47-tucanae"
+    },
+    {
+      "paper_id": "bc8e3cc4-6720-5ac0-80d5-eff5051b2b23",
+      "title": "Unresolved Binary Systems in the Rubin Era I: An Autoencoder Framework for Binary Identification Applied to 47 Tucanae",
+      "group": "47-tucanae"
+    },
+    {
+      "paper_id": "723368a4-0f0d-597b-8ede-50157d4601cb",
+      "title": "Globular Clusters in the Time of the JWST. I. Survey Design and First Results on Multiple Populations and Beyond",
+      "group": "connecting-survey"
+    }
+  ]
+}

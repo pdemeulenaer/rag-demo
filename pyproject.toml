@@ -51,6 +51,10 @@ dependencies = [
 ]
 
 [dependency-groups]
+kg = [
+    # Offline scientific graph extraction; not part of the online RAG stack.
+    "neo4j-graphrag[openai]==1.22.0",
+]
 frontend = [
     "streamlit (>=1.43.2,<2.0.0)",
     "requests>=2.32.0",

@@ -210,8 +210,13 @@ Docker stack records traces and Dataset Experiments; setup is in the
 [observability guide](docs/operations/observability.md).
 
 The API, Streamlit and benchmark runner include bounded Agentic RAG alongside Vanilla,
-Hybrid and Hybrid + Rerank baselines. A new reviewed benchmark on the dense+sparse index is
-the next slice. Deterministic KG-RAG and KG-Agentic RAG remain later
+Hybrid and Hybrid + Rerank baselines. Four-mode evaluation on the dense+sparse index
+remains the comparison baseline. The KG foundation now adds an optional Neo4j container and
+seven-paper offline preview (`make kg-preview`, `make kg-up`), verified full-artifact
+preparation (`make kg-prepare`), bounded **paid** extraction (`make kg-extract`) and local
+candidate validation (`make kg-validate`). Graph publishing and KG query modes are not
+implemented yet. See [KG design and commands](docs/architecture/knowledge-graph.md).
+Deterministic KG-RAG and KG-Agentic RAG remain subsequent
 milestones defined in [RAG modes](docs/architecture/rag-modes.md) and sequenced in the
 [RAG evolution roadmap](docs/architecture/rag-evolution-roadmap.md).
 

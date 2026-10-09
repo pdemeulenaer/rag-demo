@@ -469,6 +469,52 @@ combining it with the agent as `kg_agentic`. Do not run paid evaluations as impl
 tests. Implement and validate one roadmap slice at a time unless the user explicitly expands
 the scope.
 
+### KG milestone — first slice implemented
+
+The user approved a provenance-first KG pilot, ultimately expanding to all eligible papers.
+`docs/architecture/knowledge-graph.md` owns the concrete design and remaining phases.
+Phase 8.1 adds `src/api/kg/` (typed extraction records and offline snapshot preview),
+`pilot.json` (seven explicit paper IDs: M22 pair, omega Centauri pair, 47 Tuc pair and
+connecting JWST survey) and opt-in `docker-compose.kg.yml` (pinned Neo4j Community,
+localhost ports, persistent volumes). `make kg-preview`, `kg-schema`, `kg-up`, `kg-status`,
+`kg-logs`, `kg-stop`, `kg-help` are available. Preview loads no configuration/.env, reads
+no gold answers, connects to no services, writes nothing and invokes no model. Snapshot
+selection is not live catalogue validation; sampled excerpts are NOT the full extraction
+input. Missing pilot IDs fail explicitly; `KG_SELECTION=all` selects all snapshot papers.
+
+Neo4j stores derived scientific assertions, not authoritative catalogue state. Preserve
+PostgreSQL identity/active builds, Qdrant dense+BM25+RRF, existing point IDs, scoped citations
+and all four modes. Source-reference validation checks identity/literal quotes only; it
+does not establish entailment, alias validity, active scope or verified artifact hashes.
+Build-local IDs must be namespaced by build/extraction revision in the future writer.
+Keep conflicting measurements/conditions separate and hypotheses explicit. No global
+fuzzy alias merge, guessed PDF numbers or arbitrary query-time writes/Cypher.
+
+Phase 8.2 adds `kg-prepare`, explicit paid/resumable `kg-extract`, read-only `kg-validate`
+and offline `kg-test`. `artifacts.py` reads exact frozen ready SQL builds (including retained
+builds, excluding deleted papers) and hash-verified full text/pages/Markdown. No sampled
+evaluation evidence or gold answers are extraction input. `jobs.py` freezes plan identity,
+stores local SQLite per-attempt checkpoints, bounds call counts/concurrency and requires
+explicit failed/interrupted retries; no hidden SDK retries or exact-once billing claim.
+`extraction.py` uses `neo4j-graphrag==1.22.0`'s supported custom Component and Neo4jGraph
+types with native SDK/Pydantic scientific parsing, not the default open-ended property
+schema/JSON repair. Source IDs/page/section are application-bound; every quoted record
+is validated against its full source chunk. `tracing.py` independently reuses optional
+Langfuse settings without importing the API's eager global config. Dependencies are
+optional (`uv run --group kg`). Local outputs are ignored under `data/knowledge_graph/`.
+Model/settings/revision changes require a new directory; successes are reused only within
+that directory. Empty scientific outputs are valid for boilerplate; scientific review is
+still required. No live paid extraction has been run as an implementation test.
+
+Next: review a bounded paid pilot, then staged graph persistence/activation. The experimental
+builder must not replace extraction/chunking/embeddings. Its built-in Hybrid retriever is
+Neo4j vector+full-text, not this repo's Qdrant Hybrid; preserve our search and add scoped
+graph expansion. Graph activation, deterministic `kg`, `kg_agentic`, UI/evaluation support
+and daily graph automation remain unimplemented. Do not claim graph queryability from
+`kg-up` or `kg-preview`, or start paid extraction as an implementation test.
+No reindex/evaluation regeneration is inherently necessary. For initial comparisons use
+the same paper scope and subsequently pin graph extraction identity with frozen builds.
+
 The user selected **star-cluster papers within `astro-ph.GA`**, not the whole category
 and not an automatic expansion to `astro-ph.SR`. arXiv has no dedicated star-cluster
 category. `ARXIV_CATEGORIES` AND any `ARXIV_TOPIC_TERMS` phrase in title/abstract define

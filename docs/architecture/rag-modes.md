@@ -518,7 +518,11 @@ that router.
 KG-RAG is a future placeholder, not an implemented feature. The intended graph will model
 scientific entities and claims—such as papers, authors, astronomical objects, instruments,
 methods and measurements—with every node/edge linked back to its source build, chunk and
-page. No graph database or final graph schema has been selected yet.
+page. Neo4j Community is selected as the additional derived graph store; a typed
+scientific schema, explicit paper pilot and optional container are implemented.
+Offline full-artifact extraction with bounded paid calls and local review checkpoints is
+implemented; graph persistence, retrieval and query modes are not implemented yet. See the
+[KG design and commands](knowledge-graph.md) for the foundation and remaining slices.
 
 Two modes are intentionally planned:
 

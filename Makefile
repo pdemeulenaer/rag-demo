@@ -126,6 +126,65 @@ langfuse-status:
 langfuse-logs:
 	$(LANGFUSE_COMPOSE) logs --tail=100 -f langfuse-web langfuse-worker
 
+# KG phase 8.1: optional database and offline preview only; no paid extraction yet.
+KG_COMPOSE := docker compose -f docker-compose.kg.yml --profile kg
+KG_SNAPSHOT ?= data/evaluation/markdown-mini-v4/snapshot.json
+KG_SELECTION ?= pilot
+KG_PILOT ?= src/api/kg/pilot.json
+KG_DIR ?= data/knowledge_graph/pilot-v1
+KG_PAPERS ?=
+KG_MAX_CALLS ?=
+KG_RETRY_FAILED ?= false
+.PHONY: kg-up kg-stop kg-status kg-logs kg-preview kg-schema kg-prepare kg-extract kg-validate kg-test kg-help
+
+kg-up:
+	set -e
+	$(KG_COMPOSE) up -d --wait neo4j
+	@echo "Neo4j Browser: http://localhost:7474 (username: neo4j)"
+
+kg-stop:
+	$(KG_COMPOSE) stop neo4j
+
+kg-status:
+	$(KG_COMPOSE) ps neo4j
+
+kg-logs:
+	$(KG_COMPOSE) logs --tail=100 -f neo4j
+
+kg-preview:
+	uv run python -m src.api.kg preview --snapshot "$(KG_SNAPSHOT)" --selection "$(KG_SELECTION)" --pilot "$(KG_PILOT)"
+
+kg-schema:
+	uv run python -m src.api.kg schema
+
+kg-prepare:
+	uv run --group kg python -m src.api.kg prepare --snapshot "$(KG_SNAPSHOT)" --selection "$(KG_SELECTION)" --pilot "$(KG_PILOT)" --output "$(KG_DIR)" $(if $(KG_PAPERS),--papers "$(KG_PAPERS)",)
+
+kg-extract:
+	uv run --group kg python -m src.api.kg extract --output "$(KG_DIR)" $(if $(KG_MAX_CALLS),--max-calls "$(KG_MAX_CALLS)",) $(if $(filter true,$(KG_RETRY_FAILED)),--retry-failed,)
+
+kg-validate:
+	uv run --group kg python -m src.api.kg validate --output "$(KG_DIR)"
+
+kg-test:
+	uv run --group kg python -m pytest tests/unit/test_kg_foundation.py tests/unit/test_kg_extraction.py -q
+
+kg-help:
+	@printf '%s\n' \
+	  'KG foundation (not yet a query mode):' \
+	  '  make kg-preview                  Preview seven connected papers; no calls/writes' \
+	  '  make kg-preview KG_SELECTION=all Preview every paper in the saved snapshot' \
+	  '  make kg-schema                   Show the typed extraction schema' \
+	  '  make kg-prepare KG_PAPERS=1       Verify/freeze one full paper; no model calls' \
+	  '  make kg-extract KG_MAX_CALLS=5    PAID: extract at most five pending chunks' \
+	  '  make kg-validate                 Validate checkpoints; scientific review still needed' \
+	  '  make kg-test                     Offline tests, with mocked provider responses' \
+	  '  make kg-up                       Start optional Neo4j; UI: http://localhost:7474' \
+	  '  make kg-status / kg-logs          Inspect the graph database service' \
+	  '  make kg-stop                     Stop Neo4j; preserve its data volumes' \
+	  'KG_SNAPSHOT and KG_PILOT accept alternate local files.' \
+	  'Guide: docs/architecture/knowledge-graph.md'
+
 .PHONY: papers-help papers-scope papers-preview papers-db-up papers-init-db \
         papers-backfill papers-process papers-sync papers-daily papers-status papers-count papers-audit papers-import-uploads
 

@@ -9,7 +9,57 @@ on:
     branches:
       - main  # Trigger on PR to main branch
 
+permissions:
+  contents: read
+
+concurrency:
+  group: pages-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
+  build-docs:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install uv
+        run: pip install uv
+
+      - name: Install documentation dependencies
+        run: uv sync --locked --group dev
+
+      - name: Build documentation
+        run: uv run --no-sync mkdocs build --strict
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+  deploy-docs:
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    needs: build-docs
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+
   build-and-push:
     runs-on: ubuntu-latest
     steps:
@@ -201,7 +251,5 @@ jobs:
   #           --name ${{ secrets.AZURE_WEBAPP }} \
   #           --slot staging \
   #           --target-slot production
-
-
 
 

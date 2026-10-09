@@ -17,8 +17,10 @@ The first reviewed benchmark found Hybrid stronger on retrieval coverage, correc
 groundedness and relevance, while gold-citation recall remained approximately 0.43 in both
 modes. That run predates the current BM25 index and mode split; see
 [Evaluation results](../operations/evaluation-results.md). The next milestone is a new
-four-mode benchmark on the dense+sparse corpus, followed by knowledge-graph retrieval as an
-additional evidence tool for the same orchestration layer.
+four-mode benchmark on the dense+sparse corpus. Development runs have since exercised all
+four modes; the next architecture milestone is knowledge-graph retrieval as an additional
+evidence tool for the same orchestration layer. Its foundation is now implemented; graph
+extraction and query modes are not yet available.
 
 ## Design rules
 
@@ -273,6 +275,13 @@ comparisons.
 
 ## Phase 8 — knowledge-graph RAG
 
+Phases 8.1–8.2 are implemented: optional Neo4j Community container, explicit
+seven-paper pilot, snapshot preview, typed source-backed extraction, verified full-artifact
+preparation and bounded paid extraction with local checkpoints/optional Langfuse.
+See [Knowledge-graph RAG](knowledge-graph.md) for the chosen responsibilities, paper list,
+commands, validation limits and remaining slices. Paid extraction is explicitly invoked,
+never enabled automatically; graph writing, activation and query modes are still pending.
+
 ### Graph construction
 
 Define a scientific schema before selecting infrastructure. Candidate entities include
@@ -285,10 +294,12 @@ units, retain conflicting claims instead of overwriting them, and validate entit
 edges before making them queryable. Graph activation should follow the same replacement
 safety principle as vector builds.
 
-Choose graph storage after testing the required traversals. PostgreSQL tables/recursive
-queries minimize infrastructure for a small graph; a graph database is preferable when the
-demo needs expressive multi-hop traversal and graph-native inspection. The decision should
-be recorded separately and must not make PostgreSQL/Qdrant provenance ambiguous.
+Neo4j Community is selected for graph-native traversal and inspection in this demo.
+PostgreSQL remains the catalogue authority and Qdrant retains dense/sparse retrieval;
+the graph is a versioned derived index. Reuse full existing chunks and stable identities.
+Integrate appropriate `neo4j-graphrag` components in the extraction slice rather than
+replacing the current PDF, vector or answer pipelines. Test actual traversals and scoped
+activation before exposing KG retrieval.
 
 ### Graph retrieval and comparison
 
