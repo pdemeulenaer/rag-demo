@@ -126,7 +126,7 @@ langfuse-status:
 langfuse-logs:
 	$(LANGFUSE_COMPOSE) logs --tail=100 -f langfuse-web langfuse-worker
 
-# KG phase 8.1: optional database and offline preview only; no paid extraction yet.
+# KG phases 8.1–8.2: optional database, free preparation and explicit paid extraction.
 KG_COMPOSE := docker compose -f docker-compose.kg.yml --profile kg
 KG_SNAPSHOT ?= data/evaluation/markdown-mini-v4/snapshot.json
 KG_SELECTION ?= pilot
@@ -135,6 +135,8 @@ KG_DIR ?= data/knowledge_graph/pilot-v1
 KG_PAPERS ?=
 KG_MAX_CALLS ?=
 KG_RETRY_FAILED ?= false
+KG_FAILED_ONLY ?= false
+KG_CHUNKS_PER_PAPER ?=
 .PHONY: kg-up kg-stop kg-status kg-logs kg-preview kg-schema kg-prepare kg-extract kg-validate kg-test kg-help
 
 kg-up:
@@ -161,13 +163,13 @@ kg-prepare:
 	uv run --group kg python -m src.api.kg prepare --snapshot "$(KG_SNAPSHOT)" --selection "$(KG_SELECTION)" --pilot "$(KG_PILOT)" --output "$(KG_DIR)" $(if $(KG_PAPERS),--papers "$(KG_PAPERS)",)
 
 kg-extract:
-	uv run --group kg python -m src.api.kg extract --output "$(KG_DIR)" $(if $(KG_MAX_CALLS),--max-calls "$(KG_MAX_CALLS)",) $(if $(filter true,$(KG_RETRY_FAILED)),--retry-failed,)
+	uv run --group kg python -m src.api.kg extract --output "$(KG_DIR)" $(if $(KG_MAX_CALLS),--max-calls "$(KG_MAX_CALLS)",) $(if $(filter true,$(KG_RETRY_FAILED)),--retry-failed,) $(if $(filter true,$(KG_FAILED_ONLY)),--failed-only,) $(if $(KG_CHUNKS_PER_PAPER),--chunks-per-paper "$(KG_CHUNKS_PER_PAPER)",)
 
 kg-validate:
 	uv run --group kg python -m src.api.kg validate --output "$(KG_DIR)"
 
 kg-test:
-	uv run --group kg python -m pytest tests/unit/test_kg_foundation.py tests/unit/test_kg_extraction.py -q
+	uv run --group kg python -m pytest tests/unit/test_kg_foundation.py tests/unit/test_kg_extraction.py tests/unit/test_kg_selection.py -q
 
 kg-help:
 	@printf '%s\n' \
@@ -177,6 +179,8 @@ kg-help:
 	  '  make kg-schema                   Show the typed extraction schema' \
 	  '  make kg-prepare KG_PAPERS=1       Verify/freeze one full paper; no model calls' \
 	  '  make kg-extract KG_MAX_CALLS=5    PAID: extract at most five pending chunks' \
+	  '  make kg-extract KG_CHUNKS_PER_PAPER=3 KG_MAX_CALLS=21  PAID: distributed paper sample' \
+	  '  make kg-extract KG_FAILED_ONLY=true KG_MAX_CALLS=4    PAID: retry only failed/interrupted chunks' \
 	  '  make kg-validate                 Validate checkpoints; scientific review still needed' \
 	  '  make kg-test                     Offline tests, with mocked provider responses' \
 	  '  make kg-up                       Start optional Neo4j; UI: http://localhost:7474' \

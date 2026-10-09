@@ -104,12 +104,14 @@ def open_checkpoints(directory, plan):
     return database
 
 
-def extract(directory, settings, *, max_calls=None, retry_failed=False, component=None, tracer=None):
+def extract(directory, settings, *, max_calls=None, retry_failed=False, failed_only=False,
+            chunks_per_paper=None, component=None, tracer=None):
     """No hidden retry. Interrupted requests may have been billed: retry is explicit."""
     from .extraction import ScientificExtractor
     from .tracing import ExtractionTracing
     from src.api.core.structured import StructuredOutputError
     from openai import OpenAI
+    from .selection import select_chunks
     limit = settings.KG_MAX_CALLS if max_calls is None else max_calls
     if not 1 <= limit <= 1000:
         raise ValueError("Per-invocation call limit must be 1–1000")
@@ -122,9 +124,9 @@ def extract(directory, settings, *, max_calls=None, retry_failed=False, componen
                              "WHERE status='running'")
             database.execute("UPDATE attempts SET status='interrupted' WHERE status='running'")
             database.commit()
-            eligible = {row["id"] for row in database.execute("SELECT id FROM jobs WHERE status='pending'" +
-                         (" OR status IN ('failed','interrupted')" if retry_failed else ""))}
-            selected = [chunk for chunk in chunks if str(chunk.point_id) in eligible][:limit]
+            states = {row["id"]: dict(row) for row in database.execute("SELECT id,status,attempts FROM jobs")}
+            selected = select_chunks(chunks, states, max_calls=limit,
+                chunks_per_paper=chunks_per_paper, retry_failed=retry_failed, failed_only=failed_only)
             if selected and component is None:
                 if not settings.OPENAI_API_KEY.get_secret_value():
                     raise ValueError("OPENAI_API_KEY is required only for paid kg-extract")
@@ -155,8 +157,13 @@ def extract(directory, settings, *, max_calls=None, retry_failed=False, componen
                                              output_tokens=token_usage.completion_tokens,
                                              total_tokens=token_usage.total_tokens)
                         data = dict(usage=usage, usage_unknown=usage is None)
-                        if isinstance(error, StructuredOutputError):
-                            data["safe_diagnostics"] = error.safe_diagnostics
+                        diagnostics = getattr(error, "safe_diagnostics", None)
+                        if diagnostics is not None:
+                            data["safe_diagnostics"] = diagnostics
+                        for field in ("provider_model", "response_id"):
+                            value = getattr(error, field, None)
+                            if value is not None:
+                                data[field] = value
                         observer.finish(span, data, type(error).__name__, monotonic() - started)
                         return "failed", data, type(error).__name__, monotonic() - started
 
@@ -165,7 +172,8 @@ def extract(directory, settings, *, max_calls=None, retry_failed=False, componen
                     # Reserve durably immediately before each submission, not after the response.
                     futures = []
                     for chunk in selected:
-                        database.execute("UPDATE jobs SET status='running',attempts=attempts+1 WHERE id=?",
+                        database.execute("UPDATE jobs SET status='running',attempts=attempts+1, "
+                                         "result=NULL,error=NULL,seconds=NULL WHERE id=?",
                                          (str(chunk.point_id),))
                         database.execute("INSERT INTO attempts (id,attempt,status) "
                                          "SELECT id,attempts,'running' FROM jobs WHERE id=?", (str(chunk.point_id),))
@@ -181,6 +189,9 @@ def extract(directory, settings, *, max_calls=None, retry_failed=False, componen
                                          (status, canonical(data), error, elapsed, str(chunk.point_id), str(chunk.point_id)))
                         database.commit()
                         detail = f" ({error})" if error else ""
+                        issues = data.get("safe_diagnostics", {}).get("rejection_issues", [])
+                        if issues:
+                            detail += ": " + "; ".join(f"{issue['code']} at {issue['path']}" for issue in issues[:3])
                         print(f"{chunk.point_id}: {status}{detail}", flush=True)
             finally:
                 observer.close()
@@ -194,6 +205,13 @@ def extract(directory, settings, *, max_calls=None, retry_failed=False, componen
                                                for entry in attempts)
             result["attempts_with_unknown_usage"] = sum(not entry.get("usage") for entry in attempts)
             result["model_calls_reserved_this_invocation"] = len(selected)
+            paper_counts = {}
+            for chunk in selected:
+                key = str(chunk.paper_id)
+                paper_counts[key] = paper_counts.get(key, 0) + 1
+            result["papers_selected_this_invocation"] = [
+                dict(paper_id=paper["paper_id"], title=paper["title"], chunks=paper_counts[paper["paper_id"]])
+                for paper in plan["papers"] if paper["paper_id"] in paper_counts]
             return result
 
 
@@ -206,8 +224,22 @@ def export(directory, plan, rows):
     temporary = directory / "candidates.tmp"
     temporary.write_text(json.dumps(candidates, ensure_ascii=False, indent=2), encoding="utf-8")
     temporary.replace(directory / "candidates.json")
+    chunk_papers = {chunk["point_id"]: chunk["paper_id"] for chunk in plan["chunks"]}
+    failures = dict(plan_id=plan["plan_id"], failures=[dict(
+        point_id=row["id"], paper_id=chunk_papers[row["id"]], status=row["status"],
+        attempts=row["attempts"], error=row["error"],
+        **(json.loads(row["result"]) if row["result"] else {}),
+    ) for row in rows if row["status"] in {"failed", "interrupted"}])
+    for failure in failures["failures"]:
+        if "safe_diagnostics" not in failure:
+            failure["safe_diagnostics"] = {
+                "rejection_issues": [dict(code="reason_not_recorded", path="batch")]}
+    temporary = directory / "failures.tmp"
+    temporary.write_text(json.dumps(failures, ensure_ascii=False, indent=2), encoding="utf-8")
+    temporary.replace(directory / "failures.json")
     return dict(output=str(directory), states=states, graph_ready=False,
                 candidates=str(directory / "candidates.json"),
+                failures=str(directory / "failures.json"),
                 total_attempts_reserved=sum(row["attempts"] for row in rows))
 
 

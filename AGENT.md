@@ -506,6 +506,19 @@ Model/settings/revision changes require a new directory; successes are reused on
 that directory. Empty scientific outputs are valid for boilerplate; scientific review is
 still required. No live paid extraction has been run as an implementation test.
 
+KG extraction diagnostics now retain specific rejection codes and zero-based record-field
+paths in SQLite and `failures.json`, with concise terminal output. Never persist raw
+exception/validation inputs or weaken exact-quote/endpoint checks to reduce failures.
+Old generic failures cannot be reconstructed; explicit new attempts are needed for detail.
+`KG_CHUNKS_PER_PAPER=N` selects a deterministic, body-preferred, distributed sample across
+papers, interleaved fairly under `KG_MAX_CALLS`. N caps distinct attempted chunks per paper
+over the output directory's lifetime (successes AND failures/interrupted count). Existing
+plans/checkpoints remain compatible; no schema/prompt/model revision changed. Sampling
+only selects pending chunks and cannot be combined with retry flags. `KG_FAILED_ONLY=true`
+explicitly retries only failed/interrupted chunks; legacy `KG_RETRY_FAILED=true` still
+includes pending work. No paid extraction/retries are authorized merely by implementing
+or testing these features. `tests/unit/test_kg_selection.py` runs without optional libraries.
+
 Next: review a bounded paid pilot, then staged graph persistence/activation. The experimental
 builder must not replace extraction/chunking/embeddings. Its built-in Hybrid retriever is
 Neo4j vector+full-text, not this repo's Qdrant Hybrid; preserve our search and add scoped

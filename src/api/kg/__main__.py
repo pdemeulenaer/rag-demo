@@ -27,6 +27,9 @@ def main(argv=None):
     extract.add_argument("--output", required=True, type=Path)
     extract.add_argument("--max-calls", type=int)
     extract.add_argument("--retry-failed", action="store_true")
+    extract.add_argument("--failed-only", action="store_true", help="Explicitly retry failed/interrupted chunks only")
+    extract.add_argument("--chunks-per-paper", type=int,
+                         help="Sample up to N distinct attempted chunks per paper across this directory; pending only")
     validate = commands.add_parser("validate", help="Check saved candidates/provenance; no model calls")
     validate.add_argument("--output", required=True, type=Path)
     args = parser.parse_args(argv)
@@ -44,7 +47,8 @@ def main(argv=None):
                 settings = KGSettings()
                 if args.command == "extract":
                     result = jobs.extract(args.output, settings, max_calls=args.max_calls,
-                                          retry_failed=args.retry_failed)
+                                          retry_failed=args.retry_failed, failed_only=args.failed_only,
+                                          chunks_per_paper=args.chunks_per_paper)
                 else:
                     from .artifacts import VerifiedReader
                     from src.api.papers.catalogue import Catalogue

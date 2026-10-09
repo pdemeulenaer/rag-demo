@@ -184,7 +184,64 @@ the smoke paper again. Successes are skipped **within the same directory**, not 
 directories. If you want to avoid that duplicate cost, start with all seven prepared in
 `pilot-v1`, use `KG_MAX_CALLS=5`, review, and keep resuming that directory instead.
 
-### Checkpoints and limits
+### Sample across papers instead of finishing one paper first
+
+Use the **existing** prepared directory; no new preparation or model setting is needed:
+
+```bash
+# PAID: up to three distinct attempted chunks per paper, across all seven papers.
+make kg-extract KG_CHUNKS_PER_PAPER=3 KG_MAX_CALLS=21
+make kg-validate
+```
+
+The selector prefers substantial body sections and distributes chunks through each paper,
+then interleaves papers round-robin. These are structural heuristics, not scientific review;
+if insufficient body chunks exist, it falls back to other available chunks. The least-sampled
+papers go first when the global cap is smaller than the number of papers. The summary lists
+`papers_selected_this_invocation` with titles and request counts.
+
+`KG_CHUNKS_PER_PAPER` is a **directory-lifetime quota on distinct attempted chunks**, not a
+fresh per-invocation allowance. Existing successful, failed and interrupted attempts count.
+If the first paper already has 15 attempted chunks, a quota of 3 skips that paper and samples
+up to 3 from each of the other six (18 requests maximum). Repeating the same sampling command
+only fills outstanding quotas; completed samples are not charged again. Sampling failures
+still consume a slot. To sample more, explicitly increase the quota; to resume normal full
+extraction, omit `KG_CHUNKS_PER_PAPER`. Sampling does not shrink/change the frozen plan, and
+does not permit automatic retries. Allowed quota: 1–1000; the global `KG_MAX_CALLS` still applies.
+This is a CLI/Make option, not a model setting to put in `.env`.
+
+### Understand and retry rejections
+
+New application rejections save specific `safe_diagnostics.rejection_issues` in
+`checkpoints.sqlite` and `failures.json`, print their code/path in the terminal, and attach
+them to optional Langfuse generation metadata. Examples:
+
+- `quote_not_found at observations.2.evidence.0.quote`: the quotation is not an exact substring
+  of the source chunk.
+- `duplicate_record_id at observations.0.id`: an ID was already used in this chunk.
+- `undeclared_observation_subject`: an observation names an entity not declared in the output.
+- `undeclared_relationship_endpoint`: a relationship references a missing entity/observation.
+
+Paths use **zero-based** list indices. SDK schema/truncation/refusal diagnostics remain separate.
+Record text, quotation contents, raw validation inputs and exception messages are not saved
+in rejection logs; token usage and provider model/response ID are retained when available.
+Every retry remains a paid, explicit request; the validation checks are unchanged.
+
+For an unambiguous failed/interrupted-only retry, without processing new pending chunks:
+
+```bash
+make kg-extract KG_FAILED_ONLY=true KG_MAX_CALLS=4
+make kg-validate
+```
+
+Do not combine sampling with retry options. Existing `KG_RETRY_FAILED=true` retains its older
+behavior: it includes **both pending and failed/interrupted** chunks. `KG_FAILED_ONLY=true`
+excludes pending chunks. Both skip completed chunks. All attempt history stays in SQLite,
+while `failures.json` shows the current unresolved failures. Old failures that only saved
+`ExtractionRejected` cannot be diagnosed retroactively; they are marked `reason_not_recorded`
+until an explicit new attempt records a specific reason or succeeds.
+
+### Checkpoint storage and budgets
 
 - `plan.json` freezes the full text, exact build identities, manifest hashes, schema/prompt
   revision, package version and model settings. Repeating identical preparation is safe;

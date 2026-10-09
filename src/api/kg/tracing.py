@@ -42,7 +42,8 @@ class ExtractionTracing:
                             metadata={"status": status, "elapsed_seconds": seconds,
                                       "usage_unknown": data.get("usage") is None,
                                       "provider_model": data.get("provider_model"),
-                                      "response_id": data.get("response_id")})
+                                      "response_id": data.get("response_id"),
+                                      "safe_diagnostics": data.get("safe_diagnostics")})
             except Exception:
                 warnings.warn("KG trace could not be updated")
 

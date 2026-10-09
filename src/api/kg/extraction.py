@@ -63,6 +63,39 @@ class ScientificResult(DataModel):
     response_id: str
 
 
+def rejection_diagnostics(records: CandidateRecords, chunk: SourceChunk) -> dict:
+    """Explain failed checks using application-owned codes/paths, never raw output.
+
+    This does not repair records or relax validation. The prompt/provider schema
+    stays unchanged, so existing frozen plans/checkpoints remain compatible.
+    """
+    issues = []
+    seen = set()
+    entities = {record.id for record in records.entities}
+    nodes = entities | {record.id for record in records.observations}
+    for group in ("entities", "observations", "relationships"):
+        for index, record in enumerate(getattr(records, group)):
+            path = f"{group}.{index}"
+            if record.id in seen:
+                issues.append(dict(code="duplicate_record_id", path=path + ".id"))
+            seen.add(record.id)
+            if group == "observations" and record.subject_id not in entities:
+                issues.append(dict(code="undeclared_observation_subject", path=path + ".subject_id"))
+            if group == "relationships":
+                for field in ("subject_id", "object_id"):
+                    if getattr(record, field) not in nodes:
+                        issues.append(dict(code="undeclared_relationship_endpoint", path=path + "." + field))
+            for evidence_index, evidence in enumerate(record.evidence):
+                if evidence.quote not in chunk.text:
+                    issues.append(dict(code="quote_not_found",
+                        path=f"{path}.evidence.{evidence_index}.quote",
+                        quote_chars=len(evidence.quote), source_chars=len(chunk.text)))
+    if not issues:
+        issues.append(dict(code="record_validation_failed", path="batch"))
+    return dict(rejection_issues=issues[:50], issue_count=len(issues),
+                issues_truncated=len(issues) > 50)
+
+
 def bind_sources(records: CandidateRecords, chunk: SourceChunk, model: str) -> ExtractionBatch:
     """The application supplies identity/page/section; the model cannot invent them."""
     raw = records.model_dump(mode="json")
@@ -123,12 +156,15 @@ class ScientificExtractor(Component):
         try:
             batch = bind_sources(parsed, chunk, self.settings.KG_MODEL)
         except ValueError as error:
-            raise ExtractionRejected(usage, raw.model, raw.id) from error
+            raise ExtractionRejected(usage, raw.model, raw.id,
+                                     rejection_diagnostics(parsed, chunk)) from error
         return ScientificResult(batch=batch, graph=staging_graph(batch), usage=usage,
                                 provider_model=raw.model, response_id=raw.id)
 
 
 class ExtractionRejected(ValueError):
-    def __init__(self, usage, provider_model, response_id):
+    def __init__(self, usage, provider_model, response_id, safe_diagnostics=None):
         super().__init__("Scientific output failed identity/link/literal quote validation")
         self.usage, self.provider_model, self.response_id = usage, provider_model, response_id
+        self.safe_diagnostics = safe_diagnostics or {
+            "rejection_issues": [dict(code="reason_not_recorded", path="batch")]}

@@ -224,12 +224,20 @@ def test_failures_checkpoint_not_silent_retry(corpus, bad):
         assert result["states"]["failed"] == 1 and len(requests) == 1
         with sqlite3.connect(corpus.directory / "checkpoints.sqlite") as db:
             failed = db.execute("SELECT id,result,error FROM jobs WHERE status='failed'").fetchone()
+            diagnostics = json.loads(failed[1]).get("safe_diagnostics", {})
+            if bad in {"invented_quote", "missing_node"}:
+                expected = "quote_not_found" if bad == "invented_quote" else "undeclared_observation_subject"
+                assert diagnostics["rejection_issues"][0]["code"] == expected
+                assert diagnostics["rejection_issues"][0]["path"].startswith("observations.0.")
             # Isolate resumption eligibility: mark the untested remaining jobs interrupted.
             db.execute("UPDATE jobs SET status='interrupted' WHERE status='pending'")
             assert "test secret" not in failed[2]
         resumed = jobs.extract(corpus.directory, corpus.settings, component=component)
         assert resumed["model_calls_reserved_this_invocation"] == 0
         assert jobs.validate(corpus.directory)["validated_chunks"] == 0
+        failures = json.loads((corpus.directory / "failures.json").read_text())
+        assert len(failures["failures"]) == 3  # Includes the two explicitly interrupted fixture jobs.
+        assert "test secret" not in json.dumps(failures)
     finally:
         client.close()
 
@@ -242,13 +250,106 @@ def test_explicit_retry_preserves_attempt_history(corpus):
     try:
         jobs.extract(corpus.directory, corpus.settings, max_calls=1, component=component)
         result = jobs.extract(corpus.directory, corpus.settings, max_calls=1,
-                              retry_failed=True, component=component)
+                              failed_only=True, component=component)
         assert result["states"]["complete"] == 1 and result["total_attempts_reserved"] == 2
         assert result["known_total_tokens"] == 300
         with sqlite3.connect(corpus.directory / "checkpoints.sqlite") as db:
             assert [row[0] for row in db.execute("SELECT status FROM attempts ORDER BY attempt")] == ["failed", "complete"]
     finally:
         client.close()
+
+
+def test_diagnostics_cover_all_rejected_records_without_raw_output(corpus):
+    from src.api.kg.extraction import rejection_diagnostics
+    source = load_paper(corpus.paper, corpus.catalogue, corpus.reader)[0][0]
+    bad = records()
+    bad["observations"][0].update(id="m22", subject_id="secret-unavailable-subject")
+    bad["observations"][0]["evidence"] = [dict(quote="secret mismatched provider quote")]
+    bad["relationships"] = [dict(id="edge", subject_id="secret-missing-node", object_id="secret-other-node",
+        predicate="compares_with", epistemic_status="reported", evidence=[dict(quote=source.text)])]
+    details = rejection_diagnostics(CandidateRecords.model_validate(bad), source)
+    assert [issue["code"] for issue in details["rejection_issues"]] == [
+        "duplicate_record_id", "undeclared_observation_subject", "quote_not_found",
+        "undeclared_relationship_endpoint", "undeclared_relationship_endpoint"]
+    assert "secret" not in json.dumps(details)
+
+
+def test_duplicate_id_failure_is_saved_with_specific_reason(corpus, capsys):
+    prepare(corpus)
+    bad = records()
+    bad["observations"][0]["id"] = "m22"
+    component, _, client = sdk_component(corpus.settings, [bad])
+    try:
+        jobs.extract(corpus.directory, corpus.settings, max_calls=1, component=component)
+        report = json.loads((corpus.directory / "failures.json").read_text())
+        entry = report["failures"][0]
+        assert entry["safe_diagnostics"]["rejection_issues"] == [
+            dict(code="duplicate_record_id", path="observations.0.id")]
+        assert entry["provider_model"] == "gpt-5-mini-test"
+        assert entry["response_id"] == "chat-test"
+        assert "duplicate_record_id at observations.0.id" in capsys.readouterr().out
+    finally:
+        client.close()
+
+
+def test_legacy_generic_failures_remain_readable_and_not_reconstructed(corpus):
+    prepare(corpus)
+    plan, _ = jobs.read_plan(corpus.directory)
+    with jobs.open_checkpoints(corpus.directory, plan) as db:
+        point_id = plan["chunks"][0]["point_id"]
+        db.execute("UPDATE jobs SET status='failed', attempts=1, error='ExtractionRejected', result=? WHERE id=?",
+                   (json.dumps(dict(usage=None, usage_unknown=True)), point_id))
+        rows = [dict(row) for row in db.execute("SELECT * FROM jobs")]
+        jobs.export(corpus.directory, plan, rows)
+    failures = json.loads((corpus.directory / "failures.json").read_text())
+    assert failures["failures"][0]["safe_diagnostics"]["rejection_issues"][0]["code"] == "reason_not_recorded"
+
+
+def test_sampling_option_reuses_existing_plan_and_stops_at_quota(corpus):
+    first = prepare(corpus)
+    component, requests, client = sdk_component(corpus.settings, [records("M22 has distance 4.27 ± 0.14 kpc.")])
+    try:
+        result = jobs.extract(corpus.directory, corpus.settings, max_calls=3,
+                              chunks_per_paper=1, component=component)
+        assert result["model_calls_reserved_this_invocation"] == 1
+        assert result["papers_selected_this_invocation"][0]["chunks"] == 1
+        assert jobs.read_plan(corpus.directory)[0]["plan_id"] == first["plan_id"]
+        result = jobs.extract(corpus.directory, corpus.settings, max_calls=3,
+                              chunks_per_paper=1, component=component)
+        assert result["model_calls_reserved_this_invocation"] == 0 and len(requests) == 1
+    finally:
+        client.close()
+
+
+@pytest.mark.parametrize("options,expected", [
+    (["--chunks-per-paper", "3"], dict(chunks_per_paper=3, failed_only=False)),
+    (["--failed-only"], dict(chunks_per_paper=None, failed_only=True)),
+])
+def test_cli_forwards_sampling_and_targeted_retry_without_loading_env(corpus, monkeypatch, options, expected):
+    from src.api.kg.__main__ import main
+    import src.api.kg.settings as settings_module
+    monkeypatch.setattr(settings_module, "KGSettings", lambda: corpus.settings)
+    calls = []
+    def fake_extract(directory, settings, **kwargs):
+        calls.append((directory, settings, kwargs))
+        return dict(model_calls=0)
+    monkeypatch.setattr(jobs, "extract", fake_extract)
+    main(["extract", "--output", str(corpus.directory), "--max-calls", "21", *options])
+    assert calls[0][0] == corpus.directory and calls[0][1] is corpus.settings
+    assert calls[0][2]["max_calls"] == 21
+    assert all(calls[0][2][key] == value for key, value in expected.items())
+
+
+def test_langfuse_receives_specific_rejection_metadata_without_client_setup(corpus):
+    from src.api.kg.tracing import ExtractionTracing
+    calls = []
+    class Span:
+        def update(self, **kwargs):
+            calls.append(kwargs)
+    diagnostics = dict(rejection_issues=[dict(code="quote_not_found", path="observations.0.evidence.0.quote")])
+    tracer = ExtractionTracing(corpus.settings)
+    tracer.finish(Span(), dict(usage=None, safe_diagnostics=diagnostics), "ExtractionRejected", 0.5)
+    assert calls[0]["metadata"]["safe_diagnostics"] == diagnostics
 
 
 def test_running_crash_requires_explicit_retry(corpus):
