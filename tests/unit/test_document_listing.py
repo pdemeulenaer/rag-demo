@@ -39,8 +39,10 @@ def get_documents(module):
 def test_documents_route_uses_sql_ready_uploads(listing):
     module, catalogue = listing
     catalogue.inventory.return_value = [
-        {"title": "Ready", "status": "ready", "queryable": True},
-        {"title": "Pending", "status": "pending", "queryable": False},
+        {"title": "Ready", "source": "uploads", "collection": "uploaded_papers_v2",
+         "status": "ready", "queryable": True},
+        {"title": "Pending", "source": "uploads", "collection": "uploaded_papers_v2",
+         "status": "pending", "queryable": False},
     ]
     response = get_documents(module)
     assert response.status_code == 200
@@ -53,14 +55,22 @@ def test_global_inventory_reports_all_processing_states(listing):
     _, catalogue = listing
     from src.api.api.papers_router import inventory_response
     catalogue.inventory.return_value = [
-        {"title": "Upload", "status": "waiting_batch", "queryable": False},
-        {"title": "arXiv", "status": "ready", "queryable": True},
-        {"title": "Replacement", "status": "failed", "queryable": True},
+        {"title": "Upload", "source": "uploads", "collection": "uploaded_papers_v2",
+         "status": "waiting_batch", "queryable": False},
+        {"title": "arXiv", "source": "arxiv", "collection": "arxiv_papers_v2",
+         "status": "ready", "queryable": True},
+        {"title": "Replacement", "source": "uploads", "collection": "uploaded_papers_v2",
+         "status": "failed", "queryable": True},
+        {"title": "Legacy", "source": "uploads", "collection": "test_collection",
+         "status": "ready", "queryable": True},
     ]
     result = inventory_response()
-    assert result["total_documents"] == 3
+    assert result["total_documents"] == 4
     assert result["queryable_documents"] == 2
-    assert result["status_counts"] == {"waiting_batch": 1, "ready": 1, "failed": 1}
+    assert result["status_counts"] == {"waiting_batch": 1, "ready": 2, "failed": 1}
+    legacy = next(row for row in result["documents"] if row["title"] == "Legacy")
+    assert legacy["queryable"] is False
+    assert "legacy collection" in legacy["queryable_reason"]
     catalogue.inventory.assert_called_once_with("all")
 
 

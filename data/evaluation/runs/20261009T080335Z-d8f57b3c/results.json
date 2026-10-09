@@ -1,0 +1,1420 @@
+{
+  "schema_version": 1,
+  "run_id": "20261009T080335Z-d8f57b3c",
+  "results": [
+    {
+      "question_id": "q0002",
+      "kind": "single_paper",
+      "profile": "single_fact",
+      "mode": "agentic",
+      "question": "In \"Constraints on the fuzzy dark matter mass using globular clusters in dwarf galaxies from Euclid ERO data\", what quantitative upper limits on the fuzzy dark matter mass parameter m_22 does the paper report for (a) the Fornax galaxy cluster, (b) the Perseus galaxy cluster, and (c) the Fornax dwarf spheroidal galaxy?",
+      "reference_answer": "The paper reports the following upper limits on m_22: (a) Fornax galaxy cluster: m_22 ≤ 1.46 (+0.00 −0.51); (b) Perseus galaxy cluster: m_22 ≤ 1.09 (+0.00 −0.14); (c) Fornax dSph: m_22 ≤ 1.38 (+0.00 −0.48). (Evidence: ddf71676ff9029e4c5534bca; 88d3700173b37b816de96731; c3d05f2f045b4bdbcb084059)",
+      "answer": "For the Fornax dwarf spheroidal galaxy (Fornax dSph), the paper gives an upper constraint (maximum mass parameter for which the most constraining GC does not fall) of m_22 = 1.33, and states that for m_22 ≤ 1.33 none of the Fornax dSph’s GCs have a timing problem. [1]\n\nI could not verify these requested details from the retrieved evidence:\n- A clear, uncorrupted numeric upper limit and uncertainty for m_22 in the Perseus galaxy cluster (text shows \"1.09[+] -[0] 0[.] .[14] 21\" which is unreadable).",
+      "retrieved_chunks": [
+        {
+          "id": "6aa2dab9-befe-51f6-8a6b-85c172376c1f",
+          "text": "The trajectories of three GCs in three different galaxies from the Perseus galaxy cluster are shown in Figure 4. We use the corrected radius _R_ 3D, the eccentricity _e_ = 0.5 and the maximum values of _m_ 22 for which the FDM density profile and FDM DF are sufficient to prevent their fall into the center of their host galaxy (0.2 kpc) within 10 Gyr. Figure 4 shows that for different initial conditions depending on the orbital radius and the GC’s mass, a GC requires a different value of _m_ 22, which determines both the FDM galaxy potential and DF such that the GC does not fall into the center of its host galaxy. Some GCs (as shown for the \n\n**==> picture [256 x 191] intentionally omitted <==**\n\nFig. 5: Normalized probability density of the FDM parameter _m_ 22 for dwarfs of the two galaxy clusters, and the value for the Fornax dSph, using the corrected radius _R_ 3D and the eccentricity _e_ = 0.5, where the tick marks indicate the corresponding 5 _[th]_ percentile. The constraints on _m_ 22 including all orbital configurations (where each GC is simulated with and without eccentricity, and with _R_ 2D and _R_ 3D) are written on the left. \n\nyellow trajectory) require _m_ 22 = 100, which is the upper limit of our explored range (0.1 to 100). In these cases, FDM effects are sufficient to maintain their orbits compared to the CDM case, regardless of the value of _m_ 22 in the range 0.1–100. Thus, the maximum mass _m_ 22 for which they do not fall into the center of their host galaxy is the upper bound of our calculations. ",
+          "collection": "arxiv_papers_v2",
+          "build_id": "affc8bf5-8948-59f3-814f-737d0341b67d",
+          "paper_id": "d8b1a37d-8307-5790-bbeb-6246d2343374",
+          "title": "Constraints on the fuzzy dark matter mass using globular clusters in dwarf galaxies from Euclid ERO data",
+          "arxiv_id": "2609.11328",
+          "paper_version": 1,
+          "source_url": "https://arxiv.org/abs/2609.11328v1",
+          "authors": [
+            "Lisa Besnard",
+            "Pierre Boldrini",
+            "Paola Di Matteo",
+            "Chervin Laporte",
+            "Teymoor Saifollahi"
+          ],
+          "year": 2026,
+          "page": 5,
+          "section_header": "**Constraints on the fuzzy dark matter mass using globular clusters in dwarf galaxies from Euclid ERO data** > _3.2. Euclid globular clusters of dwarf galaxies in the Fornax and Perseus galaxy clusters_",
+          "content_kind": "text",
+          "chunk_index": 24,
+          "score": 0.64285713,
+          "rerank_score": null,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        },
+        {
+          "id": "1a389b70-6535-598c-ada3-697ec056ff24",
+          "text": "We then determine, for each galaxy of the Fornax and Perseus galaxy clusters, the maximum value of _m_ 22 (between 0.1 and 100) for which FDM effects are sufficient to ensure that none of the galaxy’s GCs fall into the central region. This value corresponds to the most constraining GC in each galaxy, which has the minimum _m_ 22. This results in a distribution of _m_ 22 values, with each value corresponding to one dwarf galaxy. The value of _m_ 22 computed for the Fornax dSph and the distributions of _m_ 22 obtained for the Fornax and Perseus galaxy clusters are represented in Figure 5. The values of _m_ 22 are computed using only the corrected radius _R_ 3D and the eccentricity _e_ = 0.5. ",
+          "collection": "arxiv_papers_v2",
+          "build_id": "affc8bf5-8948-59f3-814f-737d0341b67d",
+          "paper_id": "d8b1a37d-8307-5790-bbeb-6246d2343374",
+          "title": "Constraints on the fuzzy dark matter mass using globular clusters in dwarf galaxies from Euclid ERO data",
+          "arxiv_id": "2609.11328",
+          "paper_version": 1,
+          "source_url": "https://arxiv.org/abs/2609.11328v1",
+          "authors": [
+            "Lisa Besnard",
+            "Pierre Boldrini",
+            "Paola Di Matteo",
+            "Chervin Laporte",
+            "Teymoor Saifollahi"
+          ],
+          "year": 2026,
+          "page": 5,
+          "section_header": "**Constraints on the fuzzy dark matter mass using globular clusters in dwarf galaxies from Euclid ERO data** > _3.2. Euclid globular clusters of dwarf galaxies in the Fornax and Perseus galaxy clusters_",
+          "content_kind": "text",
+          "chunk_index": 25,
+          "score": 0.6,
+          "rerank_score": null,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        },
+        {
+          "id": "9fa6856a-0c6e-520f-8c70-1d906669b20b",
+          "text": "We constrain _m_ 22, respectively for the Fornax and Perseus galaxy clusters, by computing the 5 _[th]_ percentile of their corresponding distribution. We do not constrain _m_ 22 with the minimum value of the distribution to avoid a final constraint driven by only a single GC. Thus, we give an upper constraint on _m_ 22 determined by the lowest 5% of the distribution, below which we consider that the FDM model provides a solution to the timing problem. In Figure 5, the constraints of _m_ 22 for the Fornax and Perseus galaxy clusters are shown as tick marks. They are based on the distributions computed using only the corrected radius _R_ 3D and the eccentricity _e_ = 0.5. To account for the impact of the different orbital configurations on the constraint (with or without eccentricity, and with _R_ 2 _D_ or _R_ 3 _D_ , see Section 3.1), we compute four separate distributions of _m_ 22, each corresponding to one orbital configuration applied to the GCs : ( _R_ 2D, e=0), ( _R_ 2D, e=0.5), ( _R_ 3D, e=0), ( _R_ 3D, e=0.5). These four distributions are then combined, and we compute the 5 _[th]_ percentile of the resulting distribution to obtain the final constraint on _m_ 22, which accounts for the impact of the different orbital configurations. This calculation is performed for the Fornax and Perseus galaxy clusters and for the Fornax dSph respectively. The resulting constraints \n\nArticle number, page 5 of 7",
+          "collection": "arxiv_papers_v2",
+          "build_id": "affc8bf5-8948-59f3-814f-737d0341b67d",
+          "paper_id": "d8b1a37d-8307-5790-bbeb-6246d2343374",
+          "title": "Constraints on the fuzzy dark matter mass using globular clusters in dwarf galaxies from Euclid ERO data",
+          "arxiv_id": "2609.11328",
+          "paper_version": 1,
+          "source_url": "https://arxiv.org/abs/2609.11328v1",
+          "authors": [
+            "Lisa Besnard",
+            "Pierre Boldrini",
+            "Paola Di Matteo",
+            "Chervin Laporte",
+            "Teymoor Saifollahi"
+          ],
+          "year": 2026,
+          "page": 5,
+          "section_header": "**Constraints on the fuzzy dark matter mass using globular clusters in dwarf galaxies from Euclid ERO data** > _3.2. Euclid globular clusters of dwarf galaxies in the Fornax and Perseus galaxy clusters_",
+          "content_kind": "text",
+          "chunk_index": 26,
+          "score": 0.5833334,
+          "rerank_score": null,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        },
+        {
+          "id": "ce850bbb-1b0c-5011-989c-bcada0742359",
+          "text": "_A&A proofs:_ manuscript no. main \n\nare reported on the left of Figure 5. The uncertainty in the final constraint (induced by the four different orbital configurations) is estimated by computing the 5 _[th]_ percentile of the four distributions separately (that each corresponds to one orbital configuration). The upper (lower) uncertainty is defined as the difference between the maximum (minimum) and the median of these four values. This calculation is, again, performed for the Fornax and Perseus galaxy clusters and for the Fornax dSph respectively. The resulting uncertainties are relatively small, highlighting that the different orbital configurations do not significantly alter the result, leading to similar constraints in _m_ 22 and strengthening its reliability. \n\nFinally, for _m_ 22 ≤ 1.46[+] −[0] 0[.] .[51] 32[and] _[m]_[22][≤][1][.][09][+] −[0] 0[.] .[14] 21[,][the][GCs] in the Fornax and Perseus galaxy clusters, respectively, are no longer subject to the timing problem, as the GCs of the Fornax dSph for _m_ 22 ≤ 1.38[+] −[0] 0[.] .[48] 45[. It provides][three upper constraints in] close agreement on the only free parameter of FDM. ",
+          "collection": "arxiv_papers_v2",
+          "build_id": "affc8bf5-8948-59f3-814f-737d0341b67d",
+          "paper_id": "d8b1a37d-8307-5790-bbeb-6246d2343374",
+          "title": "Constraints on the fuzzy dark matter mass using globular clusters in dwarf galaxies from Euclid ERO data",
+          "arxiv_id": "2609.11328",
+          "paper_version": 1,
+          "source_url": "https://arxiv.org/abs/2609.11328v1",
+          "authors": [
+            "Lisa Besnard",
+            "Pierre Boldrini",
+            "Paola Di Matteo",
+            "Chervin Laporte",
+            "Teymoor Saifollahi"
+          ],
+          "year": 2026,
+          "page": 6,
+          "section_header": "**Constraints on the fuzzy dark matter mass using globular clusters in dwarf galaxies from Euclid ERO data** > _3.2. Euclid globular clusters of dwarf galaxies in the Fornax and Perseus galaxy clusters_",
+          "content_kind": "text",
+          "chunk_index": 27,
+          "score": 0.53333336,
+          "rerank_score": null,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        },
+        {
+          "id": "124aed92-34fb-5bb3-89e1-9c96da724035",
+          "text": "Two studies based on the stellar dynamics of the Fornax and Sculptor dSphs have derived upper limits of _m_ 22 < 1 (Marsh & Pop 2015) and _m_ 22 < 0.4 (González-Morales et al. 2017), respectively, which are broadly consistent with, although more restrictive than, our results. This difference is likely explained by the fact that these studies only account for the modification of the host galaxy density profile in the FDM framework, while neglecting the corresponding modification of DF. Other astrophysical probes constrain the FDM particle mass using independent methods. For example, Amorisco & Loeb (2018) inferred _m_ 22 > 1.5 from the survival of cold stellar streams, Chiang et al. (2023) obtained _m_ 22 ≃ 0.5–0.7 from the structure of the Milky Way disk, and several studies based on the Lyman-α forest derived significantly larger values, _m_ 22 ≃ 7–20 (Iršiˇc et al. 2017; Kobayashi et al. 2017; Nori et al. 2019; Armengaud et al. 2017; Rogers & Peiris 2021). Our constraints are compatible with those inferred from the Milky Way disk, but are in tension with the lower bound from stellar streams and with the Lyman-α forest constraints.",
+          "collection": "arxiv_papers_v2",
+          "build_id": "affc8bf5-8948-59f3-814f-737d0341b67d",
+          "paper_id": "d8b1a37d-8307-5790-bbeb-6246d2343374",
+          "title": "Constraints on the fuzzy dark matter mass using globular clusters in dwarf galaxies from Euclid ERO data",
+          "arxiv_id": "2609.11328",
+          "paper_version": 1,
+          "source_url": "https://arxiv.org/abs/2609.11328v1",
+          "authors": [
+            "Lisa Besnard",
+            "Pierre Boldrini",
+            "Paola Di Matteo",
+            "Chervin Laporte",
+            "Teymoor Saifollahi"
+          ],
+          "year": 2026,
+          "page": 6,
+          "section_header": "**Constraints on the fuzzy dark matter mass using globular clusters in dwarf galaxies from Euclid ERO data** > _3.2. Euclid globular clusters of dwarf galaxies in the Fornax and Perseus galaxy clusters_",
+          "content_kind": "text",
+          "chunk_index": 28,
+          "score": 0.32142857,
+          "rerank_score": null,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        },
+        {
+          "id": "35a7754c-d581-5daf-84fe-0b65e060e4c1",
+          "text": "## _3.2. Euclid globular clusters of dwarf galaxies in the Fornax and Perseus galaxy clusters_ \n\nIn this section, we constrain the value of _m_ 22 of the respectively 12 and 749 dwarf galaxies of the Fornax and Perseus galaxy clusters using Euclid data on their GCs. First, we identify the GCs with a timing problem in CDM, by integrating their orbits with `galpy` in a CDM potential using classical DF. Each GC is simulated four times, under the four configurations defined in section 3.1 : ( _R_ 2D, e=0), ( _R_ 2D, e=0.5), ( _R_ 3D, e=0), ( _R_ 3D, e=0.5). For each configuration, we select only GCs that reach 0.2 kpc from the center of their host galaxy within 10 Gyr. A GC with eccentricity is considered to have fallen into its host galaxy when its last apocenter is below 0.2 kpc after 10 Gyr. The number of GCs satisfying these criteria varies depending on the orbital configuration. For instance, we use a set of data of 9 GCs in 7 galaxies in the Fornax galaxy cluster and 1865 GCs in 288 galaxies in the Perseus galaxy cluster, composed of all the GCs that are subject to the timing problem in the CDM model, under the configuration _R_ 2D, e=0.5. Then, we simulate the orbits of the selected GCs in an FDM potential, including FDM DF, to determine, for each orbital configuration, the value of _m_ 22 above which the GC no longer sinks to the center of its host galaxy. ",
+          "collection": "arxiv_papers_v2",
+          "build_id": "affc8bf5-8948-59f3-814f-737d0341b67d",
+          "paper_id": "d8b1a37d-8307-5790-bbeb-6246d2343374",
+          "title": "Constraints on the fuzzy dark matter mass using globular clusters in dwarf galaxies from Euclid ERO data",
+          "arxiv_id": "2609.11328",
+          "paper_version": 1,
+          "source_url": "https://arxiv.org/abs/2609.11328v1",
+          "authors": [
+            "Lisa Besnard",
+            "Pierre Boldrini",
+            "Paola Di Matteo",
+            "Chervin Laporte",
+            "Teymoor Saifollahi"
+          ],
+          "year": 2026,
+          "page": 5,
+          "section_header": "**Constraints on the fuzzy dark matter mass using globular clusters in dwarf galaxies from Euclid ERO data** > _3.2. Euclid globular clusters of dwarf galaxies in the Fornax and Perseus galaxy clusters_",
+          "content_kind": "text",
+          "chunk_index": 23,
+          "score": 0.30952382,
+          "rerank_score": null,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        },
+        {
+          "id": "024a6433-4345-5022-8ac7-966b500fd303",
+          "text": "_A&A proofs:_ manuscript no. main \n\nat higher masses (30 ≲ _m_ 22 ≲ 100), the model approaches the CDM behavior (Hu et al. 2000). Since the emergence of the timing problem, studies have focused on the Fornax dSph, and thus were limited by the small amount of observational data on dwarf galaxies hosting GCs. However, the Euclid mission has provided a large amount of observational data : almost 7000 GCs distributed among more than 800 dwarf galaxies in the local Universe (Saifollahi et al. 2025a,b). This includes the Fornax and Perseus galaxy clusters. \n\nA recent analysis based on Euclid Early Release Observations (ERO) (Cuillandre et al. 2025) investigated the GC timing problem within the standard CDM framework (Boldrini et al. (2026), in preparation). In this work, we extend this analysis to the FDM scenario in order to constrain the value of the FDM parameter _m_ 22. The paper is structured as follows: Section 2 presents the theoretical framework and numerical methodology. We describe how the ultra-light nature of the FDM particle modifies both the DM density profile in dwarf galaxies and DF, and how we simulate the orbital evolution of the Euclid GC candidates using `galpy` . In Section 3, we first take the example of the Fornax dSph to illustrate FDM effects on GC dynamics. Then we use Euclid ERO data to compute the mass parameter _m_ 22 for each dwarf galaxy in the Perseus and Fornax galaxy clusters by simulating the orbital evolution of their GCs, allowing us to provide an upper constraint on the FDM parameter _m_ 22 above which FDM effects are no longer sufficient to prevent the GCs from falling into the center of their host galaxy. Finally, Section 4 summarizes our main results, discusses them in the context of previous studies, and presents perspectives for future work.",
+          "collection": "arxiv_papers_v2",
+          "build_id": "affc8bf5-8948-59f3-814f-737d0341b67d",
+          "paper_id": "d8b1a37d-8307-5790-bbeb-6246d2343374",
+          "title": "Constraints on the fuzzy dark matter mass using globular clusters in dwarf galaxies from Euclid ERO data",
+          "arxiv_id": "2609.11328",
+          "paper_version": 1,
+          "source_url": "https://arxiv.org/abs/2609.11328v1",
+          "authors": [
+            "Lisa Besnard",
+            "Pierre Boldrini",
+            "Paola Di Matteo",
+            "Chervin Laporte",
+            "Teymoor Saifollahi"
+          ],
+          "year": 2026,
+          "page": 2,
+          "section_header": "**Constraints on the fuzzy dark matter mass using globular clusters in dwarf galaxies from Euclid ERO data** > **1. Introduction**",
+          "content_kind": "text",
+          "chunk_index": 7,
+          "score": 0.2909091,
+          "rerank_score": null,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        },
+        {
+          "id": "058d91c4-b9af-53ee-8128-d345e8402a0d",
+          "text": "## **3. Results** \n\nIn this section we simulated the orbital evolution of GCs with `galpy` , including FDM DF and FDM density profile described in section 2. We provide an upper constraint on the FDM parameter _m_ 22 above which FDM effects are no longer sufficient to prevent the GCs from falling into the center of their host galaxy. We first illustrate the FDM effects on the Fornax dSph, and then we generalize to the local Universe using Euclid data.",
+          "collection": "arxiv_papers_v2",
+          "build_id": "affc8bf5-8948-59f3-814f-737d0341b67d",
+          "paper_id": "d8b1a37d-8307-5790-bbeb-6246d2343374",
+          "title": "Constraints on the fuzzy dark matter mass using globular clusters in dwarf galaxies from Euclid ERO data",
+          "arxiv_id": "2609.11328",
+          "paper_version": 1,
+          "source_url": "https://arxiv.org/abs/2609.11328v1",
+          "authors": [
+            "Lisa Besnard",
+            "Pierre Boldrini",
+            "Paola Di Matteo",
+            "Chervin Laporte",
+            "Teymoor Saifollahi"
+          ],
+          "year": 2026,
+          "page": 4,
+          "section_header": "**Constraints on the fuzzy dark matter mass using globular clusters in dwarf galaxies from Euclid ERO data** > **3. Results**",
+          "content_kind": "text",
+          "chunk_index": 18,
+          "score": 0.21428572,
+          "rerank_score": null,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        },
+        {
+          "id": "ec2c974f-ab7f-59e7-9829-b039788649ff",
+          "text": "Besnard et al.: Constraints on the fuzzy dark matter mass using globular clusters in dwarf galaxies from Euclid ERO data \n\n**==> picture [256 x 186] intentionally omitted <==**\n\nFig. 4: Orbital radius as a function of time for three GCs in dwarf galaxies in the Perseus galaxy cluster, integrated using the maximum _m_ 22 for which none of them falls below 0.2 kpc within 10 Gyr. We use eccentricity _e_ = 0.5 and the corrected radius _R_ 3D. A GC with eccentricity _e_ = 0.5 is considered to have reached the center of its host galaxy when its last apocenter (in a timescale of 10 Gyr) is below 0.2 kpc \n\nsummary, a realistic configuration of the orbits ( _R_ 3D and _e_ = 0.5) increases the infall time of the GCs, leading to a higher particle mass needed to prevent their fall ( _m_ 22 ≤ 2.24) compared to _R_ 2D and _e_ = 0 ( _m_ 22 ≤ 1.33).",
+          "collection": "arxiv_papers_v2",
+          "build_id": "affc8bf5-8948-59f3-814f-737d0341b67d",
+          "paper_id": "d8b1a37d-8307-5790-bbeb-6246d2343374",
+          "title": "Constraints on the fuzzy dark matter mass using globular clusters in dwarf galaxies from Euclid ERO data",
+          "arxiv_id": "2609.11328",
+          "paper_version": 1,
+          "source_url": "https://arxiv.org/abs/2609.11328v1",
+          "authors": [
+            "Lisa Besnard",
+            "Pierre Boldrini",
+            "Paola Di Matteo",
+            "Chervin Laporte",
+            "Teymoor Saifollahi"
+          ],
+          "year": 2026,
+          "page": 5,
+          "section_header": "**Constraints on the fuzzy dark matter mass using globular clusters in dwarf galaxies from Euclid ERO data** > _3.1. Fornax dwarf galaxy globular clusters_",
+          "content_kind": "text",
+          "chunk_index": 22,
+          "score": 0.23376624,
+          "rerank_score": null,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        },
+        {
+          "id": "1a1d18d3-7c15-5818-8b47-4564fb1f54b4",
+          "text": "## **1. Introduction** \n\nis particularly significant in dwarf galaxies, such as the Fornax dwarf spheroidal (dSph) (Oh et al. 2000), a satellite of the Milky Way, containing 5-6 GCs older than 10 Gyr (Mackey & Gilmore 2003; de Boer & Fraser 2016; Wang et al. 2019). While dwarf galaxies are dominated by DM (Behroozi et al. 2010, 2013), we assume that their GCs contain no DM (Ibata et al. 2013) and thus are a useful probe of the dwarf galaxy’s DM density profile and can be used to investigate the timing problem. One of the most extensively explored solutions to the Fornax dSph timing problem is to modify the internal structure of the DM halo, determined by the cosmological model used, in order to reduce the efficiency of DF. (Goerdt et al. 2006; Read et al. 2006; Cole et al. 2012; Sánchez-Salcedo et al. 2006; Inoue 2009; Kaur & Sridhar 2018; Meadows et al. 2020; Boldrini et al. 2019). ",
+          "collection": "arxiv_papers_v2",
+          "build_id": "affc8bf5-8948-59f3-814f-737d0341b67d",
+          "paper_id": "d8b1a37d-8307-5790-bbeb-6246d2343374",
+          "title": "Constraints on the fuzzy dark matter mass using globular clusters in dwarf galaxies from Euclid ERO data",
+          "arxiv_id": "2609.11328",
+          "paper_version": 1,
+          "source_url": "https://arxiv.org/abs/2609.11328v1",
+          "authors": [
+            "Lisa Besnard",
+            "Pierre Boldrini",
+            "Paola Di Matteo",
+            "Chervin Laporte",
+            "Teymoor Saifollahi"
+          ],
+          "year": 2026,
+          "page": 1,
+          "section_header": "**Constraints on the fuzzy dark matter mass using globular clusters in dwarf galaxies from Euclid ERO data** > **1. Introduction**",
+          "content_kind": "text",
+          "chunk_index": 4,
+          "score": 0.55,
+          "rerank_score": null,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        },
+        {
+          "id": "fbd2c129-c2d4-5841-aa7c-7b2e58d26a1f",
+          "text": "In the FDM model, both the core profile and DF prevent GC3 and GC4 in the Fornax dSph from reaching its center, for a maximum mass parameter of _m_ 22 = 1.33. For _m_ 22 > 1.33, the FDM DF and DM density profile are no longer sufficient to prevent GC4 from falling into Fornax. Furthermore, for _m_ 22 > 1.54, GC3 also falls. On the contrary, for _m_ 22 ≤ 1.33, FDM effects are strengthened and still prevent GC3 and GC4 from falling within 10 Gyr. This results in an upper constraint on _m_ 22 for the Fornax dSph obtained from the most constraining GC (here GC4). Finally, for _m_ 22 ≤ 1.33 none of the Fornax dSph’s GCs have a timing problem. To improve the modeling of the GCs trajectories, we consider a range of orbital configurations. First, we estimate a 3D radius _R_ 3D = 2[since] _[R]_[2D][is][the][projected] ~~√~~ 3 _[R]_[2D][,] distance of the GC orbital radius. A major uncertainty, however, is whether the present-day radii of the Euclid GCs are representative of their birth radii, which remain unconstrained. In the specific case of the Fornax dSph, previous studies have shown that assuming larger initial galactocentric radii can substantially increase the orbital decay timescales and alleviate, or even remove, the GC timing problem (Cole et al. 2012; Boldrini et al. 2019; Meadows et al. 2020). Whether a similar scenario applies to the GC populations observed by Euclid remains unknown, as their birth-radius distribution is currently unconstrained. By adopting the deprojected present-day radius _R_ 3D as our reference initial radius, we maximizes the timing problem and therefore provides the lowest _m_ 22 constraint within our framework. Secondly, we include an orbital eccentricity _e_ . Finally, we combine these two parameters ( _R_ 2D or _R_ 3D and _e_ ) to cover a wide range of configurations.",
+          "collection": "arxiv_papers_v2",
+          "build_id": "affc8bf5-8948-59f3-814f-737d0341b67d",
+          "paper_id": "d8b1a37d-8307-5790-bbeb-6246d2343374",
+          "title": "Constraints on the fuzzy dark matter mass using globular clusters in dwarf galaxies from Euclid ERO data",
+          "arxiv_id": "2609.11328",
+          "paper_version": 1,
+          "source_url": "https://arxiv.org/abs/2609.11328v1",
+          "authors": [
+            "Lisa Besnard",
+            "Pierre Boldrini",
+            "Paola Di Matteo",
+            "Chervin Laporte",
+            "Teymoor Saifollahi"
+          ],
+          "year": 2026,
+          "page": 4,
+          "section_header": "**Constraints on the fuzzy dark matter mass using globular clusters in dwarf galaxies from Euclid ERO data** > _3.1. Fornax dwarf galaxy globular clusters_",
+          "content_kind": "text",
+          "chunk_index": 20,
+          "score": 0.36666667,
+          "rerank_score": null,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        },
+        {
+          "id": "1100c84e-254d-5bc9-94fc-61387a9e985c",
+          "text": "## _3.1. Fornax dwarf galaxy globular clusters_ \n\nWe use the example of the Fornax dSph and its five GCs, to illustrate the timing problem in CDM, and how FDM provides a solution to it depending on the mass parameter _m_ 22. We integrate the orbits of the five Fornax dSph GCs given their present-day projected orbital radii _R_ 2 _D_ and their masses taken from de Boer & Fraser (2016), taking into account FDM DF and the FDM cored density profile which both depend on _m_ 22. We compare the Fornax dSph GCs trajectories in FDM and CDM over 10 Gyr in Figure 2. The DM halo mass of the Fornax dSph is estimated from its stellar mass _M_ ⋆ = 2.39 × 10[7] M⊙, taken from Huang & Koposov (2021). Figure 2 shows that the CDM model predicts that GC3 and GC4 should fall in the Fornax dSph within less than 2 Gyr, which is inconsistent with their observed ages exceeding 10 Gyr, leading to a timing problem. Conversely, in both the FDM and CDM models, GC1, GC2 and GC5 do not \n\n**==> picture [256 x 186] intentionally omitted <==**\n\nFig. 3: Orbital radius as a function of time for GC3 and GC4 of the Fornax dSph. _R_ 3D is the correction of the projected radius _R_ 2D. This correction and the introduction of eccentricity _e_ both increase the infall time of the GCs. Here, _m_ 22 = 1.33. \n\nfall into the galaxy center and are therefore not subject to the timing problem. ",
+          "collection": "arxiv_papers_v2",
+          "build_id": "affc8bf5-8948-59f3-814f-737d0341b67d",
+          "paper_id": "d8b1a37d-8307-5790-bbeb-6246d2343374",
+          "title": "Constraints on the fuzzy dark matter mass using globular clusters in dwarf galaxies from Euclid ERO data",
+          "arxiv_id": "2609.11328",
+          "paper_version": 1,
+          "source_url": "https://arxiv.org/abs/2609.11328v1",
+          "authors": [
+            "Lisa Besnard",
+            "Pierre Boldrini",
+            "Paola Di Matteo",
+            "Chervin Laporte",
+            "Teymoor Saifollahi"
+          ],
+          "year": 2026,
+          "page": 4,
+          "section_header": "**Constraints on the fuzzy dark matter mass using globular clusters in dwarf galaxies from Euclid ERO data** > _3.1. Fornax dwarf galaxy globular clusters_",
+          "content_kind": "text",
+          "chunk_index": 19,
+          "score": 0.35,
+          "rerank_score": null,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        },
+        {
+          "id": "b6298236-9706-569b-b5f7-4e0e099a36b5",
+          "text": "_A&A proofs:_ manuscript no. main \n\n**==> picture [256 x 186] intentionally omitted <==**\n\nFig. 2: Orbital radius as a function of time of the five Fornax GCs. Beige lines show the GCs trajectories in the CDM model while blue lines correspond to the FDM model, with a modified DF, a cored DM density profile and _m_ 22 = 1.33 for which none of the five Fornax GCs falls below 0.2 kpc within 10 Gyr. We assume a stellar mass of _M_ ⋆ = 2.39 × 10[7] M⊙ and we use the initial projected radius _R_ 2D. \n\nthe GC reaches 0.2 kpc within 10 Gyr, we test _m_ 22 = 25, a lower value, to increase FDM effects which will prevent the GC from falling. Otherwise we test _m_ 22 = 75. Repeating this algorithm iteratively allows us to converge on the maximum value of _m_ 22 for which the GC does not fall into the center of its host galaxy. The bisection method assumes a monotonic dependence of the orbital evolution of the GCs on _m_ 22. The corresponding computational time is approximately 48 CPU hours for the Perseus ∼ galaxy cluster ( 2000 GCs).",
+          "collection": "arxiv_papers_v2",
+          "build_id": "affc8bf5-8948-59f3-814f-737d0341b67d",
+          "paper_id": "d8b1a37d-8307-5790-bbeb-6246d2343374",
+          "title": "Constraints on the fuzzy dark matter mass using globular clusters in dwarf galaxies from Euclid ERO data",
+          "arxiv_id": "2609.11328",
+          "paper_version": 1,
+          "source_url": "https://arxiv.org/abs/2609.11328v1",
+          "authors": [
+            "Lisa Besnard",
+            "Pierre Boldrini",
+            "Paola Di Matteo",
+            "Chervin Laporte",
+            "Teymoor Saifollahi"
+          ],
+          "year": 2026,
+          "page": 4,
+          "section_header": "**Constraints on the fuzzy dark matter mass using globular clusters in dwarf galaxies from Euclid ERO data** > _2.4. Orbital integration of globular clusters_",
+          "content_kind": "text",
+          "chunk_index": 17,
+          "score": 0.25396827,
+          "rerank_score": null,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        }
+      ],
+      "claims": [
+        {
+          "text": "For the Fornax dwarf spheroidal galaxy (Fornax dSph), the paper gives an upper constraint (maximum mass parameter for which the most constraining GC does not fall) of m_22 = 1.33, and states that for m_22 ≤ 1.33 none of the Fornax dSph’s GCs have a timing problem.",
+          "cited_context_ids": [
+            "fbd2c129-c2d4-5841-aa7c-7b2e58d26a1f",
+            "b6298236-9706-569b-b5f7-4e0e099a36b5"
+          ],
+          "need_ids": [
+            "r3"
+          ]
+        }
+      ],
+      "cited_context_ids": [
+        "b6298236-9706-569b-b5f7-4e0e099a36b5",
+        "fbd2c129-c2d4-5841-aa7c-7b2e58d26a1f"
+      ],
+      "metrics": {
+        "retrieval_hit": 0.0,
+        "retrieval_recall": 0.0,
+        "gold_citation_recall": 0.0,
+        "citation_from_retrieval": 1.0,
+        "retrieved_count": 13,
+        "cited_count": 2,
+        "required_paper_count": 1,
+        "retrieved_required_paper_count": 1,
+        "cited_required_paper_count": 1,
+        "required_paper_retrieval_recall": 1.0,
+        "required_paper_citation_recall": 1.0,
+        "all_required_papers_retrieved": 1.0,
+        "answer_correctness": null,
+        "groundedness": 1.0,
+        "answer_relevance": 1.0,
+        "correct_abstention": null
+      },
+      "judge": {
+        "correctness": null,
+        "answer_relevance": 1.0,
+        "abstention": "not_applicable",
+        "reason": "Reference assessment: Actual answer provided one numeric value (m_22 = 1.33) for Fornax dSph that does not match the reference (1.38) and omitted/verbatim-misread the Fornax cluster and Perseus numeric limits present in the reference. The answer is relevant but partially incorrect/missing required numeric values. Grounding assessment: The cited evidence excerpts explicitly state the numeric upper constraint m_22 = 1.33 for the Fornax dSph and that for m_22 ≤ 1.33 none of Fornax’s GCs have a timing problem; the claim matches the quoted source wording and context exactly.",
+        "answer_checks": [
+          {
+            "question_part_id": "q_a",
+            "requested_fact": "Upper limit on m_22 for the Fornax galaxy cluster",
+            "status": "missing",
+            "required_numeric_values": [
+              "1.46",
+              "0.00",
+              "0.51"
+            ],
+            "missing_or_incorrect_detail": "Expected m_22 ≤ 1.46 (+0.00 −0.51) but the actual answer gave no value for the Fornax galaxy cluster.",
+            "deficit_basis": "missing_content",
+            "claimed_missing_answer_fragments": [],
+            "answer_claim_ids": [],
+            "answer_quotes": []
+          },
+          {
+            "question_part_id": "q_b",
+            "requested_fact": "Upper limit on m_22 for the Perseus galaxy cluster",
+            "status": "missing",
+            "required_numeric_values": [
+              "1.09",
+              "0.00",
+              "0.14"
+            ],
+            "missing_or_incorrect_detail": "Expected m_22 ≤ 1.09 (+0.00 −0.14) but the actual answer did not provide a clear numeric value for Perseus (reported unreadable text).",
+            "deficit_basis": "missing_content",
+            "claimed_missing_answer_fragments": [
+              "1.09[+] -[0] 0[.] .[14] 21"
+            ],
+            "answer_claim_ids": [],
+            "answer_quotes": []
+          },
+          {
+            "question_part_id": "q_c",
+            "requested_fact": "Upper limit on m_22 for the Fornax dwarf spheroidal galaxy",
+            "status": "incorrect",
+            "required_numeric_values": [
+              "1.38",
+              "0.00",
+              "0.48"
+            ],
+            "missing_or_incorrect_detail": "Expected m_22 ≤ 1.38 (+0.00 −0.48) but the answer gave m_22 = 1.33 (no uncertainties) which disagrees with the reference value and omitted the reported uncertainties.",
+            "deficit_basis": "incorrect_content",
+            "claimed_missing_answer_fragments": [],
+            "answer_claim_ids": [
+              "a0001"
+            ],
+            "answer_quotes": [
+              "For the Fornax dwarf spheroidal galaxy (Fornax dSph), the paper gives an upper constraint (maximum mass parameter for which the most constraining GC does not fall) of m_22 = 1.33, and states that for m_22 ≤ 1.33 none of the Fornax dSph’s GCs have a timing problem."
+            ]
+          }
+        ],
+        "answer_anchors": [
+          {
+            "id": "a0001",
+            "text": "For the Fornax dwarf spheroidal galaxy (Fornax dSph), the paper gives an upper constraint (maximum mass parameter for which the most constraining GC does not fall) of m_22 = 1.33, and states that for m_22 ≤ 1.33 none of the Fornax dSph’s GCs have a timing problem.",
+            "source": "claim",
+            "claim_index": 0
+          },
+          {
+            "id": "a0002",
+            "text": " [1]",
+            "source": "answer_span",
+            "claim_index": null
+          },
+          {
+            "id": "a0003",
+            "text": "I could not verify these requested details from the retrieved evidence:",
+            "source": "answer_span",
+            "claim_index": null
+          },
+          {
+            "id": "a0004",
+            "text": "- A clear, uncorrupted numeric upper limit and uncertainty for m_22 in the Perseus galaxy cluster (text shows \"1.09[+] -[0] 0[.] .[14] 21\" which is unreadable).",
+            "source": "answer_span",
+            "claim_index": null
+          }
+        ],
+        "reference_score_status": "unscored_needs_review",
+        "groundedness": 1.0
+      },
+      "judge_request": {
+        "reference": {
+          "response_id": "resp_0bb7e96a228262a6016ac8a00afdf087d28604b5fb01ed4fde",
+          "response_ids": [
+            "resp_02888bd187d5e7c9016ac8a00774b487d291f575915511e346",
+            "resp_0bb7e96a228262a6016ac8a00afdf087d28604b5fb01ed4fde"
+          ],
+          "attempts": 2,
+          "quote_validation_failures": [],
+          "schema_validation_failures": [],
+          "consistency_validation_failures": [
+            {
+              "attempt": 1,
+              "checks": [
+                {
+                  "check_index": 1,
+                  "reasons": [
+                    "claimed_missing_fragment_present"
+                  ],
+                  "present_fragment_count": 1
+                },
+                {
+                  "check_index": 2,
+                  "reasons": [
+                    "omission_fragments_on_non_omission",
+                    "claimed_missing_fragment_present"
+                  ],
+                  "present_fragment_count": 1
+                }
+              ]
+            },
+            {
+              "attempt": 2,
+              "checks": [
+                {
+                  "check_index": 1,
+                  "reasons": [
+                    "claimed_missing_fragment_present"
+                  ],
+                  "present_fragment_count": 1
+                }
+              ]
+            }
+          ],
+          "consistency_status": "needs_review",
+          "raw_correctness": 0.5,
+          "score_status": "unscored_needs_review",
+          "answer_anchor_mode": "claim_ids",
+          "request_id": "req_41212884bdd641368805f3f2843f49f2",
+          "model": "gpt-5-mini-2025-08-07",
+          "max_output_tokens": 16384,
+          "usage": {
+            "input_tokens": 7861,
+            "output_tokens": 1049,
+            "total_tokens": 8910
+          }
+        },
+        "grounding": {
+          "response_id": "resp_0c0e0f98d7c4feb1016ac8a00f527087d2889b945153b91e7a",
+          "response_ids": [
+            "resp_0c0e0f98d7c4feb1016ac8a00f527087d2889b945153b91e7a"
+          ],
+          "attempts": 1,
+          "quote_validation_failures": [],
+          "schema_validation_failures": [],
+          "consistency_validation_failures": [],
+          "consistency_status": "no_detected_conflict",
+          "raw_correctness": null,
+          "score_status": "scored",
+          "answer_anchor_mode": "claim_ids",
+          "request_id": "req_2c813eb3e91e486bb93c7aaf125f5877",
+          "model": "gpt-5-mini-2025-08-07",
+          "max_output_tokens": 16384,
+          "usage": {
+            "input_tokens": 2503,
+            "output_tokens": 100,
+            "total_tokens": 2603
+          },
+          "method_attributions": [],
+          "claim_anchors": [
+            {
+              "id": "a0001",
+              "claim_index": 0
+            }
+          ],
+          "annotation_validation_failures": [],
+          "method_validation_failures": [],
+          "method_scope_issues": [],
+          "raw_groundedness": 1.0
+        }
+      },
+      "judge_error": null,
+      "judge_safeguards": [],
+      "agent_execution": {
+        "question_scope": null,
+        "plan_summary": "Running the focused initial search plan with bounded parallel tools.",
+        "stop_reason": "token_budget",
+        "synthesis_policy": "evidence_fallback",
+        "rounds": 3,
+        "tool_calls": 5,
+        "evidence_count": 13,
+        "required_paper_count": 1,
+        "covered_required_paper_count": 1,
+        "missing_required_build_ids": [],
+        "required_evidence_need_count": 3,
+        "covered_evidence_need_count": 3,
+        "missing_evidence_need_ids": [],
+        "planner_tokens": 30752,
+        "next_call_estimated_tokens": 15928,
+        "planner_context_compactions": 0,
+        "planner_context_compaction_attempts": 1,
+        "requirement_correction_attempts": 0,
+        "requirement_validation_failures": [],
+        "elapsed_seconds": 12.491,
+        "actions": [
+          {
+            "action_id": "initial_1",
+            "need_id": "r1",
+            "need_ids": [
+              "r1"
+            ],
+            "tool": "search_chunks",
+            "query": "upper limit m_22 Fornax galaxy cluster m_22 limit",
+            "status": "success",
+            "result_count": 8,
+            "evidence_ids": [
+              "6aa2dab9-befe-51f6-8a6b-85c172376c1f",
+              "1a389b70-6535-598c-ada3-697ec056ff24",
+              "9fa6856a-0c6e-520f-8c70-1d906669b20b",
+              "ce850bbb-1b0c-5011-989c-bcada0742359",
+              "124aed92-34fb-5bb3-89e1-9c96da724035",
+              "35a7754c-d581-5daf-84fe-0b65e060e4c1",
+              "024a6433-4345-5022-8ac7-966b500fd303",
+              "058d91c4-b9af-53ee-8128-d345e8402a0d"
+            ],
+            "paper_ids": [
+              "d8b1a37d-8307-5790-bbeb-6246d2343374"
+            ],
+            "error_type": null
+          },
+          {
+            "action_id": "initial_2",
+            "need_id": "r2",
+            "need_ids": [
+              "r2"
+            ],
+            "tool": "search_chunks",
+            "query": "upper limit m_22 Perseus galaxy cluster m_22 limit",
+            "status": "success",
+            "result_count": 8,
+            "evidence_ids": [
+              "6aa2dab9-befe-51f6-8a6b-85c172376c1f",
+              "1a389b70-6535-598c-ada3-697ec056ff24",
+              "9fa6856a-0c6e-520f-8c70-1d906669b20b",
+              "ce850bbb-1b0c-5011-989c-bcada0742359",
+              "35a7754c-d581-5daf-84fe-0b65e060e4c1",
+              "124aed92-34fb-5bb3-89e1-9c96da724035",
+              "024a6433-4345-5022-8ac7-966b500fd303",
+              "ec2c974f-ab7f-59e7-9829-b039788649ff"
+            ],
+            "paper_ids": [
+              "d8b1a37d-8307-5790-bbeb-6246d2343374"
+            ],
+            "error_type": null
+          },
+          {
+            "action_id": "initial_3",
+            "need_id": "r3",
+            "need_ids": [
+              "r3"
+            ],
+            "tool": "search_chunks",
+            "query": "upper limit m_22 Fornax dwarf spheroidal Fornax dSph m_22 limit",
+            "status": "success",
+            "result_count": 8,
+            "evidence_ids": [
+              "1a389b70-6535-598c-ada3-697ec056ff24",
+              "1a1d18d3-7c15-5818-8b47-4564fb1f54b4",
+              "024a6433-4345-5022-8ac7-966b500fd303",
+              "124aed92-34fb-5bb3-89e1-9c96da724035",
+              "ce850bbb-1b0c-5011-989c-bcada0742359",
+              "fbd2c129-c2d4-5841-aa7c-7b2e58d26a1f",
+              "1100c84e-254d-5bc9-94fc-61387a9e985c",
+              "9fa6856a-0c6e-520f-8c70-1d906669b20b"
+            ],
+            "paper_ids": [
+              "d8b1a37d-8307-5790-bbeb-6246d2343374"
+            ],
+            "error_type": null
+          },
+          {
+            "action_id": "call_jkFmXl1jAa6vtXZ1NkYK8FLw",
+            "need_id": "r1",
+            "need_ids": [
+              "r1"
+            ],
+            "tool": "search_chunks",
+            "query": "Figure 5 Fornax 5th percentile m_22 value Fornax cluster \"Figure 5\" m_22 =",
+            "status": "success",
+            "result_count": 8,
+            "evidence_ids": [
+              "9fa6856a-0c6e-520f-8c70-1d906669b20b",
+              "1a389b70-6535-598c-ada3-697ec056ff24",
+              "ce850bbb-1b0c-5011-989c-bcada0742359",
+              "6aa2dab9-befe-51f6-8a6b-85c172376c1f",
+              "35a7754c-d581-5daf-84fe-0b65e060e4c1",
+              "124aed92-34fb-5bb3-89e1-9c96da724035",
+              "b6298236-9706-569b-b5f7-4e0e099a36b5",
+              "1100c84e-254d-5bc9-94fc-61387a9e985c"
+            ],
+            "paper_ids": [
+              "d8b1a37d-8307-5790-bbeb-6246d2343374"
+            ],
+            "error_type": null
+          },
+          {
+            "action_id": "call_aiBIEvECDJCglDI2QyoJmBFQ",
+            "need_id": "r2",
+            "need_ids": [
+              "r2"
+            ],
+            "tool": "search_chunks",
+            "query": "Fornax cluster 5th percentile m_22 value \"Fornax\" cluster distribution 5th percentile m_22 =",
+            "status": "success",
+            "result_count": 8,
+            "evidence_ids": [
+              "1a389b70-6535-598c-ada3-697ec056ff24",
+              "9fa6856a-0c6e-520f-8c70-1d906669b20b",
+              "ce850bbb-1b0c-5011-989c-bcada0742359",
+              "6aa2dab9-befe-51f6-8a6b-85c172376c1f",
+              "35a7754c-d581-5daf-84fe-0b65e060e4c1",
+              "124aed92-34fb-5bb3-89e1-9c96da724035",
+              "b6298236-9706-569b-b5f7-4e0e099a36b5",
+              "fbd2c129-c2d4-5841-aa7c-7b2e58d26a1f"
+            ],
+            "paper_ids": [
+              "d8b1a37d-8307-5790-bbeb-6246d2343374"
+            ],
+            "error_type": null
+          }
+        ],
+        "requirements": [
+          {
+            "id": "r1",
+            "description": "Quantitative upper limit on the fuzzy dark matter mass parameter m_22 reported for the Fornax galaxy cluster in the paper.",
+            "kind": "fact",
+            "effect_parameters": []
+          },
+          {
+            "id": "r2",
+            "description": "Quantitative upper limit on the fuzzy dark matter mass parameter m_22 reported for the Perseus galaxy cluster in the paper.",
+            "kind": "fact",
+            "effect_parameters": []
+          },
+          {
+            "id": "r3",
+            "description": "Quantitative upper limit on the fuzzy dark matter mass parameter m_22 reported for the Fornax dwarf spheroidal galaxy in the paper.",
+            "kind": "fact",
+            "effect_parameters": []
+          }
+        ],
+        "parameter_effects": [],
+        "effect_finish_checks": [],
+        "initial_searches": [
+          {
+            "query": "upper limit m_22 Fornax galaxy cluster m_22 limit",
+            "requirement_indices": [
+              1
+            ],
+            "retrieval_mode": "hybrid",
+            "build_ids": [
+              "affc8bf5-8948-59f3-814f-737d0341b67d"
+            ],
+            "paper_ids": [],
+            "limit": 8
+          },
+          {
+            "query": "upper limit m_22 Perseus galaxy cluster m_22 limit",
+            "requirement_indices": [
+              2
+            ],
+            "retrieval_mode": "hybrid",
+            "build_ids": [
+              "affc8bf5-8948-59f3-814f-737d0341b67d"
+            ],
+            "paper_ids": [],
+            "limit": 8
+          },
+          {
+            "query": "upper limit m_22 Fornax dwarf spheroidal Fornax dSph m_22 limit",
+            "requirement_indices": [
+              3
+            ],
+            "retrieval_mode": "hybrid",
+            "build_ids": [
+              "affc8bf5-8948-59f3-814f-737d0341b67d"
+            ],
+            "paper_ids": [],
+            "limit": 8
+          }
+        ],
+        "max_parallel_tools": 4
+      },
+      "retrieval_diagnostics": null,
+      "generation_diagnostics": {
+        "status": "partial",
+        "reason": "incomplete_answer",
+        "attempts": 2,
+        "requirements": [
+          {
+            "requirement_id": "r1",
+            "description": "Quantitative upper limit on the fuzzy dark matter mass parameter m_22 reported for the Fornax galaxy cluster in the paper.",
+            "status": "missing",
+            "feedback": "Coverage referenced absent or unsupported claims.",
+            "claim_indices": [
+              1
+            ],
+            "essential_claim_indices": [
+              1
+            ],
+            "unsupported_claim_indices": [
+              1
+            ],
+            "invalid_essential_claim_indices": [
+              1
+            ],
+            "absent_claim_indices": [],
+            "missing_details": [
+              "An unambiguous numeric upper limit for m_22 in the Fornax galaxy cluster with readable uncertainty formatting (the source text is OCR-corrupted: \"1.46[+] -[0] 0[.] .[51] 32\")."
+            ],
+            "annotation_validation_failures": [],
+            "coverage_issue": "missing_content"
+          },
+          {
+            "requirement_id": "r2",
+            "description": "Quantitative upper limit on the fuzzy dark matter mass parameter m_22 reported for the Perseus galaxy cluster in the paper.",
+            "status": "missing",
+            "feedback": "Coverage referenced absent or unsupported claims.",
+            "claim_indices": [
+              2
+            ],
+            "essential_claim_indices": [
+              2
+            ],
+            "unsupported_claim_indices": [
+              2
+            ],
+            "invalid_essential_claim_indices": [
+              2
+            ],
+            "absent_claim_indices": [],
+            "missing_details": [
+              "An unambiguous numeric upper limit for m_22 in the Perseus galaxy cluster with readable uncertainty formatting (the source text is OCR-corrupted: \"1.09[+] -[0] 0[.] .[14] 21\")."
+            ],
+            "annotation_validation_failures": [],
+            "coverage_issue": "missing_content"
+          },
+          {
+            "requirement_id": "r3",
+            "description": "Quantitative upper limit on the fuzzy dark matter mass parameter m_22 reported for the Fornax dwarf spheroidal galaxy in the paper.",
+            "status": "satisfied",
+            "feedback": "",
+            "claim_indices": [
+              0
+            ],
+            "essential_claim_indices": [
+              0
+            ],
+            "unsupported_claim_indices": [],
+            "invalid_essential_claim_indices": [],
+            "absent_claim_indices": [],
+            "missing_details": [],
+            "annotation_validation_failures": [],
+            "coverage_issue": null
+          }
+        ],
+        "original_question_parts": [
+          {
+            "requirement_id": "q_a",
+            "description": "Original question part (a): the Fornax galaxy cluster",
+            "status": "satisfied",
+            "feedback": "",
+            "claim_indices": [
+              0
+            ],
+            "essential_claim_indices": [
+              0
+            ],
+            "unsupported_claim_indices": [],
+            "invalid_essential_claim_indices": [],
+            "absent_claim_indices": [],
+            "missing_details": [],
+            "annotation_validation_failures": [],
+            "coverage_issue": null
+          },
+          {
+            "requirement_id": "q_b",
+            "description": "Original question part (b): the Perseus galaxy cluster, and",
+            "status": "missing",
+            "feedback": "Coverage referenced absent or unsupported claims.",
+            "claim_indices": [
+              2
+            ],
+            "essential_claim_indices": [
+              2
+            ],
+            "unsupported_claim_indices": [
+              2
+            ],
+            "invalid_essential_claim_indices": [
+              2
+            ],
+            "absent_claim_indices": [],
+            "missing_details": [
+              "A clear, uncorrupted numeric upper limit and uncertainty for m_22 in the Perseus galaxy cluster (text shows \"1.09[+] -[0] 0[.] .[14] 21\" which is unreadable)."
+            ],
+            "annotation_validation_failures": [],
+            "coverage_issue": "missing_content"
+          },
+          {
+            "requirement_id": "q_c",
+            "description": "Original question part (c): the Fornax dwarf spheroidal galaxy",
+            "status": "satisfied",
+            "feedback": "",
+            "claim_indices": [
+              0
+            ],
+            "essential_claim_indices": [
+              0
+            ],
+            "unsupported_claim_indices": [],
+            "invalid_essential_claim_indices": [],
+            "absent_claim_indices": [],
+            "missing_details": [],
+            "annotation_validation_failures": [],
+            "coverage_issue": null
+          }
+        ],
+        "unplanned_requests": [],
+        "validation_attempts": [
+          {
+            "attempt": 1,
+            "rejected_claims": [
+              {
+                "claim_index": 0,
+                "text": "The paper reports an upper constraint for the Fornax galaxy cluster of m_22 ≤ 1.46 (value reported in the text as the threshold below which the GCs in the Fornax galaxy cluster are no longer subject to the timing problem).",
+                "code": "claim_not_verified",
+                "feedback": "Claim gives m_22 ≤ 1.46 but cited excerpt contains OCR-noisy sentence showing 'm_22 ≤ 1.46[+] -[0] 0[.] .[51] 32' which does include '1.46' but the answer phrase '≤ 1.46 (value reported ... timing problem)' is a simplification; the excerpt also pairs 1.46 with uncertainty, so the claim's bare upper-limit form is not exactly supported as written because the paper presents 1.46 with asymmetric uncertainty. Provide the uncertainty or exact phrasing.",
+                "cited_context_ids": [
+                  "ce850bbb-1b0c-5011-989c-bcada0742359"
+                ],
+                "need_ids": [],
+                "numeric_evidence": null,
+                "annotation_invalid": false
+              },
+              {
+                "claim_index": 1,
+                "text": "The paper reports an upper constraint for the Perseus galaxy cluster of m_22 ≤ 1.09 (value reported in the text as the threshold below which the GCs in the Perseus galaxy cluster are no longer subject to the timing problem).",
+                "code": "claim_not_verified",
+                "feedback": "Claim gives m_22 ≤ 1.09 but the cited excerpt shows 'm_22 ≤ 1.09[+] -[0] 0[.] .[14] 21' — the paper reports 1.09 with asymmetric uncertainty; the claim omitted the uncertainties and presented it as a simple upper limit. Provide the uncertainty to match the source.",
+                "cited_context_ids": [
+                  "ce850bbb-1b0c-5011-989c-bcada0742359"
+                ],
+                "need_ids": [],
+                "numeric_evidence": null,
+                "annotation_invalid": false
+              }
+            ],
+            "review_only": false,
+            "stage_timings": {
+              "draft_seconds": 7.149,
+              "verify_seconds": 10.424
+            },
+            "duplicate_claims_omitted": 0,
+            "answer_anchors": {
+              "a0001": {
+                "claim_index": 0,
+                "text": "The paper reports an upper constraint for the Fornax galaxy cluster of m_22 ≤ 1.46 (value reported in the text as the threshold below which the GCs in the Fornax galaxy cluster are no longer subject to the timing problem)."
+              },
+              "a0002": {
+                "claim_index": 1,
+                "text": "The paper reports an upper constraint for the Perseus galaxy cluster of m_22 ≤ 1.09 (value reported in the text as the threshold below which the GCs in the Perseus galaxy cluster are no longer subject to the timing problem)."
+              },
+              "a0003": {
+                "claim_index": 2,
+                "text": "For the Fornax dwarf spheroidal galaxy (Fornax dSph), the paper gives an upper constraint (maximum mass parameter for which the most constraining GC does not fall) of m_22 = 1.33, and states that for m_22 ≤ 1.33 none of the Fornax dSph’s GCs have a timing problem."
+              }
+            },
+            "method_attributions": [
+              {
+                "claim_index": 0,
+                "checks": [
+                  {
+                    "applicability": "not_applicable"
+                  }
+                ]
+              },
+              {
+                "claim_index": 1,
+                "checks": [
+                  {
+                    "applicability": "not_applicable"
+                  }
+                ]
+              },
+              {
+                "claim_index": 2,
+                "checks": [
+                  {
+                    "applicability": "not_applicable"
+                  }
+                ]
+              }
+            ],
+            "method_scope_issues": [],
+            "annotation_validation_failures": [],
+            "requirements": [
+              {
+                "requirement_id": "r1",
+                "description": "Quantitative upper limit on the fuzzy dark matter mass parameter m_22 reported for the Fornax galaxy cluster in the paper.",
+                "status": "missing",
+                "feedback": "Coverage referenced absent or unsupported claims.",
+                "claim_indices": [
+                  0
+                ],
+                "essential_claim_indices": [
+                  0
+                ],
+                "unsupported_claim_indices": [
+                  0
+                ],
+                "invalid_essential_claim_indices": [
+                  0
+                ],
+                "absent_claim_indices": [],
+                "missing_details": [
+                  "Asymmetric uncertainty around 1.46 reported by the paper (the source shows '1.46[+] -[0]0[.] .[51] 32' i.e. upper/lower uncertainty) not included. The claim's plain '≤ 1.46' omits the reported uncertainties."
+                ],
+                "annotation_validation_failures": [],
+                "coverage_issue": "missing_content"
+              },
+              {
+                "requirement_id": "r2",
+                "description": "Quantitative upper limit on the fuzzy dark matter mass parameter m_22 reported for the Perseus galaxy cluster in the paper.",
+                "status": "missing",
+                "feedback": "Coverage referenced absent or unsupported claims.",
+                "claim_indices": [
+                  1
+                ],
+                "essential_claim_indices": [
+                  1
+                ],
+                "unsupported_claim_indices": [
+                  1
+                ],
+                "invalid_essential_claim_indices": [
+                  1
+                ],
+                "absent_claim_indices": [],
+                "missing_details": [
+                  "Asymmetric uncertainty around 1.09 reported by the paper (source shows '1.09[+] -[0]0[.] .[14] 21') not included. The claim's plain '≤ 1.09' omits the reported uncertainties."
+                ],
+                "annotation_validation_failures": [],
+                "coverage_issue": "missing_content"
+              },
+              {
+                "requirement_id": "r3",
+                "description": "Quantitative upper limit on the fuzzy dark matter mass parameter m_22 reported for the Fornax dwarf spheroidal galaxy in the paper.",
+                "status": "satisfied",
+                "feedback": "",
+                "claim_indices": [
+                  2
+                ],
+                "essential_claim_indices": [
+                  2
+                ],
+                "unsupported_claim_indices": [],
+                "invalid_essential_claim_indices": [],
+                "absent_claim_indices": [],
+                "missing_details": [],
+                "annotation_validation_failures": [],
+                "coverage_issue": null
+              }
+            ],
+            "original_question_parts": [
+              {
+                "requirement_id": "q_a",
+                "description": "Original question part (a): the Fornax galaxy cluster",
+                "status": "missing",
+                "feedback": "Coverage referenced absent or unsupported claims.",
+                "claim_indices": [
+                  0
+                ],
+                "essential_claim_indices": [
+                  0
+                ],
+                "unsupported_claim_indices": [
+                  0
+                ],
+                "invalid_essential_claim_indices": [
+                  0
+                ],
+                "absent_claim_indices": [],
+                "missing_details": [
+                  "Missing the asymmetric uncertainty reported with 1.46."
+                ],
+                "annotation_validation_failures": [],
+                "coverage_issue": "missing_content"
+              },
+              {
+                "requirement_id": "q_b",
+                "description": "Original question part (b): the Perseus galaxy cluster, and",
+                "status": "missing",
+                "feedback": "Coverage referenced absent or unsupported claims.",
+                "claim_indices": [
+                  1
+                ],
+                "essential_claim_indices": [
+                  1
+                ],
+                "unsupported_claim_indices": [
+                  1
+                ],
+                "invalid_essential_claim_indices": [
+                  1
+                ],
+                "absent_claim_indices": [],
+                "missing_details": [
+                  "Missing the asymmetric uncertainty reported with 1.09."
+                ],
+                "annotation_validation_failures": [],
+                "coverage_issue": "missing_content"
+              },
+              {
+                "requirement_id": "q_c",
+                "description": "Original question part (c): the Fornax dwarf spheroidal galaxy",
+                "status": "satisfied",
+                "feedback": "",
+                "claim_indices": [
+                  2
+                ],
+                "essential_claim_indices": [
+                  2
+                ],
+                "unsupported_claim_indices": [],
+                "invalid_essential_claim_indices": [],
+                "absent_claim_indices": [],
+                "missing_details": [],
+                "annotation_validation_failures": [],
+                "coverage_issue": null
+              }
+            ],
+            "citation_repair": {
+              "tasks": [
+                {
+                  "claim_index": 0,
+                  "code": "claim_not_verified",
+                  "missing_values": [],
+                  "missing_units": [],
+                  "candidate_context_ids": [
+                    "35a7754c-d581-5daf-84fe-0b65e060e4c1",
+                    "fbd2c129-c2d4-5841-aa7c-7b2e58d26a1f",
+                    "024a6433-4345-5022-8ac7-966b500fd303"
+                  ]
+                },
+                {
+                  "claim_index": 1,
+                  "code": "claim_not_verified",
+                  "missing_values": [],
+                  "missing_units": [],
+                  "candidate_context_ids": [
+                    "35a7754c-d581-5daf-84fe-0b65e060e4c1",
+                    "6aa2dab9-befe-51f6-8a6b-85c172376c1f",
+                    "ec2c974f-ab7f-59e7-9829-b039788649ff"
+                  ]
+                }
+              ],
+              "candidate_count": 5,
+              "excerpt_chars": 4445
+            }
+          },
+          {
+            "attempt": 2,
+            "rejected_claims": [
+              {
+                "claim_index": 1,
+                "text": "For the Fornax galaxy cluster the paper reports an upper constraint on the FDM parameter written as \"m_22 ≤ 1.46[+] −[0] 0[.].[51] 32\" (i.e. the OCRed asymmetric-uncertainty form reported in the manuscript), below which the GCs in the Fornax galaxy cluster are no longer subject to the timing problem.",
+                "code": "claim_not_verified",
+                "feedback": "The cited excerpt contains OCR-noisy text showing the reported Fornax galaxy cluster constraint as \"_m_22 ≤ 1.46[+] -[0] 0[.] .[51] 32\", but this string is corrupted and does not provide a clear numeric value with valid uncertainty formatting. The answer's exact claimed text (a0002) reproduces that OCRed noisy form; however the source excerpt does not contain an unambiguous, normal numeric upper limit that can be read as a precise value and uncertainty. Therefore the precise numeric claim is not",
+                "cited_context_ids": [
+                  "ce850bbb-1b0c-5011-989c-bcada0742359"
+                ],
+                "need_ids": [],
+                "numeric_evidence": null,
+                "annotation_invalid": false
+              },
+              {
+                "claim_index": 2,
+                "text": "For the Perseus galaxy cluster the paper reports an upper constraint on the FDM parameter written as \"m_22 ≤ 1.09[+] −[0] 0[.].[14] 21\" (i.e. the OCRed asymmetric-uncertainty form reported in the manuscript), below which the GCs in the Perseus galaxy cluster are no longer subject to the timing problem.",
+                "code": "claim_not_verified",
+                "feedback": "The cited excerpt contains OCR-noisy text giving Perseus as \"_m_22 ≤ 1.09[+] -[0] 0[.] .[14] 21\"; while this shows the reported value near 1.09, the uncertainty formatting is corrupted and the answer's exact claimed text (a0003) reproduces that OCR artifact. The excerpt does not supply a clear numeric upper limit with readable uncertainty, so the precise claimed numeric form is not unambiguously supported.",
+                "cited_context_ids": [
+                  "ce850bbb-1b0c-5011-989c-bcada0742359"
+                ],
+                "need_ids": [],
+                "numeric_evidence": null,
+                "annotation_invalid": false
+              }
+            ],
+            "review_only": false,
+            "stage_timings": {
+              "repair_seconds": 5.363,
+              "verify_seconds": 10.114
+            },
+            "duplicate_claims_omitted": 0,
+            "answer_anchors": {
+              "a0001": {
+                "claim_index": 0,
+                "text": "For the Fornax dwarf spheroidal galaxy (Fornax dSph), the paper gives an upper constraint (maximum mass parameter for which the most constraining GC does not fall) of m_22 = 1.33, and states that for m_22 ≤ 1.33 none of the Fornax dSph’s GCs have a timing problem."
+              },
+              "a0002": {
+                "claim_index": 1,
+                "text": "For the Fornax galaxy cluster the paper reports an upper constraint on the FDM parameter written as \"m_22 ≤ 1.46[+] −[0] 0[.].[51] 32\" (i.e. the OCRed asymmetric-uncertainty form reported in the manuscript), below which the GCs in the Fornax galaxy cluster are no longer subject to the timing problem."
+              },
+              "a0003": {
+                "claim_index": 2,
+                "text": "For the Perseus galaxy cluster the paper reports an upper constraint on the FDM parameter written as \"m_22 ≤ 1.09[+] −[0] 0[.].[14] 21\" (i.e. the OCRed asymmetric-uncertainty form reported in the manuscript), below which the GCs in the Perseus galaxy cluster are no longer subject to the timing problem."
+              }
+            },
+            "method_attributions": [
+              {
+                "claim_index": 0,
+                "checks": [
+                  {
+                    "applicability": "not_applicable"
+                  }
+                ]
+              },
+              {
+                "claim_index": 1,
+                "checks": [
+                  {
+                    "applicability": "not_applicable"
+                  }
+                ]
+              },
+              {
+                "claim_index": 2,
+                "checks": [
+                  {
+                    "applicability": "not_applicable"
+                  }
+                ]
+              }
+            ],
+            "method_scope_issues": [],
+            "annotation_validation_failures": [],
+            "requirements": [
+              {
+                "requirement_id": "r1",
+                "description": "Quantitative upper limit on the fuzzy dark matter mass parameter m_22 reported for the Fornax galaxy cluster in the paper.",
+                "status": "missing",
+                "feedback": "Coverage referenced absent or unsupported claims.",
+                "claim_indices": [
+                  1
+                ],
+                "essential_claim_indices": [
+                  1
+                ],
+                "unsupported_claim_indices": [
+                  1
+                ],
+                "invalid_essential_claim_indices": [
+                  1
+                ],
+                "absent_claim_indices": [],
+                "missing_details": [
+                  "An unambiguous numeric upper limit for m_22 in the Fornax galaxy cluster with readable uncertainty formatting (the source text is OCR-corrupted: \"1.46[+] -[0] 0[.] .[51] 32\")."
+                ],
+                "annotation_validation_failures": [],
+                "coverage_issue": "missing_content"
+              },
+              {
+                "requirement_id": "r2",
+                "description": "Quantitative upper limit on the fuzzy dark matter mass parameter m_22 reported for the Perseus galaxy cluster in the paper.",
+                "status": "missing",
+                "feedback": "Coverage referenced absent or unsupported claims.",
+                "claim_indices": [
+                  2
+                ],
+                "essential_claim_indices": [
+                  2
+                ],
+                "unsupported_claim_indices": [
+                  2
+                ],
+                "invalid_essential_claim_indices": [
+                  2
+                ],
+                "absent_claim_indices": [],
+                "missing_details": [
+                  "An unambiguous numeric upper limit for m_22 in the Perseus galaxy cluster with readable uncertainty formatting (the source text is OCR-corrupted: \"1.09[+] -[0] 0[.] .[14] 21\")."
+                ],
+                "annotation_validation_failures": [],
+                "coverage_issue": "missing_content"
+              },
+              {
+                "requirement_id": "r3",
+                "description": "Quantitative upper limit on the fuzzy dark matter mass parameter m_22 reported for the Fornax dwarf spheroidal galaxy in the paper.",
+                "status": "satisfied",
+                "feedback": "",
+                "claim_indices": [
+                  0
+                ],
+                "essential_claim_indices": [
+                  0
+                ],
+                "unsupported_claim_indices": [],
+                "invalid_essential_claim_indices": [],
+                "absent_claim_indices": [],
+                "missing_details": [],
+                "annotation_validation_failures": [],
+                "coverage_issue": null
+              }
+            ],
+            "original_question_parts": [
+              {
+                "requirement_id": "q_a",
+                "description": "Original question part (a): the Fornax galaxy cluster",
+                "status": "satisfied",
+                "feedback": "",
+                "claim_indices": [
+                  0
+                ],
+                "essential_claim_indices": [
+                  0
+                ],
+                "unsupported_claim_indices": [],
+                "invalid_essential_claim_indices": [],
+                "absent_claim_indices": [],
+                "missing_details": [],
+                "annotation_validation_failures": [],
+                "coverage_issue": null
+              },
+              {
+                "requirement_id": "q_b",
+                "description": "Original question part (b): the Perseus galaxy cluster, and",
+                "status": "missing",
+                "feedback": "Coverage referenced absent or unsupported claims.",
+                "claim_indices": [
+                  2
+                ],
+                "essential_claim_indices": [
+                  2
+                ],
+                "unsupported_claim_indices": [
+                  2
+                ],
+                "invalid_essential_claim_indices": [
+                  2
+                ],
+                "absent_claim_indices": [],
+                "missing_details": [
+                  "A clear, uncorrupted numeric upper limit and uncertainty for m_22 in the Perseus galaxy cluster (text shows \"1.09[+] -[0] 0[.] .[14] 21\" which is unreadable)."
+                ],
+                "annotation_validation_failures": [],
+                "coverage_issue": "missing_content"
+              },
+              {
+                "requirement_id": "q_c",
+                "description": "Original question part (c): the Fornax dwarf spheroidal galaxy",
+                "status": "satisfied",
+                "feedback": "",
+                "claim_indices": [
+                  0
+                ],
+                "essential_claim_indices": [
+                  0
+                ],
+                "unsupported_claim_indices": [],
+                "invalid_essential_claim_indices": [],
+                "absent_claim_indices": [],
+                "missing_details": [],
+                "annotation_validation_failures": [],
+                "coverage_issue": null
+              }
+            ]
+          }
+        ],
+        "verified_claim_count": 1,
+        "verifier": "independent_model_with_quote_validation",
+        "verifier_model": "gpt-5-mini",
+        "coverage_contract": "frozen-parameter-effects-v9",
+        "effect_anchor_mode": "immutable_answer_claims",
+        "annotation_correction_attempts": 0,
+        "coverage_policy": "original-question-authority-v3",
+        "completeness_authority": "original_question_parts",
+        "planner_only_gaps": [],
+        "method_role_contract": "answer-bound-cited-operation-v3",
+        "stage_timings": {
+          "draft_seconds": 7.149,
+          "repair_seconds": 5.363,
+          "verify_seconds": 20.538
+        }
+      },
+      "stage_timings": {
+        "retrieval_seconds": 12.838,
+        "agentic_draft_seconds": 7.149,
+        "agentic_repair_seconds": 5.363,
+        "agentic_verify_seconds": 20.538,
+        "generation_seconds": 33.419,
+        "pipeline_seconds": 46.265,
+        "judge_reference_seconds": 8.015,
+        "judge_grounding_seconds": 1.631,
+        "judge_seconds": 9.646
+      },
+      "elapsed_seconds": 55.911,
+      "error": null
+    }
+  ]
+}

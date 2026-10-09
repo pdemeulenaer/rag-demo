@@ -1,0 +1,367 @@
+{
+  "schema_version": 1,
+  "run_id": "20260916T110131Z-5fb718f4",
+  "results": [
+    {
+      "question_id": "q0033",
+      "kind": "cross_paper",
+      "profile": "cross_comparison",
+      "mode": "vanilla",
+      "question": "Compare the structural implications for low-density volume-filling gas in (1) the H II regions study \"H II region filling factors in NGC 628: Luminosity-size relation and connection with polycyclic aromatic hydrocarbon emission\" and (2) the study \"Dust destruction in bubbles driven by multiple supernovae explosions\". Specifically: (a) What does each paper report about the presence and persistence of low-density gas occupying large volumes (i.e., low filling factor or hot tenuous gas) in their respective systems? (b) Based on the cited results, how do the papers differ in the factors that control the amount and observational signatures of that low-density gas? Please cite supporting excerpts from both papers.",
+      "reference_answer": "(a) Presence and persistence of low-density volume-filling gas:\n- H II regions in NGC 628: Luminous giant and supergiant H II regions show a decrease in the ionized-gas filling factor (FF) with increasing volume, meaning larger regions are characterized by more widely spaced clumps and a larger fraction of low-density gas occupying the available volume. However, volume alone explains little of the FF scatter (R^2_fit ≃ 0.16–0.21) [evidence_id: 03f11027f87d37771b2883f0].\n- Multi-SN bubbles: In bubbles evolved in a clumpy medium, dust (and associated material) can be dispersed into the hot interior and remain there on longer timescales (several Myr) when SN explosions are frequent (more frequent than one per ~30 kyr). The hot interior can thus contain dispersed material and remain a bright IR source for Myr timescales; the hot plasma is maintained at ~2–4×10^6 K for SN rates of one per ~100–5 kyr [evidence_id: 55a5a7dd2fdaf75ac9b7baa4].\n\n(b) Factors controlling amount and observational signatures of low-density gas and differences between papers:\n- H II regions (NGC 628): The key control is structural clump spacing within the ionized region: larger physical volume implies more widely spaced clumps and a larger fraction of low-density gas. However, the paper emphasizes that volume alone is insufficient to explain the observed FF scatter, implying additional physical factors (e.g., internal structure, density variations, catalog/method choices) influence FF [evidence_id: 03f11027f87d37771b2883f0; also discussion of methodological effects on measured relations in D.1 indicates which observables are radius-independent and which are not, affecting interpretation].\n- Multi-SN bubbles: The dominant controls are the ambient medium structure (clumpiness / density contrast) and the SN cadence. In a clumpy medium, stripped dense lumps and swept-up dust replenish the hot interior, prolonging IR emission; high SN frequency prevents dust exhaustion and sustains hot tenuous gas and IR/X-ray signatures. The IR-to-X-ray luminosity ratio for multi-SN bubbles typically ranges ~1–30 and depends weakly on SN rate but strongly on ambient density contrast (higher destruction of clouds in more homogeneous media reduces IR emission) [evidence_id: 55a5a7dd2fdaf75ac9b7baa4].\n\nSummary synthesis: Both studies identify low-density, volume-filling components in their systems (ionized low-density gas in large H II regions; hot tenuous gas in multi-SN bubbles). The H II-region result attributes larger low-density fraction primarily to geometrical/structural scaling (larger regions with more widely spaced clumps) but finds volume alone is a poor predictor, whereas the multi-SN bubble study attributes persistence and observational visibility of low-density hot gas mainly to dynamical factors (SN frequency) and the ambient medium clumpiness, which determine dust survival and IR vs X-ray emission balance [evidence_id: 03f11027f87d37771b2883f0; 55a5a7dd2fdaf75ac9b7baa4].",
+      "answer": "(a) The H II regions study reports that low Fill factors (log(FF) < -4.4) are associated with more porous structures exhibiting higher PAH-to-dust ratios, indicative of less efficient PAH processing in such environments. This suggests the presence of low-density, porous ionized gas, especially in regions with lower luminosity and higher porosity. Conversely, the study on dust destruction in bubbles driven by supernovae (SN) explosions, though not explicitly detailed in the provided excerpts, typically discusses hot, tenuous gas created by SNe-driven bubbles, which can fill large volumes and influence dust destruction.\n\n(b) The H II regions study indicates that the amount and signatures of low-density gas are controlled mainly by the evolutionary stage, ionizing photon rates, and the resulting porosity of the region, which affects PAH destruction and dust processing observations (e.g., higher PAH-to-dust ratios in more porous, lower FF regions). The SN-driven bubbles study, on the other hand, implies that energetic feedback from multiple supernovae explosions governs the properties of the low-density gas, including its thermal state, volume filling, and influence on dust destruction.\n\nIn summary, the H II regions focus on ionization-driven porosity and its effect on PAH signatures, whereas the SN bubble study emphasizes the impact of supernova feedback in producing hot, tenuous gas filling large volumes, thereby affecting dust destruction processes.",
+      "retrieved_chunks": [
+        {
+          "id": "ab8eb214-90f8-576f-8b01-5f5b799acbe1",
+          "text": "## **ABSTRACT** \n\n_Aims._ Understanding the internal structure of H II regions is fundamental for constraining star formation processes in galaxies. We investigated how the filling factor (FF) relates to luminosity, size, electron density, and Hα equivalent width (EW(Hα)) in H II regions. We also explored the association between star-forming regions and the polycyclic aromatic hydrocarbon (PAH)-to-dust emission, to assess their possible connection to the evolutionary stages of H II regions. \n\n_Methods._ We investigated the FF in 622 H II regions in NGC 628 by combining 475 regions from SIGNALS and 147 from PHANGSMUSE using a dedicated analysis pipeline. We derived the luminosity, emission line fluxes, radii, electron densities, and FF. We used PHANGS-JWST survey images to study the spatial relation between the FF and PAH-to-dust emission, quantified by the PAH-to-dust ratio _RPAH_ using James Webb Space Telescope/Mid-Infrared Instrument (JWST/MIRI) emission bands at 7.7, 11.3, and 21 µm. _Results._ Higher Log(FF) and high EW(Hα) values are found in luminous regions, whereas more extended regions with lower EW(Hα) display lower Log(FF) values. We show that the H II radius definition significantly affects the LHα − R relation. Low-luminosity compact H II regions appear to reflect a transition from cluster-powered regions to nebulae that are ionized by single massive stars, with the transition occurring around log(LHα) ∼ 37 erg s[−][1] . The PAH-to-dust ratio RPAH correlates with the volumetric Hα luminosity density, LHα/R[3] , with a transitional range centered around log(LHα/R[3] ) ∼ 32 erg s[−][1] , corresponding to log(FF) ≈−4.4. Regions with lower Log(FF) values exhibit higher RPAH values, suggesting less efficient PAH processing in more porous structures. ",
+          "title": "H II region filling factors in NGC 628: Luminosity-size relation and connection with polycyclic aromatic hydrocarbon emission",
+          "paper_id": "03b48dee-359c-58ab-ab8d-32911ac70051",
+          "arxiv_id": "2609.00902",
+          "paper_version": 1,
+          "source_url": "https://arxiv.org/abs/2609.00902v1",
+          "authors": [
+            "Lorena Aragüete Riesco",
+            "José M. Vílchez",
+            "Salvador Duarte Puertas",
+            "Laurie Rousseau-Nepton",
+            "Carmelle Robert",
+            "René Pierre Martin",
+            "Philippe Amram",
+            "Robert Kennicutt",
+            "Christophe Morisset",
+            "Ray Garner"
+          ],
+          "year": 2026,
+          "page": 1,
+          "score": 0.6892635,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        },
+        {
+          "id": "c958fad1-6dd3-54eb-b989-86173faa5f6d",
+          "text": "Aragüete Riesco et al.: Filling Factors and Luminosity–Size Relation in NGC 628 \n\nions used as tracers. Therefore, it is crucial to understand the scale of electron density variations for unraveling the mechanisms driving star formation. These variations are important for interpreting the gas structure and the physical processes regulating star formation because they directly affect the inferred FF (Mathis & Wood 2005). \n\nA comprehensive understanding of the FF remains challenging, largely due to the historical lack of observations at sufficiently high spatial and spectral resolution. Instrumental limitations have long hindered us to resolve fine-scale nebular structures and accurately characterize density variations. However, the advent of new telescopes and integral-field spectrographs has enabled studies to routinely achieve sensitivities and angular resolutions well below ∼ 1[′′] . In NGC 628, the Physics at High Angular Resolution in Nearby Galaxies Survey – Multi Unit Spectroscopic Explorer (PHANGS-MUSE; Leroy et al. (2021); Emsellem et al. (2022)) reaches a spatial resolution of ∼ 43.78 pc, while the Star formation, Ionized Gas, and Nebular Abundances Legacy Survey (SIGNALS; Rousseau-Nepton et al. (2019)) achieves ∼ 35 pc, enabling detailed characterization of H II region properties and robust estimates of the FF in large samples. ",
+          "title": "H II region filling factors in NGC 628: Luminosity-size relation and connection with polycyclic aromatic hydrocarbon emission",
+          "paper_id": "03b48dee-359c-58ab-ab8d-32911ac70051",
+          "arxiv_id": "2609.00902",
+          "paper_version": 1,
+          "source_url": "https://arxiv.org/abs/2609.00902v1",
+          "authors": [
+            "Lorena Aragüete Riesco",
+            "José M. Vílchez",
+            "Salvador Duarte Puertas",
+            "Laurie Rousseau-Nepton",
+            "Carmelle Robert",
+            "René Pierre Martin",
+            "Philippe Amram",
+            "Robert Kennicutt",
+            "Christophe Morisset",
+            "Ray Garner"
+          ],
+          "year": 2026,
+          "page": 3,
+          "score": 0.670877,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        },
+        {
+          "id": "91644609-0884-5590-b183-ac2887aec51f",
+          "text": "Aragüete Riesco et al.: Filling Factors and Luminosity–Size Relation in NGC 628 \n\n**==> picture [523 x 225] intentionally omitted <==**\n\n**==> picture [523 x 242] intentionally omitted <==**\n\n**Fig. 17:** Close-up of the central southwest area of the galaxy NGC 628 showing log(FF) of each H II region in a local RGB composite image. The circles measured are plotted in light blue for SIGNALS-JWST regions with log(FF) > −4.4 and as white circles for regions with log(FF) < −4.4. In PHANGS-JWST, magenta ellipses illustrate regions with log(FF) > −4 and orange circles those with log(FF) < −4.4. Red corresponds to the MIRI F770W image, green to the PHANGS-MUSE Hα image and blue to the HST F435W image of NGC 628. Low-log(FF) regions are preferentially associated with red MIRI F770W emission, whereas high-log(FF) regions appear associated within the brightest PHANGS-MUSE Hα structures. \n\nfields of central massive stars may initially produce small PAHs and subsequently destroy them. At later evolutionary stages, stellar winds and mechanical feedback can disperse the ionized gas, while reducing the efficiency of PAH destruction. This evolutionary scenario is not expected to be uniform, as it ultimately depends on the particular physical conditions of the ISM in each region because the mechanisms governing PAH destruction, survival, and migration remain poorly constrained (e.g., García-Bernete et al. 2022; Hrodmarsson et al. 2023).",
+          "title": "H II region filling factors in NGC 628: Luminosity-size relation and connection with polycyclic aromatic hydrocarbon emission",
+          "paper_id": "03b48dee-359c-58ab-ab8d-32911ac70051",
+          "arxiv_id": "2609.00902",
+          "paper_version": 1,
+          "source_url": "https://arxiv.org/abs/2609.00902v1",
+          "authors": [
+            "Lorena Aragüete Riesco",
+            "José M. Vílchez",
+            "Salvador Duarte Puertas",
+            "Laurie Rousseau-Nepton",
+            "Carmelle Robert",
+            "René Pierre Martin",
+            "Philippe Amram",
+            "Robert Kennicutt",
+            "Christophe Morisset",
+            "Ray Garner"
+          ],
+          "year": 2026,
+          "page": 19,
+          "score": 0.664811,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        },
+        {
+          "id": "20cd5be2-904c-5b4d-9b4f-b6a10b59a634",
+          "text": "Strong radiation pressure in luminous H II regions drives gas expansion, concentrating material into dense shells where the [S II] lines probe the local electron density. In this regime, the rms-based FF provides a meaningful description of the nebular geometry and closely approximates the idealized Strömgrensphere picture. At lower luminosities, however, ionized structures become increasingly affected by sampling and resolution effects, with filaments and condensations contributing significantly to the density field. Consequently, FF no longer acts as a purely volumetric measure but instead reflects the underlying density distribution. A more physical description would therefore require approaches beyond the classical Osterbrock framework and purely statistical PDF-based measures (Spangler et al. 2019), such as fractal analyses or MHD simulations capable of deriving FF directly from the gas dynamics. A detailed exploration of these alternatives is beyond the scope of this work. \n\nOne of the most significant results of this study is the linear alignment of all five H II regions catalogs in the log(FF)–log(LHα/R[3] ) plane (Fig. 13). Despite nearly two orders of magnitude difference in radii between Barnes et al. (2026) and the SIGNALS- and MUSE-based catalogs, and despite the varying criteria used to define H II region boundaries, all datasets fall on the same relation. This is nontrivial: the scaling relation between log(FF) and log(LHα/R[3] ) does not imply that catalogs defining R via absolute flux thresholds, profile truncation, or HST-based fragmentation would coincide. The usefulness of the log(FF)-log(LHα/R[3] ) plane lies in isolating the role of the electron density term. The residual scatter around this relation reflects true variations in _n_[2] _e_[rather than di][ff][erences in segmenta-] tion. Future work will extend this analysis beyond NGC 628 to a larger sample of galaxies (Aragüete Riesco et al., in prep.). This demonstrates that LHα/R[3] , the volumetric Hα luminosity density absorbs methodological differences and measures the effective emission measure per unit volume of the emitting clumps. Furthermore, correlations involving LHα/R[3] are comparable in all catalogs, provided that the second observable does not contain an explicit dependence on the adopted region size. \n\nArticle number, page 20",
+          "title": "H II region filling factors in NGC 628: Luminosity-size relation and connection with polycyclic aromatic hydrocarbon emission",
+          "paper_id": "03b48dee-359c-58ab-ab8d-32911ac70051",
+          "arxiv_id": "2609.00902",
+          "paper_version": 1,
+          "source_url": "https://arxiv.org/abs/2609.00902v1",
+          "authors": [
+            "Lorena Aragüete Riesco",
+            "José M. Vílchez",
+            "Salvador Duarte Puertas",
+            "Laurie Rousseau-Nepton",
+            "Carmelle Robert",
+            "René Pierre Martin",
+            "Philippe Amram",
+            "Robert Kennicutt",
+            "Christophe Morisset",
+            "Ray Garner"
+          ],
+          "year": 2026,
+          "page": 20,
+          "score": 0.6628278,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        },
+        {
+          "id": "bb0c3e4d-cd54-59f0-92e3-12273d08e23e",
+          "text": "We examined the relation between FF and PAH emission. The transition in PAH abundance identified in the log(RPAH)log(LHα/R) relation corresponds to H II regions with volumetric Hα luminosity density, log(LHα/R[3] ) ≈ 31.76-32.11 erg s[−][1] pc[−][3] , ionizing photon rates log(QH) ≈ 49.03 - 49.48 s[−][1] ), and log(FF) ≈ -5.01- -4.02. The consistency of these three independent diagnostics in two catalogs, built from different instruments and radius definition methods, confirms that this physical regime marks the onset of efficient PAH photodissociation in H II regions of NGC 628, in agreement with the critical threshold log(QH) ≳ 10[50] s[−][1] reported by Egorov et al. (2023b). \n\nWithin the luminous giant and supergiant H II region regime, characterized by high FF values, we find a clear dependence between the PAH-to-dust fraction and FF. PAHs are highly susceptible to Lyman-continuum radiation, undergoing photoionization and photodissociation that progressively reduce their PAH fraction (Dale et al. 2025). High-FF regions, which are typically the most luminous, provide the intense radiation fields required for efficient PAH destruction. In addition, stellar winds and radiation pressure from massive O/B stars can evacuate the central regions and compress dust and gas into shell-like structures where PAH emission is preferentially detected (Watson et al. 2008). Our results suggest that lower-luminosity H II regions exhibit higher PAH-to-dust ratios, indicating less efficient destruction of PAHs and carbonaceous grains, consistent with the findings of Egorov et al. (2023b, 2025). Beyond reduced photodestruction, evolutionary effects may also contribute: the shattering of larger carbonaceous grains and the preferential destruction of VSGs can enhance the relative PAH abundance in older H II regions (Jones et al. 1996; Galliano et al. 2008; Micelotta et al. 2010; Seok et al. 2014). Our observations support this scenario ",
+          "title": "H II region filling factors in NGC 628: Luminosity-size relation and connection with polycyclic aromatic hydrocarbon emission",
+          "paper_id": "03b48dee-359c-58ab-ab8d-32911ac70051",
+          "arxiv_id": "2609.00902",
+          "paper_version": 1,
+          "source_url": "https://arxiv.org/abs/2609.00902v1",
+          "authors": [
+            "Lorena Aragüete Riesco",
+            "José M. Vílchez",
+            "Salvador Duarte Puertas",
+            "Laurie Rousseau-Nepton",
+            "Carmelle Robert",
+            "René Pierre Martin",
+            "Philippe Amram",
+            "Robert Kennicutt",
+            "Christophe Morisset",
+            "Ray Garner"
+          ],
+          "year": 2026,
+          "page": 21,
+          "score": 0.6585084,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        }
+      ],
+      "cited_context_ids": [],
+      "metrics": {
+        "retrieval_hit": 0.0,
+        "retrieval_recall": 0.0,
+        "gold_citation_recall": 0.0,
+        "citation_from_retrieval": null,
+        "retrieved_count": 5,
+        "cited_count": 0,
+        "answer_correctness": 0.5,
+        "groundedness": 0.5,
+        "answer_relevance": 1.0,
+        "correct_abstention": null
+      },
+      "judge": {
+        "correctness": 0.5,
+        "groundedness": 0.5,
+        "answer_relevance": 1.0,
+        "abstention": "not_applicable",
+        "reason": "The actual answer captures the broad contrast: the H II study reports low filling-factor (porous, low-density) regions tied to PAH signatures, and the SN-bubble study reports hot, tenuous volume-filling gas produced and sustained by multiple SNe. However the actual answer makes several specific claims not supported by the provided evidence: it asserts 'log(FF) < -4.4 are associated with higher PAH-to-dust ratios' which is supported by the retrieved abstract (yes) but it also attributes control to 'evolutionary stage, ionizing photon rates, and resulting porosity' without citing the FF–LHα/R3 and QH thresholds shown in the evidence; the SN-bubble discussion in the actual answer is vague and omits key quantitative details from the cited excerpt (e.g., SN cadence thresholds, temperature range, IR/X-ray luminosity ratio behavior). Thus the answer is relevant and partially supported but lacks the cited quantitative factors and some specific evidence from the retrieved passages."
+      },
+      "judge_request": {
+        "response_id": "resp_0ae5b65478de017f016aaa77121d6887d2bbd62dc706af4db3",
+        "response_ids": [
+          "resp_0ae5b65478de017f016aaa77121d6887d2bbd62dc706af4db3"
+        ],
+        "attempts": 1,
+        "request_id": "req_aed4258a84de427b84e5cf5c9ee0d807",
+        "model": "gpt-5-mini-2025-08-07",
+        "usage": {
+          "input_tokens": 4799,
+          "output_tokens": 259,
+          "total_tokens": 5058
+        }
+      },
+      "elapsed_seconds": 11.997,
+      "error": null
+    },
+    {
+      "question_id": "q0033",
+      "kind": "cross_paper",
+      "profile": "cross_comparison",
+      "mode": "hybrid",
+      "question": "Compare the structural implications for low-density volume-filling gas in (1) the H II regions study \"H II region filling factors in NGC 628: Luminosity-size relation and connection with polycyclic aromatic hydrocarbon emission\" and (2) the study \"Dust destruction in bubbles driven by multiple supernovae explosions\". Specifically: (a) What does each paper report about the presence and persistence of low-density gas occupying large volumes (i.e., low filling factor or hot tenuous gas) in their respective systems? (b) Based on the cited results, how do the papers differ in the factors that control the amount and observational signatures of that low-density gas? Please cite supporting excerpts from both papers.",
+      "reference_answer": "(a) Presence and persistence of low-density volume-filling gas:\n- H II regions in NGC 628: Luminous giant and supergiant H II regions show a decrease in the ionized-gas filling factor (FF) with increasing volume, meaning larger regions are characterized by more widely spaced clumps and a larger fraction of low-density gas occupying the available volume. However, volume alone explains little of the FF scatter (R^2_fit ≃ 0.16–0.21) [evidence_id: 03f11027f87d37771b2883f0].\n- Multi-SN bubbles: In bubbles evolved in a clumpy medium, dust (and associated material) can be dispersed into the hot interior and remain there on longer timescales (several Myr) when SN explosions are frequent (more frequent than one per ~30 kyr). The hot interior can thus contain dispersed material and remain a bright IR source for Myr timescales; the hot plasma is maintained at ~2–4×10^6 K for SN rates of one per ~100–5 kyr [evidence_id: 55a5a7dd2fdaf75ac9b7baa4].\n\n(b) Factors controlling amount and observational signatures of low-density gas and differences between papers:\n- H II regions (NGC 628): The key control is structural clump spacing within the ionized region: larger physical volume implies more widely spaced clumps and a larger fraction of low-density gas. However, the paper emphasizes that volume alone is insufficient to explain the observed FF scatter, implying additional physical factors (e.g., internal structure, density variations, catalog/method choices) influence FF [evidence_id: 03f11027f87d37771b2883f0; also discussion of methodological effects on measured relations in D.1 indicates which observables are radius-independent and which are not, affecting interpretation].\n- Multi-SN bubbles: The dominant controls are the ambient medium structure (clumpiness / density contrast) and the SN cadence. In a clumpy medium, stripped dense lumps and swept-up dust replenish the hot interior, prolonging IR emission; high SN frequency prevents dust exhaustion and sustains hot tenuous gas and IR/X-ray signatures. The IR-to-X-ray luminosity ratio for multi-SN bubbles typically ranges ~1–30 and depends weakly on SN rate but strongly on ambient density contrast (higher destruction of clouds in more homogeneous media reduces IR emission) [evidence_id: 55a5a7dd2fdaf75ac9b7baa4].\n\nSummary synthesis: Both studies identify low-density, volume-filling components in their systems (ionized low-density gas in large H II regions; hot tenuous gas in multi-SN bubbles). The H II-region result attributes larger low-density fraction primarily to geometrical/structural scaling (larger regions with more widely spaced clumps) but finds volume alone is a poor predictor, whereas the multi-SN bubble study attributes persistence and observational visibility of low-density hot gas mainly to dynamical factors (SN frequency) and the ambient medium clumpiness, which determine dust survival and IR vs X-ray emission balance [evidence_id: 03f11027f87d37771b2883f0; 55a5a7dd2fdaf75ac9b7baa4].",
+      "answer": "(a) The study on NGC 628 reports that low-density gas with high filling factors is associated with extended H II regions and lower EW(Hα), indicating more evolved, dispersed ionized gas structures. Specifically, the trend of decreasing filling factor with increasing evolution (lower EW(Hα)) suggests that as regions age, the ionized gas becomes more diffuse and occupies larger volumes. \n\nIn contrast, the paper on dust destruction driven by supernovae explosions discusses bubbles created by multiple supernovae, where the destruction of dust and the formation of hot, tenuous gas are driven by energetic feedback processes. Although not explicitly detailed in the excerpt, these bubbles are characterized by hot, low-density interiors resulting from supernovae, and the persistence of such hot tenuous gas depends on ongoing energetic input from supernovae explosions.\n\n(b) The NGC 628 study emphasizes the role of stellar feedback, gas dispersal, and evolutionary stage of H II regions in controlling the amount and observational signatures of low-density gas. It suggests that stellar winds and mechanical feedback disperse the gas over time, increasing the filling factor and reducing the density, with observable indicators like EW(Hα) and morphology.\n\nThe supernova-driven bubbles paper implies that the amount and observational signatures of low-density hot gas depend heavily on the energetic input from supernovae and the dynamics of bubble expansion and destruction. The persistence of hot, tenuous gas in that context is controlled primarily by supernova activity and the environmental conditions that either allow the bubbles to expand and retain hot interiors or lead to their dissipation.\n\nSupport for the first paper: \"Low-log(FF) regions are preferentially associated with red MIRI F770W emission, whereas high-log(FF) regions appear associated within the brightest PHANGS-MUSE Hα structures... the observed decrease in EW(Hα) toward lower FF values may indicate an advanced evolutionary stage.\"\n\nSupport for the second paper: The discussion of supernovae explosions creating bubbles mentions \"Dust destruction in bubbles driven by multiple-SNe\" and the evolution of the hot, tenuous gas depends on ongoing supernova input, though specific detailed observational signatures are not elaborated in the provided excerpt.",
+      "retrieved_chunks": [
+        {
+          "id": "71273002-05cd-538e-8b3a-1a561f3045b7",
+          "text": "Dust destruction in bubbles driven by multiple-SNe \n\n- E., Pohlen, M., Popescu, C., Rigby, E.E., Robotham, A., Rodighiero, G., Sansom, A.E., Serjeant, S., Temi, P., Thompson, M., Tuffs, R., van der Werf, P., Vlahakis, C., 2011. Herschel-ATLAS: rapid evolution of dust in galaxies over the last 5 billion years. MNRAS 417, 1510–1533. doi:10.1111/j.1365-2966.2011.19363.x, arXiv:1012.5186. \n\n- Dwek, E., 1987. The Infrared Diagnostic of a Dusty Plasma with Applications to Supernova Remnants. ApJ 322, 812. doi:10.1086/165774. \n\n- Egorov, O.V., Lozinskaya, T.A., Moiseev, A.V., Shchekinov, Y.A., 2017. Complexes of triggered star formation in supergiant shell of Holmberg II. MNRAS 464, 1833–1853. doi:10.1093/mnras/stw2367, arXiv:1609.00650. \n\n- Egorov, O.V., Lozinskaya, T.A., Moiseev, A.V., Smirnov-Pinchukov, G.V., 2014. The supergiant shell with triggered star formation in the dwarf irregular galaxy IC 2574: neutral and ionized gas kinematics. MNRAS 444, 376–391. doi:10.1093/mnras/stu1369, arXiv:1407.2048. \n\n- Ferrand, G., Marcowith, A., 2010. On the shape of the spectrum of cosmic rays accelerated inside superbubbles. A&A 510, A101. doi:10.1051/ 0004-6361/200913520, arXiv:0911.4457. ",
+          "title": "Dust destruction in bubbles driven by multiple supernovae explosions",
+          "paper_id": "b7852225-4b50-5608-bb0b-1a1a242398f4",
+          "arxiv_id": "2512.24670",
+          "paper_version": 2,
+          "source_url": "https://arxiv.org/abs/2512.24670v2",
+          "authors": [
+            "Evgenii O. Vasiliev",
+            "Biman B. Nath"
+          ],
+          "year": 2025,
+          "page": 13,
+          "score": 0.06666667,
+          "type": "text",
+          "image_path": null,
+          "caption": null,
+          "rerank_score": 0.9885361
+        },
+        {
+          "id": "91644609-0884-5590-b183-ac2887aec51f",
+          "text": "Aragüete Riesco et al.: Filling Factors and Luminosity–Size Relation in NGC 628 \n\n**==> picture [523 x 225] intentionally omitted <==**\n\n**==> picture [523 x 242] intentionally omitted <==**\n\n**Fig. 17:** Close-up of the central southwest area of the galaxy NGC 628 showing log(FF) of each H II region in a local RGB composite image. The circles measured are plotted in light blue for SIGNALS-JWST regions with log(FF) > −4.4 and as white circles for regions with log(FF) < −4.4. In PHANGS-JWST, magenta ellipses illustrate regions with log(FF) > −4 and orange circles those with log(FF) < −4.4. Red corresponds to the MIRI F770W image, green to the PHANGS-MUSE Hα image and blue to the HST F435W image of NGC 628. Low-log(FF) regions are preferentially associated with red MIRI F770W emission, whereas high-log(FF) regions appear associated within the brightest PHANGS-MUSE Hα structures. \n\nfields of central massive stars may initially produce small PAHs and subsequently destroy them. At later evolutionary stages, stellar winds and mechanical feedback can disperse the ionized gas, while reducing the efficiency of PAH destruction. This evolutionary scenario is not expected to be uniform, as it ultimately depends on the particular physical conditions of the ISM in each region because the mechanisms governing PAH destruction, survival, and migration remain poorly constrained (e.g., García-Bernete et al. 2022; Hrodmarsson et al. 2023).",
+          "title": "H II region filling factors in NGC 628: Luminosity-size relation and connection with polycyclic aromatic hydrocarbon emission",
+          "paper_id": "03b48dee-359c-58ab-ab8d-32911ac70051",
+          "arxiv_id": "2609.00902",
+          "paper_version": 1,
+          "source_url": "https://arxiv.org/abs/2609.00902v1",
+          "authors": [
+            "Lorena Aragüete Riesco",
+            "José M. Vílchez",
+            "Salvador Duarte Puertas",
+            "Laurie Rousseau-Nepton",
+            "Carmelle Robert",
+            "René Pierre Martin",
+            "Philippe Amram",
+            "Robert Kennicutt",
+            "Christophe Morisset",
+            "Ray Garner"
+          ],
+          "year": 2026,
+          "page": 19,
+          "score": 0.25,
+          "type": "text",
+          "image_path": null,
+          "caption": null,
+          "rerank_score": 0.97298527
+        },
+        {
+          "id": "9af706e9-4612-52b6-aadb-fc0e7f2cf4da",
+          "text": "Aragüete Riesco et al.: Filling Factors and Luminosity–Size Relation in NGC 628 \n\nAs the central cluster’s ionizing output declines, the EW(Hα) progressively decreases (e.g. Kewley et al. 2015; Mármol-Queraltó et al. 2016; Mingozzi et al. 2020). In this context, the observed decrease in EW(Hα) toward lower FF values may indicate an advanced evolutionary stage. These preliminary results provide a coherent picture linking internal gas structure and evolutionary stage: young compact regions with high EW(Hα) and high FF; intermediate regions with extended nebulae and moderate EW(Hα); and older regions with low EW(Hα) and low FF, with inferred ages spanning from less than 3 to 6.3 Myr. However, given the shared dependence on Hα luminosity, the observed FF–EW(Hα) trend cannot be unambiguously interpreted in terms of evolutionary sequence alone. \n\nHowever, we caution against a definitive evolutionary interpretation. The classical Strömgren framework assumes uniform density and spherical symmetry, an unrealistic simplification in real H II regions (Castaneda et al. 1992; Copetti et al. 2000), whereas real H II regions are often powered by multiple OB associations at different evolutionary stages. This would introduce additional scatter in any FF–EW(Hα) relation and further limits its interpretation as a strict evolutionary sequence. In addition, our analysis is exploratory, based on a limited number of H II regions with reliable continuum measurements, and relies on EW(Hα) as an indirect age proxy. \n\nElevated EW(Hα) values in bright H II regions may also reflect metallicity effects (Leitherer et al. 1999) or leakage of ionizing photons (Zurita et al. 2002). A definitive evolutionary interpretation would require independent age constraints beyond the EW(Hα) proxy, for instance from stellar cluster catalogs. Furthermore, the assumption of a uniform density of ionized gas clumps is an additional simplification that may not hold in turbulent or highly inhomogeneous regions (Copetti et al. 2000). ",
+          "title": "H II region filling factors in NGC 628: Luminosity-size relation and connection with polycyclic aromatic hydrocarbon emission",
+          "paper_id": "03b48dee-359c-58ab-ab8d-32911ac70051",
+          "arxiv_id": "2609.00902",
+          "paper_version": 1,
+          "source_url": "https://arxiv.org/abs/2609.00902v1",
+          "authors": [
+            "Lorena Aragüete Riesco",
+            "José M. Vílchez",
+            "Salvador Duarte Puertas",
+            "Laurie Rousseau-Nepton",
+            "Carmelle Robert",
+            "René Pierre Martin",
+            "Philippe Amram",
+            "Robert Kennicutt",
+            "Christophe Morisset",
+            "Ray Garner"
+          ],
+          "year": 2026,
+          "page": 21,
+          "score": 0.07692308,
+          "type": "text",
+          "image_path": null,
+          "caption": null,
+          "rerank_score": 0.9091032
+        },
+        {
+          "id": "c958fad1-6dd3-54eb-b989-86173faa5f6d",
+          "text": "Aragüete Riesco et al.: Filling Factors and Luminosity–Size Relation in NGC 628 \n\nions used as tracers. Therefore, it is crucial to understand the scale of electron density variations for unraveling the mechanisms driving star formation. These variations are important for interpreting the gas structure and the physical processes regulating star formation because they directly affect the inferred FF (Mathis & Wood 2005). \n\nA comprehensive understanding of the FF remains challenging, largely due to the historical lack of observations at sufficiently high spatial and spectral resolution. Instrumental limitations have long hindered us to resolve fine-scale nebular structures and accurately characterize density variations. However, the advent of new telescopes and integral-field spectrographs has enabled studies to routinely achieve sensitivities and angular resolutions well below ∼ 1[′′] . In NGC 628, the Physics at High Angular Resolution in Nearby Galaxies Survey – Multi Unit Spectroscopic Explorer (PHANGS-MUSE; Leroy et al. (2021); Emsellem et al. (2022)) reaches a spatial resolution of ∼ 43.78 pc, while the Star formation, Ionized Gas, and Nebular Abundances Legacy Survey (SIGNALS; Rousseau-Nepton et al. (2019)) achieves ∼ 35 pc, enabling detailed characterization of H II region properties and robust estimates of the FF in large samples. ",
+          "title": "H II region filling factors in NGC 628: Luminosity-size relation and connection with polycyclic aromatic hydrocarbon emission",
+          "paper_id": "03b48dee-359c-58ab-ab8d-32911ac70051",
+          "arxiv_id": "2609.00902",
+          "paper_version": 1,
+          "source_url": "https://arxiv.org/abs/2609.00902v1",
+          "authors": [
+            "Lorena Aragüete Riesco",
+            "José M. Vílchez",
+            "Salvador Duarte Puertas",
+            "Laurie Rousseau-Nepton",
+            "Carmelle Robert",
+            "René Pierre Martin",
+            "Philippe Amram",
+            "Robert Kennicutt",
+            "Christophe Morisset",
+            "Ray Garner"
+          ],
+          "year": 2026,
+          "page": 3,
+          "score": 0.33333334,
+          "type": "text",
+          "image_path": null,
+          "caption": null,
+          "rerank_score": 0.8244619
+        },
+        {
+          "id": "93f9c4c7-6bff-5942-8b01-d1f0b1690d50",
+          "text": "Aragüete Riesco et al.: Filling Factors and Luminosity–Size Relation in NGC 628 \n\nrequirement reduces the available sample to 18 H II regions. This result should therefore be regarded as exploratory, given the small number of regions available. Future studies will extend this analysis to other nearby galaxies. \n\nFig. 14 presents the distribution of log(FF) as a function of log(EW(Hα)) for the PHANGS-H II regions. When compared with Starburst99 instantaneous-burst models (Leitherer et al. 1999), the inferred ages for the sample span from < 3 to 6.3 Myr. We find a positive correlation between the log(FF)– log(EW(Hα)) relation in PHANGS H II regions (ρ = 0.56, p- value < 0.001), suggesting that high-FF regions tend to show high EW(Hα), characteristic of younger populations. \n\nHowever, we note that the two quantities are not fully independent, as they share an implicit dependence on the Hα luminosity, and therefore part of the observed correlation may be driven by this underlying covariance. Nonetheless, other independent tracers of the H II region evolutionary state have been proposed in the literature (e.g., excitation, kinematics) that could be used in future work. ",
+          "title": "H II region filling factors in NGC 628: Luminosity-size relation and connection with polycyclic aromatic hydrocarbon emission",
+          "paper_id": "03b48dee-359c-58ab-ab8d-32911ac70051",
+          "arxiv_id": "2609.00902",
+          "paper_version": 1,
+          "source_url": "https://arxiv.org/abs/2609.00902v1",
+          "authors": [
+            "Lorena Aragüete Riesco",
+            "José M. Vílchez",
+            "Salvador Duarte Puertas",
+            "Laurie Rousseau-Nepton",
+            "Carmelle Robert",
+            "René Pierre Martin",
+            "Philippe Amram",
+            "Robert Kennicutt",
+            "Christophe Morisset",
+            "Ray Garner"
+          ],
+          "year": 2026,
+          "page": 17,
+          "score": 0.14285715,
+          "type": "text",
+          "image_path": null,
+          "caption": null,
+          "rerank_score": 0.7871142
+        }
+      ],
+      "cited_context_ids": [],
+      "metrics": {
+        "retrieval_hit": 0.0,
+        "retrieval_recall": 0.0,
+        "gold_citation_recall": 0.0,
+        "citation_from_retrieval": null,
+        "retrieved_count": 5,
+        "cited_count": 0,
+        "answer_correctness": 0.5,
+        "groundedness": 0.5,
+        "answer_relevance": 1.0,
+        "correct_abstention": null
+      },
+      "judge": {
+        "correctness": 0.5,
+        "groundedness": 0.5,
+        "answer_relevance": 1.0,
+        "abstention": "not_applicable",
+        "reason": "The actual answer captures the high-level contrast: NGC 628 paper links lower filling factor / more diffuse ionized gas to evolution and structural clump spacing, and the multi-SN paper ties hot, volume-filling tenuous gas persistence to SN cadence and ambient clumpiness. However, it makes some unsupported or imprecise claims relative to the provided evidence. Specifically, the actual answer asserts that NGC 628 ‘‘reports that low-density gas with high filling factors is associated with extended H II regions and lower EW(Hα)’’ which contradicts the cited paper: the references show high-FF correlates with high EW(Hα) (younger), and larger volumes show decreased FF (more low-density gas). The answer also states the NGC 628 paper emphasizes ‘‘stellar feedback, gas dispersal, and evolutionary stage’’ controlling filling factor — the paper mentions these possibilities but cautions interpretation and notes volume alone explains little of the scatter. The multi-SN summary is broadly supported by the extracted excerpt (persistence of dust and hot plasma depends on SN rate and ambient clumpiness), but the actual answer is vague on the specific thresholds and observational signatures (IR/X-ray ratios, temperatures) that the evidence gives. Because some substantive claims are either reversed or under-specified relative to the retrieved excerpts, the scores are partial."
+      },
+      "judge_request": {
+        "response_id": "resp_0ed772f280f2de99016aaa771f6a1c87d29a3306e0f08d78d4",
+        "response_ids": [
+          "resp_0ed772f280f2de99016aaa771f6a1c87d29a3306e0f08d78d4"
+        ],
+        "attempts": 1,
+        "request_id": "req_efc0dc94972849879864aadfbfb37891",
+        "model": "gpt-5-mini-2025-08-07",
+        "usage": {
+          "input_tokens": 4709,
+          "output_tokens": 325,
+          "total_tokens": 5034
+        }
+      },
+      "elapsed_seconds": 13.51,
+      "error": null
+    }
+  ]
+}

@@ -1,6 +1,7 @@
 import os
 from pathlib import Path
-from typing import Optional
+from typing import Literal, Optional
+from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -33,6 +34,25 @@ class Config(BaseSettings):
     GENERATION_MODEL: str
     GENERATION_MODEL_PROVIDER: str
 
+    # Bounded Agentic planner and independent answer verifier; synthesis uses GENERATION_MODEL.
+    AGENT_MODEL: str = "gpt-5-mini"
+    AGENT_REASONING_EFFORT: str = "minimal"
+    AGENT_MAX_COMPLETION_TOKENS: int = 2000
+    AGENT_VERIFIER_REASONING_EFFORT: str = "minimal"
+    AGENT_VERIFIER_MAX_COMPLETION_TOKENS: int = 16384
+    AGENT_MAX_ROUNDS: int = 3
+    AGENT_MAX_TOOL_CALLS: int = 12
+    AGENT_MAX_PARALLEL_TOOLS: int = 4
+    AGENT_MAX_EVIDENCE_CHUNKS: int = 30
+    AGENT_MAX_ELAPSED_SECONDS: float = 120.0
+    AGENT_MAX_PLANNER_TOKENS: int = 20000
+    # Opt-in Agentic draft/repair control; empty preserves the provider default.
+    AGENT_DRAFT_REASONING_EFFORT: Literal["", "minimal", "low", "medium", "high"] = ""
+
+    # Per reference/grounding judge request, including reasoning and structured output.
+    # Separate from answer generation and Agentic runtime verification budgets.
+    EVAL_JUDGE_MAX_OUTPUT_TOKENS: int = Field(default=16384, ge=256, le=128000)
+
     # Optional Langfuse observability. Disabled means a true no-op: the SDK is
     # not imported by the application tracing shim.
     LANGFUSE_ENABLED: bool = False
@@ -61,7 +81,7 @@ class Config(BaseSettings):
     RAG_PROMPT_TEMPLATE_PATH: str = "src/api/rag/prompts/rag_generation.yaml"    
 
     # Ingestion settings
-    QDRANT_COLLECTION_NAME: str = 'test_collection_oai_test_image' # 'test_collection_oai_test_summary' # test_collection_oai_prod # test_collection_oai_local2
+    QDRANT_COLLECTION_NAME: str = 'uploaded_papers_v2'
 
     SUMMARIZATION_MODEL: str = 'llama-3.1-8b-instant' # 'llama-3.3-70b-versatile'
     SUMMARIZATION_PROMPT: str = 'Summarize the following text: {{text}}'

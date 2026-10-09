@@ -12,8 +12,10 @@ make create-eval-dataset      # Paid OpenAI generation from that saved preview
 ```
 
 The default samples up to **50 active arXiv papers**, four text excerpts per paper,
-and plans **50 candidates**: 30 single-paper, 15 cross-paper comparisons, and 5
-insufficient-evidence cases. It uses `gpt-4.1-mini` and your `OPENAI_API_KEY`.
+and plans **50 candidates**: 30 single-paper, 15 cross-paper, and 5
+insufficient-evidence cases. Within those broad kinds, new plans label direct facts,
+within-paper synthesis, cross-paper comparison, cross-paper multihop and unanswerable
+profiles. It uses `gpt-4.1-mini` and your `OPENAI_API_KEY`.
 Neither command changes PostgreSQL/Qdrant, ingests papers, or publishes an experiment.
 No RAGAS, Groq, Cohere or Langfuse credentials are needed for question generation.
 
@@ -45,7 +47,8 @@ and `selection_priority` (0 preferred, 1 fallback). Papers without eligible exce
 listed in `excluded_no_text_build_ids`; previews may contain fewer papers than requested.
 
 The prompt first identifies a supported fact, then asks a question that the fact answers.
-Every question must include its paper's full title (both titles for a comparison).
+Every question must include its paper's full title (both titles for a comparison), except
+the `metadata_discovery` profile: its question hides the title while its answer names it.
 New plans freeze `quality_policy: fact-first-v1`. That policy rejects answerable jobs
 whose reference answers explicitly abstain or say necessary information is missing,
 and rejects questions missing paper titles or referring to supplied excerpts. These
@@ -79,6 +82,57 @@ The CLI `python -m evals.generate_questions prepare --help` exposes all options.
 At least two papers with usable text are required. Preview never overwrites an existing
 directory: choose a new `EVAL_DIR` for a new sample, model or question count.
 Sampling is deterministic for unchanged inputs and seed; model responses need not be.
+
+### Agentic-ready v3 set
+
+For the next Agentic RAG milestone, create a **new** 70-question plan over the current
+50-paper corpus. This deliberately increases questions that require synthesis, iterative
+retrieval and abstention:
+
+```bash
+make eval-preview \
+  EVAL_DIR=data/evaluation/markdown-mini-v3 \
+  QUESTIONS=70 PAPERS=50 \
+  EVAL_MODEL=gpt-5-mini EVAL_REASONING_EFFORT=minimal \
+  EVAL_MAX_TOKENS=4000 \
+  EVAL_SINGLE_FACT=20 \
+  EVAL_SINGLE_SYNTHESIS=10 \
+  EVAL_CROSS_COMPARISON=15 \
+  EVAL_CROSS_MULTIHOP=10 \
+  EVAL_METADATA_DISCOVERY=5 \
+  EVAL_UNANSWERABLE=10
+```
+
+This preview makes no model calls. Its planned aggregate is 35 single-paper questions,
+25 cross-paper questions and 10 unanswerable candidates. The profiles mean:
+
+| Profile | Count | Retrieval challenge |
+| --- | ---: | --- |
+| `single_fact` | 20 | One precise fact from one paper |
+| `single_synthesis` | 10 | Combine at least two excerpts from one paper |
+| `cross_comparison` | 15 | Compare supported findings or methods from two papers |
+| `cross_multihop` | 10 | Retrieve from both papers and perform an explicit synthesis step |
+| `metadata_discovery` | 5 | Identify a study from metadata/topic clues, then answer from it |
+| `unanswerable` | 10 | Detect missing evidence and abstain |
+
+Cross-paper jobs use topical title/abstract overlap and disjoint pairs before any pair is
+reused. With 50 eligible papers and 25 cross-paper jobs, this creates 25 two-paper
+components, making a later paper-group development/test split feasible.
+
+Inspect `plan.json` and `snapshot.json`, then explicitly start the paid generation:
+
+```bash
+make create-eval-dataset \
+  EVAL_DIR=data/evaluation/markdown-mini-v3 \
+  EVAL_WAIT_SECONDS=600
+```
+
+Generated profile labels flow into the reviewed dataset, benchmark result records,
+Langfuse items/traces and the run manifest's `question_profiles` counts. They let reports
+be broken down by retrieval challenge instead of only `single_paper`/`cross_paper`.
+The generator still cannot create independent human-authored questions: add 5–10 real
+research questions during review, either replacing weaker synthetic drafts or expanding
+the set. Every generated item remains `needs_review`.
 
 ### Fast GPT-5 Mini pilot
 
@@ -117,7 +171,8 @@ cap permits more spending per question; it does not force the model to use all t
 The model must support your chosen limit and Responses API background generation.
 The saved token cap is sent as `max_output_tokens`.
 
-Cross-paper partners are chosen by title/abstract word overlap without embeddings.
+Cross-paper partners are chosen greedily by title/abstract word overlap without embeddings;
+new profiled plans keep pairs disjoint until all eligible papers have been paired.
 This is a simple starting heuristic, not a knowledge graph or a guarantee of meaningful
 scientific overlap. Unsupported pairs can be skipped; duplicate questions, unknown
 evidence IDs and invalid paper counts are rejected. Thus **50
@@ -219,15 +274,20 @@ from them.
 1. Verify every answer against the excerpts and original paper; correct units, conditions
    and scientific claims. Reject trivial, ambiguous or near-duplicate questions.
 2. Check that cross-paper questions genuinely require both papers. A citation to each
-   paper alone does not prove a multi-step reasoning requirement.
-3. Treat `unanswerable_candidate` as unanswerable **only in the supplied excerpts**.
+   paper alone does not prove a multi-step reasoning requirement. For `cross_multihop`,
+   verify that one-paper evidence cannot answer the question and that the answer actually
+   performs the requested synthesis.
+3. For `single_synthesis`, verify that the cited excerpts contribute distinct necessary
+   facts. For `metadata_discovery`, verify that the clues are sufficient without leaking
+   the title and that the answer identifies the correct paper.
+4. Treat `unanswerable_candidate` as unanswerable **only in the supplied excerpts**.
    Search the full frozen corpus before accepting it as a corpus-level abstention test.
    Its reference evidence is empty; its generation evidence remains in the snapshot.
-4. In a separate reviewed copy, mark accepted records `review_status: approved` and
+5. In a separate reviewed copy, mark accepted records `review_status: approved` and
    rejected records `rejected`. Add a few real questions of your own to reduce synthetic bias.
-5. Separate development and held-out test papers **before tuning**; connected cross-paper
+6. Separate development and held-out test papers **before tuning**; connected cross-paper
    groups must stay in one split. Keep the same approved questions and corpus when
-   comparing Vanilla, Hybrid and future graph/agentic modes.
+   comparing Vanilla, Hybrid, Hybrid + Rerank, Agentic and future graph modes.
 
 ### Reviewed dataset contract and splits
 
@@ -251,7 +311,10 @@ reviewer searches the complete frozen Qdrant builds. The validator rejects excer
 negative cases, missing reference evidence, cross-paper evidence from fewer than two
 papers, unknown paper/build identity, duplicate questions and inconsistent review metadata.
 
-Assign a deterministic development/test split after review:
+For questions with critical exact values, optionally add `required_numeric_values` to the
+reviewed question, for example `q0054`'s requested endpoints and measurements. The runner
+reports numeric coverage and caps correctness at 0.5 if any curated value is absent; include
+only values the question explicitly asks for.
 
 ```bash
 make eval-split EVAL_DIR=data/evaluation/markdown-mini-v2 \
@@ -282,13 +345,13 @@ more direct error of tuning and reporting on questions connected to the same pap
 ## Run the reviewed benchmark
 
 Start with a two-question smoke run. This makes embedding and answer-generation calls;
-the optional judge adds one more model call per answer.
+the optional judge adds two isolated model calls per answer, each with one bounded retry.
 
 ```bash
 make eval-run EVAL_DIR=data/evaluation/markdown-mini-v1 EVAL_LIMIT=2
 ```
 
-Then run all approved questions through both modes with semantic scoring:
+Then run all approved questions through all four implemented modes with semantic scoring:
 
 ```bash
 make eval-run EVAL_DIR=data/evaluation/markdown-mini-v1 EVAL_JUDGE=true
@@ -298,7 +361,252 @@ Each invocation creates a new directory under `data/evaluation/runs/` containing
 
 - `manifest.json`: exact dataset, corpus build IDs, models and settings;
 - `results.json`: checkpointed per-question answers, retrieved chunks, citations and scores;
-- `summary.json` and `report.md`: aggregate Vanilla/Hybrid comparison.
+- `summary.json` and `report.md`: aggregate four-mode comparison.
+
+For Agentic runs, each `results.json` item also contains the public `agent_execution`
+record: stop reason, synthesis policy, rounds, tool calls, evidence count, planner-token
+usage, explicitly named-paper coverage and safe action metadata. Every action includes its
+atomic `need_id` and bounded lookup query, which makes decomposition directly inspectable.
+For recovery diagnosis, check that named-paper queries omit titles/arXiv IDs and use the
+resolved build filters. `agent_execution.planner_context_compactions` counts planner calls
+using shortened, deduplicated tool previews when the full history would exceed the token
+budget; summaries report `planner_context_compaction_runs`.
+`planner_context_compaction_attempts` also records attempts that could not make the next
+call fit; summaries expose `planner_context_compaction_attempt_runs`. A zero count of
+used compactions does not prove that no compaction was attempted. Completed definition
+messages become one frozen snapshot on later planner calls without an extra model request.
+Full retrieved chunks remain
+unchanged, so this is not re-extraction or a smaller answer evidence set.
+For an initial-plan schema failure, inspect
+`agent_execution.requirement_validation_failures`: each attempt lists safe `field`/`code`
+pairs plus a static correction `message`, not rejected argument values or raw exception text.
+Parameter-effect checks distinguish missing declarations/baselines, invalid indices,
+non-question parameter names, nonfactual needs, missing searches and identical normalized queries.
+For example, `baseline_effect_same_query` means the two content queries are identical after
+confirmed title/ID cleanup (ignoring whitespace/case); changing filters alone is not a fix.
+The feedback identifies the specific `parameter_effects[i]` field and is sent unchanged
+to the planner's existing correction. Historical diagnostics without `message` remain readable.
+The graph permits one native corrective definition
+call within the existing token/time limits. `requirement_correction_attempts` is 0 if
+preflight/time prevents it, or 1 if invoked. Summaries count `requirement_correction_runs`
+and `requirement_validation_failure_runs`. A second invalid definition remains a safe
+planner failure; a successful correction proceeds with ordinary scoped retrieval. Valid
+plans need no extra call, and unsafe scope/redefinition errors are not retried.
+Run `status: complete` means the benchmark finished; it does not prove a usable RAG answer.
+If `stop_reason: planner_failure` occurs with zero tools/evidence, inspect these definition
+issues first. Generation did not run, so lower latency is an early stop, not a speedup.
+Execution metadata includes the frozen requirement descriptions and covered/missing search
+needs. These counts describe retrieval results, not semantic answer coverage. Search origin
+does not constrain which claim may cite a chunk.
+Agentic `generation_diagnostics` separately records model-assessed claim support, requirement
+coverage, rejected-claim codes, repair attempts and `complete`/`partial`/`safe_abstention`.
+Inspect this alongside actual claim text: a citation or need label alone does not prove that
+a requested value, unit, range or comparison was answered.
+The provider coverage contract requires a key for every frozen requirement and original
+question part (lettered or numbered). Missing keys are malformed output, not implicit
+success. Public diagnostics keep the list format and record
+`coverage_contract: frozen-parameter-effects-v9`; no extra review calls are added.
+Native coverage requires `essential_claim_indices` and `missing_details` in addition to
+the related `claim_indices`. Inspect the recorded links, `unsupported_claim_indices`,
+`invalid_essential_claim_indices` and `absent_claim_indices` when coverage disagrees with
+the actual answer. Rejected optional claims do not erase supported essential facts; an
+invalid/empty essential set, an absent reference, or a genuinely missing requested fact
+still prevents completion. Specific missing details appear in partial-answer warnings.
+All **original-question** checks must pass before skipping repair for discarded background.
+Frozen-plan checks remain diagnostic: inspect `planner_only_gaps` if the planner invented
+an unrequested numerical derivation or another demand. `completeness_authority` is
+`original_question_parts`; free-form `unplanned_requests` do not expand mandatory scope.
+Real omissions still require partial/missing original checks and specific limitations.
+Standalone protocol descriptions such as `initial_searches` fail initial native validation
+with `internal_tool_requirement`, within the existing one-correction bound.
+Legacy adapters without essential links retain conservative behavior.
+Presentation cleanup additionally preserves explicit approximation-bound signed OCR
+decimals, such as `∼−_ 1 _._ 75`; it does not guess absent signs or change stored chunks.
+Explicit parameter-dependence checks require `effect_status` (`reported_effect`,
+`test_settings_only`, or `missing`), `effect_claim_indices` and `effect_outcomes`. Inspect
+each outcome's `answer_claim_id`, locally resolved `answer_text` and `reports_requested_outcome`:
+the answer must report the requested outcome, not merely a test's existence/settings or
+another parameter's result. The native enum permits only this review's actual answer claims;
+the application resolves their unchanged text, never copies it from a source quotation.
+at least one verified outcome must be essential to coverage. A satisfied effect needs
+nonempty links to supported answer claims, not merely tested input values or “no formula
+reported.” Qualitative findings can satisfy qualitative requests without inventing a formula.
+Original question parts receive the same checks even if the planner omits the effect.
+Inspect per-attempt `answer_anchors`, `annotation_validation_failures` and `review_only`,
+plus overall `annotation_correction_attempts`. A malformed review or annotation-only failure
+can use the second review on unchanged claims instead of generating another answer.
+There are still at most two reviews total, shared with content repair. An unresolved
+annotation is disclosed as validation uncertainty, not a proven missing fact. Real gaps
+still get the one allowed content repair; selecting an anchor does not prove semantic
+correctness or permit skipping citation/numeric/support checks. The manifest records the
+new runtime review policy. Models, caps and frozen datasets remain unchanged.
+
+For parameter-effect questions, additionally inspect `agent_execution.parameter_effects`
+(separate baseline/effect indices) and `effect_finish_checks` (accepted/rejected finishes,
+context IDs, parameter/outcome quotes and failure codes). A rejected finish can recover
+through a focused search/read within existing limits; exhausted retrieval still permits
+verified evidence fallback. Generation outcomes now include `requested_parameter`,
+`answer_parameter_quote`, `answer_outcome_quote` and `outcome_kind`; an answer ID alone
+cannot establish a particular parameter's response. These checks remain model-assisted,
+not proof of entailment.
+Explicit measurement-plus-effect coordination cannot hide its baseline behind a null
+baseline index. Effect-only requests remain baseline-free. Inspect frozen `effect_parameters`
+in execution requirements/original-question checks: native parameter enums prevent the
+reviewer reassigning the changed input to a baseline output quantity. An absent effect
+must remain missing/partial, not be reinterpreted as a successful baseline audit.
+`invalid_method_annotation` uses the existing second review on
+unchanged claims when there is no separate content deficit; inspect `review_only` and
+`annotation_correction_attempts` rather than expecting another answer draft.
+Requirement descriptions are carried in the review prompt, not as siblings of schema
+`$ref` fields. Run `20261005T091720Z-990f5774` exposed an HTTP 400 from incompatible
+`$ref`/`description` combinations: both reviews failed and the result was safe abstention.
+Its shorter elapsed time is not a valid latency improvement. The schema fix retains
+mandatory keys and strict validation; rerun the same question/settings, without re-indexing.
+Live OpenAI answers/reviews now use the SDK's `chat.completions.parse` with Pydantic models;
+synchronous judges use `responses.parse`. The SDK handles schema conversion and typed parsing,
+including reference normalization. `core/structured.py` adds only safe failure diagnostics, not
+schema rewriting or another retry loop. SDK transport retries are disabled for these calls;
+the existing caller-owned retry/repair limits remain. Citation and completeness checks still
+run after parsing. Instructor/Groq, LangGraph tool schemas and background question-generation
+checkpointing remain unchanged. See [structured response enforcement](../architecture/rag-pipeline.md#structured-response-enforcement).
+Native parsing may fail before a completion is returned. Available failed-call usage/response
+IDs are retained, but judge/baseline usage is marked `usage_incomplete` after a parse failure;
+missing usage must not be presented as zero billed tokens. Agentic failure diagnostics retain
+known completion usage/finish reason; unknown values are null. No implicit paid smoke tests
+are part of this refactor.
+For citation-repair diagnosis, inspect
+`generation_diagnostics.validation_attempts[0].citation_repair`: it records per-rejected-claim
+missing values/units and candidate context IDs. Compare these with the repaired claims'
+actual `cited_context_ids` and the next validation attempt. Suggestions are drawn only from
+retrieved context and are not automatically validated citations; no extra model call is added.
+`invalid_control_character` means a generated claim contains malformed notation; the same
+bounded repair must regenerate readable Unicode/ASCII from cited evidence. It is not a PDF
+extraction failure. Equivalent unit formatting (e.g. `yr^{-1}` and `_𝑀_ ⊙`) is normalized
+for validation without rewriting artifacts or weakening value/unit support checks.
+Surface-density notation (`g cm^{-2}`, `g cm⁻²`, `g cm[−][2]`, `g/cm²`) is treated
+as the same unit, not a newly claimed `-2` value. A supported percentage such as
+“50% of systems” can substantiate “50% binary fraction” without the literal word
+`fraction` in the source. Values, dimensions, source identity and semantic attribution
+still have to match the claim's own citations.
+`summary.json` and
+`report.md` aggregate stop reasons,
+synthesis policies, tool usage and mean Agentic budget consumption. `manifest.json` records
+the effective Agentic model and limits so runs made with different budgets are not mistaken
+for like-for-like comparisons. These fields contain no hidden chain-of-thought.
+
+New benchmark runs also save `stage_timings` in each `results.json` row and mean timings
+with sample counts in `summary.json` and `report.md`. `retrieval_seconds` covers
+embedding/search, catalogue resolution and Agentic planning/tool calls; its optional
+`rerank_seconds` sub-stage measures Cohere and is already included in retrieval.
+`generation_seconds` covers answer-model calls and validation (Agentic draft, review
+and possible repair). `pipeline_seconds` includes these stages plus prompt/rendering
+overhead. When judging is enabled, `judge_reference_seconds` and
+`judge_grounding_seconds` measure the two separate judge requests;
+`judge_seconds` includes both and judge preparation. `elapsed_seconds` still includes
+the whole evaluated question. Do not add overlapping parent/sub-stage values together;
+a missing stage means it was skipped or not measured. Older runs have no stage timings,
+so they cannot be retroactively decomposed. Timing instrumentation needs no re-index or
+new evaluation dataset.
+
+For Agentic synthesis, new runs additionally measure `agentic_draft_seconds`,
+`agentic_verify_seconds` (both reviews combined) and, when used, `agentic_repair_seconds`.
+They are included in `generation_seconds`, not additional latency to add to it.
+`generation_diagnostics.stage_timings` contains the same totals without the `agentic_`
+prefix; each `validation_attempts` entry has its own request timings. Failed requests
+are timed too; skipped stages are absent. Existing summary/report aggregation includes
+these measurements automatically. Older runs cannot be retroactively timed.
+
+Reduce unnecessary repair calls first: false numeric rejections can turn two synthesis
+calls into four. Drafts are prompted to avoid unrequested background and repetition;
+reviews use empty success feedback and short but sufficient evidence quotes. This follows
+[OpenAI's latency guidance](https://developers.openai.com/api/docs/guides/latency-optimization)
+to reduce output tokens and requests, without lowering token caps or removing independent
+verification. A live rerun must establish the actual latency/quality effect.
+Increasing `EVAL_CONCURRENCY` speeds a multi-question batch, not a single question;
+draft, review and any repair remain dependent steps. `AGENT_REASONING_EFFORT` controls
+retrieval planning and `AGENT_VERIFIER_REASONING_EFFORT` controls answer review.
+`AGENT_DRAFT_REASONING_EFFORT` separately controls compatible GPT-5 Agentic draft/repair
+calls; empty preserves provider defaults. It does not change baseline modes or token caps
+and is ignored for non-GPT-5 models. For a host-side controlled `gpt-5-mini` test:
+
+```bash
+make eval-run \
+  EVAL_REVIEWED=data/evaluation/markdown-mini-v4/questions.split.json \
+  EVAL_SPLIT=development EVAL_MODES=agentic \
+  EVAL_QUESTION_ID=q0046 EVAL_JUDGE=true \
+  EVAL_DRAFT_REASONING_EFFORT=low
+```
+
+The Make option sets `AGENT_DRAFT_REASONING_EFFORT` for this host process only. Omit it
+to preserve `.env`/environment settings (an empty Make option does not clear them).
+No paid benchmark is run automatically; compare latency and quality in fresh runs under
+the same judge policy, once with the configured default and once with this override.
+Lower reasoning is a controlled experiment, not a guaranteed speedup or quality improvement.
+This override configures the host benchmark, not an already-running API container.
+To use it in Streamlit, set `AGENT_DRAFT_REASONING_EFFORT=low` in your `.env` and rebuild
+the API with `docker compose up -d --build api`. Compare draft/review timings and actual
+answer coverage before claiming a speedup. No re-index or new dataset is needed.
+
+`AGENT_MAX_PLANNER_TOKENS` defaults to 20,000 and is currently capped at 20,000 by
+`AgentBudget`. It counts only LangGraph planner prompt/output usage, not answer
+generation, verification or judging. The next planner call is preflight-estimated from
+its growing message history, tool schemas, full possible output allowance and a margin;
+therefore `token_budget` can occur well below 20,000 *spent* tokens. Do not raise the
+ceiling merely because this stop reason appears; first inspect spent tokens, retrieved
+evidence, answer status and stage timings. New token-budget stops also record
+`next_call_estimated_tokens`; `summary.json` reports the mean of spent plus
+estimated next-call tokens for preflight stops. This is a conservative planning
+estimate, not billed usage. The previous run cannot provide this estimate
+retroactively.
+
+Agentic execution also records `initial_searches` separately from answer `requirements`.
+Action `need_ids` can associate one search with several requirements; synthesis-only tasks
+remain part of final answer review, not the factual search-coverage denominator.
+`AGENT_MAX_PARALLEL_TOOLS` defaults to four simultaneous tools per request (1–8), including
+additional independent searches in a later round. The run manifest freezes this value;
+request-level `EVAL_CONCURRENCY` is a separate setting, so increasing both multiplies load.
+Compare stage timings before claiming a speedup: planner rounds and answer reviews remain
+sequential. This change needs neither re-indexing nor new reviewed questions.
+
+The three synthesis policies are:
+
+- `model_finish`: the planner explicitly declared its collected evidence sufficient;
+- `evidence_fallback`: bounded retrieval stopped for another reason, but collected scoped
+  chunks were passed to Agentic's reviewed generator, which can produce a partial answer;
+- `hard_stop`: no chunks were available, so answer generation was skipped.
+
+When a question quotes full indexed paper titles, Agentic resolves those titles against the
+bounded PostgreSQL catalogue before planning. Every resolved build becomes required coverage:
+the planner is told to search each build independently. Missing builds remain visible in
+execution diagnostics but do not block verified partial synthesis. Unsupported requested
+details must be explicitly disclosed. This uses catalogue scope, not evaluation gold evidence.
+Planner-visible chunk previews are compact; full chunks remain available to generation.
+
+If baseline generation exhausts its single citation-validation retry, the result is retained as
+a safe abstention with the retrieved chunks and `generation_diagnostics`. It is scored as an
+answer rather than counted as a runtime error; summaries aggregate the diagnostic status and
+reason.
+
+Agentic uses one initial draft/review and at most one repair/review, or one review-only
+annotation correction instead of content repair, preserving verified claims rather than
+treating missing coverage as an all-or-nothing failure. `AGENT_MODEL` performs runtime
+review; draft/repair use the answer model. This is not an independent ground-truth judge. It increases
+latency/cost and must be evaluated as a pipeline change. Planner usage excludes these calls;
+full benchmark latency includes them. Langfuse records separate draft, verify and repair
+generation spans. See [Agentic answer checks](../architecture/rag-modes.md#agentic-answer-checks-and-repair).
+Existing frozen questions and evidence can be reused unchanged; no re-indexing is required.
+
+To inspect one previously problematic development question before paying for a complete
+rerun:
+
+```bash
+make eval-run \
+  EVAL_REVIEWED=data/evaluation/markdown-mini-v4/questions.split.json \
+  EVAL_SPLIT=development \
+  EVAL_MODES=agentic \
+  EVAL_QUESTION_ID=q0005 \
+  EVAL_JUDGE=true
+```
 
 The runner ignores non-approved records and queries the **frozen build IDs** saved in
 `snapshot.json`, not whatever papers happen to be active after later daily ingestion.
@@ -306,11 +614,332 @@ It fails if the reviewed file does not match that snapshot or if its embedding m
 differs from the configured query embedding model. Retained Qdrant builds must therefore
 remain available while a benchmark snapshot is in use.
 
+The build filter freezes which chunks are eligible, but Qdrant's BM25 `IDF` statistics are
+collection-wide. Adding or retaining points in that collection can therefore slightly
+change sparse scores even for a frozen build set. For a final repeatable comparison, pause
+ingestion for the run (or clone/snapshot the Qdrant collection); record this limitation when
+comparing runs made at different times.
+
+The default `EVAL_MODES` is `vanilla hybrid hybrid_rerank agentic`. Override it to isolate a
+change, for example `EVAL_MODES="hybrid hybrid_rerank"`. `hybrid_rerank` requires Cohere;
+plain `hybrid` does not. Agentic also requires PostgreSQL because its paper-discovery tool
+uses the catalogue, while its Qdrant scope remains frozen to the snapshot.
+
+Snapshots made against a dense-only collection cannot exercise BM25 sparse retrieval. After
+migrating to the v2 dense+sparse collection, either rebase an existing reviewed dataset as
+described below or generate a new one. Keep old datasets/runs as historical baselines rather
+than rewriting their point IDs or snapshot hashes.
+
+### Rebase an existing reviewed dataset after re-indexing
+
+Rebasing reuses the reviewed questions and reference answers without regenerating them. It
+creates a new snapshot and remaps Qdrant point/build/collection identities while preserving
+the dataset-local `evidence_id` values referenced in answers and citations.
+
+Keep the old Qdrant collection and retained PostgreSQL builds available until this comparison
+finishes. The command reads both complete text-chunk streams; it does not call a model or
+write PostgreSQL/Qdrant:
+
+```bash
+make eval-rebase \
+  EVAL_FROM=data/evaluation/markdown-mini-v3/questions.split.json \
+  EVAL_DIR=data/evaluation/markdown-mini-v4
+```
+
+The destination must not already exist. It contains:
+
+- `snapshot.json`: the same paper set resolved to current active dense+sparse builds;
+- `questions.reviewed.json`: copied questions with remapped evidence;
+- `rebase.json`: per-paper equivalence and evidence-mapping report.
+
+Approval is retained only when the paper version, complete ordered text stream and scientific
+metadata (title, abstract, authors, year and categories) are identical. Approved corpus-level
+unanswerable questions additionally require every paper in the frozen corpus to be identical.
+Anything changed, missing or ambiguous becomes `needs_review`; its earlier review is retained
+under `previous_review` for audit but is no longer treated as approval. Existing development/
+test assignments are cleared because approval membership may have changed.
+
+Inspect `rebase.json` and any `needs_review` records. After completing that review, recreate
+the paper-group split and validate it:
+
+```bash
+make eval-split EVAL_DIR=data/evaluation/markdown-mini-v4
+make eval-validate \
+  EVAL_REVIEWED=data/evaluation/markdown-mini-v4/questions.split.json
+```
+
+The old directory remains untouched and can still reproduce the historical dense-only run.
+To expand v4 with additional questions, create candidates against the current corpus in a
+separate directory and review them before deliberately merging them; the rebase command does
+not silently append or renumber questions.
+
 Without the judge, the report contains deterministic retrieval and citation measures.
-`EVAL_JUDGE=true` adds correctness, groundedness and answer-relevance scores using
+`EVAL_JUDGE=true` makes two isolated judge requests per answer using
 `gpt-5-mini` with minimal reasoning by default. Override with
 `EVAL_JUDGE_MODEL` or `EVAL_JUDGE_REASONING_EFFORT`. Gold-citation recall is deliberately
-strict: a valid alternative passage may support an answer but still score as a miss.
+strict: a valid alternative passage may support an answer but still score as a miss. The
+reference judge sees the reviewed answer/evidence and scores correctness/relevance; the
+grounding judge receives each generated atomic claim with only the retrieved excerpts that claim
+cites. It checks factual support and correct entity/paper/source attribution, so a chunk about
+one study cannot substantiate a claim attributed to another. This separation prevents gold
+evidence or unrelated retrieved chunks from being mistaken for support and roughly doubles
+judge-call cost relative to the historical combined judge. Numeric endpoints, inequalities,
+units and uncertainties are explicitly substantive in the correctness rubric. Answerable items
+that clearly abstain are deterministically assigned correctness `0`; `correct_abstention` is
+reported only for unanswerable candidates. For a cross-paper answer that cites evidence while
+deterministic metrics show a required paper was never retrieved, the runner overrides groundedness
+to `0` and records the change in `judge_safeguards`; an LLM judge cannot overrule that provenance
+fact.
+
+New runs use `judge_policy: claim-role-bound-v13` in the manifest. The reference judge must
+assess every original question part, enumerate its requested facts, and select existing
+`answer_claim_ids` from the **actual generated answer**, rather than retyping quotations.
+For numeric facts, checks also list the canonical
+numeric values required by the reviewed reference. `judge.answer_checks` preserves these
+assessments. The runner resolves IDs into unchanged local `answer_quotes` for numeric checks.
+Missing/incorrect facts or required numbers absent from selected answer text cap **scorable**
+correctness at `0.5` and are recorded in
+`judge_safeguards`. Correct refusals for unanswerable questions are assessed as refusals,
+not penalized for missing facts. Existing answerable-abstention and provenance safeguards
+still apply. These are fallible model assessments plus deterministic checks, not proof of
+semantic correctness. The grounding judge remains reference-isolated. Do not treat historical
+scores from previous judge policies as like-for-like
+comparisons, and do not rewrite historical runs.
+
+The following version history explains older results; current runs use version 11 below.
+Version 3 fixes presentation-related false penalties: shared scientific range multipliers
+apply to both endpoints, explicit `50%` can match the canonical fraction `0.5`, and quoted
+answer passages tolerate whitespace/capitalization differences. Bare counts do not become
+fractions; changed values, invented wording and stitched/ellipsis quotes still fail.
+Quotes must be separate contiguous excerpts of the actual answer, never reference text.
+An invalid reference-judge quote uses the **existing single retry budget**, shared with
+schema failures, to correct formatting. It does not add another retry or retry genuine
+missing facts. `judge_request.reference.quote_validation_failures` records safe check indices
+and counts; all returned response IDs and available usage are retained. If the second quote
+still fails, the score safeguard remains in force. Normal judging still uses two requests
+(reference + grounding); a quote-format repair can add one reference request within the
+existing bound, so it may increase evaluation-only latency.
+
+Set the benchmark judge budget in `.env` (also shown in `.env.sample`):
+
+```dotenv
+EVAL_JUDGE_MAX_OUTPUT_TOKENS=16384
+```
+
+This defaults to 16,384 and applies **per request** to both the reference and grounding
+judges, including their single bounded retry. Valid values are 256–128,000; this is not a
+total-run budget. It is independent of `GENERATION_MODEL_MAX_TOKENS` and
+`AGENT_VERIFIER_MAX_COMPLETION_TOKENS`. `make eval-run` loads it through the Python settings;
+no new Make option or API/container rebuild is needed for host evaluations. `.env.sample`
+is a template, not the loaded configuration; existing `.env` files can omit this setting
+and receive the new default.
+
+The previous hard-coded 1,200-token cap was too restrictive for expanded per-fact JSON
+checks. 16,384 is a starting allowance, not a guarantee: increase to 32,768 if complex
+checks still truncate. Reasoning and visible JSON share the cap, as described in
+[official OpenAI documentation](https://developers.openai.com/api/docs/guides/reasoning).
+Increasing it permits more generation and therefore potentially more latency/cost; it does
+not force the judge to consume the full allowance. No automatic cap escalation or extra
+retry is added. Manifests record `judge_max_output_tokens` (null when judging is disabled),
+and successful `judge_request.reference` / `judge_request.grounding` records each
+`max_output_tokens`. Historical runs remain unchanged.
+
+Version 4 constrains `required_numeric_values` to decimal strings such as `"0.0008"` or
+`"-2"` using a native Pydantic string pattern. Qualitative checks use a real empty array
+`[]`, **not** `["[]"]`; symbolic settings such as `"[Rout = Rsg]"`, units and scientific
+notation strings are invalid numeric targets. Symbolic conditions belong in `requested_fact`.
+The judge must assess the **reported outcome effect** separately from listing tested settings.
+The SDK supplies the schema to the provider and validates the response, following
+[OpenAI Structured Outputs guidance](https://developers.openai.com/api/docs/guides/structured-outputs).
+Malformed numeric targets use the existing single schema/quote-format retry with safe
+validation feedback. `judge_request.reference.schema_validation_failures` records error
+codes/locations; it does not expose rejected text. If both attempts are invalid, the item
+records a judge error instead of silently scoring malformed targets. Existing retry bounds,
+grounding isolation and historical artifacts remain unchanged. Rerun all compared modes
+under the same current policy for like-for-like scores; no re-indexing or new evaluation dataset is required.
+
+Version 5 adds required `missing_or_incorrect_detail` to each reference-judge check.
+For `partial`, `missing`, or `incorrect`, the reviewer must identify the exact absent/wrong
+fact, value, unit, condition or comparison and contrast expected versus supplied information.
+For `answered`, this field should be empty. Version 5 initially enforced that pairing with
+Pydantic cross-field validation; version 7 instead records contradictions as reviewable
+semantic conflicts, as described below. A **missing field**, wrong type or invalid enum still
+fails native schema parsing and shares the existing bounded schema retry. No additional
+scoring model is introduced. The provider schema continues to require the field.
+
+The prompt asks the judge to reconcile its aggregate explanation with per-fact verdicts,
+and not turn optional reference examples into mandatory user requirements. Incorrect added
+claims still affect correctness. A nonempty explanation is **not proof** that a deficit is
+real: inspect it alongside `requested_fact`, `answer_quotes` and the reviewed reference.
+Legitimate partial answers still score at most `0.5`; matching numeric targets do not
+automatically upgrade semantic coverage. Historical scores are never rewritten. Compare
+all four modes in fresh runs under the same current policy before drawing broader conclusions.
+
+Version 6 separates `deficit_basis` into `none`, `missing_content`, `incorrect_content`,
+or `reference_ambiguity`. `answered` requires `none`; non-full verdicts require a deficit
+basis. For literal omissions, `claimed_missing_answer_fragments` lists up to three short
+fragments alleged absent. The runner searches the **whole actual answer**, not just the
+judge's selected quotes, for those fragments. Semantic omissions with no literal fragment
+use `[]`; presence alone does not establish correct attribution or semantic coverage.
+An existing but wrong statement is `incorrect_content`, not a literal omission.
+
+The judge is instructed to prefer clear reference prose/captions for the **same quantity,
+entity and simulation case** over damaged picture labels, without guessing signs or changing
+source text. A reference excerpt selection is not the whole paper: absent optional details
+are not proven false, and unavailable captions must not be invented. Unresolved reference
+conflicts are `reference_ambiguity`, not demonstrated answer errors. No retrieved evidence
+or grounding-judge verdict is injected into the reference judge to resolve them.
+
+An omission fragment found in the answer, or a declared reference ambiguity, triggers
+consistency feedback using the **same single retry** shared with schema/quote failures.
+No extra judge model or retry loop is added. If the conflict persists on the second attempt,
+version 7 retains the raw assessment with `judge_request.reference.consistency_status: needs_review`
+and leaves effective reference correctness unscored rather than promoting it or assigning a penalty.
+`consistency_validation_failures` records safe attempt/check indices and reason codes;
+`no_detected_conflict` means only that these checks detected nothing, not semantic proof.
+Summary JSON (including profile summaries) and the Markdown report expose `judge_consistency`
+and `needs_review_question_ids`; review those before interpreting correctness averages.
+This applies to every mode. Historical scores/datasets are unchanged. A bounded retry can
+increase benchmark-only latency; API answers receive no additional calls. No re-indexing
+or container rebuild is needed for the host benchmark.
+
+Version 7 separates **structural parsing** from **verdict consistency**. A structurally valid
+`answered` check with a nonempty deficit, an unexplained non-full verdict, a status/basis
+mismatch, inappropriate/blank omission fragments, source ambiguity or unresolved quote failure
+uses the existing single retry. If it remains unresolved:
+
+- `judge.correctness` and `metrics.answer_correctness` are `null`, not `0` or `0.5`;
+- `judge.reference_score_status` and `judge_request.reference.score_status` are
+  `unscored_needs_review`; the provider's numeric score remains at
+  `judge_request.reference.raw_correctness` for inspection;
+- the answer, claims, evidence, citations, retrieval metrics, execution/generation diagnostics
+  and timings are retained; the isolated grounding judge still runs and its score is retained;
+- reference abstention accuracy is also unscored for that item; schema-valid relevance is
+  retained independently;
+- correctness safeguards do not fabricate a score for a null reference assessment, and
+  Langfuse receives no numeric correctness score for it (review metadata remains traced).
+
+This is a completed RAG item **needing judge review**, not a retrieval/generation error.
+Strict parsing still rejects genuinely malformed outputs; this change does not coerce missing
+fields, change values or accept invalid JSON. Such failures retain their existing error handling.
+Normal judge cost remains one reference plus one grounding request, with at most one reference
+repair. No extra calls, token caps, model/reasoning changes or historical edits are introduced.
+
+Aggregate and profile summaries include `metric_sample_counts`, with `scored` and `unscored`
+counts per metric. Means include only numeric samples; an entirely unscored metric is `null`.
+The Markdown report shows correctness scored/unscored counts alongside its mean. Null is neither
+a success nor a failure: compare coverage across modes before comparing scores, as inconsistent
+judges may leave systematically harder questions unscored. Raw assessments do not enter the
+averages and are never automatically promoted to full correctness.
+
+Version 8 replaces model-copied answer quotations with native-enum `answer_claim_ids`.
+Before judging, the runner freezes exact rendered claims as `a0001`, `a0002`, etc.; remaining
+answer text, including refusals and disclosed gaps, gets exact answer-span anchors too.
+Unrendered claims cannot become answer evidence. `judge.answer_anchors` saves the ID/text map;
+each check saves the selected IDs and locally resolved `answer_quotes`. No source/reference
+text is used to construct anchors, and no answer text is truncated, rewritten or fuzzy-matched.
+This removes the need for the judge to retype long passages (and accidentally alter wording).
+It follows the existing native Pydantic/SDK structured-output path; no new framework is added.
+
+The judge still reads the **whole answer** and must evaluate semantic accuracy, attribution,
+coverage and numeric values. An ID proves text identity only, not that the claim is true or
+answers the requested fact. Unknown IDs fail strict schema parsing; an `answered` check with
+no selected IDs, or duplicate IDs within a check, shares the existing one-retry budget.
+Unresolved anchor/semantic conflicts remain unscored and still receive isolated grounding.
+Legacy quote safeguards remain available for old results; historical artifacts are never edited.
+
+`judge_request.reference.answer_anchor_mode` is `claim_ids` for new runs. The existing
+`quote_validation_failures` field also records empty/duplicate anchor selections for compatibility.
+`judge_consistency.flagged_runs` now counts runs with **either** quote/anchor failures or
+semantic-consistency failures, including repaired attempts. `needs_review_question_ids` lists
+only unresolved conflicts. A recovered structural parse failure alone is not a consistency flag.
+
+Version 9 adds typed source-operation records to isolated grounding. Inspect
+`judge_request.grounding.method_attributions`: each entry identifies a claim, named method,
+claimed/source operation, verdict and quotes. The source operation is extracted independently
+as a short verbatim phrase from that claim's own cited evidence. Declared mismatches or
+unsupported operation quotes cap full groundedness at `0.5`; metadata retains
+`raw_groundedness` and `method_validation_failures`. No additional judge request or semantic
+retry is added. Reference anchoring remains version 8's native claim-ID scheme. Grounding still
+receives no reference answer or gold evidence. Do not compare different judge policies as
+like-for-like or rewrite historical scores.
+
+Both benchmark reviewers and Agentic's runtime verifier explicitly check **method purpose,
+target population and pipeline step**. For example, a procedure selecting dataset membership
+must not be credited with a separate procedure identifying relationships within that dataset.
+Nearby text or shared inputs do not make the methods interchangeable. Generic offline fixtures
+exercise prompt wiring and preservation/repair of these verdicts; they do not prove a live model
+will detect every semantic error. A fresh run is still needed to confirm quality and latency.
+
+Version 10 narrows v9's method audit. Ordinary facts need no named-method gate: the native
+schema permits `[]` or a compact `not_applicable` entry (grounding adds `claim_index`).
+`proposed_use` distinguishes a labelled future use from a claim about an operation already
+performed; its reported premises still require support. Actual `reported_operation` entries
+require literal `claim_quote` wording and a source quote naming both the method and operation.
+An audit that names a method absent from the answer claim appears in `method_scope_issues`
+instead of creating a spurious unsupported-method rejection. General factual/numeric checks
+and the judge's own score remain in force; ignoring an irrelevant method annotation does not
+automatically promote an unsupported claim or judge score.
+
+Quote matching normalizes letter-word hyphen presentation, not numeric signs/values, and
+retains ellipsis markers so omitted/invented source words do not pass as contiguous quotes.
+The same rules apply to runtime review and reference-isolated grounding. Native SDK tests
+exercise both conditional branches, false placeholder annotations, own-citation scope and
+bounded request counts. They do not prove live semantic accuracy or fix network failures.
+No models, budgets, retries, datasets or historical results are changed; fewer false rejections
+may avoid repair/review calls, but latency improvement needs a new run.
+
+Version 11 (`claim-anchored-v11`) separates invalid judge annotations from answer defects.
+A method audit quoting invented claim wording, an unknown claim index, or an uncited/invalid
+source passage uses the grounding request's **existing single retry**, shared with schema
+validation. Inspect `judge_request.grounding.annotation_validation_failures` for attempt
+indices and safe error codes. If still invalid, `groundedness` is null and grounding
+`score_status` is `unscored_needs_review`; `raw_groundedness` remains diagnostic, not a score.
+A correctly anchored declared role mismatch or unestablished role still caps grounding
+at 0.5. No repair is added for genuine semantic disagreement, and an irrelevant method
+annotation remains a scope diagnostic rather than an ordinary-fact gate.
+
+Summary/profile `grounding_consistency` records corrected/remaining annotation failures and
+question IDs needing review. The report shows grounding scored/unscored denominators.
+Version 12 binds grounding method audits to `answer_claim_id` from a native enum of this
+answer's actual claims. `claim_anchors` maps those IDs to local indices; the unchanged claim
+text and its own citations are supplied once per claim. The runner resolves IDs locally
+and records `answer_anchor_mode: claim_ids`. Do not confuse these anchors with reference
+anchors, which also include other rendered answer spans. Unknown IDs or a provider-emitted
+numeric `claim_index` are strict schema errors, using the same single correction;
+exhaustion leaves grounding null/`unscored_error`, preserving the completed RAG output.
+Valid IDs do not establish support: literal own-source quotes and method-role checks remain
+strict. Historical index-based outputs stay readable; no historical score is rewritten.
+There are normally two judge requests, at most four when BOTH isolated requests need their
+single correction. No provider transport retry, model change or automatic cap escalation is
+introduced. This preserves the native [SDK/Pydantic structured-output path](https://developers.openai.com/api/docs/guides/structured-outputs).
+
+There are no additional calls, higher token limits, model/reasoning changes, new datasets or
+re-indexing. The ID scheme should avoid copied-quote retries and reduce response text, but does
+not guarantee faster model execution. Host benchmarks use this code immediately; rebuild the
+API to pick up the runtime verifier's method-role contract. Runtime diagnostics expose
+`method_role_contract: answer-bound-cited-operation-v3`, per-attempt `method_attributions`,
+`method_scope_issues` and
+`duplicate_claims_omitted`. Confirmed citation prefixes are cleaned before numeric checking;
+unresolved UUID-like abbreviations remain observable format failures. Planning guidance splits
+requested baseline measurements and parameter effects into focused evidence needs. These
+changes use the existing bounded parallel searches and single repair, without guaranteeing
+that every model-generated plan or method verdict is semantically correct.
+
+Version 13 binds the method audit's `claim_quote` locally to the actual answer selected
+by claim index/ID; a copied source quotation cannot replace that identity. Source-operation
+quotes remain independently checked against only the claim's own citations. Conservative
+explicit named-method cues are supplied as `reported_methods_to_audit`, not source evidence.
+Empty/non-applicable/proposal audits cannot waive a reported premise: runtime uses its
+existing content-repair slot, while grounding shares its existing single annotation/schema
+correction and remains unscored if unresolved. Genuine declared mismatches still cap
+grounding, and ordinary facts/proposals do not acquire an invented method gate. These cues
+are not exhaustive classification or semantic proof. Models, limits, indexes, historical
+results and reviewed datasets remain unchanged; use fresh comparable runs under v13.
+
+All four explicit modes resolve quoted full paper titles against the bounded catalogue. If
+retrieval omits any resolved build, generation is skipped and `generation_diagnostics`
+records `named_paper_coverage_failed`. This is a scored safe abstention, not a benchmark error.
 
 | Metric | Meaning |
 | --- | --- |
@@ -318,19 +947,56 @@ strict: a valid alternative passage may support an answer but still score as a m
 | `retrieval_recall` | Fraction of reviewed reference points retrieved |
 | `gold_citation_recall` | Fraction of reviewed reference points selected as citations by the answer model |
 | `citation_from_retrieval` | Fraction of selected citation IDs that came from the retrieved set |
+| `required_paper_retrieval_recall` | Fraction of the question's reviewed paper IDs represented in retrieved chunks |
+| `required_paper_citation_recall` | Fraction of the question's reviewed paper IDs represented in cited chunks |
+| `all_required_papers_retrieved` | Whether every reviewed paper for the question was represented in retrieval |
 | `answer_correctness` | Judge comparison with the reviewed reference answer/evidence |
 | `groundedness` | Judge assessment that answer claims follow from retrieved evidence |
 | `answer_relevance` | Judge assessment that the answer addresses the question |
 | `correct_abstention` | For accepted unanswerable cases, whether the answer declined to invent information |
 
 Judge metrics use `0`, `0.5`, or `1`; they are model assessments, not human ground truth.
-Errors are retained per item, processing continues, and the final manifest becomes
-`completed_with_errors`. Partial results survive a stopped process, but automatic resume
+Each result also retains claim text, cited point IDs and Agentic need IDs. This makes it
+possible to audit which exact excerpt was offered as support for each statement. A validated
+answer is displayed with inline numbered references; each number maps to a source/page entry in
+the UI.
+
+RAG pipeline errors are retained per item and produce `completed_with_errors`. A judge
+connection/schema failure instead preserves the completed answer, claims, evidence,
+retrieval metrics, execution/generation diagnostics and timings. `error` remains null;
+`judge_error` identifies the failed reference/grounding stage using safe cause types only.
+Failed-stage scores are null with `score_status: unscored_error`; the other isolated judge
+still runs and keeps its own valid scores. No gold evidence crosses into grounding.
+Summary/profile `errors` counts RAG failures and `judge_errors` counts items with failed
+judging. A run with only judge failures becomes `completed_with_judge_errors`, not a clean
+success or a generation failure. Known response IDs/usage survive failed corrections;
+`usage_incomplete` marks unknown billing, never zero paid usage. Null scores are excluded
+from averages/Langfuse numeric scores but counted in unscored denominators.
+
+Processing continues. Partial results survive a stopped process, but automatic resume
 of an interrupted benchmark run is not implemented yet; a new invocation creates a new run.
+An in-flight question is saved after evaluation returns; process termination mid-question
+is not covered. Judge-only replay is not implemented; do not claim a retry avoids paid RAG work.
+OpenAI answer generation and each of the two judge calls make at most one additional call
+when a structured model response fails local validation. Judge metadata records reference
+and grounding requests separately, including response IDs and usage. Other service failures
+are not retried by the runner.
 
 `EVAL_MODES="vanilla"`, `EVAL_SPLIT=development`, `EVAL_TOP_K=10`,
 `EVAL_GENERATION_MODEL=...`, and `EVAL_CONCURRENCY=...` are available for controlled experiments. Use concurrency 1
 until provider rate limits are understood.
+Use `EVAL_PROFILES="cross_comparison cross_multihop"` to run only selected profiles.
+Use `EVAL_QUESTION_ID=q0033` to reproduce one approved item from the selected split without
+rerunning the whole benchmark; this still performs paid generation and optional judge calls.
+
+For `hybrid_rerank`, each result now persists the complete Cohere ordering of the 20 Hybrid
+candidates (IDs, paper IDs, titles and scores), plus candidate-versus-selected paper counts.
+This diagnoses whether a miss began in Hybrid candidate generation or whether global top-five
+reranking discarded useful paper diversity. The aggregate report compares reviewed required-
+paper recall before and after reranking. Diagnostic collection does not itself change
+selection.
+For explicitly quoted full titles, a separate deterministic diversity guard reserves the
+highest-ranked candidate from each named paper before filling the remaining final positions.
 
 Schema-v1 datasets have no split metadata. Do not tune repeatedly on all of their approved
 questions and then describe the same scores as held-out performance.
@@ -338,8 +1004,8 @@ questions and then describe the same scores as held-out performance.
 ## Track runs in Langfuse
 
 Enable Langfuse as described in [Observability](observability.md). The same `make eval-run`
-then uploads the reviewed set to a content-addressed Langfuse Dataset and records Vanilla
-and Hybrid as separate Dataset Experiments. Stable dataset-item IDs make synchronization
+then uploads the reviewed set to a content-addressed Langfuse Dataset and records every
+selected mode as a separate Dataset Experiment. Stable dataset-item IDs make synchronization
 idempotent; changing reviewed content creates a new dataset identity. The local run files
 remain the authoritative, checkpointed record.
 

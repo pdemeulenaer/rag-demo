@@ -1,0 +1,367 @@
+{
+  "schema_version": 1,
+  "run_id": "20260928T094509Z-0ec132f0",
+  "results": [
+    {
+      "question_id": "q0030",
+      "kind": "single_paper",
+      "profile": "single_synthesis",
+      "mode": "agentic",
+      "question": "According to “A new clump-based star formation model for galaxy simulations: implications for high-redshift compact star clusters”, how does increasing disc compactness (ξ) from 0 to 10 in 10^10 M☉ haloes affect (a) the maximum gas clump mass and surface density, (b) the fraction of clumps exceeding a surface density threshold Σc,th = 300 M☉ pc^-2, and (c) the global star formation efficiency at t = 3 t_dyn? Please answer with the quantitative values reported in the paper.",
+      "reference_answer": "(a) Maximum clump mass increases from ≈ 10^5.1 M☉ at ξ = 0 to ≈ 10^7.4 M☉ at ξ = 10; maximum clump surface density increases from ≈ 10^2.9 M☉ pc^-2 to > 10^4.0 M☉ pc^-2. (evidence_id: 0c3dbf13da9dd4027969933c)\n\n(b) The fraction of clumps with Σc ≥ 300 M☉ pc^-2 rises from 0.25 at ξ = 0 to 0.34 at ξ = 6 and 0.38 at ξ = 10. (evidence_id: 0c3dbf13da9dd4027969933c)\n\n(c) The global star formation efficiency at t = 3 t_dyn increases monotonically from 5 × 10^-3 at ξ = 0 to 2 × 10^-1 at ξ = 10 (for the 10^10 M☉ haloes). (evidence_id: 160dd9270d4a618cf6df643a)",
+      "answer": "I could not find sufficient indexed evidence to answer this question.",
+      "retrieved_chunks": [
+        {
+          "id": "18f8cba6-d22e-5502-8ed3-aaa23529c51b",
+          "text": "_Clump-based SF model for galaxy simulations_ 9 \n\n**==> picture [244 x 428] intentionally omitted <==**\n\n**----- Start of picture text -----**<br>\nt = tdyn t = 2tdyn t = 3tdyn<br>10 [2]<br>3.0 kpc<br>t = tdyn t = 2tdyn t = 3tdyn 10 [1]<br>0.8 kpc 10 [0]<br>t = tdyn t = 2tdyn t = 3tdyn<br>10 1<br>0.5 kpc<br>t = tdyn t = 2tdyn t = 3tdyn<br>10 [2]<br>3.0 kpc<br>t = tdyn t = 2tdyn t = 3tdyn 10 [1]<br>0.8 kpc 10 [0]<br>t = tdyn t = 2tdyn t = 3tdyn<br>10 1<br>0.5 kpc<br>]<br>2<br>−<br>pc<br> ⊙<br>Gas Surface Density [M<br>]<br>2<br>−<br>pc<br> ⊙<br>Stellar Surface Density [M<br>**----- End of picture text -----**<br>\n\n**Figure 8.** Same as Fig. 6, but for the 10[11] M⊙ halo simulations. \n\nmost stars are formed until _𝑡_ ≈ _𝑡_ dyn. The resulting galactic SFEs are ≈ 2 × 10[−][2] , 7 × 10[−][2] , 1 × 10[−][1] , 2 × 10[−][1] , 3 × 10[−][1] , and 4 × 10[−][1] for _𝑧_ = 0, 2, 4, 6, 8, and 10, respectively. These results suggest that galaxies embedded in 10[11] M⊙ haloes can form stars several times more efficiently than those in 10[10] M⊙ haloes.",
+          "collection": "arxiv_papers_v2",
+          "build_id": "98d92e11-59c4-578b-b42d-dfc56eef2963",
+          "paper_id": "182eff16-1efd-59c5-923f-4ff3626a9770",
+          "title": "A new clump-based star formation model for galaxy simulations: implications for high-redshift compact star clusters",
+          "arxiv_id": "2609.07635",
+          "paper_version": 1,
+          "source_url": "https://arxiv.org/abs/2609.07635v1",
+          "authors": [
+            "Shu Horie",
+            "Hidenobu Yajima"
+          ],
+          "year": 2026,
+          "page": 9,
+          "section_header": "**A new clump-based star formation model for galaxy simulations: implications for high-redshift compact star clusters** > _3.1.3 Bound star clusters_",
+          "content_kind": "text",
+          "chunk_index": 48,
+          "score": 0.56666666,
+          "rerank_score": null,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        },
+        {
+          "id": "e557fa8e-c92a-54a4-a25e-4cf277df7a40",
+          "text": "## **5 CONCLUSION** \n\nWe have investigated how the compactness of galactic discs regulates clumpy star formation and the formation of bound star clusters. To this end, we have developed a new star formation model (CSF) in which star-forming gas clumps are identified on-the-fly and converted into stars with an efficiency _𝜖_ SF set by the clump surface density Σc, calibrated against the radiation hydrodynamics simulations of Fukushima & Yajima (2021). We apply the model to isolated disc galaxies embedded in haloes of _𝑀_ h = 10[9] , 10[10] and 10[11] M⊙ with a fixed gas-to-halo mass ratio of 0 _._ 01, adopting disc scale radii \n\nappropriate for _𝑧_ = 0–10 as a proxy for compactness. Our main results are summarised as follows. \n\n(i) Compact discs form more massive and denser gas clumps. In the 10[10] M⊙ haloes, the maximum clump mass increases from ∼ 10[5] _[.]_[1] to 10[7] _[.]_[4] M⊙ and the maximum clump surface density from ∼ 10[2] _[.]_[9] to _>_ 10[4] _[.]_[0] M⊙ pc[−][2] between _𝑧_ = 0 and 10. The fraction of clumps exceeding Σc _,_ th = 300 M⊙ pc[−][2] rises from 0 _._ 25 at _𝑧_ = 0 to 0 _._ 34 at _𝑧_ = 6 and 0 _._ 38 at _𝑧_ = 10, and the most compact discs host clumps with _𝜖_ SF ∼ 1. ",
+          "collection": "arxiv_papers_v2",
+          "build_id": "98d92e11-59c4-578b-b42d-dfc56eef2963",
+          "paper_id": "182eff16-1efd-59c5-923f-4ff3626a9770",
+          "title": "A new clump-based star formation model for galaxy simulations: implications for high-redshift compact star clusters",
+          "arxiv_id": "2609.07635",
+          "paper_version": 1,
+          "source_url": "https://arxiv.org/abs/2609.07635v1",
+          "authors": [
+            "Shu Horie",
+            "Hidenobu Yajima"
+          ],
+          "year": 2026,
+          "page": 11,
+          "section_header": "**A new clump-based star formation model for galaxy simulations: implications for high-redshift compact star clusters** > **5 CONCLUSION**",
+          "content_kind": "text",
+          "chunk_index": 60,
+          "score": 0.5,
+          "rerank_score": null,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        },
+        {
+          "id": "2d553e37-e71a-5d0a-b7f7-998d457e45fa",
+          "text": "## _3.1.2 Gas clumps_ \n\nThe left panel of Fig. 4 shows the one-dimensional probability distribution functions (PDFs) of the masses, _𝑀_ c, of identified gas clumps. Because of the particle-number threshold adopted in the GMC identification algorithm, gas clumps with _𝑀_ c ≲ 5 × 10[4] M⊙ cannot be identified. We find that the mass distributions strongly depend on the compactness of the host galaxies. In all simulations, the PDFs peak \n\nat _𝑀_ c ≈ 10[4] _[.]_[8] M⊙ which is close to the minimum mass of identified GMCs, whereas the maximum clump mass increases significantly towards higher _𝑧_ . The maximum masses reach ∼ 10[5] _[.]_[1] , 10[6] _[.]_[3] , and 10[7] _[.]_[4] M⊙ for the _𝑧_ = 0, 6, and 10 cases, respectively. Although massive clumps become progressively rarer at higher masses, the overall mass distributions broaden substantially in more compact galaxies. These results indicate that compact high- _𝑧_ galaxies preferentially form more massive GMCs over a wider mass range. ",
+          "collection": "arxiv_papers_v2",
+          "build_id": "98d92e11-59c4-578b-b42d-dfc56eef2963",
+          "paper_id": "182eff16-1efd-59c5-923f-4ff3626a9770",
+          "title": "A new clump-based star formation model for galaxy simulations: implications for high-redshift compact star clusters",
+          "arxiv_id": "2609.07635",
+          "paper_version": 1,
+          "source_url": "https://arxiv.org/abs/2609.07635v1",
+          "authors": [
+            "Shu Horie",
+            "Hidenobu Yajima"
+          ],
+          "year": 2026,
+          "page": 6,
+          "section_header": "**A new clump-based star formation model for galaxy simulations: implications for high-redshift compact star clusters** > _3.1.2 Gas clumps_",
+          "content_kind": "text",
+          "chunk_index": 34,
+          "score": 0.44444445,
+          "rerank_score": null,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        },
+        {
+          "id": "483c5e4c-0473-5770-bd01-10480c769df1",
+          "text": "We develop a new star formation model for galaxy simulations in which star-forming gas clumps are identified on-the-fly and converted into stars with an efficiency _𝜖_ SF set by the clump surface density Σc, calibrated against radiation hydrodynamics simulations of star cluster formation. Applying this model to isolated disc galaxies embedded in haloes of _𝑀_ h = 10[9] , 10[10] and 10[[11]] M⊙, with disc compactness corresponding to redshift⊙, with disc compactness corresponding to redshift, with disc compactness corresponding to redshift _𝑧_ = 0–10, we find that more compact discs form more massive and denser clumps. The maximum clump mass increases from ∼ 10[5] to ∼ 10[7] M⊙, and the fraction of clumps exceeding the surface density of 300 M⊙⊙ pc[[−][2]][[2]] rises from 0 _._ 25 to 0 _._ 38 between _𝑧_ = 0 and 10 in 10[10] M⊙ haloes. Star formation becomes correspondingly bursty, and the global star formation efficiency after three disc rotations increases from 5 × 10[−][3] to 2 × 10[−][1] in 10[[10]] M⊙⊙ haloes and from 2 × 10 × 10 10[[−][2]][[2]] to 4 × 10 × 10 10[[−][1]][[1]] in 10[[11]] M⊙⊙ haloes as the redshift increases from _𝑧_ = 0 to 10. The accompanying feedback disrupts the gas discs of the most compact systems, while prominent stellar spiral arms emerge. Self-gravitationally bound star clusters form only in compact discs. We find no bound star clusters at _𝑧_ ≤ 2 in 10[10] M⊙ haloes, whereas the bound cluster mass fraction reaches ≈ ≈ 40 per cent at _𝑧_ ≥ 8 and ≈ ≈ 70 per cent in the most compact 10[11] M⊙ halo.",
+          "collection": "arxiv_papers_v2",
+          "build_id": "98d92e11-59c4-578b-b42d-dfc56eef2963",
+          "paper_id": "182eff16-1efd-59c5-923f-4ff3626a9770",
+          "title": "A new clump-based star formation model for galaxy simulations: implications for high-redshift compact star clusters",
+          "arxiv_id": "2609.07635",
+          "paper_version": 1,
+          "source_url": "https://arxiv.org/abs/2609.07635v1",
+          "authors": [
+            "Shu Horie",
+            "Hidenobu Yajima"
+          ],
+          "year": 2026,
+          "page": 1,
+          "section_header": "**A new clump-based star formation model for galaxy simulations: implications for high-redshift compact star clusters** > Shu Horie _[★]_ and Hidenobu Yajima",
+          "content_kind": "text",
+          "chunk_index": 4,
+          "score": 0.44444445,
+          "rerank_score": null,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        },
+        {
+          "id": "71ea0ea0-b0cf-5e54-9a7b-9b7ce50034e6",
+          "text": "The centre panel of Fig. 4 shows the PDFs of the gas surface density, Σc, of the identified gas clumps. This quantity is the key parameter that determines the star formation efficiency of each clump (see Sec. 2.3.2). Although the PDFs in all simulations peak at ∼ 10[2] _[.]_[3] M⊙ pc[−][2] , the distributions of Σc show a systematic dependence on galactic compactness. In particular, the maximum surface densities increase significantly towards higher _𝑧_ , reaching ∼ 10[2] _[.]_[9] , 10[3] _[.]_[9] , and _>_ 10[4] _[.]_[0] M⊙ pc[−][2] for the _𝑧_ = 0, 6, and 10 simulations, respectively. The fractions of gas clumps with surface densities above the threshold value of Σc _,_ th = 300 M⊙ pc[−][2] , above which the star formation efficiency exceeds ∼ 10 per cent, are ∼ 0 _._ 25, 0 _._ 34, and 0 _._ 38 for the _𝑧_ = 0, 6, and 10 simulations, respectively. These results indicate that gas clumps become systematically denser and more compact in higher- _𝑧_ galaxies, leading to conditions favourable for efficient star formation. ",
+          "collection": "arxiv_papers_v2",
+          "build_id": "98d92e11-59c4-578b-b42d-dfc56eef2963",
+          "paper_id": "182eff16-1efd-59c5-923f-4ff3626a9770",
+          "title": "A new clump-based star formation model for galaxy simulations: implications for high-redshift compact star clusters",
+          "arxiv_id": "2609.07635",
+          "paper_version": 1,
+          "source_url": "https://arxiv.org/abs/2609.07635v1",
+          "authors": [
+            "Shu Horie",
+            "Hidenobu Yajima"
+          ],
+          "year": 2026,
+          "page": 6,
+          "section_header": "**A new clump-based star formation model for galaxy simulations: implications for high-redshift compact star clusters** > _3.1.2 Gas clumps_",
+          "content_kind": "text",
+          "chunk_index": 35,
+          "score": 0.4166667,
+          "rerank_score": null,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        },
+        {
+          "id": "65230679-3e2d-5747-9d87-bbbad16fb57b",
+          "text": "As a result of the gas surface density distribution of the identified gas clumps, the star formation efficiency _𝜖_ SF can be estimated via Eq. 8. The right panel of Fig. 4 shows the PDFs of _𝜖_ SF in our simulations. Due to the sharp increase of _𝜖_ SF at Σc = Σc _,_ th = 300 M⊙ pc[−][2] , the distributions exhibit a deficit around _𝜖_ SF ≈ 10[−][1] _[.]_[3] . Since Eq. 8 is a monotonically increasing function of Σc, the PDFs of _𝜖_ SF directly reflect those of Σc. In all simulations, we find gas clumps with high star formation efficiencies of _𝜖_ SF ≳ 0 _._ 1, originating from compact clumps with Σc ≥ Σc _,_ th. In particular, the _𝑧_ = 6, 8, and 10 simulations produce clumps with extremely high efficiencies of ∼ 1. Such highly efficient star formation in dense clumps may be responsible for the bursty star formation activity at the galactic scale, especially in higher- _𝑧_ galaxies, as discussed in Sec. 3.1.1.",
+          "collection": "arxiv_papers_v2",
+          "build_id": "98d92e11-59c4-578b-b42d-dfc56eef2963",
+          "paper_id": "182eff16-1efd-59c5-923f-4ff3626a9770",
+          "title": "A new clump-based star formation model for galaxy simulations: implications for high-redshift compact star clusters",
+          "arxiv_id": "2609.07635",
+          "paper_version": 1,
+          "source_url": "https://arxiv.org/abs/2609.07635v1",
+          "authors": [
+            "Shu Horie",
+            "Hidenobu Yajima"
+          ],
+          "year": 2026,
+          "page": 6,
+          "section_header": "**A new clump-based star formation model for galaxy simulations: implications for high-redshift compact star clusters** > _3.1.2 Gas clumps_",
+          "content_kind": "text",
+          "chunk_index": 36,
+          "score": 0.45,
+          "rerank_score": null,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        },
+        {
+          "id": "a140a43f-5471-5407-9877-e4f1ff11d294",
+          "text": "_Clump-based SF model for galaxy simulations_ 7 \n\n**==> picture [506 x 107] intentionally omitted <==**\n\n**----- Start of picture text -----**<br>\nMh10z0<br>Mh10z2 10 [0]<br>Mh10z4<br>10 [0] 10 [0]<br>Mh10z6<br>Mh10z8<br>Mh10z10 10 1<br>10 1<br>10 1<br>10 2 10 2<br>4.5 5.0 5.5 6.0 6.5 7.0 7.5 1.5 2.0 2.5 3.0 3.5 4.0 2.0 1.5 1.0 0.5 0.0<br>log Mc [M ⊙ ] log Σc [M ⊙ pc [−][2] ] log ϵSF<br>ProbabilityDensity ProbabilityDensity ProbabilityDensity<br>**----- End of picture text -----**<br>\n\n**Figure 4.** Probability distribution functions of the physical properties of gas clumps identified by the GMC identification algorithm described in Sec. 2.3.1 for the simulations with 10[10] M⊙ haloes using the CSF model. The left, centre, and right panels show the distributions of the clump mass _𝑀_ c, surface density Σc, and star formation efficiency _𝜖_ SF, respectively. The black vertical line in the central panel indicates the threshold surface density of Σc _,_ th = 300 M⊙ pc[−][2] , above which _𝜖_ SF increases sharply (see Sec. 2.3.2 for details). \n\n**==> picture [507 x 317] intentionally omitted <==**",
+          "collection": "arxiv_papers_v2",
+          "build_id": "98d92e11-59c4-578b-b42d-dfc56eef2963",
+          "paper_id": "182eff16-1efd-59c5-923f-4ff3626a9770",
+          "title": "A new clump-based star formation model for galaxy simulations: implications for high-redshift compact star clusters",
+          "arxiv_id": "2609.07635",
+          "paper_version": 1,
+          "source_url": "https://arxiv.org/abs/2609.07635v1",
+          "authors": [
+            "Shu Horie",
+            "Hidenobu Yajima"
+          ],
+          "year": 2026,
+          "page": 7,
+          "section_header": "**A new clump-based star formation model for galaxy simulations: implications for high-redshift compact star clusters** > _3.1.3 Bound star clusters_",
+          "content_kind": "text",
+          "chunk_index": 38,
+          "score": 0.4166667,
+          "rerank_score": null,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        }
+      ],
+      "claims": [],
+      "cited_context_ids": [],
+      "metrics": {
+        "retrieval_hit": 1.0,
+        "retrieval_recall": 0.3333333333333333,
+        "gold_citation_recall": 0.0,
+        "citation_from_retrieval": null,
+        "retrieved_count": 7,
+        "cited_count": 0,
+        "required_paper_count": 1,
+        "retrieved_required_paper_count": 1,
+        "cited_required_paper_count": 0,
+        "required_paper_retrieval_recall": 1.0,
+        "required_paper_citation_recall": 0.0,
+        "all_required_papers_retrieved": 1.0
+      },
+      "judge": null,
+      "judge_request": null,
+      "judge_safeguards": [],
+      "agent_execution": {
+        "question_scope": null,
+        "plan_summary": "The LangGraph agent is gathering supporting paper evidence.",
+        "stop_reason": "token_budget",
+        "synthesis_policy": "evidence_fallback",
+        "rounds": 3,
+        "tool_calls": 3,
+        "evidence_count": 7,
+        "required_paper_count": 1,
+        "covered_required_paper_count": 1,
+        "missing_required_build_ids": [],
+        "required_evidence_need_count": 3,
+        "covered_evidence_need_count": 2,
+        "missing_evidence_need_ids": [
+          "r3"
+        ],
+        "planner_tokens": 22912,
+        "elapsed_seconds": 14.166,
+        "actions": [
+          {
+            "action_id": "call_OzPKjordQurKoaSoOlq2tMRm",
+            "need_id": "r1",
+            "tool": "search_chunks",
+            "query": "maximum gas clump mass surface density xi=0 xi=10 1e10 Msun halo 'clump' 'maximum' 'surface density' '10^10'",
+            "status": "success",
+            "result_count": 5,
+            "evidence_ids": [
+              "18f8cba6-d22e-5502-8ed3-aaa23529c51b",
+              "e557fa8e-c92a-54a4-a25e-4cf277df7a40",
+              "2d553e37-e71a-5d0a-b7f7-998d457e45fa",
+              "483c5e4c-0473-5770-bd01-10480c769df1",
+              "71ea0ea0-b0cf-5e54-9a7b-9b7ce50034e6"
+            ],
+            "paper_ids": [
+              "182eff16-1efd-59c5-923f-4ff3626a9770"
+            ],
+            "error_type": null
+          },
+          {
+            "action_id": "call_vy11xGAkRnUa54K3a1Mjn7kV",
+            "need_id": "r2",
+            "tool": "search_chunks",
+            "query": "fraction of gas clumps surface density > 300 M☉ pc^-2 xi 0 xi 10 10^10 halo 'fraction' 'Σc,th = 300'",
+            "status": "success",
+            "result_count": 5,
+            "evidence_ids": [
+              "71ea0ea0-b0cf-5e54-9a7b-9b7ce50034e6",
+              "e557fa8e-c92a-54a4-a25e-4cf277df7a40",
+              "65230679-3e2d-5747-9d87-bbbad16fb57b",
+              "a140a43f-5471-5407-9877-e4f1ff11d294",
+              "2d553e37-e71a-5d0a-b7f7-998d457e45fa"
+            ],
+            "paper_ids": [
+              "182eff16-1efd-59c5-923f-4ff3626a9770"
+            ],
+            "error_type": null
+          },
+          {
+            "action_id": "call_2SpdcLaS33wY3DQAQTyEkJcJ",
+            "need_id": "r1",
+            "tool": "get_neighbors",
+            "query": "chunk_index=34; before=0; after=2",
+            "status": "success",
+            "result_count": 3,
+            "evidence_ids": [
+              "2d553e37-e71a-5d0a-b7f7-998d457e45fa",
+              "71ea0ea0-b0cf-5e54-9a7b-9b7ce50034e6",
+              "65230679-3e2d-5747-9d87-bbbad16fb57b"
+            ],
+            "paper_ids": [
+              "182eff16-1efd-59c5-923f-4ff3626a9770"
+            ],
+            "error_type": null
+          }
+        ],
+        "requirements": [
+          {
+            "id": "r1",
+            "description": "Report the quantitative change in maximum gas clump mass and maximum gas clump surface density when disc compactness ξ increases from 0 to 10 in 10^10 M☉ haloes, as given in the specified paper (include units)."
+          },
+          {
+            "id": "r2",
+            "description": "Report the quantitative change in the fraction of clumps exceeding surface density threshold Σc,th = 300 M☉ pc^-2 when disc compactness ξ increases from 0 to 10 in 10^10 M☉ haloes, as given in the specified paper (include units or percentages)."
+          },
+          {
+            "id": "r3",
+            "description": "Report the quantitative global star formation efficiency at t = 3 t_dyn for disc compactness ξ = 0 and ξ = 10 in 10^10 M☉ haloes, and state the change between them, as given in the specified paper (include units or percentages)."
+          }
+        ]
+      },
+      "retrieval_diagnostics": null,
+      "generation_diagnostics": {
+        "status": "safe_abstention",
+        "reason": "no_verified_claims",
+        "attempts": 2,
+        "requirements": [
+          {
+            "requirement_id": "r1",
+            "description": "Report the quantitative change in maximum gas clump mass and maximum gas clump surface density when disc compactness ξ increases from 0 to 10 in 10^10 M☉ haloes, as given in the specified paper (include units).",
+            "status": "missing",
+            "feedback": "Not yet verified."
+          },
+          {
+            "requirement_id": "r2",
+            "description": "Report the quantitative change in the fraction of clumps exceeding surface density threshold Σc,th = 300 M☉ pc^-2 when disc compactness ξ increases from 0 to 10 in 10^10 M☉ haloes, as given in the specified paper (include units or percentages).",
+            "status": "missing",
+            "feedback": "Not yet verified."
+          },
+          {
+            "requirement_id": "r3",
+            "description": "Report the quantitative global star formation efficiency at t = 3 t_dyn for disc compactness ξ = 0 and ξ = 10 in 10^10 M☉ haloes, and state the change between them, as given in the specified paper (include units or percentages).",
+            "status": "missing",
+            "feedback": "Not yet verified."
+          }
+        ],
+        "unplanned_requests": [],
+        "validation_attempts": [
+          {
+            "attempt": 1,
+            "rejected_claims": [],
+            "error_type": "AgenticStructuredOutputError",
+            "failed_stage": "verify",
+            "validation_error_codes": [
+              "json_invalid"
+            ],
+            "validation_error_locations": [
+              ""
+            ],
+            "provider_finish_reason": "length",
+            "provider_completion_tokens": 4096,
+            "provider_content_chars": 0,
+            "provider_refusal": false
+          },
+          {
+            "attempt": 2,
+            "rejected_claims": [],
+            "error_type": "AgenticStructuredOutputError",
+            "failed_stage": "verify",
+            "validation_error_codes": [
+              "json_invalid"
+            ],
+            "validation_error_locations": [
+              ""
+            ],
+            "provider_finish_reason": "length",
+            "provider_completion_tokens": 4096,
+            "provider_content_chars": 0,
+            "provider_refusal": false
+          }
+        ],
+        "verified_claim_count": 0,
+        "verifier": "independent_model_with_quote_validation",
+        "verifier_model": "gpt-5-mini"
+      },
+      "elapsed_seconds": 120.869,
+      "error": null
+    }
+  ]
+}

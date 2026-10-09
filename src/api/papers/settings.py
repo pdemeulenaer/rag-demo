@@ -11,7 +11,7 @@ class PaperSettings(BaseSettings):
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
     PAPERS_DATABASE_URL: str = "postgresql+psycopg://rag:rag@localhost:5432/papers"
-    PAPERS_COLLECTION: str = "arxiv_papers_v1"
+    PAPERS_COLLECTION: str = "arxiv_papers_v2"
     PAPERS_ARTIFACT_DIR: Path = Path("data/paper_artifacts")
     PAPERS_STORAGE_MODE: str = "LOCAL"
     PAPERS_AZURE_CONTAINER: str = "rag-papers"
@@ -61,6 +61,7 @@ class PaperSettings(BaseSettings):
     def pipeline_id(self):
         # Bump extractor version when parsing/chunking/payload semantics change.
         from .extraction import SPEC
+        from src.api.rag.sparse import BM25_SPEC
         spec = [SPEC, self.EMBEDDING_MODEL,
-                self.PAPERS_COLLECTION]
+                BM25_SPEC, self.PAPERS_COLLECTION]
         return sha256(json.dumps(spec).encode()).hexdigest()[:16]

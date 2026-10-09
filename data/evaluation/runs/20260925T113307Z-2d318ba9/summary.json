@@ -1,0 +1,321 @@
+{
+  "agentic": {
+    "questions": 33,
+    "errors": 0,
+    "mean_latency_seconds": 29.62,
+    "metrics": {
+      "all_required_papers_retrieved": 1.0,
+      "answer_correctness": 0.8333,
+      "answer_relevance": 0.9242,
+      "citation_from_retrieval": 1.0,
+      "gold_citation_recall": 0.298,
+      "groundedness": 0.8788,
+      "required_numeric_value_recall": 0.2857,
+      "required_paper_citation_recall": 0.9394,
+      "required_paper_retrieval_recall": 1.0,
+      "retrieval_hit": 0.8485,
+      "retrieval_recall": 0.6187
+    },
+    "agent_execution": {
+      "runs": 33,
+      "stop_reasons": {
+        "insufficient_evidence": 5,
+        "planner_failure": 1,
+        "sufficient": 22,
+        "token_budget": 5
+      },
+      "synthesis_policies": {
+        "evidence_fallback": 11,
+        "model_finish": 22
+      },
+      "mean_rounds": 1.818,
+      "mean_tool_calls": 4.576,
+      "mean_evidence_count": 12.273,
+      "mean_planner_tokens": 20460.606,
+      "tool_usage": {
+        "get_neighbors": 49,
+        "search_chunks": 99,
+        "search_papers": 3
+      },
+      "tool_errors": 0,
+      "named_paper_runs": 29,
+      "named_paper_full_coverage_rate": 1.0,
+      "mean_atomic_evidence_needs": 3.152,
+      "atomic_need_full_coverage_rate": 0.7576
+    },
+    "generation_diagnostics": {
+      "runs": 33,
+      "statuses": {
+        "complete": 26,
+        "partial": 6,
+        "safe_abstention": 1
+      },
+      "reasons": {
+        "incomplete_answer": 6,
+        "no_verified_claims": 1,
+        "verified_answer": 26
+      }
+    },
+    "profiles": {
+      "cross_comparison": {
+        "questions": 5,
+        "errors": 0,
+        "mean_latency_seconds": 42.327,
+        "metrics": {
+          "all_required_papers_retrieved": 1.0,
+          "answer_correctness": 0.7,
+          "answer_relevance": 0.9,
+          "citation_from_retrieval": 1.0,
+          "gold_citation_recall": 0.0833,
+          "groundedness": 0.8,
+          "required_paper_citation_recall": 0.9,
+          "required_paper_retrieval_recall": 1.0,
+          "retrieval_hit": 0.6,
+          "retrieval_recall": 0.35
+        },
+        "agent_execution": {
+          "runs": 5,
+          "stop_reasons": {
+            "insufficient_evidence": 1,
+            "sufficient": 4
+          },
+          "synthesis_policies": {
+            "evidence_fallback": 1,
+            "model_finish": 4
+          },
+          "mean_rounds": 2.0,
+          "mean_tool_calls": 8.4,
+          "mean_evidence_count": 17.8,
+          "mean_planner_tokens": 27120.4,
+          "tool_usage": {
+            "get_neighbors": 25,
+            "search_chunks": 17
+          },
+          "tool_errors": 0,
+          "named_paper_runs": 5,
+          "named_paper_full_coverage_rate": 1.0,
+          "mean_atomic_evidence_needs": 3.6,
+          "atomic_need_full_coverage_rate": 0.8
+        },
+        "generation_diagnostics": {
+          "runs": 5,
+          "statuses": {
+            "complete": 5
+          },
+          "reasons": {
+            "verified_answer": 5
+          }
+        }
+      },
+      "cross_multihop": {
+        "questions": 5,
+        "errors": 0,
+        "mean_latency_seconds": 41.155,
+        "metrics": {
+          "all_required_papers_retrieved": 1.0,
+          "answer_correctness": 0.6,
+          "answer_relevance": 0.7,
+          "citation_from_retrieval": 1.0,
+          "gold_citation_recall": 0.05,
+          "groundedness": 0.7,
+          "required_numeric_value_recall": 0.2857,
+          "required_paper_citation_recall": 0.7,
+          "required_paper_retrieval_recall": 1.0,
+          "retrieval_hit": 1.0,
+          "retrieval_recall": 0.4167
+        },
+        "agent_execution": {
+          "runs": 5,
+          "stop_reasons": {
+            "insufficient_evidence": 1,
+            "planner_failure": 1,
+            "token_budget": 3
+          },
+          "synthesis_policies": {
+            "evidence_fallback": 5
+          },
+          "mean_rounds": 2.0,
+          "mean_tool_calls": 6.2,
+          "mean_evidence_count": 17.2,
+          "mean_planner_tokens": 26370.8,
+          "tool_usage": {
+            "get_neighbors": 11,
+            "search_chunks": 18,
+            "search_papers": 2
+          },
+          "tool_errors": 0,
+          "named_paper_runs": 4,
+          "named_paper_full_coverage_rate": 1.0,
+          "mean_atomic_evidence_needs": 4.6,
+          "atomic_need_full_coverage_rate": 0.4
+        },
+        "generation_diagnostics": {
+          "runs": 5,
+          "statuses": {
+            "complete": 1,
+            "partial": 3,
+            "safe_abstention": 1
+          },
+          "reasons": {
+            "incomplete_answer": 3,
+            "no_verified_claims": 1,
+            "verified_answer": 1
+          }
+        }
+      },
+      "metadata_discovery": {
+        "questions": 1,
+        "errors": 0,
+        "mean_latency_seconds": 21.121,
+        "metrics": {
+          "all_required_papers_retrieved": 1.0,
+          "answer_correctness": 1.0,
+          "answer_relevance": 1.0,
+          "citation_from_retrieval": 1.0,
+          "gold_citation_recall": 0.25,
+          "groundedness": 1.0,
+          "required_paper_citation_recall": 1.0,
+          "required_paper_retrieval_recall": 1.0,
+          "retrieval_hit": 1.0,
+          "retrieval_recall": 0.25
+        },
+        "agent_execution": {
+          "runs": 1,
+          "stop_reasons": {
+            "sufficient": 1
+          },
+          "synthesis_policies": {
+            "model_finish": 1
+          },
+          "mean_rounds": 2.0,
+          "mean_tool_calls": 3.0,
+          "mean_evidence_count": 7.0,
+          "mean_planner_tokens": 14915.0,
+          "tool_usage": {
+            "search_chunks": 2,
+            "search_papers": 1
+          },
+          "tool_errors": 0,
+          "named_paper_runs": 0,
+          "named_paper_full_coverage_rate": null,
+          "mean_atomic_evidence_needs": 2.0,
+          "atomic_need_full_coverage_rate": 1.0
+        },
+        "generation_diagnostics": {
+          "runs": 1,
+          "statuses": {
+            "complete": 1
+          },
+          "reasons": {
+            "verified_answer": 1
+          }
+        }
+      },
+      "single_fact": {
+        "questions": 13,
+        "errors": 0,
+        "mean_latency_seconds": 22.379,
+        "metrics": {
+          "all_required_papers_retrieved": 1.0,
+          "answer_correctness": 0.9615,
+          "answer_relevance": 1.0,
+          "citation_from_retrieval": 1.0,
+          "gold_citation_recall": 0.5641,
+          "groundedness": 0.9615,
+          "required_paper_citation_recall": 1.0,
+          "required_paper_retrieval_recall": 1.0,
+          "retrieval_hit": 0.8462,
+          "retrieval_recall": 0.7692
+        },
+        "agent_execution": {
+          "runs": 13,
+          "stop_reasons": {
+            "insufficient_evidence": 3,
+            "sufficient": 9,
+            "token_budget": 1
+          },
+          "synthesis_policies": {
+            "evidence_fallback": 4,
+            "model_finish": 9
+          },
+          "mean_rounds": 1.692,
+          "mean_tool_calls": 3.077,
+          "mean_evidence_count": 8.154,
+          "mean_planner_tokens": 15400.846,
+          "tool_usage": {
+            "get_neighbors": 11,
+            "search_chunks": 29
+          },
+          "tool_errors": 0,
+          "named_paper_runs": 12,
+          "named_paper_full_coverage_rate": 1.0,
+          "mean_atomic_evidence_needs": 2.615,
+          "atomic_need_full_coverage_rate": 0.7692
+        },
+        "generation_diagnostics": {
+          "runs": 13,
+          "statuses": {
+            "complete": 12,
+            "partial": 1
+          },
+          "reasons": {
+            "incomplete_answer": 1,
+            "verified_answer": 12
+          }
+        }
+      },
+      "single_synthesis": {
+        "questions": 9,
+        "errors": 0,
+        "mean_latency_seconds": 27.555,
+        "metrics": {
+          "all_required_papers_retrieved": 1.0,
+          "answer_correctness": 0.8333,
+          "answer_relevance": 0.9444,
+          "citation_from_retrieval": 1.0,
+          "gold_citation_recall": 0.1759,
+          "groundedness": 0.8889,
+          "required_paper_citation_recall": 1.0,
+          "required_paper_retrieval_recall": 1.0,
+          "retrieval_hit": 0.8889,
+          "retrieval_recall": 0.7037
+        },
+        "agent_execution": {
+          "runs": 9,
+          "stop_reasons": {
+            "sufficient": 8,
+            "token_budget": 1
+          },
+          "synthesis_policies": {
+            "evidence_fallback": 1,
+            "model_finish": 8
+          },
+          "mean_rounds": 1.778,
+          "mean_tool_calls": 3.889,
+          "mean_evidence_count": 13.0,
+          "mean_planner_tokens": 21402.0,
+          "tool_usage": {
+            "get_neighbors": 2,
+            "search_chunks": 33
+          },
+          "tool_errors": 0,
+          "named_paper_runs": 8,
+          "named_paper_full_coverage_rate": 1.0,
+          "mean_atomic_evidence_needs": 3.0,
+          "atomic_need_full_coverage_rate": 0.8889
+        },
+        "generation_diagnostics": {
+          "runs": 9,
+          "statuses": {
+            "complete": 7,
+            "partial": 2
+          },
+          "reasons": {
+            "incomplete_answer": 2,
+            "verified_answer": 7
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,1007 @@
+{
+  "schema_version": 1,
+  "run_id": "20260922T113058Z-bc7ceaf7",
+  "results": [
+    {
+      "question_id": "q0054",
+      "kind": "cross_paper",
+      "profile": "cross_multihop",
+      "mode": "hybrid",
+      "question": "Compare the concrete emission-line kinematic findings reported in \"SPURS: An Ultra-deep View Inside the Compact, Nitrogen-Enriched Nuclei of Little Red Dots\" with the dynamical constraint on the Galactic bar's pattern speed reported in \"Bar-induced migration of ω Centauri away from Gaia Sausage-Enceladus\". Specifically: (a) What are the reported FWHM ranges for broad [O III] components across the Little Red Dots, and the best-fit broad N IV] FWHM for GN-2, as given in SPURS? (b) What minimum bar pattern speed (Ω_b,min) does Dillamore et al. report is required for the retrograde 1:1 resonance to migrate objects from the GSE debris to ω Cen's current orbit? (c) Based only on the cited values from these two papers, is the required Ω_b,min within, below, or above the typical recent estimates of the bar pattern speed cited by Dillamore et al. (give the comparison using the numeric ranges provided)?",
+      "reference_answer": "(a) SPURS reports broad [O III] components with FWHM = 1130–1627 km s⁻¹ across the four LRDs, and a best-fit broad N IV] component in GN-2 with FWHM = 1514 ± 137 km s⁻¹ (evidence: 07507c678ea7f30347e2e8bd; af6b3a52a30546f12aac4336). (b) Dillamore et al. report that the retrograde 1:1 resonance can cause the migration only if the minimum bar pattern speed throughout its evolution was Ω_b,min ≲ 26 km s⁻¹ kpc⁻¹ (evidence: dfb7f5ab73b1b616d9550fde). (c) Dillamore et al. state most recent estimates lie in Ω_b = 30–45 km s⁻¹ kpc⁻¹; therefore the required Ω_b,min ≲ 26 km s⁻¹ kpc⁻¹ is below that typical recent range (26 < 30–45), i.e., the required minimum is lower than the commonly cited current values (evidence: dfb7f5ab73b1b616d9550fde).",
+      "answer": null,
+      "retrieved_chunks": [],
+      "cited_context_ids": [],
+      "metrics": {},
+      "judge": null,
+      "judge_request": null,
+      "agent_execution": null,
+      "retrieval_diagnostics": null,
+      "elapsed_seconds": 8.467,
+      "error": {
+        "category": "response_validation",
+        "causes": [
+          {
+            "type": "InvalidCitationIdsError"
+          },
+          {
+            "type": "RuntimeError"
+          }
+        ],
+        "hint": "A structured model response remained invalid after its bounded retry."
+      }
+    },
+    {
+      "question_id": "q0054",
+      "kind": "cross_paper",
+      "profile": "cross_multihop",
+      "mode": "hybrid_rerank",
+      "question": "Compare the concrete emission-line kinematic findings reported in \"SPURS: An Ultra-deep View Inside the Compact, Nitrogen-Enriched Nuclei of Little Red Dots\" with the dynamical constraint on the Galactic bar's pattern speed reported in \"Bar-induced migration of ω Centauri away from Gaia Sausage-Enceladus\". Specifically: (a) What are the reported FWHM ranges for broad [O III] components across the Little Red Dots, and the best-fit broad N IV] FWHM for GN-2, as given in SPURS? (b) What minimum bar pattern speed (Ω_b,min) does Dillamore et al. report is required for the retrograde 1:1 resonance to migrate objects from the GSE debris to ω Cen's current orbit? (c) Based only on the cited values from these two papers, is the required Ω_b,min within, below, or above the typical recent estimates of the bar pattern speed cited by Dillamore et al. (give the comparison using the numeric ranges provided)?",
+      "reference_answer": "(a) SPURS reports broad [O III] components with FWHM = 1130–1627 km s⁻¹ across the four LRDs, and a best-fit broad N IV] component in GN-2 with FWHM = 1514 ± 137 km s⁻¹ (evidence: 07507c678ea7f30347e2e8bd; af6b3a52a30546f12aac4336). (b) Dillamore et al. report that the retrograde 1:1 resonance can cause the migration only if the minimum bar pattern speed throughout its evolution was Ω_b,min ≲ 26 km s⁻¹ kpc⁻¹ (evidence: dfb7f5ab73b1b616d9550fde). (c) Dillamore et al. state most recent estimates lie in Ω_b = 30–45 km s⁻¹ kpc⁻¹; therefore the required Ω_b,min ≲ 26 km s⁻¹ kpc⁻¹ is below that typical recent range (26 < 30–45), i.e., the required minimum is lower than the commonly cited current values (evidence: dfb7f5ab73b1b616d9550fde).",
+      "answer": "(a) The SPURS study reports broad C IV emission with FWHM approximately 2700−2800 km s⁻¹ in two LRDs. Additionally, it detects a broad He II emission with FWHM approximately 930 km s⁻¹ in one LRD, and mentions fast P-Cygni absorption exceeding 2200 km s⁻¹ in two others (source: 9265bf10-e745-5151-a597-5563c84daf35). (b) Dillamore et al. report that the minimum pattern speed of the bar (Ω_b, min) required for the retrograde 1:1 resonance to facilitate migration of objects from the GSE debris to ω Cen's current orbit is approximately 26 km s⁻¹ kpc⁻¹ (source: a8a5533d-c535-509f-99ad-ce5c5c31d794). (c) The recent estimates of the pattern speed, Ω_b, are mostly in the range 30−45 km s⁻¹ kpc⁻¹, which are above the Ω_b, min ≈ 26 km s⁻¹ kpc⁻¹ cited by Dillamore et al. Therefore, the required Ω_b, min for migration is within the lower end of the recent estimates, and specifically below the typical higher estimates but compatible with some lower estimates like that of Horta et al. which is 24 ± 3 km s⁻¹ kpc⁻¹.",
+      "retrieved_chunks": [
+        {
+          "id": "e68240ee-5110-58a8-89ec-0afff69ea23b",
+          "text": "6 _A. M. Dillamore et al._ \n\nupper bound on the pattern speed, since the 1:1 resonance would have to be at an even higher energy. Our estimate of the bound without dynamical friction is therefore conservative. Nevertheless, incorporating dynamical friction into the model may be worthwhile in future work. \n\n**Summary.** We have investigated the scenario in which the globular cluster _𝜔_ Cen originated in the GSE merger event (e.g. as a nuclear star cluster), and subsequently migrated to its current orbit due to resonance with the Galactic bar Laporte & Orkney (2026). \n\nExtending the chemical analysis of Laporte & Orkney (2026), we find that the proposed metal-poor corridor between the GSE debris and _𝜔_ Cen is not a chemically simple continuation of the main low- _𝛼_ GSE sequence. The low- _𝛼_ component is clearest near the GSE cloud and only tentatively reaches _𝜔_ Cen in the bridge slice that contains the cluster; elsewhere the bridge region is more _𝛼_ -enhanced than the GSE core. The chemical evidence therefore remains suggestive rather than conclusive: it is compatible with a GSE origin for _𝜔_ Cen, but does not require one. \n\nThe retrograde 1:1 resonance is capable of causing migration of stars from the GSE debris to the current orbit of _𝜔_ Cen. This requires that the minimum pattern speed of the bar throughout its evolution was Ωb _,_ min ≲ 26 km s[−][1] kpc[−][1] . This is considerably slower than most estimates of the current value (typically Ωb = 30 − 45 km s[−][1] kpc[−][1] ), though consistent with Horta et al. (2025). \n\nIn summary, the GSE/ _𝜔_ Cen migration scenario is plausible, but would require a re-evaluation of the general consensus on the bar’s pattern speed.",
+          "collection": "arxiv_papers_v2",
+          "build_id": "90456f74-656c-5dc3-bac6-5739e80edeee",
+          "paper_id": "f4441bd7-b28a-5316-a6c2-7f0df80bc846",
+          "title": "Bar-induced migration of $ω$ Centauri away from Gaia Sausage-Enceladus",
+          "arxiv_id": "2606.12516",
+          "paper_version": 2,
+          "source_url": "https://arxiv.org/abs/2606.12516v2",
+          "authors": [
+            "Adam M. Dillamore",
+            "Hanyuan Zhang",
+            "Vasily Belokurov"
+          ],
+          "year": 2026,
+          "page": 6,
+          "section_header": "**4 DISCUSSION AND CONCLUSIONS**",
+          "content_kind": "text",
+          "chunk_index": 27,
+          "score": 1.0,
+          "rerank_score": 0.9999893,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        },
+        {
+          "id": "a8a5533d-c535-509f-99ad-ce5c5c31d794",
+          "text": "## **4 DISCUSSION AND CONCLUSIONS** \n\n**Comparison with previous pattern speed constraints.** Most recent estimates of the pattern speed are in the range Ωb = 30 − 45 km s[−][1] kpc[−][1] (Portail et al. 2017; Sanders et al. 2019; Bovy et al. 2019; Binney 2020; Chiba & Schönrich 2021; Clarke & Gerhard 2022; Li et al. 2022; Leung et al. 2023; Zhang et al. 2024; Dillamore et al. 2025). Our upper bound of ≈ 26 km s[−][1] kpc[−][1] inferred from _𝜔_ Cen’s migration is therefore much slower than the general consensus. However, some works have found lower values; Horta et al. (2025) estimate Ωb = 24 ± 3 km s[−][1] kpc[−][1] , in good agreement with our result. Hence there remains considerable uncertainty about the pattern speed. However, if values below 26 km s[−][1] kpc[−][1] can be definitively ruled out by future studies, this would help to falsify the bar-induced migration scenario. ",
+          "collection": "arxiv_papers_v2",
+          "build_id": "90456f74-656c-5dc3-bac6-5739e80edeee",
+          "paper_id": "f4441bd7-b28a-5316-a6c2-7f0df80bc846",
+          "title": "Bar-induced migration of $ω$ Centauri away from Gaia Sausage-Enceladus",
+          "arxiv_id": "2606.12516",
+          "paper_version": 2,
+          "source_url": "https://arxiv.org/abs/2606.12516v2",
+          "authors": [
+            "Adam M. Dillamore",
+            "Hanyuan Zhang",
+            "Vasily Belokurov"
+          ],
+          "year": 2026,
+          "page": 5,
+          "section_header": "**4 DISCUSSION AND CONCLUSIONS**",
+          "content_kind": "text",
+          "chunk_index": 25,
+          "score": 0.22619048,
+          "rerank_score": 0.9999654,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        },
+        {
+          "id": "7ebaab5f-f57e-5533-b1ee-f05356553d59",
+          "text": "_Bar-induced migration of 𝜔 Cen_ 5 \n\n**==> picture [244 x 182] intentionally omitted <==**\n\n**Figure 5.** Likelihood of _𝜔_ Cen’s phase space position as a function of the present-day pattern speed of a decelerating bar. The vertical dashed line is the pattern speed at which _𝜔_ Cen’s frequencies satisfy Ω _𝜙_ − Ωb + Ω _𝑟_ = 0, so that it sits on the 1:1 resonance. There is only significant likelihood when Ωb _,_ 0 is lower than this value, meaning that the resonance has passed the location of _𝜔_ Cen in the past. \n\norbits back in time). The title of each panel indicates the present-day pattern speed Ωb _,_ 0. \n\nFig. 4 clearly shows that the probability distribution of _𝜔_ Cen’s initial phase space location depends strongly on the pattern speed. A strong overlap with the GSE contours requires a value of Ωb _,_ 0 ≲ 26 km s[−][1] kpc[−][1] . This is consistent with the expectations from Fig. 3, and is again due to the location of the retrograde 1:1 resonance. If the pattern speed is any higher, the energy and angular momentum of _𝜔_ Cen remain approximately constant throughout the simulation. In this case bar-induced migration alone is not sufficient to transport _𝜔_ Cen away from the GSE debris. \n\n**Pattern speed constraint.** We can use these results to quantitatively constrain the value of Ωb consistent with the migration of _𝜔_ Cen from the GSE debris. Let _𝑓_ gse ( _𝑱_ ) be the distribution function (DF) of the GSE debris before bar formation, assumed to be in equilibrium. The bar causes this to evolve to the present-day DF _𝑓_ 0 ( _𝒙, 𝒗_ |Ωb _,_ 0). This notation indicates that the final DF depends on the pattern speed; in this study we vary the present-day value Ωb _,_ 0 while keeping the deceleration rate and bar’s age constant. ",
+          "collection": "arxiv_papers_v2",
+          "build_id": "90456f74-656c-5dc3-bac6-5739e80edeee",
+          "paper_id": "f4441bd7-b28a-5316-a6c2-7f0df80bc846",
+          "title": "Bar-induced migration of $ω$ Centauri away from Gaia Sausage-Enceladus",
+          "arxiv_id": "2606.12516",
+          "paper_version": 2,
+          "source_url": "https://arxiv.org/abs/2606.12516v2",
+          "authors": [
+            "Adam M. Dillamore",
+            "Hanyuan Zhang",
+            "Vasily Belokurov"
+          ],
+          "year": 2026,
+          "page": 5,
+          "section_header": "**3 SIMULATIONS**",
+          "content_kind": "text",
+          "chunk_index": 22,
+          "score": 0.5,
+          "rerank_score": 0.99937856,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        },
+        {
+          "id": "08b67e42-39a6-5e69-aa17-ea587137aad3",
+          "text": "2 _A. M. Dillamore et al._ \n\nHowever, it has become clear in recent years that the Galactic bar causes significant perturbations to orbits in the inner stellar halo (Dillamore et al. 2023, 2024b, 2025; Dillamore & Sanders 2025; Tomlinson et al. 2026; De Leo et al. 2026; Gherghinescu et al. 2026). The bar’s pattern speed Ωb (rotation rate) is likely to be decelerating (Chiba et al. 2021; Zhang et al. 2025), a process which can cause migration of globular clusters via resonances (Dillamore et al. 2024b). These include the retrograde 1:1 resonance, where the orbital frequencies of a particle satisfy Ω _𝜙_ − Ωb + Ω _𝑟_ = 0. Tomlinson et al. (2026) showed that this resonance can cause significant scattering of orbits along its length in ( _𝐿 𝑧, 𝐸_ ) space (on lines of gradient d _𝐸_ /d _𝐿 𝑧_ = Ωb; see Dillamore & Sanders 2025). This process could be responsible for deflecting _𝜔_ Cen onto lower energy, more retrograde orbits (Laporte & Orkney 2026). In this _Letter_ we investigate this scenario by running simulations in a realistic Milky Way potential with a decelerating bar. We determine the range of pattern speeds compatible with the migration of _𝜔_ Cen from the GSE debris, and thus assess how plausible this scenario is. We also analyse the chemical composition of retrograde substructure between the GSE debris and _𝜔_ Cen, extending the analysis of Laporte & Orkney (2026). \n\nThe rest of this _Letter_ is arranged as follows. In Section 2 we describe the data used, and analyse the chemistry of retrograde substructure. Section 3 discusses our simulations and the constraint on Ωb. Finally we discuss and summarise our conclusions in Section 4.",
+          "collection": "arxiv_papers_v2",
+          "build_id": "90456f74-656c-5dc3-bac6-5739e80edeee",
+          "paper_id": "f4441bd7-b28a-5316-a6c2-7f0df80bc846",
+          "title": "Bar-induced migration of $ω$ Centauri away from Gaia Sausage-Enceladus",
+          "arxiv_id": "2606.12516",
+          "paper_version": 2,
+          "source_url": "https://arxiv.org/abs/2606.12516v2",
+          "authors": [
+            "Adam M. Dillamore",
+            "Hanyuan Zhang",
+            "Vasily Belokurov"
+          ],
+          "year": 2026,
+          "page": 2,
+          "section_header": "_𝜔_ **Bar-induced migration of Centauri away from Gaia Sausage-Enceladus**",
+          "content_kind": "text",
+          "chunk_index": 7,
+          "score": 0.5,
+          "rerank_score": 0.9993687,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        },
+        {
+          "id": "9265bf10-e745-5151-a597-5563c84daf35",
+          "text": "## ABSTRACT \n\nWe present the first ultra-deep rest-UV spectroscopy of four UV-bright Little Red Dots (LRDs), obtained from the SPURS Cycle 4 Large Program. The spectra reveal broad C IV (FWHM _≈_ 2700 _−_ 2800 km s _[−]_[1] ) in two LRDs, alongside narrow-line densities elevated above star-forming galaxies ( _ne ∼_ 10[4] _−_ 10[5] cm _[−]_[3] , reaching 10[6] cm _[−]_[3] in the most extreme source) and nitrogen-enhancements in all four LRDs. We detect broad He II emission (FWHM _≈_ 930 km s _[−]_[1] ) in one LRD, and two others with fast P-Cygni absorption (≳ 2200 km s _[−]_[1] ). Strong interstellar absorption lines and Ly _α_ damping wings reveal the UV continuum is deeply embedded in neutral gas ( _N_ HI ≳ 10[22] cm _[−]_[2] ) in all four LRDs. Detections of fluorescent Fe II and O I emission and fine-structure absorption indicate this gas lies close to the UV-emitting region. In archival _z >_ 4 samples, we find nitrogen and strong C III] emission are significantly more common in LRDs than in the galaxy population. The transmission of broad C IV, tracing the broad-line region or cocoon, depends on rest-optical color within our sample, consistent with an orientation-dependent picture in which bluer, less obscured sightlines offer a more direct, polar view of the central engine and its outflows. We find several potential signatures of very massive stars, whose winds may contribute to nitrogen enhancement. We investigate other abundance patterns expected from supermassive stars but our results are inconclusive. Our results place the UV-emitting region within ≲ 8 pc of the LRD nucleus, consistent with an actively assembling nuclear star cluster. Dynamical interactions in this extremely dense environment, including tidal disruption of stars, may explain the high incidence of nitrogen enhancements in LRDs. \n\n_Keywords:_ Active galactic nuclei (16) — High-redshift galaxies (734)",
+          "collection": "arxiv_papers_v2",
+          "build_id": "857f03f5-5a9d-5259-9c13-3fb2366b96f1",
+          "paper_id": "0cfebf74-be71-5769-b950-6ed045b3bdb0",
+          "title": "SPURS: An Ultra-deep View Inside the Compact, Nitrogen-Enriched Nuclei of Little Red Dots",
+          "arxiv_id": "2609.11094",
+          "paper_version": 1,
+          "source_url": "https://arxiv.org/abs/2609.11094v1",
+          "authors": [
+            "Mengtao Tang",
+            "Daniel P. Stark",
+            "Charlotte A. Mason",
+            "Zuyi Chen",
+            "Tucker Jones",
+            "Sarah Searle Grannis",
+            "Peter Senchyna",
+            "Lily Whitler",
+            "Keerthi Vasan G. C.",
+            "Viola Gelli"
+          ],
+          "year": 2026,
+          "page": 1,
+          "section_header": "ABSTRACT",
+          "content_kind": "text",
+          "chunk_index": 2,
+          "score": 0.125,
+          "rerank_score": 0.24580847,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        }
+      ],
+      "cited_context_ids": [
+        "9265bf10-e745-5151-a597-5563c84daf35",
+        "a8a5533d-c535-509f-99ad-ce5c5c31d794"
+      ],
+      "metrics": {
+        "retrieval_hit": 1.0,
+        "retrieval_recall": 0.3333333333333333,
+        "gold_citation_recall": 0.0,
+        "citation_from_retrieval": 1.0,
+        "retrieved_count": 5,
+        "cited_count": 2,
+        "required_paper_count": 2,
+        "retrieved_required_paper_count": 2,
+        "cited_required_paper_count": 2,
+        "required_paper_retrieval_recall": 1.0,
+        "required_paper_citation_recall": 1.0,
+        "all_required_papers_retrieved": 1.0,
+        "answer_correctness": 0.5,
+        "groundedness": 1.0,
+        "answer_relevance": 1.0,
+        "correct_abstention": null
+      },
+      "judge": {
+        "correctness": 0.5,
+        "answer_relevance": 1.0,
+        "abstention": "not_applicable",
+        "reason": "Reference assessment: Part (a) is incorrect: actual answer lists C IV/He II FWHMs and P-Cygni values instead of the reported [O III] range (1130–1627 km/s) and N IV] FWHM for GN-2 (1514±137 km/s). Part (b) and (c) are correct: Ω_b,min ≲26 km/s/kpc and that is below the typical recent estimates 30–45 km/s/kpc. Grounding assessment: All substantive numeric claims in the answer are directly supported by the retrieved excerpts: the SPURS abstract lists broad C IV FWHM ≈2700–2800 km/s and broad He II FWHM ≈930 km/s and P‑Cygni ≳2200 km/s (evidence point 9265bf10...), and Dillamore et al. explicitly state Ω_b,min ≲ 26 km s⁻¹ kpc⁻¹ and cite recent estimates ≈30–45 km s⁻¹ kpc⁻¹ (evidence points e68240ee..., a8a5533d...). No unsupported paper-specific claims were made.",
+        "groundedness": 1.0
+      },
+      "judge_request": {
+        "reference": {
+          "response_id": "resp_0b0cf7af1c5b469f016ab2670502d887d2bbbe418aa0704d31",
+          "response_ids": [
+            "resp_0b0cf7af1c5b469f016ab2670502d887d2bbbe418aa0704d31"
+          ],
+          "attempts": 1,
+          "request_id": "req_40439bb40bf544fd9d0990ca27a64974",
+          "model": "gpt-5-mini-2025-08-07",
+          "usage": {
+            "input_tokens": 2676,
+            "output_tokens": 147,
+            "total_tokens": 2823
+          }
+        },
+        "grounding": {
+          "response_id": "resp_0f5a835c1a2512bc016ab26708040c87d281ca11b180f974b7",
+          "response_ids": [
+            "resp_0f5a835c1a2512bc016ab26708040c87d281ca11b180f974b7"
+          ],
+          "attempts": 1,
+          "request_id": "req_44e63c1ba2984b07adedd084689fc3d9",
+          "model": "gpt-5-mini-2025-08-07",
+          "usage": {
+            "input_tokens": 3338,
+            "output_tokens": 172,
+            "total_tokens": 3510
+          }
+        }
+      },
+      "agent_execution": null,
+      "retrieval_diagnostics": {
+        "candidate_count": 20,
+        "selected_count": 5,
+        "candidate_paper_ids": [
+          "0cfebf74-be71-5769-b950-6ed045b3bdb0",
+          "2efa81c9-68d7-5fac-ae7a-0a546911e938",
+          "986d784d-1c10-53c7-ba95-6dcc51508f87",
+          "f4441bd7-b28a-5316-a6c2-7f0df80bc846"
+        ],
+        "selected_paper_ids": [
+          "0cfebf74-be71-5769-b950-6ed045b3bdb0",
+          "f4441bd7-b28a-5316-a6c2-7f0df80bc846"
+        ],
+        "candidate_paper_count": 4,
+        "selected_paper_count": 2,
+        "named_paper_ids": [
+          "f4441bd7-b28a-5316-a6c2-7f0df80bc846",
+          "0cfebf74-be71-5769-b950-6ed045b3bdb0"
+        ],
+        "named_paper_titles": [
+          "Bar-induced migration of $ω$ Centauri away from Gaia Sausage-Enceladus",
+          "SPURS: An Ultra-deep View Inside the Compact, Nitrogen-Enriched Nuclei of Little Red Dots"
+        ],
+        "reserved_candidate_ids": [
+          "e68240ee-5110-58a8-89ec-0afff69ea23b",
+          "9265bf10-e745-5151-a597-5563c84daf35"
+        ],
+        "named_paper_diversity_guard_applied": true,
+        "ranked_candidates": [
+          {
+            "id": "e68240ee-5110-58a8-89ec-0afff69ea23b",
+            "paper_id": "f4441bd7-b28a-5316-a6c2-7f0df80bc846",
+            "title": "Bar-induced migration of $ω$ Centauri away from Gaia Sausage-Enceladus",
+            "rerank_score": 0.9999893
+          },
+          {
+            "id": "a8a5533d-c535-509f-99ad-ce5c5c31d794",
+            "paper_id": "f4441bd7-b28a-5316-a6c2-7f0df80bc846",
+            "title": "Bar-induced migration of $ω$ Centauri away from Gaia Sausage-Enceladus",
+            "rerank_score": 0.9999654
+          },
+          {
+            "id": "7ebaab5f-f57e-5533-b1ee-f05356553d59",
+            "paper_id": "f4441bd7-b28a-5316-a6c2-7f0df80bc846",
+            "title": "Bar-induced migration of $ω$ Centauri away from Gaia Sausage-Enceladus",
+            "rerank_score": 0.99937856
+          },
+          {
+            "id": "08b67e42-39a6-5e69-aa17-ea587137aad3",
+            "paper_id": "f4441bd7-b28a-5316-a6c2-7f0df80bc846",
+            "title": "Bar-induced migration of $ω$ Centauri away from Gaia Sausage-Enceladus",
+            "rerank_score": 0.9993687
+          },
+          {
+            "id": "a17a4987-7239-5efa-90c5-7fe1de57c207",
+            "paper_id": "f4441bd7-b28a-5316-a6c2-7f0df80bc846",
+            "title": "Bar-induced migration of $ω$ Centauri away from Gaia Sausage-Enceladus",
+            "rerank_score": 0.99584997
+          },
+          {
+            "id": "36fa023e-cc4a-524c-b582-28692f415c87",
+            "paper_id": "f4441bd7-b28a-5316-a6c2-7f0df80bc846",
+            "title": "Bar-induced migration of $ω$ Centauri away from Gaia Sausage-Enceladus",
+            "rerank_score": 0.9786719
+          },
+          {
+            "id": "f9426a97-7f23-58e7-9254-f593087f4d1f",
+            "paper_id": "f4441bd7-b28a-5316-a6c2-7f0df80bc846",
+            "title": "Bar-induced migration of $ω$ Centauri away from Gaia Sausage-Enceladus",
+            "rerank_score": 0.97767127
+          },
+          {
+            "id": "613b547a-aec0-5c16-8587-f0a940b95b8f",
+            "paper_id": "f4441bd7-b28a-5316-a6c2-7f0df80bc846",
+            "title": "Bar-induced migration of $ω$ Centauri away from Gaia Sausage-Enceladus",
+            "rerank_score": 0.8716935
+          },
+          {
+            "id": "1df6d165-2f98-5c7c-bf02-df24b55d53f9",
+            "paper_id": "f4441bd7-b28a-5316-a6c2-7f0df80bc846",
+            "title": "Bar-induced migration of $ω$ Centauri away from Gaia Sausage-Enceladus",
+            "rerank_score": 0.50614136
+          },
+          {
+            "id": "26327938-7d3a-5b3d-bde4-00ca7980cd4a",
+            "paper_id": "f4441bd7-b28a-5316-a6c2-7f0df80bc846",
+            "title": "Bar-induced migration of $ω$ Centauri away from Gaia Sausage-Enceladus",
+            "rerank_score": 0.2842779
+          },
+          {
+            "id": "9265bf10-e745-5151-a597-5563c84daf35",
+            "paper_id": "0cfebf74-be71-5769-b950-6ed045b3bdb0",
+            "title": "SPURS: An Ultra-deep View Inside the Compact, Nitrogen-Enriched Nuclei of Little Red Dots",
+            "rerank_score": 0.24580847
+          },
+          {
+            "id": "2f3386a4-09b7-5275-b1f9-c20f3e6c78e4",
+            "paper_id": "f4441bd7-b28a-5316-a6c2-7f0df80bc846",
+            "title": "Bar-induced migration of $ω$ Centauri away from Gaia Sausage-Enceladus",
+            "rerank_score": 0.16344544
+          },
+          {
+            "id": "7bbc2d1a-a8cd-502d-b482-210f62f7d51b",
+            "paper_id": "f4441bd7-b28a-5316-a6c2-7f0df80bc846",
+            "title": "Bar-induced migration of $ω$ Centauri away from Gaia Sausage-Enceladus",
+            "rerank_score": 0.15203224
+          },
+          {
+            "id": "fe005a95-bb82-5b99-9876-6cb84c0a9dfa",
+            "paper_id": "0cfebf74-be71-5769-b950-6ed045b3bdb0",
+            "title": "SPURS: An Ultra-deep View Inside the Compact, Nitrogen-Enriched Nuclei of Little Red Dots",
+            "rerank_score": 0.07696084
+          },
+          {
+            "id": "de4db30c-80ae-59ee-8a27-62dc0b5567f1",
+            "paper_id": "0cfebf74-be71-5769-b950-6ed045b3bdb0",
+            "title": "SPURS: An Ultra-deep View Inside the Compact, Nitrogen-Enriched Nuclei of Little Red Dots",
+            "rerank_score": 0.0434469
+          },
+          {
+            "id": "472654ae-591b-5791-bc0b-0d18da7f2573",
+            "paper_id": "0cfebf74-be71-5769-b950-6ed045b3bdb0",
+            "title": "SPURS: An Ultra-deep View Inside the Compact, Nitrogen-Enriched Nuclei of Little Red Dots",
+            "rerank_score": 0.006666932
+          },
+          {
+            "id": "16fea1fa-e93a-539b-9606-6c3473fae2cb",
+            "paper_id": "0cfebf74-be71-5769-b950-6ed045b3bdb0",
+            "title": "SPURS: An Ultra-deep View Inside the Compact, Nitrogen-Enriched Nuclei of Little Red Dots",
+            "rerank_score": 0.006338922
+          },
+          {
+            "id": "450561f7-a89c-5ce5-86a4-1e099909bcf2",
+            "paper_id": "986d784d-1c10-53c7-ba95-6dcc51508f87",
+            "title": "The Ashes of Supermassive Stars: Globular Cluster-like Aluminum Enhancement in Little Red Dots",
+            "rerank_score": 0.0021912407
+          },
+          {
+            "id": "a3994667-062f-5bfb-b89d-1998f467fd73",
+            "paper_id": "2efa81c9-68d7-5fac-ae7a-0a546911e938",
+            "title": "Probing dynamics of extreme galaxies I. Dark matter content in ultra-diffuse galaxies",
+            "rerank_score": 0.0007793661
+          },
+          {
+            "id": "6a79e9be-5c78-5380-980b-9d0693d4cf21",
+            "paper_id": "2efa81c9-68d7-5fac-ae7a-0a546911e938",
+            "title": "Probing dynamics of extreme galaxies I. Dark matter content in ultra-diffuse galaxies",
+            "rerank_score": 0.00019260288
+          }
+        ],
+        "required_paper_count": 2,
+        "required_paper_candidate_recall": 1.0,
+        "required_paper_selected_recall": 1.0,
+        "all_required_papers_in_candidates": 1.0,
+        "all_required_papers_selected": 1.0
+      },
+      "elapsed_seconds": 14.012,
+      "error": null
+    },
+    {
+      "question_id": "q0054",
+      "kind": "cross_paper",
+      "profile": "cross_multihop",
+      "mode": "agentic",
+      "question": "Compare the concrete emission-line kinematic findings reported in \"SPURS: An Ultra-deep View Inside the Compact, Nitrogen-Enriched Nuclei of Little Red Dots\" with the dynamical constraint on the Galactic bar's pattern speed reported in \"Bar-induced migration of ω Centauri away from Gaia Sausage-Enceladus\". Specifically: (a) What are the reported FWHM ranges for broad [O III] components across the Little Red Dots, and the best-fit broad N IV] FWHM for GN-2, as given in SPURS? (b) What minimum bar pattern speed (Ω_b,min) does Dillamore et al. report is required for the retrograde 1:1 resonance to migrate objects from the GSE debris to ω Cen's current orbit? (c) Based only on the cited values from these two papers, is the required Ω_b,min within, below, or above the typical recent estimates of the bar pattern speed cited by Dillamore et al. (give the comparison using the numeric ranges provided)?",
+      "reference_answer": "(a) SPURS reports broad [O III] components with FWHM = 1130–1627 km s⁻¹ across the four LRDs, and a best-fit broad N IV] component in GN-2 with FWHM = 1514 ± 137 km s⁻¹ (evidence: 07507c678ea7f30347e2e8bd; af6b3a52a30546f12aac4336). (b) Dillamore et al. report that the retrograde 1:1 resonance can cause the migration only if the minimum bar pattern speed throughout its evolution was Ω_b,min ≲ 26 km s⁻¹ kpc⁻¹ (evidence: dfb7f5ab73b1b616d9550fde). (c) Dillamore et al. state most recent estimates lie in Ω_b = 30–45 km s⁻¹ kpc⁻¹; therefore the required Ω_b,min ≲ 26 km s⁻¹ kpc⁻¹ is below that typical recent range (26 < 30–45), i.e., the required minimum is lower than the commonly cited current values (evidence: dfb7f5ab73b1b616d9550fde).",
+      "answer": "In the SPURS paper, the broad [O III] components exhibit FWHM ranges approximately from 149 km/s to 1690 km/s, depending on the specific galaxy; for GN-2, the best-fit broad N IV] FWHM is about 1243 km/s. Dillamore et al. report a minimum bar pattern speed (Ω_b,min) of approximately 26 km s^{-1} kpc^{-1} needed for the retrograde 1:1 resonance to migrate objects from the GSE debris to ω Cen. Typical recent estimates of the Galactic bar's pattern speed cited by Dillamore et al. are between 30 and 45 km s^{-1} kpc^{-1}. Therefore, the minimum Ω_b,min required for migration is below the recent typical estimates, suggesting it is within the lower end or below the range of recent measured pattern speeds.",
+      "retrieved_chunks": [
+        {
+          "id": "e4a8b1a8-706d-5fe0-8c9c-ba8377542c9c",
+          "text": "**----- Start of picture text -----**<br>\nSPURS–GN–2 SPURS–GN–2004<br>1 . 50 Databroad FWHM f broadbroad = 1627= 25 % km s [−] [1] 5 Databroad FWHM f broadbroad = 1154= 13 % km s [−] [1]<br>1 . 25 narrow narrow<br>total 4 total<br>1 . 00<br>3<br>0 . 75<br>2<br>0 . 50<br>1<br>0 . 25<br>0<br>4925 4950 4975 5000 5025 5050 5075 5100 4925 4950 4975 5000 5025 5050 5075 5100<br>Rest-frame wavelength ( [˚] A) Rest-frame wavelength ( [˚] A)<br>SPURS–GN–29 CEERS–7902<br>6 3 . 5<br>Data FWHMbroad = 1130 km s [−] [1] Data FWHMbroad = 1285 km s [−] [1]<br>5 broad f broad = 21 % 3 . 0 broad f broad = 13 %<br>narrow narrow<br>4 total 2 . 5 total<br>3 2 . 0<br>2 1 . 5<br>1 1 . 0<br>0 0 . 5<br>4925 4950 4975 5000 5025 5050 5075 5100 4925 4950 4975 5000 5025 5050 5075 5100<br>Rest-frame wavelength ( [˚] A) Rest-frame wavelength ( [˚] A)<br>D.2. [O III]] λλ 4959 ,  5007 emission lines of the four LRDs. We overplot the best-fit line profile to each spectrum<br>the narrow components shown as orange dashed lines and the broad components as magenta shaded regions. The<br>the broad component (corrected for the instrumental resolution) and its contribution to the total [O III]] line flux are<br>each panel. A narrow Fe II λ 5018 line is marginally detected (22 .",
+          "collection": "arxiv_papers_v2",
+          "build_id": "857f03f5-5a9d-5259-9c13-3fb2366b96f1",
+          "paper_id": "0cfebf74-be71-5769-b950-6ed045b3bdb0",
+          "title": "SPURS: An Ultra-deep View Inside the Compact, Nitrogen-Enriched Nuclei of Little Red Dots",
+          "arxiv_id": "2609.11094",
+          "paper_version": 1,
+          "source_url": "https://arxiv.org/abs/2609.11094v1",
+          "authors": [
+            "Mengtao Tang",
+            "Daniel P. Stark",
+            "Charlotte A. Mason",
+            "Zuyi Chen",
+            "Tucker Jones",
+            "Sarah Searle Grannis",
+            "Peter Senchyna",
+            "Lily Whitler",
+            "Keerthi Vasan G. C.",
+            "Viola Gelli"
+          ],
+          "year": 2026,
+          "page": 48,
+          "section_header": "REFERENCES",
+          "content_kind": "text",
+          "chunk_index": 227,
+          "score": 0.7153675,
+          "rerank_score": null,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        },
+        {
+          "id": "da73a3d0-2c58-5c33-9a86-a37a77beee6f",
+          "text": "8 σ ) on the red wing of [O III]] λ 5007 in SPURS-GN-2,<br>it to the fit leaves the broad width unchanged and only slightly lowers the broad line fraction f broad from 25% to<br>SPURS-EGS-45 SPURS-A2744-1069 SPURS-EGS-43 SPURS-A2744-52<br>20 40<br>NIV] 25 NIII] 20 NIII] CIII]<br>30<br>10 20<br>10 20<br>15<br>10<br>0<br>0<br>10<br>0<br>1460 1480 1500 1740 1760 1740 1760 1880 1900 1920<br>SPURS-A2744-1069 SPURS-EGS-39 SPURS-EGS-45 SPURS-GN-500<br>120 30<br>60 CIII] CIII] CIII] 40 CIII]<br>90<br>20<br>40<br>60<br>10 20<br>20<br>30<br>0<br>0<br>0 0<br>1880 1900 1920 1880 1900 1920 1880 1900 1920 1880 1900 1920<br>Rest-frame wavelength ( [˚] A)<br>4959 5007 4959 5007<br>]  λ  III ]  λ  III ]  λ  III ]  λ  III<br>[O [O 5018 [O [O<br>Jy)  λ Jy)<br>( fµν Fe II ( fµν<br>4959 5007 4959 5007<br>]  λ  III ]  λ  III ]  λ  III ]  λ  III<br>[O [O [O [O<br>Jy) Jy)<br>µ µ<br>( (<br>fν fν<br>(nJy)<br>ν<br>f<br>**----- End of picture text -----**<br>",
+          "collection": "arxiv_papers_v2",
+          "build_id": "857f03f5-5a9d-5259-9c13-3fb2366b96f1",
+          "paper_id": "0cfebf74-be71-5769-b950-6ed045b3bdb0",
+          "title": "SPURS: An Ultra-deep View Inside the Compact, Nitrogen-Enriched Nuclei of Little Red Dots",
+          "arxiv_id": "2609.11094",
+          "paper_version": 1,
+          "source_url": "https://arxiv.org/abs/2609.11094v1",
+          "authors": [
+            "Mengtao Tang",
+            "Daniel P. Stark",
+            "Charlotte A. Mason",
+            "Zuyi Chen",
+            "Tucker Jones",
+            "Sarah Searle Grannis",
+            "Peter Senchyna",
+            "Lily Whitler",
+            "Keerthi Vasan G. C.",
+            "Viola Gelli"
+          ],
+          "year": 2026,
+          "page": 48,
+          "section_header": "REFERENCES",
+          "content_kind": "text",
+          "chunk_index": 228,
+          "score": 0.6943747,
+          "rerank_score": null,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        },
+        {
+          "id": "d0e2c4e0-af2a-5368-b605-cdca148e549a",
+          "text": "|Program|ID|RA (deg)|Dec (deg)|_z_spec|MUV|N IV] EW (Å)|N III] (Å)|C III] EW (Å)|\n|---|---|---|---|---|---|---|---|---|\n|SPURS|A2744-52|3_._602778|_−_30_._419355|4_._725|_−_18_._1|–|_<_3_._7|16_±_1|\n|SPURS|A2744-1069|3_._583813|_−_30_._374517|5_._145|_−_19_._4|–|2_._4_±_0_._6|11_±_1|\n|SPURS|EGS-39|214_._985672|+52_._956233|5_._200|_−_19_._4|–|_<_3_._7|18_±_2|\n|SPURS|EGS-43|215_._066442|+52_._941884|6_._271|_−_19_._6|_<_7_._9|10_±_2|_<_10|\n|SPURS|EGS-45|214_._990972|+52_._916527|5_._682|_−_18_._7|6_._0_±_1_._0|_<_4_._6|24_±_3|\n|SPURS|EGS-187|215_._020802|+52_._917789|6_._380|_−_18_._7|_<_4_._3|_<_6_._7|_<_5_._2|\n|SPURS|GN-500|189_._094351|+62_._198975|4_._880|_−_18_._2|–|_<_4_._5|19_±_3|\n|DIVER|1008671|189_._159025|+62_._260221|4_._416|_−_18_._6|_<_4_._2|_<_4_._4|_<_3_._0|",
+          "collection": "arxiv_papers_v2",
+          "build_id": "857f03f5-5a9d-5259-9c13-3fb2366b96f1",
+          "paper_id": "0cfebf74-be71-5769-b950-6ed045b3bdb0",
+          "title": "SPURS: An Ultra-deep View Inside the Compact, Nitrogen-Enriched Nuclei of Little Red Dots",
+          "arxiv_id": "2609.11094",
+          "paper_version": 1,
+          "source_url": "https://arxiv.org/abs/2609.11094v1",
+          "authors": [
+            "Mengtao Tang",
+            "Daniel P. Stark",
+            "Charlotte A. Mason",
+            "Zuyi Chen",
+            "Tucker Jones",
+            "Sarah Searle Grannis",
+            "Peter Senchyna",
+            "Lily Whitler",
+            "Keerthi Vasan G. C.",
+            "Viola Gelli"
+          ],
+          "year": 2026,
+          "page": 30,
+          "section_header": "5.1. _Nitrogen Enhanced Gas in LRDs_",
+          "content_kind": "table",
+          "chunk_index": 145,
+          "score": 0.6653213,
+          "rerank_score": null,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        },
+        {
+          "id": "15f8fef2-a9a8-5d01-acb0-f0d5e03d3a3a",
+          "text": "|Properties|SPURS-GN-2\nSPURS-GN-2004\nSPURS-GN-29\nCEERS-7902|\n|---|---|\n|_β_FUV\n_β_NUV\n_β_opt\n_fν,_4050_/fν,_3670\nFWHMH_α,_narrow (km s_−_1)\nEWH_α,_narrow (Å)\nFWHMa\nH_α,_broad (km s_−_1)\nEWb\nH_α,_broad (Å)\nFWHMH_α,_abs (km s_−_1)\nEWH_α,_abs (Å)\n∆_v_H_α,_abs (km s_−_1)\n_F_H_α,_narrow_/F_H_β,_narrow\n_F_H_α,_broad_/F_H_β,_broad\nO3\nO32\nNe3O2|_−_2_._39_±_0_._10\n_−_1_._95_±_0_._05\n_−_1_._41_±_0_._09\n_−_0_._76_±_0_._12\n_−_2_._34_±_0_._18\n_−_2_._10_±_0_._16\n_−_1_._34_±_0_._17\n_−_1_._05_±_0_._32\n0_._09_±_0_._11\n0_._06_±_0_._09\n0_._40_±_0_._09\n0_._48_±_0_._08\n1_._39_±_0_._39\n1_._75_±_0_._33\n1_._90_±_0_._34\n2_._16_±_0_._47\n353_±_9\n277_±_7\n276_±_8\n329_±_7\n504_±_18\n331_±_11\n156_±_33\n104_±_7\n1395_±_101\n1505_±_55\n1639_±_90\n1275_±_61\n3523_±_228",
+          "collection": "arxiv_papers_v2",
+          "build_id": "857f03f5-5a9d-5259-9c13-3fb2366b96f1",
+          "paper_id": "0cfebf74-be71-5769-b950-6ed045b3bdb0",
+          "title": "SPURS: An Ultra-deep View Inside the Compact, Nitrogen-Enriched Nuclei of Little Red Dots",
+          "arxiv_id": "2609.11094",
+          "paper_version": 1,
+          "source_url": "https://arxiv.org/abs/2609.11094v1",
+          "authors": [
+            "Mengtao Tang",
+            "Daniel P. Stark",
+            "Charlotte A. Mason",
+            "Zuyi Chen",
+            "Tucker Jones",
+            "Sarah Searle Grannis",
+            "Peter Senchyna",
+            "Lily Whitler",
+            "Keerthi Vasan G. C.",
+            "Viola Gelli"
+          ],
+          "year": 2026,
+          "page": 7,
+          "section_header": "2.3. _Properties of SPURS LRDs_",
+          "content_kind": "table_unstructured",
+          "chunk_index": 28,
+          "score": 0.6604428,
+          "rerank_score": null,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        },
+        {
+          "id": "c04ea8dd-4ae2-5328-b72b-58a27f0a1515",
+          "text": "|**Table B.1.** H_α_ pro|perties inferred from exponential model fts to the four LRDs.|\n|---|---|\n|Properties|SPURS-GN-2<br>SPURS-GN-2004<br>SPURS-GN-29<br>CEERS-7902|\n|FWHMnarrow (km s_−_1)<br>EWnarrow (Å)<br>_f_<br>FWHMint (km s_−_1)<br>FWHMexp (km s_−_1)<br>EWbroad (Å)<br>FWHMabs (km s_−_1)<br>EWabs (Å)<br>∆_v_abs (km s_−_1)|356_±_10<br>275_±_7<br>276_±_8<br>329_±_7<br>510_±_19<br>335_±_12<br>149_±_32<br>109_±_7<br>0_._78_±_0_._12<br>0_._76_±_0_._04<br>0_._88_±_0_._15<br>0_._83_±_0_._04<br>1243_±_211<br>1291_±_87<br>1436_±_330<br>1159_±_95<br>1180_±_95<br>1690_±_74<br>1233_±_70<br>1485_±_59<br>1323_±_185<br>1181_±_67<br>1395_±_277<br>1341_±_89<br>–<br>355_±_41<br>255_±_15<br>333_±_14<br>–<br>_−_93_±_12<br>_−_106_±_8<br>_−_146_±_8<br>–<br>_−_296_±_50<br>_−_142_±_48<br>_−_319_±_48|",
+          "collection": "arxiv_papers_v2",
+          "build_id": "857f03f5-5a9d-5259-9c13-3fb2366b96f1",
+          "paper_id": "0cfebf74-be71-5769-b950-6ed045b3bdb0",
+          "title": "SPURS: An Ultra-deep View Inside the Compact, Nitrogen-Enriched Nuclei of Little Red Dots",
+          "arxiv_id": "2609.11094",
+          "paper_version": 1,
+          "source_url": "https://arxiv.org/abs/2609.11094v1",
+          "authors": [
+            "Mengtao Tang",
+            "Daniel P. Stark",
+            "Charlotte A. Mason",
+            "Zuyi Chen",
+            "Tucker Jones",
+            "Sarah Searle Grannis",
+            "Peter Senchyna",
+            "Lily Whitler",
+            "Keerthi Vasan G. C.",
+            "Viola Gelli"
+          ],
+          "year": 2026,
+          "page": 46,
+          "section_header": "C. METHODOLOGY OF DERIVING IONIZED GAS PROPERTIES",
+          "content_kind": "table",
+          "chunk_index": 214,
+          "score": 0.6444427,
+          "rerank_score": null,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        },
+        {
+          "id": "38dd3ad2-ef28-5e5e-a435-643823c8704f",
+          "text": "6 \n\n**==> picture [512 x 171] intentionally omitted <==**\n\n**----- Start of picture text -----**<br>\nSPURS-GN-2 SPURS-GN-2004 SPURS-GN-29 CEERS-7902<br>z = 7 . 1863 z = 6 . 7110 z = 7 . 0374 z = 6 . 9838<br>6000<br>H α H α H α 6000 H α<br>8000 4000<br>4000 6000 3000<br>4000<br>4000 2000<br>2000<br>2000<br>1000<br>2000<br>0 0 0 0<br>6400 6500 6600 6700 6400 6500 6600 6700 6400 6500 6600 6700 6400 6500 6600 6700<br>Rest-frame wavelength ( [˚] A)<br>(nJy)<br>ν<br>f<br>**----- End of picture text -----**<br>\n\n**Figure 3.** H _α_ emission lines in SPURS G395M spectra of the four LRDs. For each spectrum, the observed flux density and 1 _σ_ uncertainty are shown as black solid line and grey shaded region, respectively. ",
+          "collection": "arxiv_papers_v2",
+          "build_id": "857f03f5-5a9d-5259-9c13-3fb2366b96f1",
+          "paper_id": "0cfebf74-be71-5769-b950-6ed045b3bdb0",
+          "title": "SPURS: An Ultra-deep View Inside the Compact, Nitrogen-Enriched Nuclei of Little Red Dots",
+          "arxiv_id": "2609.11094",
+          "paper_version": 1,
+          "source_url": "https://arxiv.org/abs/2609.11094v1",
+          "authors": [
+            "Mengtao Tang",
+            "Daniel P. Stark",
+            "Charlotte A. Mason",
+            "Zuyi Chen",
+            "Tucker Jones",
+            "Sarah Searle Grannis",
+            "Peter Senchyna",
+            "Lily Whitler",
+            "Keerthi Vasan G. C.",
+            "Viola Gelli"
+          ],
+          "year": 2026,
+          "page": 6,
+          "section_header": "2.2. _SPURS Observations and Reduction_",
+          "content_kind": "text",
+          "chunk_index": 23,
+          "score": 0.64402664,
+          "rerank_score": null,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        },
+        {
+          "id": "012c8000-f510-551b-b40d-0dfca0751ec5",
+          "text": "13 \n\n**==> picture [243 x 201] intentionally omitted <==**\n\n**----- Start of picture text -----**<br>\nSPURS-GN-2<br>5 . 0<br>CIV<br>H α<br>2 . 0<br>1 . 0<br>0 . 5<br>− 5000 0 5000<br>Velocity offset (km s [−] [1] )<br>λ<br>f<br>Normalized<br>**----- End of picture text -----**<br>\n\n**Figure 6.** Comparison between broad C IV (blue) and broad H _α_ (orange) emission line profiles of GN-2. Flux densities are normalized to the peak flux of each broad component. \n\nalso probe the auroral O III] _λλ_ 1661 _,_ 1666 emission lines, which can be combined with [O III] _λ_ 5007 to constrain the electron temperature. ",
+          "collection": "arxiv_papers_v2",
+          "build_id": "857f03f5-5a9d-5259-9c13-3fb2366b96f1",
+          "paper_id": "0cfebf74-be71-5769-b950-6ed045b3bdb0",
+          "title": "SPURS: An Ultra-deep View Inside the Compact, Nitrogen-Enriched Nuclei of Little Red Dots",
+          "arxiv_id": "2609.11094",
+          "paper_version": 1,
+          "source_url": "https://arxiv.org/abs/2609.11094v1",
+          "authors": [
+            "Mengtao Tang",
+            "Daniel P. Stark",
+            "Charlotte A. Mason",
+            "Zuyi Chen",
+            "Tucker Jones",
+            "Sarah Searle Grannis",
+            "Peter Senchyna",
+            "Lily Whitler",
+            "Keerthi Vasan G. C.",
+            "Viola Gelli"
+          ],
+          "year": 2026,
+          "page": 13,
+          "section_header": "3.2. _C III], Si III], O III] Emission_",
+          "content_kind": "text",
+          "chunk_index": 55,
+          "score": 0.64121616,
+          "rerank_score": null,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        },
+        {
+          "id": "c970afd0-3a61-5c9f-957b-9446baee54e6",
+          "text": "9 \n\n**==> picture [512 x 399] intentionally omitted <==**\n\n**----- Start of picture text -----**<br>\nLy α OI* SiII* NIV] CIV HeII OIII] NIII] FeII SiIII] CIII]<br>SPURS-GN-2 FeIII<br>z = 7 . 1863<br>SPURS-GN-2004<br>z = 6 . 7110<br>SPURS-GN-29<br>z = 7 . 0374<br>CEERS-7902<br>z = 6 . 9838<br>SiII OI SiII CII SiIV SiII FeII AlII SiII AlIII<br>1200 1300 1400 1500 1600 1700 1800 1900<br>Rest-frame wavelength ( [˚] A)<br>ν<br>f<br>offset<br>and<br>Normalized<br>**----- End of picture text -----**<br>\n\n**Figure 4.** SPURS G140M (rest-frame far-UV) spectra of GN-2, GN-2004, GN-29, and CEERS-7902. Observed fluxes are shown as black solid lines and 1 _σ_ uncertainties are shown as grey shaded regions. We highlight UV emission lines and interstellar absorption lines as blue shaded regions and red dotted lines, respectively.",
+          "collection": "arxiv_papers_v2",
+          "build_id": "857f03f5-5a9d-5259-9c13-3fb2366b96f1",
+          "paper_id": "0cfebf74-be71-5769-b950-6ed045b3bdb0",
+          "title": "SPURS: An Ultra-deep View Inside the Compact, Nitrogen-Enriched Nuclei of Little Red Dots",
+          "arxiv_id": "2609.11094",
+          "paper_version": 1,
+          "source_url": "https://arxiv.org/abs/2609.11094v1",
+          "authors": [
+            "Mengtao Tang",
+            "Daniel P. Stark",
+            "Charlotte A. Mason",
+            "Zuyi Chen",
+            "Tucker Jones",
+            "Sarah Searle Grannis",
+            "Peter Senchyna",
+            "Lily Whitler",
+            "Keerthi Vasan G. C.",
+            "Viola Gelli"
+          ],
+          "year": 2026,
+          "page": 9,
+          "section_header": "2.3. _Properties of SPURS LRDs_",
+          "content_kind": "text",
+          "chunk_index": 37,
+          "score": 0.63354194,
+          "rerank_score": null,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        },
+        {
+          "id": "7ebaab5f-f57e-5533-b1ee-f05356553d59",
+          "text": "_Bar-induced migration of 𝜔 Cen_ 5 \n\n**==> picture [244 x 182] intentionally omitted <==**\n\n**Figure 5.** Likelihood of _𝜔_ Cen’s phase space position as a function of the present-day pattern speed of a decelerating bar. The vertical dashed line is the pattern speed at which _𝜔_ Cen’s frequencies satisfy Ω _𝜙_ − Ωb + Ω _𝑟_ = 0, so that it sits on the 1:1 resonance. There is only significant likelihood when Ωb _,_ 0 is lower than this value, meaning that the resonance has passed the location of _𝜔_ Cen in the past. \n\norbits back in time). The title of each panel indicates the present-day pattern speed Ωb _,_ 0. \n\nFig. 4 clearly shows that the probability distribution of _𝜔_ Cen’s initial phase space location depends strongly on the pattern speed. A strong overlap with the GSE contours requires a value of Ωb _,_ 0 ≲ 26 km s[−][1] kpc[−][1] . This is consistent with the expectations from Fig. 3, and is again due to the location of the retrograde 1:1 resonance. If the pattern speed is any higher, the energy and angular momentum of _𝜔_ Cen remain approximately constant throughout the simulation. In this case bar-induced migration alone is not sufficient to transport _𝜔_ Cen away from the GSE debris. \n\n**Pattern speed constraint.** We can use these results to quantitatively constrain the value of Ωb consistent with the migration of _𝜔_ Cen from the GSE debris. Let _𝑓_ gse ( _𝑱_ ) be the distribution function (DF) of the GSE debris before bar formation, assumed to be in equilibrium. The bar causes this to evolve to the present-day DF _𝑓_ 0 ( _𝒙, 𝒗_ |Ωb _,_ 0). This notation indicates that the final DF depends on the pattern speed; in this study we vary the present-day value Ωb _,_ 0 while keeping the deceleration rate and bar’s age constant. ",
+          "collection": "arxiv_papers_v2",
+          "build_id": "90456f74-656c-5dc3-bac6-5739e80edeee",
+          "paper_id": "f4441bd7-b28a-5316-a6c2-7f0df80bc846",
+          "title": "Bar-induced migration of $ω$ Centauri away from Gaia Sausage-Enceladus",
+          "arxiv_id": "2606.12516",
+          "paper_version": 2,
+          "source_url": "https://arxiv.org/abs/2606.12516v2",
+          "authors": [
+            "Adam M. Dillamore",
+            "Hanyuan Zhang",
+            "Vasily Belokurov"
+          ],
+          "year": 2026,
+          "page": 5,
+          "section_header": "**3 SIMULATIONS**",
+          "content_kind": "text",
+          "chunk_index": 22,
+          "score": 0.65513,
+          "rerank_score": null,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        },
+        {
+          "id": "e68240ee-5110-58a8-89ec-0afff69ea23b",
+          "text": "6 _A. M. Dillamore et al._ \n\nupper bound on the pattern speed, since the 1:1 resonance would have to be at an even higher energy. Our estimate of the bound without dynamical friction is therefore conservative. Nevertheless, incorporating dynamical friction into the model may be worthwhile in future work. \n\n**Summary.** We have investigated the scenario in which the globular cluster _𝜔_ Cen originated in the GSE merger event (e.g. as a nuclear star cluster), and subsequently migrated to its current orbit due to resonance with the Galactic bar Laporte & Orkney (2026). \n\nExtending the chemical analysis of Laporte & Orkney (2026), we find that the proposed metal-poor corridor between the GSE debris and _𝜔_ Cen is not a chemically simple continuation of the main low- _𝛼_ GSE sequence. The low- _𝛼_ component is clearest near the GSE cloud and only tentatively reaches _𝜔_ Cen in the bridge slice that contains the cluster; elsewhere the bridge region is more _𝛼_ -enhanced than the GSE core. The chemical evidence therefore remains suggestive rather than conclusive: it is compatible with a GSE origin for _𝜔_ Cen, but does not require one. \n\nThe retrograde 1:1 resonance is capable of causing migration of stars from the GSE debris to the current orbit of _𝜔_ Cen. This requires that the minimum pattern speed of the bar throughout its evolution was Ωb _,_ min ≲ 26 km s[−][1] kpc[−][1] . This is considerably slower than most estimates of the current value (typically Ωb = 30 − 45 km s[−][1] kpc[−][1] ), though consistent with Horta et al. (2025). \n\nIn summary, the GSE/ _𝜔_ Cen migration scenario is plausible, but would require a re-evaluation of the general consensus on the bar’s pattern speed.",
+          "collection": "arxiv_papers_v2",
+          "build_id": "90456f74-656c-5dc3-bac6-5739e80edeee",
+          "paper_id": "f4441bd7-b28a-5316-a6c2-7f0df80bc846",
+          "title": "Bar-induced migration of $ω$ Centauri away from Gaia Sausage-Enceladus",
+          "arxiv_id": "2606.12516",
+          "paper_version": 2,
+          "source_url": "https://arxiv.org/abs/2606.12516v2",
+          "authors": [
+            "Adam M. Dillamore",
+            "Hanyuan Zhang",
+            "Vasily Belokurov"
+          ],
+          "year": 2026,
+          "page": 6,
+          "section_header": "**4 DISCUSSION AND CONCLUSIONS**",
+          "content_kind": "text",
+          "chunk_index": 27,
+          "score": 0.64987266,
+          "rerank_score": null,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        },
+        {
+          "id": "f9426a97-7f23-58e7-9254-f593087f4d1f",
+          "text": "**==> picture [244 x 27] intentionally omitted <==**\n\nwhere we indicate that _𝑱𝑖_ are functions of the present-day coordinates ( _𝒙𝑖, 𝒗𝑖_ ), with the pattern speed as the single model parameter. \n\nWe plot the likelihood L as a function of Ωb _,_ 0 in Fig. 5. Assuming a uniform prior in Ωb _,_ 0, this is equivalent to a posterior probability distribution for the pattern speed within our model assumptions. The vertical dashed line marks the pattern speed at which _𝜔_ Cen sits exactly on the retrograde 1:1 resonance, such that its frequencies satisfy Ω _𝜙_ − Ωb + Ω _𝑟_ = 0. Fig. 5 confirms that _𝜔_ Cen can likely only be traced back to the GSE debris if the pattern speed is around or lower than this critical value, or Ωb _,_ 0 ≲ 26 km s[−][1] kpc[−][1] . If the pattern speed has never been this slow, the 1:1 resonance cannot have caused sufficient migration of _𝜔_ Cen. The likelihood profile has many peaks and troughs at these low pattern speeds; these are likely dependent on details of the simulation such as bar deceleration rate, which we keep fixed. Thus details of the profile in Fig. 5 should not be over-interpreted. \n\nWe also note that we have only considered a decelerating bar in this model. In this case Ωb _,_ 0 is the slowest pattern speed throughout the bar’s evolution. While this is the most likely scenario (e.g. Tremaine & Weinberg 1984; Athanassoula 2003; Chiba et al. 2021), it is possible that the pattern speed undergoes fluctuations including brief periods of acceleration (e.g. Hilmi et al. 2020). We should thus interpret our upper bound as a constraint on the _minimum_ pattern speed of the bar throughout its history. We therefore argue that the _𝜔_ Cen migration scenario requires that the minimum pattern speed of the bar satisfies Ωb _,_ min ≲ 26 km s[−][1] kpc[−][1] .",
+          "collection": "arxiv_papers_v2",
+          "build_id": "90456f74-656c-5dc3-bac6-5739e80edeee",
+          "paper_id": "f4441bd7-b28a-5316-a6c2-7f0df80bc846",
+          "title": "Bar-induced migration of $ω$ Centauri away from Gaia Sausage-Enceladus",
+          "arxiv_id": "2606.12516",
+          "paper_version": 2,
+          "source_url": "https://arxiv.org/abs/2606.12516v2",
+          "authors": [
+            "Adam M. Dillamore",
+            "Hanyuan Zhang",
+            "Vasily Belokurov"
+          ],
+          "year": 2026,
+          "page": 5,
+          "section_header": "**3 SIMULATIONS**",
+          "content_kind": "text",
+          "chunk_index": 24,
+          "score": 0.6390357,
+          "rerank_score": null,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        },
+        {
+          "id": "08b67e42-39a6-5e69-aa17-ea587137aad3",
+          "text": "2 _A. M. Dillamore et al._ \n\nHowever, it has become clear in recent years that the Galactic bar causes significant perturbations to orbits in the inner stellar halo (Dillamore et al. 2023, 2024b, 2025; Dillamore & Sanders 2025; Tomlinson et al. 2026; De Leo et al. 2026; Gherghinescu et al. 2026). The bar’s pattern speed Ωb (rotation rate) is likely to be decelerating (Chiba et al. 2021; Zhang et al. 2025), a process which can cause migration of globular clusters via resonances (Dillamore et al. 2024b). These include the retrograde 1:1 resonance, where the orbital frequencies of a particle satisfy Ω _𝜙_ − Ωb + Ω _𝑟_ = 0. Tomlinson et al. (2026) showed that this resonance can cause significant scattering of orbits along its length in ( _𝐿 𝑧, 𝐸_ ) space (on lines of gradient d _𝐸_ /d _𝐿 𝑧_ = Ωb; see Dillamore & Sanders 2025). This process could be responsible for deflecting _𝜔_ Cen onto lower energy, more retrograde orbits (Laporte & Orkney 2026). In this _Letter_ we investigate this scenario by running simulations in a realistic Milky Way potential with a decelerating bar. We determine the range of pattern speeds compatible with the migration of _𝜔_ Cen from the GSE debris, and thus assess how plausible this scenario is. We also analyse the chemical composition of retrograde substructure between the GSE debris and _𝜔_ Cen, extending the analysis of Laporte & Orkney (2026). \n\nThe rest of this _Letter_ is arranged as follows. In Section 2 we describe the data used, and analyse the chemistry of retrograde substructure. Section 3 discusses our simulations and the constraint on Ωb. Finally we discuss and summarise our conclusions in Section 4.",
+          "collection": "arxiv_papers_v2",
+          "build_id": "90456f74-656c-5dc3-bac6-5739e80edeee",
+          "paper_id": "f4441bd7-b28a-5316-a6c2-7f0df80bc846",
+          "title": "Bar-induced migration of $ω$ Centauri away from Gaia Sausage-Enceladus",
+          "arxiv_id": "2606.12516",
+          "paper_version": 2,
+          "source_url": "https://arxiv.org/abs/2606.12516v2",
+          "authors": [
+            "Adam M. Dillamore",
+            "Hanyuan Zhang",
+            "Vasily Belokurov"
+          ],
+          "year": 2026,
+          "page": 2,
+          "section_header": "_𝜔_ **Bar-induced migration of Centauri away from Gaia Sausage-Enceladus**",
+          "content_kind": "text",
+          "chunk_index": 7,
+          "score": 0.63511693,
+          "rerank_score": null,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        },
+        {
+          "id": "b77d3537-d8b3-585a-b15f-11ae48cf18e7",
+          "text": "## _𝜔_ **Bar-induced migration of Centauri away from Gaia Sausage-Enceladus** \n\nAdam M. Dillamore,[1] _[★]_ Hanyuan Zhang[2] and Vasily Belokurov[2] \n\n> 1 _Department of Physics and Astronomy, University College London, London, WC1E 6BT, UK_ \n\n> 2 _Institute of Astronomy, University of Cambridge, Madingley Road, Cambridge CB3 0HA, UK_ \n\nAccepted XXX. Received YYY; in original form ZZZ ",
+          "collection": "arxiv_papers_v2",
+          "build_id": "90456f74-656c-5dc3-bac6-5739e80edeee",
+          "paper_id": "f4441bd7-b28a-5316-a6c2-7f0df80bc846",
+          "title": "Bar-induced migration of $ω$ Centauri away from Gaia Sausage-Enceladus",
+          "arxiv_id": "2606.12516",
+          "paper_version": 2,
+          "source_url": "https://arxiv.org/abs/2606.12516v2",
+          "authors": [
+            "Adam M. Dillamore",
+            "Hanyuan Zhang",
+            "Vasily Belokurov"
+          ],
+          "year": 2026,
+          "page": 1,
+          "section_header": "_𝜔_ **Bar-induced migration of Centauri away from Gaia Sausage-Enceladus**",
+          "content_kind": "text",
+          "chunk_index": 1,
+          "score": 0.6103482,
+          "rerank_score": null,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        },
+        {
+          "id": "1d1179cc-9115-5fcb-bb5d-32c347443329",
+          "text": "_Bar-induced migration of 𝜔 Cen_ 7 \n\nVasiliev E., 2019, MNRAS, 482, 1525 Vasiliev E., Baumgardt H., 2021, MNRAS, 505, 5978 Villanova S., Geisler D., Gratton R. G., Cassisi S., 2014, ApJ, 791, 107 Zhang H., Belokurov V., Evans N. W., Kane S. G., Sanders J. L., 2024, MNRAS, 533, 3395 Zhang H., et al., 2025, ApJ, 983, L10 \n\nThis paper has been typeset from a TEX/L[A] TEX file prepared by the author. \n\nMNRAS **000** , 1–7 (2026)",
+          "collection": "arxiv_papers_v2",
+          "build_id": "90456f74-656c-5dc3-bac6-5739e80edeee",
+          "paper_id": "f4441bd7-b28a-5316-a6c2-7f0df80bc846",
+          "title": "Bar-induced migration of $ω$ Centauri away from Gaia Sausage-Enceladus",
+          "arxiv_id": "2606.12516",
+          "paper_version": 2,
+          "source_url": "https://arxiv.org/abs/2606.12516v2",
+          "authors": [
+            "Adam M. Dillamore",
+            "Hanyuan Zhang",
+            "Vasily Belokurov"
+          ],
+          "year": 2026,
+          "page": 7,
+          "section_header": "**REFERENCES**",
+          "content_kind": "text",
+          "chunk_index": 34,
+          "score": 0.5977645,
+          "rerank_score": null,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        },
+        {
+          "id": "7bbc2d1a-a8cd-502d-b482-210f62f7d51b",
+          "text": "**Slowing barred potential.** We integrate orbits in a modified version of the Milky Way barred potential from Hunter et al. (2024). We consider decelerating bars which evolve according to the prescription used by Dillamore et al. (2024a,b, 2025). The bar increases \n\nin amplitude between times _𝑡_ = 0 and _𝑡_ 1 ≈ 1 Gyr, then begins to smoothly decelerate until _𝑡_ 2 ≈ 2 Gyr. Between _𝑡_ = _𝑡_ 2 and the end of the simulation at _𝑡_ f ≈ 8 Gyr, the bar’s dimensionless deceleration rate _𝜂_ ≡−Ω[�] b/Ω[2] b[is][held][constant][at] _[𝜂]_[=][0] _[.]_[003,][consistent][with][Chiba] et al. (2021) and Zhang et al. (2025). The duration of the simulation _𝑡_ f is consistent with the estimated age of the bar of ≈ 8 Gyr (Sanders et al. 2024). We consider a range of present-day pattern speeds Ωb _,_ 0. As the bar slows, its amplitude is held constant while its length scales according to _𝑆_ ( _𝑡_ ) = Ωb _,_ 0/Ωb ( _𝑡_ ), where _𝑆_ = 1 corresponds to the Hunter et al. (2024) model. This ensures that the present-day potential matches this model for all Ωb _,_ 0. We perform two sets of simulations in this potential: a) integrating a set of particles from a GSE-like distribution function forwards from _𝑡_ = 0 to _𝑡_ = _𝑡_ f; and b) integrating the sample of _𝜔_ Cen phase space positions back in time from the present-day _𝑡_ = _𝑡_ f to _𝑡_ = 0. These will determine whether the bar is capable of transporting particles from the GSE to the low-energy retrograde region of phase space occupied by _𝜔_ Cen. ",
+          "collection": "arxiv_papers_v2",
+          "build_id": "90456f74-656c-5dc3-bac6-5739e80edeee",
+          "paper_id": "f4441bd7-b28a-5316-a6c2-7f0df80bc846",
+          "title": "Bar-induced migration of $ω$ Centauri away from Gaia Sausage-Enceladus",
+          "arxiv_id": "2606.12516",
+          "paper_version": 2,
+          "source_url": "https://arxiv.org/abs/2606.12516v2",
+          "authors": [
+            "Adam M. Dillamore",
+            "Hanyuan Zhang",
+            "Vasily Belokurov"
+          ],
+          "year": 2026,
+          "page": 3,
+          "section_header": "**3 SIMULATIONS**",
+          "content_kind": "text",
+          "chunk_index": 17,
+          "score": 0.59382826,
+          "rerank_score": null,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        },
+        {
+          "id": "1df6d165-2f98-5c7c-bf02-df24b55d53f9",
+          "text": "## **3 SIMULATIONS** \n\nWe now run simulations using agama (Vasiliev 2019) of a GSElike population and _𝜔_ Cen itself in a Milky Way potential with a decelerating bar. This will help to determine whether the bar is capable of causing migration of _𝜔_ Cen from the GSE debris to its current orbit. \n\n**Slowing barred potential.** We integrate orbits in a modified version of the Milky Way barred potential from Hunter et al. (2024). We consider decelerating bars which evolve according to the prescription used by Dillamore et al. (2024a,b, 2025). The bar increases ",
+          "collection": "arxiv_papers_v2",
+          "build_id": "90456f74-656c-5dc3-bac6-5739e80edeee",
+          "paper_id": "f4441bd7-b28a-5316-a6c2-7f0df80bc846",
+          "title": "Bar-induced migration of $ω$ Centauri away from Gaia Sausage-Enceladus",
+          "arxiv_id": "2606.12516",
+          "paper_version": 2,
+          "source_url": "https://arxiv.org/abs/2606.12516v2",
+          "authors": [
+            "Adam M. Dillamore",
+            "Hanyuan Zhang",
+            "Vasily Belokurov"
+          ],
+          "year": 2026,
+          "page": 3,
+          "section_header": "**3 SIMULATIONS**",
+          "content_kind": "text",
+          "chunk_index": 16,
+          "score": 0.58725166,
+          "rerank_score": null,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        }
+      ],
+      "cited_context_ids": [
+        "7ebaab5f-f57e-5533-b1ee-f05356553d59",
+        "d0e2c4e0-af2a-5368-b605-cdca148e549a",
+        "da73a3d0-2c58-5c33-9a86-a37a77beee6f",
+        "e4a8b1a8-706d-5fe0-8c9c-ba8377542c9c",
+        "f9426a97-7f23-58e7-9254-f593087f4d1f"
+      ],
+      "metrics": {
+        "retrieval_hit": 1.0,
+        "retrieval_recall": 0.3333333333333333,
+        "gold_citation_recall": 0.0,
+        "citation_from_retrieval": 1.0,
+        "retrieved_count": 16,
+        "cited_count": 5,
+        "required_paper_count": 2,
+        "retrieved_required_paper_count": 2,
+        "cited_required_paper_count": 2,
+        "required_paper_retrieval_recall": 1.0,
+        "required_paper_citation_recall": 1.0,
+        "all_required_papers_retrieved": 1.0,
+        "answer_correctness": 0.5,
+        "groundedness": 1.0,
+        "answer_relevance": 1.0,
+        "correct_abstention": null
+      },
+      "judge": {
+        "correctness": 0.5,
+        "answer_relevance": 1.0,
+        "abstention": "not_applicable",
+        "reason": "Reference assessment: The actual answer gives Ω_b,min ≈ 26 km/s/kpc and correctly states typical estimates 30–45 km/s/kpc and that Ω_b,min is below that range. However the SPURS values are incorrect: actual paper reports broad [O III] FWHM = 1130–1627 km/s and broad N IV] FWHM = 1514±137 km/s for GN-2, whereas the answer gave 149–1690 km/s range and N IV] = 1243 km/s, so partly wrong. Grounding assessment: All three substantive claims in the answer are directly supported by the retrieved excerpts: SPURS tables and text list broad [O III]/Hα/N IV] FWHM values including the GN-2 broad N IV] FWHM ≈1243 km/s and broad component FWHM range up to ≈1690 km/s; Dillamore et al. explicitly state Ωb,min ≲ 26 km s⁻¹ kpc⁻¹; and Dillamore et al. also quote typical recent estimates of Ωb = 30–45 km s⁻¹ kpc⁻¹ and note that 26 is considerably slower, so the comparison (Ωb,min below the typical 30–45 range) is supported.",
+        "groundedness": 1.0
+      },
+      "judge_request": {
+        "reference": {
+          "response_id": "resp_07a0a255c6e3db10016ab267175dd487d2b550b25399440d20",
+          "response_ids": [
+            "resp_07a0a255c6e3db10016ab267175dd487d2b550b25399440d20"
+          ],
+          "attempts": 1,
+          "request_id": "req_6d421eda141e444395cdf960cbaf339d",
+          "model": "gpt-5-mini-2025-08-07",
+          "usage": {
+            "input_tokens": 2543,
+            "output_tokens": 162,
+            "total_tokens": 2705
+          }
+        },
+        "grounding": {
+          "response_id": "resp_0923de657d2dc396016ab2671b07d087d297a1764cca9984cf",
+          "response_ids": [
+            "resp_0923de657d2dc396016ab2671b07d087d297a1764cca9984cf"
+          ],
+          "attempts": 1,
+          "request_id": "req_be0037d1c9bb433c90d5a455c2a5d8dc",
+          "model": "gpt-5-mini-2025-08-07",
+          "usage": {
+            "input_tokens": 8188,
+            "output_tokens": 187,
+            "total_tokens": 8375
+          }
+        }
+      },
+      "agent_execution": {
+        "question_scope": null,
+        "plan_summary": "The LangGraph agent is gathering supporting paper evidence.",
+        "stop_reason": "token_budget",
+        "synthesis_policy": "evidence_fallback",
+        "rounds": 1,
+        "tool_calls": 2,
+        "evidence_count": 16,
+        "required_paper_count": 2,
+        "covered_required_paper_count": 2,
+        "missing_required_build_ids": [],
+        "planner_tokens": 9611,
+        "elapsed_seconds": 6.978,
+        "actions": [
+          {
+            "action_id": "call_X7z25nyajKCyedrjGcjhw3lU",
+            "need_id": "graph",
+            "tool": "search_chunks",
+            "status": "success",
+            "result_count": 8,
+            "evidence_ids": [
+              "e4a8b1a8-706d-5fe0-8c9c-ba8377542c9c",
+              "da73a3d0-2c58-5c33-9a86-a37a77beee6f",
+              "d0e2c4e0-af2a-5368-b605-cdca148e549a",
+              "15f8fef2-a9a8-5d01-acb0-f0d5e03d3a3a",
+              "c04ea8dd-4ae2-5328-b72b-58a27f0a1515",
+              "38dd3ad2-ef28-5e5e-a435-643823c8704f",
+              "012c8000-f510-551b-b40d-0dfca0751ec5",
+              "c970afd0-3a61-5c9f-957b-9446baee54e6"
+            ],
+            "paper_ids": [
+              "0cfebf74-be71-5769-b950-6ed045b3bdb0"
+            ],
+            "error_type": null
+          },
+          {
+            "action_id": "call_JbJdjrqbUUHsp0T772JQFqsb",
+            "need_id": "graph",
+            "tool": "search_chunks",
+            "status": "success",
+            "result_count": 8,
+            "evidence_ids": [
+              "7ebaab5f-f57e-5533-b1ee-f05356553d59",
+              "e68240ee-5110-58a8-89ec-0afff69ea23b",
+              "f9426a97-7f23-58e7-9254-f593087f4d1f",
+              "08b67e42-39a6-5e69-aa17-ea587137aad3",
+              "b77d3537-d8b3-585a-b15f-11ae48cf18e7",
+              "1d1179cc-9115-5fcb-bb5d-32c347443329",
+              "7bbc2d1a-a8cd-502d-b482-210f62f7d51b",
+              "1df6d165-2f98-5c7c-bf02-df24b55d53f9"
+            ],
+            "paper_ids": [
+              "f4441bd7-b28a-5316-a6c2-7f0df80bc846"
+            ],
+            "error_type": null
+          }
+        ]
+      },
+      "retrieval_diagnostics": null,
+      "elapsed_seconds": 18.913,
+      "error": null
+    }
+  ]
+}

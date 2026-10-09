@@ -10,6 +10,13 @@ def error_details(error):
             value = getattr(error, field, None)
             if type(value) is int:
                 item[field] = value
+        if type(error).__name__ == "ValidationError" and hasattr(error, "errors"):
+            try:
+                item["fields"] = [{"location": ".".join(str(part) for part in detail["loc"]),
+                                    "type": detail["type"]}
+                                   for detail in error.errors(include_url=False, include_input=False)[:5]]
+            except (TypeError, KeyError):
+                pass
         chain.append(item)
         error = error.__cause__ or error.__context__
     names = {item["type"] for item in chain}
@@ -34,4 +41,6 @@ def error_details(error):
         category, hint = "service_or_limit", "Check API usage limits and service health before another paid attempt."
     elif "LengthFinishReasonError" in names:
         category, hint = "output_limit", "Model output hit its token cap; prepare a new plan with a higher EVAL_MAX_TOKENS."
+    elif names & {"ValidationError", "InvalidCitationIdsError"}:
+        category, hint = "response_validation", "A structured model response remained invalid after its bounded retry."
     return {"category": category, "causes": chain, "hint": hint}

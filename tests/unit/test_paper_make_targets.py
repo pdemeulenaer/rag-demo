@@ -57,6 +57,18 @@ def test_evaluation_make_forwards_optional_reasoning_effort():
                             "--max-completion-tokens", "2500"]
 
 
+def test_evaluation_make_forwards_agentic_question_profiles():
+    command = dry_run("eval-preview", "QUESTIONS=70", "EVAL_SINGLE_FACT=20",
+                      "EVAL_SINGLE_SYNTHESIS=10", "EVAL_CROSS_COMPARISON=15",
+                      "EVAL_CROSS_MULTIHOP=10", "EVAL_METADATA_DISCOVERY=5",
+                      "EVAL_UNANSWERABLE=10")
+    assert command[-12:] == [
+        "--single-fact", "20", "--single-synthesis", "10",
+        "--cross-comparison", "15", "--cross-multihop", "10",
+        "--metadata-discovery", "5", "--unanswerable", "10",
+    ]
+
+
 def test_evaluation_connectivity_check_is_not_generation():
     assert dry_run("eval-check", "EVAL_DIR=data/evaluation/gpt5") == [
         "uv", "run", "python", "-m", "evals.generate_questions", "check",
@@ -64,16 +76,53 @@ def test_evaluation_connectivity_check_is_not_generation():
     ]
 
 
+def test_evaluation_rebase_is_explicit_and_writes_a_new_directory():
+    assert dry_run(
+        "eval-rebase",
+        "EVAL_FROM=data/evaluation/v3/questions.split.json",
+        "EVAL_DIR=data/evaluation/v4",
+    ) == [
+        "uv", "run", "python", "-m", "evals.rebase_dataset",
+        "--dataset", "data/evaluation/v3/questions.split.json",
+        "--output", "data/evaluation/v4",
+    ]
+
+
 def test_reviewed_evaluation_runner_forwards_modes_and_optional_limit():
     command = dry_run("eval-run", "EVAL_DIR=data/evaluation/reviewed",
-                      "EVAL_MODES=vanilla hybrid", "EVAL_LIMIT=3", "EVAL_JUDGE=true")
+                      "EVAL_MODES=vanilla hybrid hybrid_rerank agentic",
+                      "EVAL_LIMIT=3", "EVAL_JUDGE=true")
     assert command == [
         "uv", "run", "python", "-m", "evals.run_benchmark",
         "--dataset", "data/evaluation/reviewed/questions.reviewed.json",
         "--output-root", "data/evaluation/runs", "--modes", "vanilla", "hybrid",
+        "hybrid_rerank", "agentic",
         "--split", "all", "--top-k", "5", "--judge",
         "--judge-model", "gpt-5-mini", "--judge-reasoning-effort", "minimal",
         "--concurrency", "1", "--limit", "3",
+    ]
+
+
+def test_evaluation_runner_forwards_question_id_filter():
+    command = dry_run("eval-run", "EVAL_QUESTION_ID=q0033")
+    assert command[-2:] == ["--question-id", "q0033"]
+
+
+def test_eval_draft_reasoning_override_is_opt_in_and_preserves_the_judge_settings():
+    baseline = dry_run("eval-run", "EVAL_DRAFT_REASONING_EFFORT=")
+    trial = dry_run("eval-run", "EVAL_DRAFT_REASONING_EFFORT=low")
+    assert baseline[0] == "uv"
+    assert trial == ["AGENT_DRAFT_REASONING_EFFORT=low", *baseline]
+    assert trial[trial.index("--judge-reasoning-effort") + 1] == "minimal"
+
+
+def test_evaluation_runner_forwards_profile_filters():
+    command = dry_run(
+        "eval-run", "EVAL_PROFILES=cross_comparison cross_multihop",
+    )
+    position = command.index("--profiles")
+    assert command[position:position + 3] == [
+        "--profiles", "cross_comparison", "cross_multihop",
     ]
 
 
@@ -145,6 +194,14 @@ def test_airflow_start_does_not_unpause_or_trigger_dag():
     command = dry_run("airflow-up")
     assert "--profile" in command and "airflow" in command
     assert "unpause" not in command and "trigger" not in command
+    assert "Airflow UI: http://localhost:8080" in " ".join(command)
+
+
+def test_airflow_password_reads_generated_credentials():
+    assert dry_run("airflow-password") == [
+        "docker", "compose", "--profile", "airflow", "exec", "airflow", "cat",
+        "/opt/airflow/simple_auth_manager_passwords.json.generated",
+    ]
 
 
 def test_langfuse_start_uses_repo_compose_stack_and_waits():

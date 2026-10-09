@@ -44,7 +44,7 @@ lint:
 	pylint src
 
 test:
-	uv run --group dev --group frontend pytest tests/unit -q
+	uv run --group dev --group frontend python -m pytest tests/unit -q
 
 docs:
 	uv run --group dev mkdocs serve -a 127.0.0.1:$(PORT)
@@ -78,7 +78,7 @@ papers-backups:
 papers-backup-check:
 	python3 scripts/papers_backup.py check
 
-.PHONY: papers-scheduled papers-run-status airflow-up airflow-stop airflow-logs airflow-check
+.PHONY: papers-scheduled papers-run-status airflow-up airflow-stop airflow-logs airflow-check airflow-password
 
 # Explicit paid run; fixes today's selection across retries, audits and reports.
 papers-scheduled:
@@ -91,12 +91,16 @@ papers-run-status:
 airflow-up:
 	mkdir -p data/paper_artifacts
 	LOCAL_UID="$(LOCAL_UID)" docker compose --profile airflow up -d --build airflow
+	@echo "Airflow UI: http://localhost:8080"
 
 airflow-stop:
 	docker compose --profile airflow stop airflow
 
 airflow-logs:
 	docker compose --profile airflow logs --tail=100 -f airflow
+
+airflow-password:
+	docker compose --profile airflow exec airflow cat /opt/airflow/simple_auth_manager_passwords.json.generated
 
 # Inspect the output: it must contain no DAG import errors. Does not trigger tasks.
 airflow-check:
@@ -151,6 +155,7 @@ papers-help:
 	  '  make papers-scheduled LIMIT=10       Durable daily budget + audit + notifications (paid)' \
 	  '  make papers-run-status              Read saved daily run summary/state' \
 	  '  make airflow-up                     Start optional Airflow; new DAG is paused' \
+	  '  make airflow-password               Show the generated local Airflow login credentials' \
 	  '  make airflow-logs / airflow-stop     Inspect / stop scheduler' \
 	  'DAYS/LIMIT are optional; omitted values use CLI/.env defaults.' \
 	  'Preview/backfill also accept UNTIL=YYYY-MM-DD. No target installs a schedule.' \
@@ -236,16 +241,26 @@ EVAL_DIR ?= data/evaluation/star-clusters
 EVAL_MODEL ?= gpt-4.1-mini
 EVAL_REASONING_EFFORT ?=
 EVAL_MAX_TOKENS ?= 2500
+EVAL_SINGLE_FACT ?=
+EVAL_SINGLE_SYNTHESIS ?=
+EVAL_CROSS_COMPARISON ?=
+EVAL_CROSS_MULTIHOP ?=
+EVAL_METADATA_DISCOVERY ?=
+EVAL_UNANSWERABLE ?=
 EVAL_SOURCE ?= arxiv
 QUESTIONS ?= 50
 PAPERS ?= 50
 EVAL_SEED ?= 42
 EVAL_REVIEWED ?= $(EVAL_DIR)/questions.reviewed.json
 EVAL_RUNS_DIR ?= data/evaluation/runs
-EVAL_MODES ?= vanilla hybrid
+EVAL_MODES ?= vanilla hybrid hybrid_rerank agentic
 EVAL_TOP_K ?= 5
 EVAL_LIMIT ?=
+EVAL_QUESTION_ID ?=
+EVAL_PROFILES ?=
 EVAL_GENERATION_MODEL ?=
+# Optional per-run Agentic draft/repair override; empty preserves Config/.env.
+EVAL_DRAFT_REASONING_EFFORT ?=
 EVAL_JUDGE ?= false
 EVAL_JUDGE_MODEL ?= gpt-5-mini
 EVAL_JUDGE_REASONING_EFFORT ?= minimal
@@ -253,12 +268,13 @@ EVAL_CONCURRENCY ?= 1
 EVAL_SPLIT ?= all
 EVAL_SPLIT_OUTPUT ?= $(EVAL_DIR)/questions.split.json
 EVAL_TEST_RATIO ?= 0.25
+EVAL_FROM ?=
 
-.PHONY: eval-preview eval-check create-eval-dataset eval-validate eval-split eval-run
+.PHONY: eval-preview eval-check create-eval-dataset eval-rebase eval-validate eval-split eval-run
 
 # Freeze active paper evidence locally. No model calls or database writes.
 eval-preview:
-	uv run python -m evals.generate_questions prepare --output "$(EVAL_DIR)" --source "$(EVAL_SOURCE)" --questions "$(QUESTIONS)" --papers "$(PAPERS)" --seed "$(EVAL_SEED)" --model "$(EVAL_MODEL)" $(if $(EVAL_REASONING_EFFORT),--reasoning-effort "$(EVAL_REASONING_EFFORT)") --max-completion-tokens "$(EVAL_MAX_TOKENS)"
+	uv run python -m evals.generate_questions prepare --output "$(EVAL_DIR)" --source "$(EVAL_SOURCE)" --questions "$(QUESTIONS)" --papers "$(PAPERS)" --seed "$(EVAL_SEED)" --model "$(EVAL_MODEL)" $(if $(EVAL_REASONING_EFFORT),--reasoning-effort "$(EVAL_REASONING_EFFORT)") --max-completion-tokens "$(EVAL_MAX_TOKENS)" $(if $(EVAL_SINGLE_FACT),--single-fact "$(EVAL_SINGLE_FACT)") $(if $(EVAL_SINGLE_SYNTHESIS),--single-synthesis "$(EVAL_SINGLE_SYNTHESIS)") $(if $(EVAL_CROSS_COMPARISON),--cross-comparison "$(EVAL_CROSS_COMPARISON)") $(if $(EVAL_CROSS_MULTIHOP),--cross-multihop "$(EVAL_CROSS_MULTIHOP)") $(if $(EVAL_METADATA_DISCOVERY),--metadata-discovery "$(EVAL_METADATA_DISCOVERY)") $(if $(EVAL_UNANSWERABLE),--unanswerable "$(EVAL_UNANSWERABLE)")
 
 # Explicit paid generation; resumes completed calls and writes local drafts.
 create-eval-dataset:
@@ -267,6 +283,10 @@ create-eval-dataset:
 # Read-only model metadata request; no inference or changes to saved evaluation data.
 eval-check:
 	uv run python -m evals.generate_questions check --output "$(EVAL_DIR)"
+
+# Reuse reviewed questions on the current dense+sparse corpus; no model calls or writes.
+eval-rebase:
+	uv run python -m evals.rebase_dataset --dataset "$(EVAL_FROM)" --output "$(EVAL_DIR)"
 
 # Validate the local reviewed dataset and its frozen snapshot; no service calls.
 eval-validate:
@@ -279,7 +299,7 @@ eval-split:
 # Run the reviewed benchmark against one or more explicit retrieval modes.
 # This performs paid embedding/generation calls; EVAL_JUDGE=true adds a paid judge call.
 eval-run:
-	uv run python -m evals.run_benchmark --dataset "$(EVAL_REVIEWED)" --output-root "$(EVAL_RUNS_DIR)" --modes $(EVAL_MODES) --split "$(EVAL_SPLIT)" --top-k "$(EVAL_TOP_K)" $(if $(EVAL_GENERATION_MODEL),--generation-model "$(EVAL_GENERATION_MODEL)") $(if $(filter true 1 yes,$(EVAL_JUDGE)),--judge,--no-judge) --judge-model "$(EVAL_JUDGE_MODEL)" --judge-reasoning-effort "$(EVAL_JUDGE_REASONING_EFFORT)" --concurrency "$(EVAL_CONCURRENCY)" $(if $(EVAL_LIMIT),--limit "$(EVAL_LIMIT)")
+	$(if $(EVAL_DRAFT_REASONING_EFFORT),AGENT_DRAFT_REASONING_EFFORT="$(EVAL_DRAFT_REASONING_EFFORT)" )uv run python -m evals.run_benchmark --dataset "$(EVAL_REVIEWED)" --output-root "$(EVAL_RUNS_DIR)" --modes $(EVAL_MODES) --split "$(EVAL_SPLIT)" --top-k "$(EVAL_TOP_K)" $(if $(EVAL_GENERATION_MODEL),--generation-model "$(EVAL_GENERATION_MODEL)") $(if $(filter true 1 yes,$(EVAL_JUDGE)),--judge,--no-judge) --judge-model "$(EVAL_JUDGE_MODEL)" --judge-reasoning-effort "$(EVAL_JUDGE_REASONING_EFFORT)" --concurrency "$(EVAL_CONCURRENCY)" $(if $(EVAL_PROFILES),--profiles $(EVAL_PROFILES)) $(if $(EVAL_QUESTION_ID),--question-id "$(EVAL_QUESTION_ID)") $(if $(EVAL_LIMIT),--limit "$(EVAL_LIMIT)")
 
 .PHONY: build run docs docs-build docs-deploy
 

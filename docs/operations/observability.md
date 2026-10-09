@@ -50,22 +50,44 @@ is suitable for this demo, but has no built-in high availability or backups.
 
 ## What is traced
 
-An explicit Vanilla/Hybrid request produces a hierarchy equivalent to:
+An explicit one-shot request produces a hierarchy equivalent to:
 
 ```text
 rag_request
 └── rag_pipeline
     ├── retrieve_context
     │   └── OpenAI embedding
-    ├── rerank_context          # Hybrid only
+    ├── rerank_context          # hybrid_rerank only
     └── generate_answer
         └── OpenAI generation
 ```
 
+An Agentic request adds its bounded orchestration beneath the same request/pipeline trace:
+
+```text
+rag_request
+└── rag_pipeline
+    ├── agentic_retrieval
+    │   ├── LangGraph agent model call
+    │   ├── LangGraph/LangChain tool call
+    │   │   └── search/section/neighbour retriever span
+    │   ├── bounded graph loop           # repeated only within hard limits
+    │   └── validated execution metadata + stop reason
+    └── generate_answer                  # only when evidence was judged sufficient
+        └── configured answer generation
+```
+
+The Agentic trace records safe summaries, tool arguments, evidence IDs, budget usage,
+model/token usage, latency and the terminal stop reason. It does not store private
+chain-of-thought. Tool/model failure and insufficient evidence terminate before final
+generation. The Streamlit execution panel shows a smaller safe subset and links no raw
+prompts or evidence text.
+
 Intent classification, chat-only follow-ups and conversation summaries are also observed.
-The wrapper is centralized in `src/api/core/clients.py`; application code should not create
-a second OpenAI client directly. Prompt and response content is stored by the local
-Langfuse stack, so protect its access and persistent volumes accordingly.
+Raw OpenAI SDK access is centralized in `src/api/core/clients.py`; Agentic orchestration uses
+the standard `ChatOpenAI` integration so LangGraph can bind tools and Langfuse can receive its
+callback events. Prompt and response content is stored by the local Langfuse stack, so
+protect its access and persistent volumes accordingly.
 
 Short-lived evaluation commands flush traces before exiting. The API flushes on graceful
 shutdown. Langfuse transport errors are asynchronous and should not change an answer;
@@ -81,5 +103,6 @@ make eval-run EVAL_DIR=data/evaluation/markdown-mini-v1 EVAL_LIMIT=2 EVAL_JUDGE=
 ```
 
 Look under **Datasets** for the content-addressed dataset and under its experiments/runs
-for separate Vanilla and Hybrid results. The local `manifest.json` records the Langfuse
+for separate Vanilla, Hybrid, Hybrid + Rerank and Agentic results (or the subset selected
+with `EVAL_MODES`). The local `manifest.json` records the Langfuse
 dataset name, run names and returned URLs.

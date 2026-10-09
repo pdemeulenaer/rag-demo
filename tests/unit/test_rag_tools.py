@@ -1,0 +1,292 @@
+from contextlib import closing
+from types import SimpleNamespace
+from unittest.mock import Mock
+from uuid import NAMESPACE_URL, uuid5
+
+import pytest
+from qdrant_client import QdrantClient, models as m
+
+from src.api.rag.contracts import RetrievalScope, ScopedBuild
+from src.api.rag.dispatcher import retrieve_for_mode
+from src.api.rag.tools import chunk_search
+from src.api.rag.tools.evidence import EvidenceScopeError
+from src.api.rag.tools.neighbor_retrieval import get_neighbors
+from src.api.rag.tools.paper_search import (
+    quoted_context_papers,
+    resolve_arxiv_papers,
+    resolve_quoted_papers,
+    search_papers,
+)
+from src.api.rag.tools.section_retrieval import get_section
+
+
+def catalogue_rows():
+    return [
+        {"id": "active-build", "paper_id": "paper-1", "source": "arxiv",
+         "source_id": "2609.00001", "active_build": "active-build", "deleted": 0,
+         "collection": "papers", "version": 2, "status": "ready",
+         "metadata": {"title": "Globular cluster dynamics", "authors": ["Ada Star"],
+                      "published": "2026-09-01", "abstract": "Tidal evolution and mass loss."}},
+        {"id": "retained-build", "paper_id": "paper-1", "source": "arxiv",
+         "source_id": "2609.00001", "active_build": "active-build", "deleted": 0,
+         "collection": "papers", "version": 1, "status": "ready",
+         "metadata": {"title": "Globular cluster dynamics", "authors": ["Ada Star"],
+                      "published": "2025-09-01", "abstract": "Earlier tidal evolution."}},
+        {"id": "failed-build", "paper_id": "paper-2", "source": "arxiv",
+         "source_id": "2609.00002", "active_build": None, "deleted": 0,
+         "collection": "papers", "version": 1, "status": "failed",
+         "metadata": {"title": "Open clusters", "authors": ["Other"], "year": 2026}},
+    ]
+
+
+def test_retrieval_scope_is_explicit_and_builds_qdrant_filter():
+    with pytest.raises(ValueError, match="at least one build"):
+        RetrievalScope(collection="papers", build_ids=())
+    scope = RetrievalScope(collection="papers", build_ids=("b1", "b1", "b2"),
+                           paper_ids=("p1",))
+    assert scope.build_ids == ("b1", "b2")
+    result = scope.qdrant_filter()
+    assert result.must[0].must[0].match.any == ["b1", "b2"]
+    assert result.must[1].match.any == ["p1"]
+
+
+def test_paper_search_distinguishes_active_and_frozen_builds():
+    catalogue = SimpleNamespace(all_builds=lambda: catalogue_rows())
+    active = RetrievalScope("papers", ("active-build", "retained-build"), kind="active")
+    result = search_papers(catalogue, active, author="star", year=2026,
+                           terms=["tidal", "mass"], source="arxiv")
+    assert [row.build_id for row in result] == ["active-build"]
+
+    frozen = RetrievalScope("papers", ("retained-build",), kind="frozen")
+    result = search_papers(catalogue, frozen, title="globular")
+    assert [row.build_id for row in result] == ["retained-build"]
+    assert result[0].year == 2025
+
+
+def test_quoted_paper_resolution_uses_exact_catalogue_titles_within_scope():
+    catalogue = SimpleNamespace(all_builds=lambda: catalogue_rows())
+    scope = RetrievalScope("papers", ("active-build",), kind="active")
+
+    result = resolve_quoted_papers(
+        catalogue, scope,
+        'Compare "Globular cluster dynamics" with "A title outside this corpus".',
+    )
+
+    assert [row.build_id for row in result] == ["active-build"]
+
+
+def test_paper_title_resolution_normalizes_tex_punctuation():
+    rows = [dict(catalogue_rows()[0], metadata={
+        "title": "Bar-induced migration of $ω$ Centauri away from Gaia Sausage-Enceladus",
+    })]
+    catalogue = SimpleNamespace(all_builds=lambda: rows)
+    scope = RetrievalScope("papers", ("active-build",), kind="active")
+
+    result = resolve_quoted_papers(
+        catalogue, scope,
+        'Compare "Bar-induced migration of ω Centauri away from Gaia Sausage-Enceladus".',
+    )
+
+    assert [row.build_id for row in result] == ["active-build"]
+
+
+def test_quoted_context_papers_requires_full_normalized_title_match():
+    contexts = [{
+        "paper_id": "paper-1",
+        "title": "Bar-induced migration of $ω$ Centauri away from Gaia Sausage-Enceladus",
+    }, {
+        "paper_id": "paper-2",
+        "title": "An unrelated paper about globular clusters",
+    }]
+
+    result = quoted_context_papers(
+        'Compare "Bar-induced migration of ω Centauri away from Gaia Sausage-Enceladus" '
+        'with the "globular cluster" literature.',
+        contexts,
+    )
+
+    assert result == [{
+        "paper_id": "paper-1",
+        "title": "Bar-induced migration of $ω$ Centauri away from Gaia Sausage-Enceladus",
+    }]
+
+
+@pytest.mark.parametrize("reference", [
+    "arXiv:2609.00001v2", "arxiv: 2609.00001", "https://arxiv.org/abs/2609.00001v2",
+    "https://arxiv.org/pdf/2609.00001v2.pdf",
+])
+def test_explicit_arxiv_resolution_needs_no_quoted_title(reference):
+    catalogue = SimpleNamespace(all_builds=lambda: catalogue_rows())
+    result = resolve_arxiv_papers(catalogue, RetrievalScope("papers", ("active-build",)),
+                                  f"Report measurements in Globular cluster dynamics ({reference}).")
+    assert [row.build_id for row in result] == ["active-build"]
+
+
+def test_arxiv_resolution_respects_versions_ready_state_and_frozen_scope():
+    catalogue = SimpleNamespace(all_builds=lambda: catalogue_rows())
+    active = RetrievalScope("papers", ("active-build", "retained-build", "failed-build"))
+    assert resolve_arxiv_papers(catalogue, active, "arXiv:2609.00001v1") == []
+    assert resolve_arxiv_papers(catalogue, active, "arXiv:2609.00002") == []
+    assert resolve_arxiv_papers(catalogue, active, "arXiv:2609.99999") == []
+    frozen = RetrievalScope("papers", ("retained-build",), kind="frozen")
+    assert [row.build_id for row in resolve_arxiv_papers(
+        catalogue, frozen, "arXiv:2609.00001v1")] == ["retained-build"]
+    assert resolve_arxiv_papers(catalogue, frozen, "arXiv:2609.00001v2") == []
+
+
+def test_bare_numbers_do_not_trigger_catalogue_reference_resolution():
+    catalogue = Mock()
+    assert resolve_arxiv_papers(catalogue, RetrievalScope("papers", ("active-build",)),
+                                "Discuss M33 and a rate of 2609.00001.") == []
+    catalogue.scoped_ready_builds.assert_not_called()
+
+
+def test_legacy_arxiv_reference_is_resolved_exactly():
+    rows = [dict(catalogue_rows()[0], source_id="astro-ph/0501234")]
+    result = resolve_arxiv_papers(SimpleNamespace(all_builds=lambda: rows),
+                                  RetrievalScope("papers", ("active-build",)),
+                                  "Use arXiv:astro-ph/0501234v2.")
+    assert [row.build_id for row in result] == ["active-build"]
+
+
+def test_chunk_search_returns_complete_provenance(monkeypatch):
+    point = SimpleNamespace(id="point-1", score=0.75, payload={
+        "build_id": "build-1", "paper_id": "paper-1", "text": "Evidence",
+        "file_title": "Paper", "authors": ["Author"], "year": "2026",
+        "paper_version": 2, "page_number": "4", "section_header": "Results",
+        "content_kind": "text", "type": "text",
+    })
+    search = Mock(return_value=SimpleNamespace(points=[point]))
+    monkeypatch.setattr(chunk_search, "search_points", search)
+    scope = RetrievalScope("papers", ("build-1",), paper_ids=("paper-1",))
+
+    result = chunk_search.search_chunks(Mock(), scope, query="clusters", vector=[1.0],
+                                        limit=5, mode="vanilla")
+
+    assert result[0].build_id == "build-1"
+    assert result[0].collection == "papers"
+    assert result[0].page == 4
+    assert result[0].section_header == "Results"
+    assert search.call_args.args[1] == "papers"
+    assert search.call_args.kwargs["scope"].must[0].must[0].match.any == ["build-1"]
+
+
+def test_chunk_search_recovers_legacy_identity_and_rejects_drift(monkeypatch):
+    scope = RetrievalScope("uploads", ("legacy-build",), builds=(
+        ScopedBuild("legacy-build", "legacy-paper", ("legacy-point",)),
+    ))
+    legacy = SimpleNamespace(id="legacy-point", score=1.0,
+                             payload={"text": "Legacy evidence"})
+    monkeypatch.setattr(chunk_search, "search_points",
+                        Mock(return_value=SimpleNamespace(points=[legacy])))
+    assert chunk_search.search_chunks(Mock(), scope, query="legacy", vector=[1.0],
+                                      limit=1, mode="vanilla")[0].paper_id == "legacy-paper"
+
+    drift = SimpleNamespace(id="bad", score=1.0, payload={
+        "build_id": "outside", "paper_id": "paper", "text": "Wrong corpus"})
+    monkeypatch.setattr(chunk_search, "search_points",
+                        Mock(return_value=SimpleNamespace(points=[drift])))
+    with pytest.raises(chunk_search.EvidenceScopeError, match="invalid build/paper"):
+        chunk_search.search_chunks(Mock(), scope, query="legacy", vector=[1.0],
+                                   limit=1, mode="vanilla")
+
+
+def test_dispatcher_keeps_mode_pipelines_separate():
+    retrieve = Mock(return_value=[{"id": "candidate", "text": "Evidence"}])
+    rerank = Mock(return_value=[{"id": "candidate", "text": "Evidence"}])
+    scope = RetrievalScope("papers", ("build",))
+
+    retrieve_for_mode("vanilla", "q", Mock(), top_k=5, collection="papers",
+                      scope=scope, retrieve_context=retrieve, rerank_context=rerank)
+    assert retrieve.call_args.kwargs["mode"] == "vanilla"
+    assert retrieve.call_args.kwargs["top_k"] == 5
+    rerank.assert_not_called()
+
+    retrieve_for_mode("hybrid", "q", Mock(), top_k=5, collection="papers",
+                      scope=scope, retrieve_context=retrieve, rerank_context=rerank)
+    assert retrieve.call_args.kwargs["mode"] == "hybrid"
+    assert retrieve.call_args.kwargs["top_k"] == 5
+    rerank.assert_not_called()
+
+    retrieve_for_mode("hybrid_rerank", "q", Mock(), top_k=5, collection="papers",
+                      scope=scope, retrieve_context=retrieve, rerank_context=rerank)
+    assert retrieve.call_args.kwargs["mode"] == "hybrid"
+    assert retrieve.call_args.kwargs["top_k"] == 20
+    rerank.assert_called_once_with("q", retrieve.return_value, top_n=5)
+
+
+def expansion_fixture():
+    client = QdrantClient(location=":memory:")
+    client.create_collection("papers", vectors_config=m.VectorParams(
+        size=1, distance=m.Distance.COSINE))
+    sections = ["Introduction", "Results", "Results", "Results > Detail", "Discussion"]
+    client.upsert("papers", [m.PointStruct(
+        id=str(uuid5(NAMESPACE_URL, f"phase3:{index}")), vector=[1.0], payload={
+            "build_id": "build-1", "paper_id": "paper-1", "paper_version": 1,
+            "type": "text", "text": f"Evidence {index}", "chunk_index": index,
+            "section_header": section, "page_number": index + 1,
+        }) for index, section in enumerate(sections)])
+    scope = RetrievalScope("papers", ("build-1",), builds=(
+        ScopedBuild("build-1", "paper-1"),
+    ))
+    return client, scope
+
+
+def test_get_section_is_exact_scoped_and_document_ordered():
+    client, scope = expansion_fixture()
+    with closing(client):
+        evidence = get_section(client, scope, build_id="build-1", paper_id="paper-1",
+                               section_header="Results", limit=10)
+        assert [row.chunk_index for row in evidence] == [1, 2]
+        assert all(row.section_header == "Results" for row in evidence)
+        assert get_section(client, scope, build_id="build-1", paper_id="paper-1",
+                           section_header="Methods") == []
+
+
+def test_get_neighbors_crosses_sections_but_stays_in_document_order():
+    client, scope = expansion_fixture()
+    with closing(client):
+        evidence = get_neighbors(client, scope, build_id="build-1", paper_id="paper-1",
+                                 chunk_index=2, before=1, after=1)
+        assert [row.chunk_index for row in evidence] == [1, 2, 3]
+        assert [row.section_header for row in evidence] == ["Results", "Results", "Results > Detail"]
+
+
+def test_expansion_tools_reject_out_of_scope_targets_before_qdrant():
+    client = Mock()
+    scope = RetrievalScope("papers", ("build-1",), builds=(
+        ScopedBuild("build-1", "paper-1"),
+    ))
+    with pytest.raises(EvidenceScopeError, match="outside"):
+        get_section(client, scope, build_id="other", paper_id="paper-1",
+                    section_header="Results")
+    with pytest.raises(EvidenceScopeError, match="does not match"):
+        get_neighbors(client, scope, build_id="build-1", paper_id="other", chunk_index=2)
+    client.scroll.assert_not_called()
+
+
+def test_expansion_tools_fail_closed_on_invalid_returned_provenance():
+    client = Mock()
+    client.scroll.return_value = ([SimpleNamespace(id="bad", payload={
+        "build_id": "outside", "paper_id": "paper-1", "type": "text",
+        "text": "Wrong build", "chunk_index": 1, "section_header": "Results",
+    })], None)
+    scope = RetrievalScope("papers", ("build-1",), builds=(
+        ScopedBuild("build-1", "paper-1"),
+    ))
+
+    with pytest.raises(EvidenceScopeError, match="invalid build/paper"):
+        get_section(client, scope, build_id="build-1", paper_id="paper-1",
+                    section_header="Results")
+
+
+@pytest.mark.parametrize("kwargs", [
+    {"chunk_index": -1}, {"chunk_index": "1"}, {"chunk_index": 1, "before": 6},
+    {"chunk_index": 1, "after": -1},
+])
+def test_get_neighbors_enforces_small_integer_window(kwargs):
+    scope = RetrievalScope("papers", ("build-1",), builds=(
+        ScopedBuild("build-1", "paper-1"),
+    ))
+    with pytest.raises(ValueError):
+        get_neighbors(Mock(), scope, build_id="build-1", paper_id="paper-1", **kwargs)

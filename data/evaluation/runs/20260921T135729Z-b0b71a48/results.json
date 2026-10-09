@@ -1,0 +1,446 @@
+{
+  "schema_version": 1,
+  "run_id": "20260921T135729Z-b0b71a48",
+  "results": [
+    {
+      "question_id": "q0005",
+      "kind": "single_paper",
+      "profile": "single_fact",
+      "mode": "agentic",
+      "question": "According to the paper \"The dispersal law of young star clusters: free expansion -- A Gaia/eROSITA census of Orion and Sco--Cen\", what median one-dimensional birth velocity dispersion (σ_birth) did the authors measure for the Orion clusters, and how does the half-member radius r50 scale with age in Orion?",
+      "reference_answer": "The authors measured a median one-dimensional birth velocity dispersion σ_birth = 0.87 km s⁻¹ for nine Orion clusters, and found the half-member radius scales approximately linearly with age as r50 ∝ t with a growth exponent p ≈ 0.97 in Orion (i.e., r50 ≃ σ_birth × t).",
+      "answer": "The authors measured a median one-dimensional birth velocity dispersion (σ_birth) of 0.87 km s⁻¹ for the Orion clusters. In Orion, the half-member radius r50 scales approximately linearly with age, following the relation r50 ≃ σ_birth × t, with r50 increasing roughly in proportion to the age, indicating free expansion.",
+      "retrieved_chunks": [
+        {
+          "id": "cd128d12-1d90-53d1-a80e-8078f6d9a51e",
+          "text": "## **ABSTRACT** \n\n- We measure how young star clusters disperse over time in the two nearest star-forming complexes. Our sample comprises 44 `SigMA` _Gaia_ -defined clusters in Orion and 31 in Sco–Cen, with isochronal ages of 2–25 Myr. We extend each cluster’s census with _eROSITA_ - selected young stars that share its parallax and motion and lie within the distance they could have traveled ballistically since birth. By 10–30 Myr, about one in three former cluster stars lies outside the cluster’s cataloged boundary. Across both complexes and the full age range, we find that (1) the half-member radius increases linearly with age, _r_ 50 ≃ σbirth _t_ , (2) the velocity dispersion shows no measurable evolution, and (3) all studied clusters are unbound. These results support free expansion. Young clusters in Orion and Sco-Cen emerge unbound from their birth clouds and coast at their birth velocity dispersion without significant relaxation or a characteristic dispersal timescale. We further show that memberships defined by density contrast preferentially omit the fastest stars, making the same clusters appear to expand more slowly (∝ _t_[0][.][6] ), cool with age, and approach equilibrium. \n\n**Key words.** open clusters and associations: general – open clusters and associations: individual: Orion, Sco–Cen – stars: kinematics and dynamics – stars: formation – X-rays: stars",
+          "collection": "arxiv_papers_v2",
+          "build_id": "40b771f9-4c92-5182-b174-a79130ad75ad",
+          "paper_id": "f1233381-6927-57bb-ad61-9842cfb6ca64",
+          "title": "The dispersal law of young star clusters: free expansion -- A Gaia/eROSITA census of Orion and Sco--Cen",
+          "arxiv_id": "2609.05179",
+          "paper_version": 1,
+          "source_url": "https://arxiv.org/abs/2609.05179v1",
+          "authors": [
+            "João Alves",
+            "Stefan Meingast",
+            "Alena Rottensteiner"
+          ],
+          "year": 2026,
+          "page": 1,
+          "section_header": "**The dispersal law of young star clusters: free expansion A** _**Gaia/eROSITA**_ **census of Orion and Sco–Cen** > **ABSTRACT**",
+          "content_kind": "text",
+          "chunk_index": 3,
+          "score": 1.0,
+          "rerank_score": null,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        },
+        {
+          "id": "59301db8-05e4-51be-abf1-b0990e5ea7b2",
+          "text": "# **The dispersal law of young star clusters: free expansion A** _**Gaia/eROSITA**_ **census of Orion and Sco–Cen** \n\nJoão Alves[1] , Stefan Meingast[1] , and Alena Rottensteiner[1] \n\nUniversity of Vienna, Department of Astrophysics, Türkenschanzstraße 17, 1180 Vienna, Austria e-mail: `joao.alves@univie.ac.at`",
+          "collection": "arxiv_papers_v2",
+          "build_id": "40b771f9-4c92-5182-b174-a79130ad75ad",
+          "paper_id": "f1233381-6927-57bb-ad61-9842cfb6ca64",
+          "title": "The dispersal law of young star clusters: free expansion -- A Gaia/eROSITA census of Orion and Sco--Cen",
+          "arxiv_id": "2609.05179",
+          "paper_version": 1,
+          "source_url": "https://arxiv.org/abs/2609.05179v1",
+          "authors": [
+            "João Alves",
+            "Stefan Meingast",
+            "Alena Rottensteiner"
+          ],
+          "year": 2026,
+          "page": 1,
+          "section_header": "**The dispersal law of young star clusters: free expansion A** _**Gaia/eROSITA**_ **census of Orion and Sco–Cen**",
+          "content_kind": "text",
+          "chunk_index": 1,
+          "score": 0.6666667,
+          "rerank_score": null,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        },
+        {
+          "id": "5a57a856-43bd-5abf-bb29-df6cdfdfa821",
+          "text": "## **4. Discussion** \n\nThe main result of this work is that most young clusters disperse through free expansion. Across the extended census, the half-member radius follows _r_ 50 ≃ σbirth _t_ , the velocity dispersion remains constant with age, and every cluster is unbound. These results hold from 2 to 25 Myr in Orion and Sco–Cen, two complexes with different cluster richness, distances, and histories. The systems studied here are not a rare evolutionary class. About nine in ten cataloged clusters within 250 pc are unbound (Hunt & Reffert 2024), while the bound minority is not represented in our census. Free expansion therefore appears to be the dominant mode of dispersal for nearby young clusters. For this majority, the expansion detected in single-epoch measurements (Kuhn et al. 2019; Della Croce et al. 2024; Wright et al. 2023) is not a short-lived phase. It neither slows through relaxation nor ends after 10 to 20 Myr, but continues across the full age range of the census. A freely expanding population also has no characteristic dispersal timescale. An exponential fit to its declining density recovers not an intrinsic lifetime but an e-folding time close to the mean age of the selected sample. The few-Myr infant-mortality timescale found in the literature is therefore the same relation evaluated for a sample a few Myr old (Appendix C). Rather than a lifetime, an unbound young cluster is characterized by three quantities: its birth radius, its birth velocity dispersion, and the density contrast below which a census no longer identifies it as a cluster. ",
+          "collection": "arxiv_papers_v2",
+          "build_id": "40b771f9-4c92-5182-b174-a79130ad75ad",
+          "paper_id": "f1233381-6927-57bb-ad61-9842cfb6ca64",
+          "title": "The dispersal law of young star clusters: free expansion -- A Gaia/eROSITA census of Orion and Sco--Cen",
+          "arxiv_id": "2609.05179",
+          "paper_version": 1,
+          "source_url": "https://arxiv.org/abs/2609.05179v1",
+          "authors": [
+            "João Alves",
+            "Stefan Meingast",
+            "Alena Rottensteiner"
+          ],
+          "year": 2026,
+          "page": 3,
+          "section_header": "**The dispersal law of young star clusters: free expansion A** _**Gaia/eROSITA**_ **census of Orion and Sco–Cen** > **4. Discussion**",
+          "content_kind": "text",
+          "chunk_index": 16,
+          "score": 0.5,
+          "rerank_score": null,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        },
+        {
+          "id": "ab570190-0305-582a-b277-e2794c2a2ed4",
+          "text": "The observed relations also constrain when and how the expansion began. First, dispersal began at birth. Every cluster has Π ≤ 0.2, so there has been too little time for collisional processes such as relaxation, evaporation, or dynamical ejections to shape its evolution (Moeckel et al. 2012). Moreover, clusters as young as 1.6 to 2 Myr already lie on the relation _r_ 50 = σbirth _t_ through the origin. Any bound phase must therefore have lasted less than about 1 Myr. Second, the mechanism that launched the expansion acted only once. A constant velocity dispersion, a radius proportional to age, and a decreasing Π are the signatures of ballistic coasting. Together, they exclude slow gas loss followed by revirialization (Pang et al. 2020; Calovi´c[´] et al. 2025; Della Croce et al. 2024) and remove the need for accelerated expansion (Zamora-Avilés et al. 2019). Third, the launch speed is consistent with the gravitational potential of the natal clump. A velocity dispersion of 0.87 km s[−][1] at a birth radius of 0.84[+] −[0] 0[.] .[18] 21[pc] (the intercept of _r_ 50[2][=] _[ r]_ 0[2][+][ (][v] _[t]_[)][2][, the quadrature sum of the birth] spread and the distance coasted at speed v, fitted over the Orion clusters) corresponds to a virial mass of 5σ[2] birth _[r]_[0][/] _[G]_[≃][740] _[ M]_[⊙] and a mean density within _r_ 0 of _n_ H2 ≃ 4 × 10[3] cm[−][3] . These are characteristic values for a dense cluster-forming clump. By comparison, the median cluster in the extended census contains about 160 _M_ ⊙ in stars. The implied effective star formation efficiency (Goodwin & Bastian 2006) is then about 0.2 in Orion and 0.3 in Sco–Cen, and not distinguishable within the errors.",
+          "collection": "arxiv_papers_v2",
+          "build_id": "40b771f9-4c92-5182-b174-a79130ad75ad",
+          "paper_id": "f1233381-6927-57bb-ad61-9842cfb6ca64",
+          "title": "The dispersal law of young star clusters: free expansion -- A Gaia/eROSITA census of Orion and Sco--Cen",
+          "arxiv_id": "2609.05179",
+          "paper_version": 1,
+          "source_url": "https://arxiv.org/abs/2609.05179v1",
+          "authors": [
+            "João Alves",
+            "Stefan Meingast",
+            "Alena Rottensteiner"
+          ],
+          "year": 2026,
+          "page": 3,
+          "section_header": "**The dispersal law of young star clusters: free expansion A** _**Gaia/eROSITA**_ **census of Orion and Sco–Cen** > **4. Discussion**",
+          "content_kind": "text",
+          "chunk_index": 17,
+          "score": 0.4,
+          "rerank_score": null,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        },
+        {
+          "id": "6b7b8b85-6158-57ed-9ffe-6ab60d3a6f62",
+          "text": "Alves et al.: The dispersal law of young clusters \n\n**==> picture [512 x 216] intentionally omitted <==**\n\n**----- Start of picture text -----**<br>\nOrion Sco–Cen<br>assigned members assigned members<br>20<br>extended census extended census<br>members: r50 ∝ t [0.63] members: r50 ∝ t [0.92]<br>10 extended: r50 ∝ t [0.97] extended: r50 ∝ t [1.08]<br>5<br>2<br>1<br>2 5 10 20 2 5 10 20<br>age  [Myr] age  [Myr]<br>  [pc]<br>50<br>r<br>**----- End of picture text -----**<br>\n\n**Fig. B.5.** Each cluster on its assigned members (open) and on the extended census (filled) in the _r_ 50–age plane, joined by a vertical line. The dashed and solid lines are the members-only and the extended-census fits. \n\nand proper motions are used for clustering in Orion. Inverting the density significance test yields the minimum resolvable contrast of the algorithm as \n\n**==> picture [256 x 13] intentionally omitted <==**",
+          "collection": "arxiv_papers_v2",
+          "build_id": "40b771f9-4c92-5182-b174-a79130ad75ad",
+          "paper_id": "f1233381-6927-57bb-ad61-9842cfb6ca64",
+          "title": "The dispersal law of young star clusters: free expansion -- A Gaia/eROSITA census of Orion and Sco--Cen",
+          "arxiv_id": "2609.05179",
+          "paper_version": 1,
+          "source_url": "https://arxiv.org/abs/2609.05179v1",
+          "authors": [
+            "João Alves",
+            "Stefan Meingast",
+            "Alena Rottensteiner"
+          ],
+          "year": 2026,
+          "page": 9,
+          "section_header": "**The dispersal law of young star clusters: free expansion A** _**Gaia/eROSITA**_ **census of Orion and Sco–Cen** > **Appendix C: The** `SigMA` **detection boundary**",
+          "content_kind": "text",
+          "chunk_index": 48,
+          "score": 0.2916667,
+          "rerank_score": null,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        },
+        {
+          "id": "883b257a-0646-500f-87a5-e1926f9b4572",
+          "text": "would otherwise sweep up nearby field populations, resulting in 44 Orion clusters (1.6–25 Myr) and 31 Sco–Cen clusters (2.8– 20.9 Myr, Appendix B). \n\nWe draw candidates from the eRASS:3 X-ray catalog (Predehl et al. 2021; Merloni et al. 2024) cross-matched with _Gaia_ DR3 (Ramos-Ceja et al. 2026) in order to extend the existing census. Young stars in each complex are then selected using one of two approaches: when the pre-main sequence is distinct from the main sequence, we keep stars lying above the 40-Myr isochrone. When the two sequences overlap, we instead select based on X-ray activity (Appendix B). A star is linked to a cluster if three requirements are met: (1) its parallax agrees with that of the cluster, (2) its tangential velocity matches the cluster’s within 3 km s[−][1] , and (3) its position falls within the ballistic reach of the cluster. The ballistic reach in (3) is defined as the birth radius plus three times the distance traveled by a star moving at the birth velocity dispersion over the cluster age. Because _eROSITA_ does not detect every young star, each attached star enters every statistic with a weight: the cluster’s inverse X-ray detection fraction, measured on its own members, times a field purity measured in parallax shells in front of and behind the complex (Appendix B). For each cluster, we use the `SigMA` + _eROSITA_ extended sample to measure \n\n**==> picture [256 x 26] intentionally omitted <==**",
+          "collection": "arxiv_papers_v2",
+          "build_id": "40b771f9-4c92-5182-b174-a79130ad75ad",
+          "paper_id": "f1233381-6927-57bb-ad61-9842cfb6ca64",
+          "title": "The dispersal law of young star clusters: free expansion -- A Gaia/eROSITA census of Orion and Sco--Cen",
+          "arxiv_id": "2609.05179",
+          "paper_version": 1,
+          "source_url": "https://arxiv.org/abs/2609.05179v1",
+          "authors": [
+            "João Alves",
+            "Stefan Meingast",
+            "Alena Rottensteiner"
+          ],
+          "year": 2026,
+          "page": 2,
+          "section_header": "**The dispersal law of young star clusters: free expansion A** _**Gaia/eROSITA**_ **census of Orion and Sco–Cen** > **2. Towards a complete census**",
+          "content_kind": "text",
+          "chunk_index": 8,
+          "score": 0.21428573,
+          "rerank_score": null,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        },
+        {
+          "id": "33cc6af0-4765-590b-a1e3-fad7ee5263f8",
+          "text": "## _3.1. Main result: r_ 50 ≃ σbirth _t_ \n\nFigure 1a plots the half-member radius from the extended census as a function of age. In both complexes it increases roughly linearly with age: _r_ 50 ∝ _t[p]_ , with _p_ = 0.97[+] −[0] 0[.] .[10] 09[for][Orion][and] 1.08[+] −[0] 0[.] .[15] 12[for Sco–Cen. The radius also depends on total number] of cluster members (richness) in addition to age, since at a given age richer clusters are larger. We therefore fit log _r_ 50 simultaneously as a function of log _t_ and log _N_ . At fixed richness, the inferred growth exponent is 0.88[+] −[0] 0[.] .[10] 10[in][Orion][and][1][.][00][+] −[0] 0[.] .[16] 13[in] Sco–Cen, and the richness dependence is similarly weak in both complexes ( _b_ = 0.13–0.14, compared to 0.32–0.37 when using only the `SigMA` -assigned members, Appendix B). The proportionality constant is the birth dispersion σbirth. We measure it on the clusters younger than 5 Myr, the population closest to birth, as the median σ1D of their assigned members: 0.87 km s[−][1] over nine clusters in Orion and 0.67 km s[−][1] over three in Sco–Cen (Appendix B).",
+          "collection": "arxiv_papers_v2",
+          "build_id": "40b771f9-4c92-5182-b174-a79130ad75ad",
+          "paper_id": "f1233381-6927-57bb-ad61-9842cfb6ca64",
+          "title": "The dispersal law of young star clusters: free expansion -- A Gaia/eROSITA census of Orion and Sco--Cen",
+          "arxiv_id": "2609.05179",
+          "paper_version": 1,
+          "source_url": "https://arxiv.org/abs/2609.05179v1",
+          "authors": [
+            "João Alves",
+            "Stefan Meingast",
+            "Alena Rottensteiner"
+          ],
+          "year": 2026,
+          "page": 2,
+          "section_header": "**The dispersal law of young star clusters: free expansion A** _**Gaia/eROSITA**_ **census of Orion and Sco–Cen** > _3.1. Main result: r_ 50 ≃ σbirth _t_",
+          "content_kind": "text",
+          "chunk_index": 11,
+          "score": 0.64285713,
+          "rerank_score": null,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        },
+        {
+          "id": "07c54f96-c0be-5ce2-b403-64d2dbf2060e",
+          "text": "Regarding perspective correction, a cluster whose members share one space velocity does not show one common proper motion. Each member lies along a slightly different line of sight, so the shared velocity projects onto the sky by a different amount for each. The result is an apparent tangential field −v _r_ θ directed at the cluster center, where θ is the angular offset of a member and v _r_ is the systemic radial velocity. This is the moving-cluster effect in its linear form (de Bruijne 1999), and the separation of a real expansion from the perspective field of an approaching group was the central difficulty of the first kinematic studies of OB associations (Blaauw 1964; Brown et al. 1997). The field is ordered rather than random, the same function of position for every member, so we subtract it star by star rather than in quadrature. Both catalogs give velocities in the LSR frame, so the relevant v _r_ is the LSR value: along Orion’s line of sight the solar motion is −16.7 km s[−][1] , and v _r_ is 4.7 km s[−][1] rather than the heliocentric 21.7. In Orion the term is 0.06 of σ1D, and removing it changes nothing. In Sco–Cen it is 0.51 of σ1D and exceeds σ1D itself in 10 of 35 clusters, because the median Sco– Cen cluster subtends 1.9[◦] within its half-member radius against 0.6[◦] in Orion.",
+          "collection": "arxiv_papers_v2",
+          "build_id": "40b771f9-4c92-5182-b174-a79130ad75ad",
+          "paper_id": "f1233381-6927-57bb-ad61-9842cfb6ca64",
+          "title": "The dispersal law of young star clusters: free expansion -- A Gaia/eROSITA census of Orion and Sco--Cen",
+          "arxiv_id": "2609.05179",
+          "paper_version": 1,
+          "source_url": "https://arxiv.org/abs/2609.05179v1",
+          "authors": [
+            "João Alves",
+            "Stefan Meingast",
+            "Alena Rottensteiner"
+          ],
+          "year": 2026,
+          "page": 5,
+          "section_header": "**The dispersal law of young star clusters: free expansion A** _**Gaia/eROSITA**_ **census of Orion and Sco–Cen** > **Appendix A: The velocity dispersion and the virial ratio**",
+          "content_kind": "text",
+          "chunk_index": 28,
+          "score": 0.41025642,
+          "rerank_score": null,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        },
+        {
+          "id": "de0eb270-1532-5ccf-94fd-c0649df440af",
+          "text": "## _3.2. Velocity dispersion does not change_ \n\nFigure 1b shows the tangential dispersion of the same clusters. It does not change with age: _d_ log σ1D/ _d_ log _t_ = −0.03[+] −[0] 0[.] .[07] 06[in] Orion and +0.07[+] −[0] 0[.] .[09] 09[in][Sco–Cen.][On][the][assigned][members] alone the same clusters give −0.24 and −0.26 (Sect. 4). Together with Sect. 3.1, these results imply free expansion.",
+          "collection": "arxiv_papers_v2",
+          "build_id": "40b771f9-4c92-5182-b174-a79130ad75ad",
+          "paper_id": "f1233381-6927-57bb-ad61-9842cfb6ca64",
+          "title": "The dispersal law of young star clusters: free expansion -- A Gaia/eROSITA census of Orion and Sco--Cen",
+          "arxiv_id": "2609.05179",
+          "paper_version": 1,
+          "source_url": "https://arxiv.org/abs/2609.05179v1",
+          "authors": [
+            "João Alves",
+            "Stefan Meingast",
+            "Alena Rottensteiner"
+          ],
+          "year": 2026,
+          "page": 2,
+          "section_header": "**The dispersal law of young star clusters: free expansion A** _**Gaia/eROSITA**_ **census of Orion and Sco–Cen** > _3.2. Velocity dispersion does not change_",
+          "content_kind": "text",
+          "chunk_index": 12,
+          "score": 0.31666666,
+          "rerank_score": null,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        },
+        {
+          "id": "d4b18b9c-16ed-59e7-884c-79db65d79b5a",
+          "text": "## _Appendix B.7: Robustness_ \n\nThe extension rests on three choices: (1) the factor of three in the ballistic reach, (2) the 3 km s[−][1] velocity window, and (3) the definition of σbirth. Each is varied here. The growth exponents do not depend on any of them. The coefficient of σbirth _t_ depends on all three, in the first two cases because they set how much of a cluster’s outer population is admitted, and in the third by definition. \n\n(1) The reach. With the factor at two, three and four, the Orion growth exponent is 0.84, 0.97 and 0.94, the Sco–Cen one 1.02, 1.08 and 1.05, and the departed share of the oldest bin moves only from 0.37 to 0.43. The exponent holds because the reach grows in proportion to the age: a narrower reach clips the same outer fraction of a 3-Myr cluster as of a 20-Myr one, so it lowers all radii by one factor and leaves the slope alone. That factor is the coefficient, which rises from 0.63 through 0.75 to 0.87 in Orion as the reach widens, because each wider reach admits more of the outermost stars. It has not converged at four, so the Letter’s 0.75 is a lower limit and is quoted with the window that produced it. \n\n(2) The velocity window. Widening it from 3 to 5 km s[−][1] admits the faster departed stars, which lie farther out. The expo- \n\nArticle number, page 7 of 9",
+          "collection": "arxiv_papers_v2",
+          "build_id": "40b771f9-4c92-5182-b174-a79130ad75ad",
+          "paper_id": "f1233381-6927-57bb-ad61-9842cfb6ca64",
+          "title": "The dispersal law of young star clusters: free expansion -- A Gaia/eROSITA census of Orion and Sco--Cen",
+          "arxiv_id": "2609.05179",
+          "paper_version": 1,
+          "source_url": "https://arxiv.org/abs/2609.05179v1",
+          "authors": [
+            "João Alves",
+            "Stefan Meingast",
+            "Alena Rottensteiner"
+          ],
+          "year": 2026,
+          "page": 7,
+          "section_header": "**The dispersal law of young star clusters: free expansion A** _**Gaia/eROSITA**_ **census of Orion and Sco–Cen** > _Appendix B.7: Robustness_",
+          "content_kind": "text",
+          "chunk_index": 40,
+          "score": 0.31111112,
+          "rerank_score": null,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        },
+        {
+          "id": "4bce3a6e-ea57-5c6d-acb8-75dd5a9c8f47",
+          "text": "Figure 2b reaches the same conclusion without the velocity dispersion. The age in crossing times, Π = _t_ / _t_ cross with _t_ cross = 10 ( _rh_[3][/] _[GM]_[)][1][/][2][and] _[r][h]_[=][1][.][305] _[ r]_[50][(][Gieles][&][Porte-] gies Zwart 2011), has a median Π of 0.037 in Orion and 0.055 in Sco–Cen, and no cluster exceeds 0.17. The evolution of Π is a stronger diagnostic than its absolute value. For a bound, nonexpanding cluster, the crossing time remains fixed and Π ∝ _t_ . Free expansion instead predicts Π ∝ _t_[−][1][/][2] at fixed _N_ . Including the observed richness trend, _d_ log _N_ / _d_ log _t_ = +0.6, changes this prediction to Π ∝ _t_[−][0][.][2] (Appendix C). The measured slopes are −0.14[+] −[0] 0[.] .[12] 16[in Orion and][ −][0][.][34] −[+][0] 0.[.] 27[23][in Sco–Cen. Thus,][ Π][ de-] creases rather than increasing with age, and no cluster in the census shows evidence of becoming bound.",
+          "collection": "arxiv_papers_v2",
+          "build_id": "40b771f9-4c92-5182-b174-a79130ad75ad",
+          "paper_id": "f1233381-6927-57bb-ad61-9842cfb6ca64",
+          "title": "The dispersal law of young star clusters: free expansion -- A Gaia/eROSITA census of Orion and Sco--Cen",
+          "arxiv_id": "2609.05179",
+          "paper_version": 1,
+          "source_url": "https://arxiv.org/abs/2609.05179v1",
+          "authors": [
+            "João Alves",
+            "Stefan Meingast",
+            "Alena Rottensteiner"
+          ],
+          "year": 2026,
+          "page": 3,
+          "section_header": "**The dispersal law of young star clusters: free expansion A** _**Gaia/eROSITA**_ **census of Orion and Sco–Cen** > _3.3. Nothing is bound at the measured scale_",
+          "content_kind": "text",
+          "chunk_index": 15,
+          "score": 0.2625,
+          "rerank_score": null,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        },
+        {
+          "id": "217063a5-06da-52af-ba3e-ea3b6002e824",
+          "text": "_A&A proofs:_ manuscript no. decay \n\n**==> picture [512 x 220] intentionally omitted <==**\n\n**----- Start of picture text -----**<br>\n(a) (b)<br>50<br>Sco–Cen (31) r50 ∝ t<br>Orion (44) 2<br>20<br>10<br>1<br>σbirth = 0.87 km s [−1]<br>5<br>σbirth = 0.67 km s [−1]<br>0.5<br>2<br>1 0.3<br>2 5 10 20 50 2 5 10 20<br>age  [Myr] age  [Myr]<br>−1]<br>  [pc]50   [km s<br>r 1D<br>σ<br>**----- End of picture text -----**<br>\n\n**Fig. 1.** (a) Half-member radius of the extended census against isochronal age for the 75 clusters, with the marker area proportional to _N_ . The solid line is _r_ 50 ∝ _t_ through the joint geometric mean of the ages and radii. (b) Tangential dispersion against the same ages. The dotted lines are the two complexes’ birth dispersions σbirth (Sect. 3.1). \n\nwould otherwise sweep up nearby field populations, resulting in 44 Orion clusters (1.6–25 Myr) and 31 Sco–Cen clusters (2.8– 20.9 Myr, Appendix B). ",
+          "collection": "arxiv_papers_v2",
+          "build_id": "40b771f9-4c92-5182-b174-a79130ad75ad",
+          "paper_id": "f1233381-6927-57bb-ad61-9842cfb6ca64",
+          "title": "The dispersal law of young star clusters: free expansion -- A Gaia/eROSITA census of Orion and Sco--Cen",
+          "arxiv_id": "2609.05179",
+          "paper_version": 1,
+          "source_url": "https://arxiv.org/abs/2609.05179v1",
+          "authors": [
+            "João Alves",
+            "Stefan Meingast",
+            "Alena Rottensteiner"
+          ],
+          "year": 2026,
+          "page": 2,
+          "section_header": "**The dispersal law of young star clusters: free expansion A** _**Gaia/eROSITA**_ **census of Orion and Sco–Cen** > **2. Towards a complete census**",
+          "content_kind": "text",
+          "chunk_index": 7,
+          "score": 0.25,
+          "rerank_score": null,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        },
+        {
+          "id": "0484ea44-bee5-5861-814e-952bfd381c8c",
+          "text": "## _Appendix B.5: The halo_ \n\nFigure B.4 shows the field-subtracted share of the young X-ray population around the Orion clusters that the algorithm does not assign: 0.06 at 1–5 Myr, 0.21 at 5–10 Myr and 0.42 at 10– 30 Myr. The share grows with age exactly as attrition predicts: the longer a cluster has expanded, the larger the fraction of its stars beyond the density contrast. The departed stars keep the birth dispersion, 0.81[+] −[0] 0[.] .[05] 05[km s][−][1][at][5–10 Myr][and][0][.][93][+] −[0] 0[.] .[03] 02[at] 10–30 Myr, while the assigned members of the same bins fall from 0.85 through 0.68 to 0.56 (the youngest bin holds 17 departed stars and constrains little), so the assigned members are the slow subset of a population whose fast tail is intact. They move outward: 82–93% of them recede from their cluster’s center, against 70–73% of the members, at a median outward speed of 1.2–1.4 km s[−][1] . Of the attached stars, 93% in Orion and 95% in Sco–Cen pass every quality cut of the `SigMA` input, so they entered the clustering. A density-contrast membership cannot contain stars that have left the overdensity. In Sco–Cen the clusters subtend several degrees and already hold their comoving population: the unassigned share is 0.05–0.09 at every age, the extension changes little, and the Sco–Cen halo beyond that is field the control removes.",
+          "collection": "arxiv_papers_v2",
+          "build_id": "40b771f9-4c92-5182-b174-a79130ad75ad",
+          "paper_id": "f1233381-6927-57bb-ad61-9842cfb6ca64",
+          "title": "The dispersal law of young star clusters: free expansion -- A Gaia/eROSITA census of Orion and Sco--Cen",
+          "arxiv_id": "2609.05179",
+          "paper_version": 1,
+          "source_url": "https://arxiv.org/abs/2609.05179v1",
+          "authors": [
+            "João Alves",
+            "Stefan Meingast",
+            "Alena Rottensteiner"
+          ],
+          "year": 2026,
+          "page": 7,
+          "section_header": "**The dispersal law of young star clusters: free expansion A** _**Gaia/eROSITA**_ **census of Orion and Sco–Cen** > _Appendix B.5: The halo_",
+          "content_kind": "text",
+          "chunk_index": 38,
+          "score": 0.20535715,
+          "rerank_score": null,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        }
+      ],
+      "cited_context_ids": [
+        "217063a5-06da-52af-ba3e-ea3b6002e824",
+        "33cc6af0-4765-590b-a1e3-fad7ee5263f8"
+      ],
+      "metrics": {
+        "retrieval_hit": 1.0,
+        "retrieval_recall": 1.0,
+        "gold_citation_recall": 0.5,
+        "citation_from_retrieval": 1.0,
+        "retrieved_count": 13,
+        "cited_count": 2,
+        "answer_correctness": 1.0,
+        "groundedness": 1.0,
+        "answer_relevance": 1.0,
+        "correct_abstention": null
+      },
+      "judge": {
+        "correctness": 1.0,
+        "groundedness": 1.0,
+        "answer_relevance": 1.0,
+        "abstention": "not_applicable",
+        "reason": "The actual answer correctly states the measured median σ_birth = 0.87 km s⁻¹ for nine Orion clusters and that r50 scales approximately linearly with age following r50 ≃ σ_birth × t (growth exponent ≈0.97), which are directly supported by the cited paper excerpts."
+      },
+      "judge_request": {
+        "response_id": "resp_0d9ef149a8a58757016ab137dc082887d2baca0c3e93c7e6b8",
+        "response_ids": [
+          "resp_0d9ef149a8a58757016ab137dc082887d2baca0c3e93c7e6b8"
+        ],
+        "attempts": 1,
+        "request_id": "req_426fcca1f65749ab841a69ea9e4f9db7",
+        "model": "gpt-5-mini-2025-08-07",
+        "usage": {
+          "input_tokens": 6670,
+          "output_tokens": 113,
+          "total_tokens": 6783
+        }
+      },
+      "agent_execution": {
+        "question_scope": "direct",
+        "plan_summary": "The authors measure a median one-dimensional birth velocity dispersion σ_birth = 0.87 km s^-1 for the Orion clusters (median σ1D over nine clusters <5 Myr). They find the half-member radius grows roughly linearly with age: r50 ≃ σ_birth × t (r50 ∝ t^0.97 overall; at fixed richness the fitted exponent in Orion is ≈0.88).",
+        "stop_reason": "sufficient",
+        "synthesis_policy": "model_finish",
+        "rounds": 2,
+        "tool_calls": 2,
+        "evidence_count": 13,
+        "planner_tokens": 14179,
+        "elapsed_seconds": 13.019,
+        "actions": [
+          {
+            "action_id": "call_rIQV02n1iNM6kRm12i1rGuJh",
+            "need_id": "graph",
+            "tool": "search_chunks",
+            "status": "success",
+            "result_count": 6,
+            "evidence_ids": [
+              "cd128d12-1d90-53d1-a80e-8078f6d9a51e",
+              "59301db8-05e4-51be-abf1-b0990e5ea7b2",
+              "5a57a856-43bd-5abf-bb29-df6cdfdfa821",
+              "ab570190-0305-582a-b277-e2794c2a2ed4",
+              "6b7b8b85-6158-57ed-9ffe-6ab60d3a6f62",
+              "883b257a-0646-500f-87a5-e1926f9b4572"
+            ],
+            "paper_ids": [
+              "f1233381-6927-57bb-ad61-9842cfb6ca64"
+            ],
+            "error_type": null
+          },
+          {
+            "action_id": "call_RMyPbMYomjAllvFQeh1kU8Rl",
+            "need_id": "graph",
+            "tool": "search_chunks",
+            "status": "success",
+            "result_count": 10,
+            "evidence_ids": [
+              "33cc6af0-4765-590b-a1e3-fad7ee5263f8",
+              "07c54f96-c0be-5ce2-b403-64d2dbf2060e",
+              "de0eb270-1532-5ccf-94fd-c0649df440af",
+              "d4b18b9c-16ed-59e7-884c-79db65d79b5a",
+              "4bce3a6e-ea57-5c6d-acb8-75dd5a9c8f47",
+              "217063a5-06da-52af-ba3e-ea3b6002e824",
+              "0484ea44-bee5-5861-814e-952bfd381c8c"
+            ],
+            "paper_ids": [
+              "f1233381-6927-57bb-ad61-9842cfb6ca64"
+            ],
+            "error_type": null
+          }
+        ]
+      },
+      "elapsed_seconds": 18.889,
+      "error": null
+    }
+  ]
+}

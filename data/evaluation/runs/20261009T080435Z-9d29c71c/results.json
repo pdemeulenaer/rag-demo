@@ -1,0 +1,1518 @@
+{
+  "schema_version": 1,
+  "run_id": "20261009T080435Z-9d29c71c",
+  "results": [
+    {
+      "question_id": "q0021",
+      "kind": "single_paper",
+      "profile": "single_synthesis",
+      "mode": "agentic",
+      "question": "According to the paper \"The initial conditions and initial mass functions of Alpha Persei, Pleiades and Praesepe\", what unresolved binary fractions did the authors determine for Alpha Persei, Pleiades and Praesepe, and what is the reported average low-mass IMF slope (α_l) with its uncertainty?",
+      "reference_answer": "The authors report unresolved binary fractions of 0.238 ± 0.012 for Alpha Persei, 0.200 ± 0.008 for the Pleiades, and 0.221 ± 0.010 for Praesepe. They find an average low-mass IMF slope α_l = 1.24 ± 0.29, consistent with the canonical value within uncertainties. (evidence: 823aab803438c34ad6535e3b; 65035a9bda6658ec7ede5f74)",
+      "answer": "The reported average low-mass IMF slope is α_l = 1.24 ± 0.29. [1]\n\nI could not verify these requested details from the retrieved evidence:\n- Some essential answer support could not be verified.",
+      "retrieved_chunks": [
+        {
+          "id": "e51c3026-86ac-5569-9389-7f1a45f56733",
+          "text": "**Figure 9.** Posterior distributions for the present day binary fraction and three binary corrected system PDMF slopes for Alpha Persei, Pleiades and Praesepe. All three clusters have comparable binary fractions _f_ bin, high MF slopes αh,bin and intermediate MF slopes αm,bin but have distinct low MF slopes αl,bin. \n\nThe binary fractions inferred here for Alpha Persei, the Pleiades, and Praesepe are broadly consistent with values reported in existing studies. For Alpha Persei, we measure _f_ bin = 0.238 _±_ 0.012. Using similar Monte Carlo modelling, Sheikhi et al. (2016) found a binary fraction of 0.23 _±_ 0.09 across the mass range 0.1 _−_ 4.7 M _⊙_ , which is in good agreement with our result. Our estimate for the Pleiades, _f_ bin = 0.200 _±_ 0.008, \n\n**Table 4.** Binary corrected cluster IMF properties. Shown are the estimated binary fraction ( _f_ bin) and the high, intermediate, and low mass PDMF slopes (αh,bin, αm,bin, αl,bin) after correcting for unresolved binaries. Reported uncertainties correspond to 1σ errors. ",
+          "collection": "arxiv_papers_v2",
+          "build_id": "9d32cd27-8c85-5651-93e6-7c563c20d2f0",
+          "paper_id": "a9d2f245-c48b-5569-94ff-a4157dbeed42",
+          "title": "The initial conditions and initial mass functions of Alpha Persei, Pleiades and Praesepe",
+          "arxiv_id": "2607.17300",
+          "paper_version": 1,
+          "source_url": "https://arxiv.org/abs/2607.17300v1",
+          "authors": [
+            "L. Hobart",
+            "H. Baumgardt",
+            "S. Sweet"
+          ],
+          "year": 2026,
+          "page": 13,
+          "section_header": "_**4.2 Synthetic cluster creation**_",
+          "content_kind": "text",
+          "chunk_index": 49,
+          "score": 1.0,
+          "rerank_score": null,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        },
+        {
+          "id": "170ab19a-2ad4-509e-9287-77f5ab384b45",
+          "text": "**==> picture [334 x 181] intentionally omitted <==**\n\n**----- Start of picture text -----**<br>\nAlpha Persei<br>200 Pleiades<br>Praesepe<br>150<br>100<br>50<br>0<br>2.5 0.0 2.5 5.0 7.5 10.0 12.5 15.0<br>MG [mag]<br>G<br>dN/dM<br>**----- End of picture text -----**<br>\n\n**Figure 17.** Stellar luminosity functions of Alpha Persei, Pleiades and Praesepe, uncorrected for unresolved binary companions or dynamical evolution. Error bars correspond to 1σ = _√N_ assuming Poisson statistics.",
+          "collection": "arxiv_papers_v2",
+          "build_id": "9d32cd27-8c85-5651-93e6-7c563c20d2f0",
+          "paper_id": "a9d2f245-c48b-5569-94ff-a4157dbeed42",
+          "title": "The initial conditions and initial mass functions of Alpha Persei, Pleiades and Praesepe",
+          "arxiv_id": "2607.17300",
+          "paper_version": 1,
+          "source_url": "https://arxiv.org/abs/2607.17300v1",
+          "authors": [
+            "L. Hobart",
+            "H. Baumgardt",
+            "S. Sweet"
+          ],
+          "year": 2026,
+          "page": 27,
+          "section_header": "**Appendix 3. Raw Uncorrected Cluster Luminosity Functions**",
+          "content_kind": "text",
+          "chunk_index": 113,
+          "score": 0.5833334,
+          "rerank_score": null,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        },
+        {
+          "id": "fab2a325-8035-54f0-a031-6d770ecc6d61",
+          "text": "|Value|Alpha Persei|Pleiades|Praesepe|\n|---|---|---|---|\n|_f_bin|(23.8_±_1.2)%|(20.0_±_0.8)%|(22.1_±_1.0)%|\n|αh,bin|2.37_±_0.20|3.11_±_0.19|2.66_±_0.45|\n|αm,bin|1.76_±_0.21|1.69_±_0.08|2.01_±_0.24|\n|αl,bin|0.90_±_0.19|0.46_±_0.18|1.41_±_0.16|",
+          "collection": "arxiv_papers_v2",
+          "build_id": "9d32cd27-8c85-5651-93e6-7c563c20d2f0",
+          "paper_id": "a9d2f245-c48b-5569-94ff-a4157dbeed42",
+          "title": "The initial conditions and initial mass functions of Alpha Persei, Pleiades and Praesepe",
+          "arxiv_id": "2607.17300",
+          "paper_version": 1,
+          "source_url": "https://arxiv.org/abs/2607.17300v1",
+          "authors": [
+            "L. Hobart",
+            "H. Baumgardt",
+            "S. Sweet"
+          ],
+          "year": 2026,
+          "page": 13,
+          "section_header": "_**4.2 Synthetic cluster creation**_",
+          "content_kind": "table",
+          "chunk_index": 50,
+          "score": 0.39215687,
+          "rerank_score": null,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        },
+        {
+          "id": "7e61f0fe-afab-582b-8353-360bb9030711",
+          "text": "## **7. Summary and Conclusion** \n\nTo summarise, in this work we have determined the most probable initial binary fraction, mass function and initial mass of the open clusters Alpha Persei, Pleiades and Praesepe. Using _Gaia_ DR3 proper motions and parallaxes, supplemented with UKIDSS and HIPPARCOS observations, we determine membership probabilities for stars down to masses of 0.1-0.17 M _⊙_ in the different clusters. We use _Gaia_ photometry in a Bayesian framework to determine the current binary fractions of each cluster and quantify the effect of binaries on the present-day mass function. Lastly, we ran a grid of _N_ -body simulations to train an emulator model for each cluster in order to predict the best fitting initial conditions and mass functions using a Hamiltonian Monte Carlo algorithm. \n\n- We determined the fraction of unresolved binaries in each cluster’s stellar population to be 0.238 _±_ 0.012, 0.200 _±_ 0.008 and 0.221 _±_ 0.010 for Alpha Persei, Pleiades and Praesepe respectively. \n\n- The initial values for _N_ sys,ini, _f_ bin,ini and _r_ h,ini were found simultaneously with the IMF values for each cluster. These show that the initial gas free states of these clusters had between _≈_ 1100 _−_ 2100 systems with around 24-35% of them being components of a binary system. We also find the clusters to be quite large at the time of their creation, having 3D half mass radii between _≈_ 4 _−_ 6 pc. ",
+          "collection": "arxiv_papers_v2",
+          "build_id": "9d32cd27-8c85-5651-93e6-7c563c20d2f0",
+          "paper_id": "a9d2f245-c48b-5569-94ff-a4157dbeed42",
+          "title": "The initial conditions and initial mass functions of Alpha Persei, Pleiades and Praesepe",
+          "arxiv_id": "2607.17300",
+          "paper_version": 1,
+          "source_url": "https://arxiv.org/abs/2607.17300v1",
+          "authors": [
+            "L. Hobart",
+            "H. Baumgardt",
+            "S. Sweet"
+          ],
+          "year": 2026,
+          "page": 20,
+          "section_header": "**7. Summary and Conclusion**",
+          "content_kind": "text",
+          "chunk_index": 78,
+          "score": 0.30882353,
+          "rerank_score": null,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        },
+        {
+          "id": "880cc779-af42-5b92-bdaa-51d125f4aeb5",
+          "text": "## _**4.1 Observable binaries**_ \n\nFor the observed clusters, we measured the stick-out binary fraction by first modelling the main sequence below the turnoff as a high order polynomial to better match the observations of low mass stars compared to the theoretical isochrone. We then identified systems that deviated from the main sequence by 2.5σp or more to determine the observed binary fraction of each cluster, where σp is a star’s photometric error in colourmagnitude space. When quoting any binary fractions, we refer to the fraction defined by \n\n**==> picture [164 x 26] intentionally omitted <==**\n\nwhere _N_ bin is the number of binary systems and _N_ sing is the number of single stars. \n\nFigure 8 depicts the identified stick-out binaries in Praesepe. These systems are more concentrated toward the cluster centre, as expected for genuine binary members. Such a distribution is consistent with the effects of dynamical mass segregation, where these more massive systems would migrate inward over time. This spatial distribution therefore supports the interpretation that these stick-out stars are indeed binary systems which are cluster members, rather than contaminating stars with proper motions that coincidentally align with that of the cluster. \n\nUsing this method, we observe the stick-out binary fraction, defined as _f_ SO = _N_ SO/( _N_ MS + _N_ SO), of Alpha Persei, Pleiades and Praesepe to be (18.3 _±_ 1.4)%, (16.4 _±_ 1.2)% and (18.8 _±_ 1.3)% respectively. The uncertainties quoted here were estimated using bootstrapping and resampling from cluster members with replacement.",
+          "collection": "arxiv_papers_v2",
+          "build_id": "9d32cd27-8c85-5651-93e6-7c563c20d2f0",
+          "paper_id": "a9d2f245-c48b-5569-94ff-a4157dbeed42",
+          "title": "The initial conditions and initial mass functions of Alpha Persei, Pleiades and Praesepe",
+          "arxiv_id": "2607.17300",
+          "paper_version": 1,
+          "source_url": "https://arxiv.org/abs/2607.17300v1",
+          "authors": [
+            "L. Hobart",
+            "H. Baumgardt",
+            "S. Sweet"
+          ],
+          "year": 2026,
+          "page": 11,
+          "section_header": "_**4.1 Observable binaries**_",
+          "content_kind": "text",
+          "chunk_index": 43,
+          "score": 0.28333333,
+          "rerank_score": null,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        },
+        {
+          "id": "45f563cd-1401-5099-b79f-817fcbf5fb85",
+          "text": "**----- Start of picture text -----**<br>\nAlpha Persei<br>(This Work)<br>0.1-0.30 0.30-0.95 0.95-5.55<br>Alpha Persei (Mass Range)<br>(Sheikhi+2016) [M ⊙ ]<br>0.1-0.62 0.62-4.68<br>Alpha Persei<br>(Lodieu+2012*)<br>0.1-0.62<br>Pleiades<br>(This Work)<br>0.1-0.24 0.24-0.91 0.91-4.76<br>Pleiades<br>(Niu+2020)<br>0.57-1 1-3.75<br>Pleiades<br>(Sollima+2019)<br>0.25-1 1-1.8<br>Praesepe<br>(This Work)<br>0.17-0.50 0.50-1.20 1.20-2.55<br>Praesepe<br>(Khalaj+2013)<br>0.15-0.65 0.65-2.20<br>Praesepe<br>(Ebrahimi+2022)<br>0.2-2.4<br>Praesepe<br>(Baker+2010)<br>0.125-0.6<br>Globular Clusters<br>(Baumgardt+2023)<br><0.4 0.4-1 >1<br>Field Stars<br>(Alcazar-Julia+2025)<br>0.5-1.53 >1.53<br>Field Stars<br>(Sollima+2019)<br>0.15-1 >1<br>SMC Field<br>(Kalirai+2013)<br>0.37-0.93<br>SMC Field<br>(Legnardi+2025)<br>0.22-0.5 >0.5<br>Canonical<br>(Kroupa+2001)<br>0.08-0.5 0.5-1 >1<br>0 2 1.5 2.0 2.5 2 3<br>αlow αmed αhigh<br>**----- End of picture text -----**<br>",
+          "collection": "arxiv_papers_v2",
+          "build_id": "9d32cd27-8c85-5651-93e6-7c563c20d2f0",
+          "paper_id": "a9d2f245-c48b-5569-94ff-a4157dbeed42",
+          "title": "The initial conditions and initial mass functions of Alpha Persei, Pleiades and Praesepe",
+          "arxiv_id": "2607.17300",
+          "paper_version": 1,
+          "source_url": "https://arxiv.org/abs/2607.17300v1",
+          "authors": [
+            "L. Hobart",
+            "H. Baumgardt",
+            "S. Sweet"
+          ],
+          "year": 2026,
+          "page": 18,
+          "section_header": "_**5.4 Comparison to other works**_",
+          "content_kind": "text",
+          "chunk_index": 68,
+          "score": 0.2361111,
+          "rerank_score": null,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        },
+        {
+          "id": "c74b58b9-562b-5125-86c8-080ff625ce67",
+          "text": "## **The initial conditions and initial mass functions of Alpha Persei, Pleiades and Praesepe**",
+          "collection": "arxiv_papers_v2",
+          "build_id": "9d32cd27-8c85-5651-93e6-7c563c20d2f0",
+          "paper_id": "a9d2f245-c48b-5569-94ff-a4157dbeed42",
+          "title": "The initial conditions and initial mass functions of Alpha Persei, Pleiades and Praesepe",
+          "arxiv_id": "2607.17300",
+          "paper_version": 1,
+          "source_url": "https://arxiv.org/abs/2607.17300v1",
+          "authors": [
+            "L. Hobart",
+            "H. Baumgardt",
+            "S. Sweet"
+          ],
+          "year": 2026,
+          "page": 1,
+          "section_header": "**The initial conditions and initial mass functions of Alpha Persei, Pleiades and Praesepe**",
+          "content_kind": "text",
+          "chunk_index": 2,
+          "score": 0.23376624,
+          "rerank_score": null,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        },
+        {
+          "id": "a3eebc65-bca5-5cbb-ad5f-ec3fc5056ac2",
+          "text": "L. Hobart _et al._ \n\n10 \n\n**==> picture [463 x 179] intentionally omitted <==**\n\n**----- Start of picture text -----**<br>\nMass [M ⊙ ] Mass [M ⊙ ] Mass [M ⊙ ]<br>0.1 1 0.1 1 1<br>1 10 1 10 1<br>10<br>10 2<br>10 2 PDMF<br>Alpha Persei Pleiades 10 2 Praesepe<br>1.0 0.5 0.0 0.5 1.0 0.5 0.0 0.5 0.75 0.50 0.25 0.00 0.25<br>log(m/M ⊙ ) log(m/M ⊙ ) log(m/M ⊙ )<br>Tot<br>/N<br>bin<br>N<br>**----- End of picture text -----**<br>\n\n**Figure 7.** Cluster observed present day mass functions using PARSEC v2.0 isochrone masses, uncorrected for binaries or dynamical evolution. Black points show the fraction of stars in each log mass bin with 1σ error bars, assuming Poisson statistics. The solid red line indicates the best-fitting three-segment broken power-law model. \n\n**Table 2.** Best-fitting present-day mass function (PDMF) parameters of Alpha Persei, Pleiades, and Praesepe using PARSEC v2.0 isochrone and empirical mass-luminosity relation mass estimates. Reported are the observed threestage uncorrected PDMF slopes using PARSEC (αh,pc, αm,pc, αl,pc) with mass break points ( _m_ x1,pc, _m_ x2,pc) as well as the two-stage PDMF slopes using the empirical M-L masses (αh,ML, αl,ML) with break mass _m_ x,ML. ",
+          "collection": "arxiv_papers_v2",
+          "build_id": "9d32cd27-8c85-5651-93e6-7c563c20d2f0",
+          "paper_id": "a9d2f245-c48b-5569-94ff-a4157dbeed42",
+          "title": "The initial conditions and initial mass functions of Alpha Persei, Pleiades and Praesepe",
+          "arxiv_id": "2607.17300",
+          "paper_version": 1,
+          "source_url": "https://arxiv.org/abs/2607.17300v1",
+          "authors": [
+            "L. Hobart",
+            "H. Baumgardt",
+            "S. Sweet"
+          ],
+          "year": 2026,
+          "page": 10,
+          "section_header": "_**3.3 Mass function modelling and fitting**_",
+          "content_kind": "text",
+          "chunk_index": 36,
+          "score": 0.22916667,
+          "rerank_score": null,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        },
+        {
+          "id": "1be2cfe5-e00a-5ac8-8176-501369beb76a",
+          "text": "## **6. Discussion** \n\nOur results indicate that the open clusters studied have an IMF that is top light compared to IMF measurements of field stars and star clusters. The average high mass IMF slope of α¯ h = 2.98 _±_ 0.22 for the three open clusters studied sits on the very upper end of uncertainty estimates of field star estimates from Sollima (2019) who find an average slope above 1 M _⊙_ of \n\nαh = 2.68 _±_ 0.09 as well as the canonical slope measurement of αh = 2.3 _±_ 0.7 from Kroupa (2001). We do, however, find much stronger discrepancies between this value with other determinations of the IMF over similar mass ranges in field stars and globular clusters, with Alcázar-Julià et al. (2025) finding αh = 1.98[+0.13] _−_ 0.05[using] _[ Gaia]_[ measurements of stars in the] Milky Way disk as well as Baumgardt et al. (2023), who found the IMF slope over 1 M _⊙_ of LMC and SMC clusters to be αh = 2.30 _±_ 0.15. The comparatively steeper slope we infer therefore suggests that, if robust against remaining systematic uncertainties, star formation in low-mass open clusters may be intrinsically deficient in the highest-mass stars relative to the broader galactic field and massive cluster populations. ",
+          "collection": "arxiv_papers_v2",
+          "build_id": "9d32cd27-8c85-5651-93e6-7c563c20d2f0",
+          "paper_id": "a9d2f245-c48b-5569-94ff-a4157dbeed42",
+          "title": "The initial conditions and initial mass functions of Alpha Persei, Pleiades and Praesepe",
+          "arxiv_id": "2607.17300",
+          "paper_version": 1,
+          "source_url": "https://arxiv.org/abs/2607.17300v1",
+          "authors": [
+            "L. Hobart",
+            "H. Baumgardt",
+            "S. Sweet"
+          ],
+          "year": 2026,
+          "page": 19,
+          "section_header": "**6. Discussion**",
+          "content_kind": "text",
+          "chunk_index": 73,
+          "score": 0.7,
+          "rerank_score": null,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        },
+        {
+          "id": "121cf60f-7224-52ba-a343-1ea6c20a4102",
+          "text": "For the intermediate mass slope, we find a mean value of α¯ m = 1.72 _±_ 0.09 which appears much shallower than the traditionally used canonical value of αm = 2.3 _±_ 0.3 (Kroupa, 2001) but is more in line with recent measurements of field stars and globular clusters. Alcázar-Julià et al. (2025) and Sollima (2019) determined MF slope values over similar mass ranges of αm = 1.45[+0.19] _−_ 0.12[and][ α][m][= 1.34] _[ ±]_[ 0.07 respectively.] Furthermore, SMC field star measurements from Kalirai et al. (2013) and Legnardi et al. (2025), which use deep infrared measurements from the HST and JWST, find similar values of αm = 1.90[+0.15] _−_ 0.10[and][ α][m][= 2.02] _[ ±]_[ 0.29 respectively.][Lastly,] Baumgardt et al. (2023) find an average intermediate IMF slope value of αm = 1.65 _±_ 0.20 for globular clusters. The agreement between these independent measurements across field stars, open clusters, and globular clusters therefore suggests that an intermediate-mass slope near α _m ≈_ 1.5–1.8 may more accurately represent the typical stellar IMF in this mass regime. Furthermore, this broad consistency across environments indicates that the intermediate-mass regime may be universal and that star formation in this mass region could be relatively insensitive to environmental conditions. ",
+          "collection": "arxiv_papers_v2",
+          "build_id": "9d32cd27-8c85-5651-93e6-7c563c20d2f0",
+          "paper_id": "a9d2f245-c48b-5569-94ff-a4157dbeed42",
+          "title": "The initial conditions and initial mass functions of Alpha Persei, Pleiades and Praesepe",
+          "arxiv_id": "2607.17300",
+          "paper_version": 1,
+          "source_url": "https://arxiv.org/abs/2607.17300v1",
+          "authors": [
+            "L. Hobart",
+            "H. Baumgardt",
+            "S. Sweet"
+          ],
+          "year": 2026,
+          "page": 19,
+          "section_header": "**6. Discussion**",
+          "content_kind": "text",
+          "chunk_index": 74,
+          "score": 0.6111111,
+          "rerank_score": null,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        },
+        {
+          "id": "0891f650-775b-511e-ab69-d4ba661e2e1d",
+          "text": "- We find the IMF of the three open clusters to be adequately described by a three-stage power law with break points at 0.24-0.50 M _⊙_ and 0.91-1.20 M _⊙_ . The average IMF slopes for the clusters were found to be α¯ _l_ = 1.24 _±_ 0.29, α¯ _m_ = 1.72 _±_ 0.09 and ¯αh = 2.98 _±_ 0.22 with some scatter between the individual clusters. We note, however, that the inferred low-mass slope is sensitive to the adopted mass–luminosity relation used to convert photometry into stellar masses, and should therefore be interpreted with caution. This mass function is top-light compared to a Salpeter-like IMF slope of αh = 2.35, meaning they have a relative deficiency in high mass stars above 1 M _⊙_ . \n\n- The best fitting initial parameters were able to reproduce simulated clusters that agree well with observed cluster parameters within 2.5σ, with most measured parameters agreeing within 1σ. There was also good agreement with the amount of present-day mass segregation between the simulated and observed clusters, with the degree of segregation clearly increasing with the ratio of cluster age over relaxation time _t_ rh. \n\nOur findings provide evidence for a cluster IMF with which is top-light compared to the local field star and canonical IMF and additionally shows some cluster-to-cluster scatter. Any exact dependencies on environmental conditions, however, cannot be accurately determined or quantified from the current sample of open clusters from this work due to the low number of clusters and the significant probabilistic scatter through stochastic star formation and dynamical interactions. Expanding the sample of well-characterised clusters across a wider range of masses, ages, and environments will therefore",
+          "collection": "arxiv_papers_v2",
+          "build_id": "9d32cd27-8c85-5651-93e6-7c563c20d2f0",
+          "paper_id": "a9d2f245-c48b-5569-94ff-a4157dbeed42",
+          "title": "The initial conditions and initial mass functions of Alpha Persei, Pleiades and Praesepe",
+          "arxiv_id": "2607.17300",
+          "paper_version": 1,
+          "source_url": "https://arxiv.org/abs/2607.17300v1",
+          "authors": [
+            "L. Hobart",
+            "H. Baumgardt",
+            "S. Sweet"
+          ],
+          "year": 2026,
+          "page": 20,
+          "section_header": "**7. Summary and Conclusion**",
+          "content_kind": "text",
+          "chunk_index": 79,
+          "score": 0.45833334,
+          "rerank_score": null,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        },
+        {
+          "id": "596e4ae4-ecd2-56b4-8913-be19bf4554e5",
+          "text": "We find an average slope for low mass stars of α¯ l = 1.24 _±_ 0.29 which appears to be consistent with the canonical value of αl = 1.3 _±_ 0.5, although this conclusion is limited by both the spread in measured values between the different clusters as well as the inaccuracy introduced into the model from massluminosity conversion models. As discussed in Section 3, the measurement of the PDMF in low mass regime is strongly dependent on the choice of the model when converting the photometric observations to mass estimates. Consequently, more robust conclusions about the universality or variation of the cluster IMF at low masses require improved theoretical mass-luminosity relations and deeper observational constraints. The future release of _Gaia_ DR4 is expected to significantly improve the precision of stellar measurements and refine the relationship between the stellar mass of astrometric binaries and their _Gaia_ photometric properties (Chevalier et al., 2023). With the precise measurements of more binary systems using _Gaia_ , combined with radial velocity measurements, one would be able to calibrate a much stronger relationship between mass, luminosity and colour which would become an incredibly powerful tool in the study of mass functions using _Gaia_ . \n\nAlthough not definitive, these results provide additional",
+          "collection": "arxiv_papers_v2",
+          "build_id": "9d32cd27-8c85-5651-93e6-7c563c20d2f0",
+          "paper_id": "a9d2f245-c48b-5569-94ff-a4157dbeed42",
+          "title": "The initial conditions and initial mass functions of Alpha Persei, Pleiades and Praesepe",
+          "arxiv_id": "2607.17300",
+          "paper_version": 1,
+          "source_url": "https://arxiv.org/abs/2607.17300v1",
+          "authors": [
+            "L. Hobart",
+            "H. Baumgardt",
+            "S. Sweet"
+          ],
+          "year": 2026,
+          "page": 19,
+          "section_header": "**6. Discussion**",
+          "content_kind": "text",
+          "chunk_index": 75,
+          "score": 0.42424244,
+          "rerank_score": null,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        },
+        {
+          "id": "3eb5969e-8c82-5f79-8385-28326fd1ea4f",
+          "text": "We find nearly all our individual cluster measurements to be in general agreement with other determinations over similar mass ranges. For Alpha Persei, Sheikhi et al. (2016) find that αl = 0.89 _±_ 0.11 and αh = 2.37 _±_ 0.09 using the PPMXL and _Wide-field Infrared Survey Explorer_ catalogues, correcting for unresolved binaries, and Lodieu et al. (2012) find that αl = 0.64 _±_ 0.08 using UKIDSS data. These values are in good agreement with our findings of αl = 0.98 _±_ 0.23, αm = 1.64 _±_ 0.25 and αh = 2.60 _±_ 0.19. The slight difference in the high-mass function slope likely arises from our use of two power laws over 0.30–0.95 M _⊙_ and 0.95–5.55 M _⊙_ , rather than a single power law over 0.62–4.68 M _⊙_ as adopted by Sheikhi et al. (2016). Our IMF slopes for Pleiades in the intermediate and high mass ranges also agree with works such as Niu et al. (2020) and Sollima (2019) who find αm = 1.97 _±_ 0.22, 1.6 _±_ 0.2 and αh = 3.09 _±_ 0.18, 3.4 _±_ 0.3 respectively using LAMOST and _Gaia_ DR2 observations. \n\nLastly, we also find good agreement with previous determinations for Praesepe for the high and intermediate MF slopes. Khalaj & Baumgardt (2013) found that αh = 2.88 _±_ 0.22 which agrees well with our measured value of αh = 2.86 _±_ 0.36. Our measured intermediate IMF slope of αm = 2.23 _±_ 0.24 also agrees well with the findings of Ebrahimi et al. (2022) who",
+          "collection": "arxiv_papers_v2",
+          "build_id": "9d32cd27-8c85-5651-93e6-7c563c20d2f0",
+          "paper_id": "a9d2f245-c48b-5569-94ff-a4157dbeed42",
+          "title": "The initial conditions and initial mass functions of Alpha Persei, Pleiades and Praesepe",
+          "arxiv_id": "2607.17300",
+          "paper_version": 1,
+          "source_url": "https://arxiv.org/abs/2607.17300v1",
+          "authors": [
+            "L. Hobart",
+            "H. Baumgardt",
+            "S. Sweet"
+          ],
+          "year": 2026,
+          "page": 17,
+          "section_header": "_**5.4 Comparison to other works**_",
+          "content_kind": "text",
+          "chunk_index": 66,
+          "score": 0.32692307,
+          "rerank_score": null,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        },
+        {
+          "id": "9d8a6108-ff5e-5e82-ab86-b4bf3eb5718e",
+          "text": "## **Abstract** \n\nWe have determined the initial mass function (IMF) and structural properties of the open clusters Alpha Persei, Pleiades and Praesepe using _Gaia_ DR3 proper motions, parallaxes and photometry. Cluster members were identified using primarily _Gaia_ astrometric observations, supplemented with near-infrared UKIDSS and optical HIPPARCOS survey data with stellar masses down to 0.10 _−_ 0.17 M _⊙_ . We measure and correct for unresolved binaries in each cluster using photometry and Monte Carlo simulations in a Bayesian framework, finding present-day unresolved binary fractions between (20.0 _±_ 0.8)% and (23.8 _±_ 1.2)%. Through a novel approach that combines _N_ -body simulations with machine learning emulators and Hamiltonian Monte Carlo algorithms, we have also determined the most probable initial number of stars, binary fraction, half-mass radius and mass function under the assumption that early gas removal does not significantly influence the subsequent cluster evolution. We find a best-fitting initial mass function described by a three-stage broken power-law distribution with break masses in the ranges 0.24–0.50 M _⊙_ and 0.91–1.20 M _⊙_ and average slopes of αmed = 1.72 _±_ 0.09 and αhigh = 2.98 _±_ 0.22. While the low-mass slope remains sensitive to the adopted mass–luminosity relation, this IMF reproduces the present-day clusters well once their dynamical evolution is taken into account. We find evidence of some scatter in the high mass IMF between the individual clusters, as described by the measured dispersions in mass function slopes of σhigh = 0.29 _±_ 0.16, whereas the intermediate mass slope shows no significant variation with σmed = 0.00 _±_ 0.14. Our findings provide additional evidence for a (compared to a Salpeter MF) top-light IMF and a cluster-to-cluster variation of the IMF. They therefore provide constraints on the universality of the IMF and its dependence on environmental conditions. \n\n**Keywords:** initial mass function; open clusters; binary stars; N-body simulations",
+          "collection": "arxiv_papers_v2",
+          "build_id": "9d32cd27-8c85-5651-93e6-7c563c20d2f0",
+          "paper_id": "a9d2f245-c48b-5569-94ff-a4157dbeed42",
+          "title": "The initial conditions and initial mass functions of Alpha Persei, Pleiades and Praesepe",
+          "arxiv_id": "2607.17300",
+          "paper_version": 1,
+          "source_url": "https://arxiv.org/abs/2607.17300v1",
+          "authors": [
+            "L. Hobart",
+            "H. Baumgardt",
+            "S. Sweet"
+          ],
+          "year": 2026,
+          "page": 1,
+          "section_header": "**Abstract**",
+          "content_kind": "text",
+          "chunk_index": 4,
+          "score": 0.31666666,
+          "rerank_score": null,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        },
+        {
+          "id": "39d6e94e-1817-59e4-bb19-d0c3ee702541",
+          "text": "**Figure 14.** Comparison of IMF measurements of Alpha Persei, Pleiades, Praesepe and other stellar bodies. The mass range in M _⊙_ which the value was calculated over is noted underneath each data point. The red vertical line and shaded region depict the mean IMF slope values for our three measured clusters with uncertainty. The grey vertical line corresponds to the slope values from the canonical Kroupa (2001) IMF. \n\ndetermined αm = 2.16 _±_ 0.13, although these values are all calculated over slightly different mass ranges which may lead to slightly different values. For the low mass IMF slope, however, we find a much steeper value compared to published values. Khalaj & Baumgardt (2013) found that αl = 0.85 _±_ 0.10, and Baker et al. (2010) determined that αl = 1.10 _±_ 0.37 using near infrared survey data, whereas we find a higher value of αl = 1.93 _±_ 0.24. The main contributing factor to this discrepancy is likely our inclusion of dynamical evolution which would include many additional low mass stars compared to the present-day state of the cluster. Moreover, there is additional error in the exact slope value due to the uncertainties of the mass conversion models for these low masses as previously discussed. \n\nIn addition, we also find that simulations of Praesepe which use the best fitting parameters can qualitatively reproduce the tidal tails observed by Röser & Schilbach (2019). In our simulations, we identify a total of 700 stars in the tidal tails outside of two tidal radii and within a radius of 165 pc, matching the observational bounds of Röser & Schilbach (2019) who used _Gaia_ DR2 data. Of these stars, we find 339 in the leading tail and 361 in the trailing tail. This is broadly consistent with the 389 tail stars identified by Röser & Schilbach (2019), particularly considering that observations of the trailing arm are likely incomplete for fainter stars due to its larger distance from the Sun. The overall agreement suggests that our simulations are able to capture the dominant dynamical processes responsible for the formation of these extended tidal features. ",
+          "collection": "arxiv_papers_v2",
+          "build_id": "9d32cd27-8c85-5651-93e6-7c563c20d2f0",
+          "paper_id": "a9d2f245-c48b-5569-94ff-a4157dbeed42",
+          "title": "The initial conditions and initial mass functions of Alpha Persei, Pleiades and Praesepe",
+          "arxiv_id": "2607.17300",
+          "paper_version": 1,
+          "source_url": "https://arxiv.org/abs/2607.17300v1",
+          "authors": [
+            "L. Hobart",
+            "H. Baumgardt",
+            "S. Sweet"
+          ],
+          "year": 2026,
+          "page": 18,
+          "section_header": "_**5.4 Comparison to other works**_",
+          "content_kind": "text",
+          "chunk_index": 69,
+          "score": 0.30952382,
+          "rerank_score": null,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        },
+        {
+          "id": "a80254a6-8c06-5dac-81a6-0aba7a33bb8e",
+          "text": "_Publications of the Astronomical Society of Australia_ \n\n19 \n\nα¯ _l_ = 1.24 _±_ 0.29, α¯ _m_ = 1.72 _±_ 0.09 and α¯ h = 2.98 _±_ 0.22 with dispersions of σl = 0.43 _±_ 0.24, σm = 0.00 _±_ 0.14, σh = 0.29 _±_ 0.16 and break masses of _mx_ 1 = 0.25 _±_ 0.02 M _⊙_ and _mx_ 2 = 0.96 _±_ 0.14 M _⊙_ . \n\nThis average open cluster IMF is shown in Figure 15 against the canonical field IMF from Kroupa (2001) and the measured average IMF of globular clusters as determined in Baumgardt et al. (2023), where all functions are normalised so that the area under the IMF is unity. In comparison to both functions, the open cluster IMF depicts a smaller population of high mass stars > 1 M _⊙_ . While the values of the break points and slopes are different to those quoted in Kroupa (2001), the turnover shape of the IMF for low and intermediate mass stars below _≈_ 1 M _⊙_ is qualitatively similar. This is in contrast to the bottom-light IMF form observed in globular clusters which have a significantly smaller proportion of low mass stars < 0.3 M _⊙_ and larger proportion of intermediate and high mass stars. The apparent deficit high mass stars in the investigated metal-rich open clusters compared to metal-poor, denser globular clusters is in qualitative agreement with previous studies that suggest denser star forming environments produce increasingly top-heavy IMFs (Marks et al., 2012; Dabringhausen et al., 2012). \n\n**==> picture [224 x 195] intentionally omitted <==**",
+          "collection": "arxiv_papers_v2",
+          "build_id": "9d32cd27-8c85-5651-93e6-7c563c20d2f0",
+          "paper_id": "a9d2f245-c48b-5569-94ff-a4157dbeed42",
+          "title": "The initial conditions and initial mass functions of Alpha Persei, Pleiades and Praesepe",
+          "arxiv_id": "2607.17300",
+          "paper_version": 1,
+          "source_url": "https://arxiv.org/abs/2607.17300v1",
+          "authors": [
+            "L. Hobart",
+            "H. Baumgardt",
+            "S. Sweet"
+          ],
+          "year": 2026,
+          "page": 19,
+          "section_header": "_**5.4 Comparison to other works**_",
+          "content_kind": "text",
+          "chunk_index": 71,
+          "score": 0.26666668,
+          "rerank_score": null,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        }
+      ],
+      "claims": [
+        {
+          "text": "The reported average low-mass IMF slope is α_l = 1.24 ± 0.29.",
+          "cited_context_ids": [
+            "0891f650-775b-511e-ab69-d4ba661e2e1d"
+          ],
+          "need_ids": [
+            "r4"
+          ]
+        }
+      ],
+      "cited_context_ids": [
+        "0891f650-775b-511e-ab69-d4ba661e2e1d"
+      ],
+      "metrics": {
+        "retrieval_hit": 1.0,
+        "retrieval_recall": 1.0,
+        "gold_citation_recall": 0.0,
+        "citation_from_retrieval": 1.0,
+        "retrieved_count": 16,
+        "cited_count": 1,
+        "required_paper_count": 1,
+        "retrieved_required_paper_count": 1,
+        "cited_required_paper_count": 1,
+        "required_paper_retrieval_recall": 1.0,
+        "required_paper_citation_recall": 1.0,
+        "all_required_papers_retrieved": 1.0,
+        "answer_correctness": 0.5,
+        "groundedness": 1.0,
+        "answer_relevance": 0.5,
+        "correct_abstention": null
+      },
+      "judge": {
+        "correctness": 0.5,
+        "answer_relevance": 0.5,
+        "abstention": "not_applicable",
+        "reason": "Reference assessment: The answer provided the average low-mass IMF slope and uncertainty (α_l = 1.24 ± 0.29) which matches the reference, but it omitted the three unresolved binary fraction values (required numeric facts). Grounding assessment: The claim is directly supported by the cited excerpt which verbatim gives the average low-mass IMF slope as α¯_l_ = 1.24 ± 0.29 (point_id 0891f650-775b-511e-ab69-d4ba661e2e1d). No named-method attributions to audit were provided in the claim, so method_attributions is marked not_applicable.",
+        "answer_checks": [
+          {
+            "question_part_id": "q_original",
+            "requested_fact": "Unresolved binary fraction for Alpha Persei",
+            "status": "missing",
+            "required_numeric_values": [
+              "0.238",
+              "0.012"
+            ],
+            "missing_or_incorrect_detail": "Alpha Persei unresolved binary fraction (0.238 ± 0.012) was not given in the actual answer.",
+            "deficit_basis": "missing_content",
+            "claimed_missing_answer_fragments": [
+              "0.238",
+              "± 0.012"
+            ],
+            "answer_claim_ids": [],
+            "answer_quotes": []
+          },
+          {
+            "question_part_id": "q_original",
+            "requested_fact": "Unresolved binary fraction for Pleiades",
+            "status": "missing",
+            "required_numeric_values": [
+              "0.200",
+              "0.008"
+            ],
+            "missing_or_incorrect_detail": "Pleiades unresolved binary fraction (0.200 ± 0.008) was not given in the actual answer.",
+            "deficit_basis": "missing_content",
+            "claimed_missing_answer_fragments": [
+              "0.200",
+              "± 0.008"
+            ],
+            "answer_claim_ids": [],
+            "answer_quotes": []
+          },
+          {
+            "question_part_id": "q_original",
+            "requested_fact": "Unresolved binary fraction for Praesepe",
+            "status": "missing",
+            "required_numeric_values": [
+              "0.221",
+              "0.010"
+            ],
+            "missing_or_incorrect_detail": "Praesepe unresolved binary fraction (0.221 ± 0.010) was not given in the actual answer.",
+            "deficit_basis": "missing_content",
+            "claimed_missing_answer_fragments": [
+              "0.221",
+              "± 0.010"
+            ],
+            "answer_claim_ids": [],
+            "answer_quotes": []
+          },
+          {
+            "question_part_id": "q_original",
+            "requested_fact": "Average low-mass IMF slope α_l with uncertainty",
+            "status": "answered",
+            "required_numeric_values": [
+              "1.24",
+              "0.29"
+            ],
+            "missing_or_incorrect_detail": "",
+            "deficit_basis": "none",
+            "claimed_missing_answer_fragments": [],
+            "answer_claim_ids": [
+              "a0001"
+            ],
+            "answer_quotes": [
+              "The reported average low-mass IMF slope is α_l = 1.24 ± 0.29."
+            ]
+          }
+        ],
+        "answer_anchors": [
+          {
+            "id": "a0001",
+            "text": "The reported average low-mass IMF slope is α_l = 1.24 ± 0.29.",
+            "source": "claim",
+            "claim_index": 0
+          },
+          {
+            "id": "a0002",
+            "text": " [1]",
+            "source": "answer_span",
+            "claim_index": null
+          },
+          {
+            "id": "a0003",
+            "text": "I could not verify these requested details from the retrieved evidence:",
+            "source": "answer_span",
+            "claim_index": null
+          },
+          {
+            "id": "a0004",
+            "text": "- Some essential answer support could not be verified.",
+            "source": "answer_span",
+            "claim_index": null
+          }
+        ],
+        "reference_score_status": "scored",
+        "groundedness": 1.0
+      },
+      "judge_request": {
+        "reference": {
+          "response_id": "resp_0cc8da3a70a9a36e016ac8a035350087d28403d803f5b5510d",
+          "response_ids": [
+            "resp_0cc8da3a70a9a36e016ac8a035350087d28403d803f5b5510d"
+          ],
+          "attempts": 1,
+          "quote_validation_failures": [],
+          "schema_validation_failures": [],
+          "consistency_validation_failures": [],
+          "consistency_status": "no_detected_conflict",
+          "raw_correctness": 0.5,
+          "score_status": "scored",
+          "answer_anchor_mode": "claim_ids",
+          "request_id": "req_5b419366a089456195c96233e72db430",
+          "model": "gpt-5-mini-2025-08-07",
+          "max_output_tokens": 16384,
+          "usage": {
+            "input_tokens": 2993,
+            "output_tokens": 582,
+            "total_tokens": 3575
+          }
+        },
+        "grounding": {
+          "response_id": "resp_01f48a267400518a016ac8a0398c6087d2a33490775b4d626c",
+          "response_ids": [
+            "resp_01f48a267400518a016ac8a0398c6087d2a33490775b4d626c"
+          ],
+          "attempts": 1,
+          "quote_validation_failures": [],
+          "schema_validation_failures": [],
+          "consistency_validation_failures": [],
+          "consistency_status": "no_detected_conflict",
+          "raw_correctness": null,
+          "score_status": "scored",
+          "answer_anchor_mode": "claim_ids",
+          "request_id": "req_ee76d833bb484a10a383b8bc792d690c",
+          "model": "gpt-5-mini-2025-08-07",
+          "max_output_tokens": 16384,
+          "usage": {
+            "input_tokens": 1777,
+            "output_tokens": 141,
+            "total_tokens": 1918
+          },
+          "method_attributions": [
+            {
+              "applicability": "not_applicable",
+              "answer_claim_id": "a0001",
+              "claim_index": 0
+            }
+          ],
+          "claim_anchors": [
+            {
+              "id": "a0001",
+              "claim_index": 0
+            }
+          ],
+          "annotation_validation_failures": [],
+          "method_validation_failures": [],
+          "method_scope_issues": [],
+          "raw_groundedness": 1.0
+        }
+      },
+      "judge_error": null,
+      "judge_safeguards": [
+        {
+          "metric": "correctness",
+          "from": 0.5,
+          "to": 0.5,
+          "reason": "reference_assessment_not_answer_anchored",
+          "checks": [
+            {
+              "check_index": 0,
+              "status": "missing",
+              "invalid_quote_count": 0,
+              "missing_numeric_values": [
+                "0.238",
+                "0.012"
+              ]
+            },
+            {
+              "check_index": 1,
+              "status": "missing",
+              "invalid_quote_count": 0,
+              "missing_numeric_values": [
+                "0.200",
+                "0.008"
+              ]
+            },
+            {
+              "check_index": 2,
+              "status": "missing",
+              "invalid_quote_count": 0,
+              "missing_numeric_values": [
+                "0.221",
+                "0.010"
+              ]
+            }
+          ]
+        }
+      ],
+      "agent_execution": {
+        "question_scope": "within_paper",
+        "plan_summary": "The paper reports present-day unresolved binary fractions for Alpha Persei, Pleiades and Praesepe and an average low-mass IMF slope. Evidence below cites the paper chunks that contain the reported values.",
+        "stop_reason": "sufficient",
+        "synthesis_policy": "model_finish",
+        "rounds": 1,
+        "tool_calls": 2,
+        "evidence_count": 16,
+        "required_paper_count": 1,
+        "covered_required_paper_count": 1,
+        "missing_required_build_ids": [],
+        "required_evidence_need_count": 4,
+        "covered_evidence_need_count": 4,
+        "missing_evidence_need_ids": [],
+        "planner_tokens": 13105,
+        "next_call_estimated_tokens": null,
+        "planner_context_compactions": 0,
+        "planner_context_compaction_attempts": 0,
+        "requirement_correction_attempts": 0,
+        "requirement_validation_failures": [],
+        "elapsed_seconds": 10.462,
+        "actions": [
+          {
+            "action_id": "initial_1",
+            "need_id": "r1",
+            "need_ids": [
+              "r1",
+              "r2",
+              "r3"
+            ],
+            "tool": "search_chunks",
+            "query": "unresolved binary fraction Alpha Persei Pleiades Praesepe unresolved binary fraction reported",
+            "status": "success",
+            "result_count": 8,
+            "evidence_ids": [
+              "e51c3026-86ac-5569-9389-7f1a45f56733",
+              "170ab19a-2ad4-509e-9287-77f5ab384b45",
+              "fab2a325-8035-54f0-a031-6d770ecc6d61",
+              "7e61f0fe-afab-582b-8353-360bb9030711",
+              "880cc779-af42-5b92-bdaa-51d125f4aeb5",
+              "45f563cd-1401-5099-b79f-817fcbf5fb85",
+              "c74b58b9-562b-5125-86c8-080ff625ce67",
+              "a3eebc65-bca5-5cbb-ad5f-ec3fc5056ac2"
+            ],
+            "paper_ids": [
+              "a9d2f245-c48b-5569-94ff-a4157dbeed42"
+            ],
+            "error_type": null
+          },
+          {
+            "action_id": "initial_2",
+            "need_id": "r4",
+            "need_ids": [
+              "r4"
+            ],
+            "tool": "search_chunks",
+            "query": "low-mass IMF slope alpha_l average low-mass slope α_l uncertainty",
+            "status": "success",
+            "result_count": 8,
+            "evidence_ids": [
+              "1be2cfe5-e00a-5ac8-8176-501369beb76a",
+              "121cf60f-7224-52ba-a343-1ea6c20a4102",
+              "0891f650-775b-511e-ab69-d4ba661e2e1d",
+              "596e4ae4-ecd2-56b4-8913-be19bf4554e5",
+              "3eb5969e-8c82-5f79-8385-28326fd1ea4f",
+              "9d8a6108-ff5e-5e82-ab86-b4bf3eb5718e",
+              "39d6e94e-1817-59e4-bb19-d0c3ee702541",
+              "a80254a6-8c06-5dac-81a6-0aba7a33bb8e"
+            ],
+            "paper_ids": [
+              "a9d2f245-c48b-5569-94ff-a4157dbeed42"
+            ],
+            "error_type": null
+          }
+        ],
+        "requirements": [
+          {
+            "id": "r1",
+            "description": "Unresolved binary fraction for Alpha Persei (value and uncertainty if provided) as reported in the paper with required_build_id 9d32cd27-8c85-5651-93e6-7c563c20d2f0.",
+            "kind": "fact",
+            "effect_parameters": []
+          },
+          {
+            "id": "r2",
+            "description": "Unresolved binary fraction for Pleiades (value and uncertainty if provided) as reported in the paper with required_build_id 9d32cd27-8c85-5651-93e6-7c563c20d2f0.",
+            "kind": "fact",
+            "effect_parameters": []
+          },
+          {
+            "id": "r3",
+            "description": "Unresolved binary fraction for Praesepe (value and uncertainty if provided) as reported in the paper with required_build_id 9d32cd27-8c85-5651-93e6-7c563c20d2f0.",
+            "kind": "fact",
+            "effect_parameters": []
+          },
+          {
+            "id": "r4",
+            "description": "Reported average low-mass IMF slope (α_l) with its uncertainty as given in the paper with required_build_id 9d32cd27-8c85-5651-93e6-7c563c20d2f0.",
+            "kind": "fact",
+            "effect_parameters": []
+          }
+        ],
+        "parameter_effects": [],
+        "effect_finish_checks": [],
+        "initial_searches": [
+          {
+            "query": "unresolved binary fraction Alpha Persei Pleiades Praesepe unresolved binary fraction reported",
+            "requirement_indices": [
+              1,
+              2,
+              3
+            ],
+            "retrieval_mode": "hybrid",
+            "build_ids": [
+              "9d32cd27-8c85-5651-93e6-7c563c20d2f0"
+            ],
+            "paper_ids": [],
+            "limit": 8
+          },
+          {
+            "query": "low-mass IMF slope alpha_l average low-mass slope α_l uncertainty",
+            "requirement_indices": [
+              4
+            ],
+            "retrieval_mode": "hybrid",
+            "build_ids": [
+              "9d32cd27-8c85-5651-93e6-7c563c20d2f0"
+            ],
+            "paper_ids": [],
+            "limit": 8
+          }
+        ],
+        "max_parallel_tools": 4
+      },
+      "retrieval_diagnostics": null,
+      "generation_diagnostics": {
+        "status": "partial",
+        "reason": "incomplete_answer",
+        "attempts": 2,
+        "requirements": [
+          {
+            "requirement_id": "r1",
+            "description": "Unresolved binary fraction for Alpha Persei (value and uncertainty if provided) as reported in the paper with required_build_id 9d32cd27-8c85-5651-93e6-7c563c20d2f0.",
+            "status": "missing",
+            "feedback": "Coverage referenced absent or unsupported claims.",
+            "claim_indices": [
+              1
+            ],
+            "essential_claim_indices": [
+              1
+            ],
+            "unsupported_claim_indices": [
+              1
+            ],
+            "invalid_essential_claim_indices": [
+              1
+            ],
+            "absent_claim_indices": [],
+            "missing_details": [
+              "Coverage referenced absent or unsupported claims."
+            ],
+            "annotation_validation_failures": [],
+            "coverage_issue": "missing_content"
+          },
+          {
+            "requirement_id": "r2",
+            "description": "Unresolved binary fraction for Pleiades (value and uncertainty if provided) as reported in the paper with required_build_id 9d32cd27-8c85-5651-93e6-7c563c20d2f0.",
+            "status": "missing",
+            "feedback": "Coverage referenced absent or unsupported claims.",
+            "claim_indices": [
+              2
+            ],
+            "essential_claim_indices": [
+              2
+            ],
+            "unsupported_claim_indices": [
+              2
+            ],
+            "invalid_essential_claim_indices": [
+              2
+            ],
+            "absent_claim_indices": [],
+            "missing_details": [
+              "Coverage referenced absent or unsupported claims."
+            ],
+            "annotation_validation_failures": [],
+            "coverage_issue": "missing_content"
+          },
+          {
+            "requirement_id": "r3",
+            "description": "Unresolved binary fraction for Praesepe (value and uncertainty if provided) as reported in the paper with required_build_id 9d32cd27-8c85-5651-93e6-7c563c20d2f0.",
+            "status": "missing",
+            "feedback": "Coverage referenced absent or unsupported claims.",
+            "claim_indices": [
+              3
+            ],
+            "essential_claim_indices": [
+              3
+            ],
+            "unsupported_claim_indices": [
+              3
+            ],
+            "invalid_essential_claim_indices": [
+              3
+            ],
+            "absent_claim_indices": [],
+            "missing_details": [
+              "Coverage referenced absent or unsupported claims."
+            ],
+            "annotation_validation_failures": [],
+            "coverage_issue": "missing_content"
+          },
+          {
+            "requirement_id": "r4",
+            "description": "Reported average low-mass IMF slope (α_l) with its uncertainty as given in the paper with required_build_id 9d32cd27-8c85-5651-93e6-7c563c20d2f0.",
+            "status": "satisfied",
+            "feedback": "",
+            "claim_indices": [
+              0
+            ],
+            "essential_claim_indices": [
+              0
+            ],
+            "unsupported_claim_indices": [],
+            "invalid_essential_claim_indices": [],
+            "absent_claim_indices": [],
+            "missing_details": [],
+            "annotation_validation_failures": [],
+            "coverage_issue": null
+          }
+        ],
+        "original_question_parts": [
+          {
+            "requirement_id": "q_original",
+            "description": "According to the paper \"The initial conditions and initial mass functions of Alpha Persei, Pleiades and Praesepe\", what unresolved binary fractions did the authors determine for Alpha Persei, Pleiades and Praesepe, and what is the reported average low-mass IMF slope (α_l) with its uncertainty?",
+            "status": "partial",
+            "feedback": "Some essential answer support could not be verified.",
+            "claim_indices": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "essential_claim_indices": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "unsupported_claim_indices": [
+              1,
+              2,
+              3
+            ],
+            "invalid_essential_claim_indices": [
+              1,
+              2,
+              3
+            ],
+            "absent_claim_indices": [],
+            "missing_details": [
+              "Some essential answer support could not be verified."
+            ],
+            "annotation_validation_failures": [],
+            "coverage_issue": "missing_content"
+          }
+        ],
+        "unplanned_requests": [],
+        "validation_attempts": [
+          {
+            "attempt": 1,
+            "rejected_claims": [
+              {
+                "claim_index": 0,
+                "text": "The unresolved binary fraction determined for Alpha Persei is (23.8 ± 1.2)%.",
+                "code": "numeric_evidence_not_verified",
+                "feedback": "Cited chunks do not contain every newly claimed value and unit.",
+                "cited_context_ids": [
+                  "fab2a325-8035-54f0-a031-6d770ecc6d61"
+                ],
+                "need_ids": [],
+                "numeric_evidence": {
+                  "code": "numeric_evidence_not_verified",
+                  "feedback": "Cited chunks do not contain every newly claimed value and unit.",
+                  "missing_values": [
+                    "1.2"
+                  ],
+                  "missing_units": [],
+                  "valid_quote_count": 1
+                },
+                "annotation_invalid": false
+              },
+              {
+                "claim_index": 1,
+                "text": "The unresolved binary fraction determined for the Pleiades is (20.0 ± 0.8)%.",
+                "code": "numeric_evidence_not_verified",
+                "feedback": "Cited chunks do not contain every newly claimed value and unit.",
+                "cited_context_ids": [
+                  "fab2a325-8035-54f0-a031-6d770ecc6d61"
+                ],
+                "need_ids": [],
+                "numeric_evidence": {
+                  "code": "numeric_evidence_not_verified",
+                  "feedback": "Cited chunks do not contain every newly claimed value and unit.",
+                  "missing_values": [
+                    "0.8"
+                  ],
+                  "missing_units": [],
+                  "valid_quote_count": 1
+                },
+                "annotation_invalid": false
+              },
+              {
+                "claim_index": 2,
+                "text": "The unresolved binary fraction determined for Praesepe is (22.1 ± 1.0)%.",
+                "code": "numeric_evidence_not_verified",
+                "feedback": "Cited chunks do not contain every newly claimed value and unit.",
+                "cited_context_ids": [
+                  "fab2a325-8035-54f0-a031-6d770ecc6d61"
+                ],
+                "need_ids": [],
+                "numeric_evidence": {
+                  "code": "numeric_evidence_not_verified",
+                  "feedback": "Cited chunks do not contain every newly claimed value and unit.",
+                  "missing_values": [
+                    "1"
+                  ],
+                  "missing_units": [],
+                  "valid_quote_count": 1
+                },
+                "annotation_invalid": false
+              }
+            ],
+            "review_only": false,
+            "stage_timings": {
+              "draft_seconds": 4.121,
+              "verify_seconds": 5.927
+            },
+            "duplicate_claims_omitted": 0,
+            "answer_anchors": {
+              "a0001": {
+                "claim_index": 0,
+                "text": "The unresolved binary fraction determined for Alpha Persei is (23.8 ± 1.2)%."
+              },
+              "a0002": {
+                "claim_index": 1,
+                "text": "The unresolved binary fraction determined for the Pleiades is (20.0 ± 0.8)%."
+              },
+              "a0003": {
+                "claim_index": 2,
+                "text": "The unresolved binary fraction determined for Praesepe is (22.1 ± 1.0)%."
+              },
+              "a0004": {
+                "claim_index": 3,
+                "text": "The reported average low-mass IMF slope is α_l = 1.24 ± 0.29."
+              }
+            },
+            "method_attributions": [
+              {
+                "claim_index": 0,
+                "checks": [
+                  {
+                    "applicability": "not_applicable"
+                  }
+                ]
+              },
+              {
+                "claim_index": 1,
+                "checks": [
+                  {
+                    "applicability": "not_applicable"
+                  }
+                ]
+              },
+              {
+                "claim_index": 2,
+                "checks": [
+                  {
+                    "applicability": "not_applicable"
+                  }
+                ]
+              },
+              {
+                "claim_index": 3,
+                "checks": [
+                  {
+                    "applicability": "not_applicable"
+                  }
+                ]
+              }
+            ],
+            "method_scope_issues": [],
+            "annotation_validation_failures": [],
+            "requirements": [
+              {
+                "requirement_id": "r1",
+                "description": "Unresolved binary fraction for Alpha Persei (value and uncertainty if provided) as reported in the paper with required_build_id 9d32cd27-8c85-5651-93e6-7c563c20d2f0.",
+                "status": "missing",
+                "feedback": "Coverage referenced absent or unsupported claims.",
+                "claim_indices": [
+                  0
+                ],
+                "essential_claim_indices": [
+                  0
+                ],
+                "unsupported_claim_indices": [
+                  0
+                ],
+                "invalid_essential_claim_indices": [
+                  0
+                ],
+                "absent_claim_indices": [],
+                "missing_details": [
+                  "Coverage referenced absent or unsupported claims."
+                ],
+                "annotation_validation_failures": [],
+                "coverage_issue": "missing_content"
+              },
+              {
+                "requirement_id": "r2",
+                "description": "Unresolved binary fraction for Pleiades (value and uncertainty if provided) as reported in the paper with required_build_id 9d32cd27-8c85-5651-93e6-7c563c20d2f0.",
+                "status": "missing",
+                "feedback": "Coverage referenced absent or unsupported claims.",
+                "claim_indices": [
+                  1
+                ],
+                "essential_claim_indices": [
+                  1
+                ],
+                "unsupported_claim_indices": [
+                  1
+                ],
+                "invalid_essential_claim_indices": [
+                  1
+                ],
+                "absent_claim_indices": [],
+                "missing_details": [
+                  "Coverage referenced absent or unsupported claims."
+                ],
+                "annotation_validation_failures": [],
+                "coverage_issue": "missing_content"
+              },
+              {
+                "requirement_id": "r3",
+                "description": "Unresolved binary fraction for Praesepe (value and uncertainty if provided) as reported in the paper with required_build_id 9d32cd27-8c85-5651-93e6-7c563c20d2f0.",
+                "status": "missing",
+                "feedback": "Coverage referenced absent or unsupported claims.",
+                "claim_indices": [
+                  2
+                ],
+                "essential_claim_indices": [
+                  2
+                ],
+                "unsupported_claim_indices": [
+                  2
+                ],
+                "invalid_essential_claim_indices": [
+                  2
+                ],
+                "absent_claim_indices": [],
+                "missing_details": [
+                  "Coverage referenced absent or unsupported claims."
+                ],
+                "annotation_validation_failures": [],
+                "coverage_issue": "missing_content"
+              },
+              {
+                "requirement_id": "r4",
+                "description": "Reported average low-mass IMF slope (α_l) with its uncertainty as given in the paper with required_build_id 9d32cd27-8c85-5651-93e6-7c563c20d2f0.",
+                "status": "satisfied",
+                "feedback": "",
+                "claim_indices": [
+                  3
+                ],
+                "essential_claim_indices": [
+                  3
+                ],
+                "unsupported_claim_indices": [],
+                "invalid_essential_claim_indices": [],
+                "absent_claim_indices": [],
+                "missing_details": [],
+                "annotation_validation_failures": [],
+                "coverage_issue": null
+              }
+            ],
+            "original_question_parts": [
+              {
+                "requirement_id": "q_original",
+                "description": "According to the paper \"The initial conditions and initial mass functions of Alpha Persei, Pleiades and Praesepe\", what unresolved binary fractions did the authors determine for Alpha Persei, Pleiades and Praesepe, and what is the reported average low-mass IMF slope (α_l) with its uncertainty?",
+                "status": "partial",
+                "feedback": "Some essential answer support could not be verified.",
+                "claim_indices": [
+                  0,
+                  1,
+                  2,
+                  3
+                ],
+                "essential_claim_indices": [
+                  0,
+                  1,
+                  2,
+                  3
+                ],
+                "unsupported_claim_indices": [
+                  0,
+                  1,
+                  2
+                ],
+                "invalid_essential_claim_indices": [
+                  0,
+                  1,
+                  2
+                ],
+                "absent_claim_indices": [],
+                "missing_details": [
+                  "Some essential answer support could not be verified."
+                ],
+                "annotation_validation_failures": [],
+                "coverage_issue": "missing_content"
+              }
+            ],
+            "citation_repair": {
+              "tasks": [
+                {
+                  "claim_index": 0,
+                  "code": "numeric_evidence_not_verified",
+                  "missing_values": [
+                    "1.2"
+                  ],
+                  "missing_units": [],
+                  "candidate_context_ids": [
+                    "9d8a6108-ff5e-5e82-ab86-b4bf3eb5718e",
+                    "880cc779-af42-5b92-bdaa-51d125f4aeb5",
+                    "0891f650-775b-511e-ab69-d4ba661e2e1d"
+                  ]
+                },
+                {
+                  "claim_index": 1,
+                  "code": "numeric_evidence_not_verified",
+                  "missing_values": [
+                    "0.8"
+                  ],
+                  "missing_units": [],
+                  "candidate_context_ids": [
+                    "9d8a6108-ff5e-5e82-ab86-b4bf3eb5718e"
+                  ]
+                },
+                {
+                  "claim_index": 2,
+                  "code": "numeric_evidence_not_verified",
+                  "missing_values": [
+                    "1"
+                  ],
+                  "missing_units": [],
+                  "candidate_context_ids": [
+                    "e51c3026-86ac-5569-9389-7f1a45f56733",
+                    "a80254a6-8c06-5dac-81a6-0aba7a33bb8e",
+                    "0891f650-775b-511e-ab69-d4ba661e2e1d"
+                  ]
+                }
+              ],
+              "candidate_count": 5,
+              "excerpt_chars": 4500
+            }
+          },
+          {
+            "attempt": 2,
+            "rejected_claims": [
+              {
+                "claim_index": 1,
+                "text": "The unresolved binary fraction determined for Alpha Persei is (23.8 ± 1.2)%.",
+                "code": "numeric_evidence_not_verified",
+                "feedback": "Cited chunks do not contain every newly claimed value and unit.",
+                "cited_context_ids": [
+                  "fab2a325-8035-54f0-a031-6d770ecc6d61"
+                ],
+                "need_ids": [],
+                "numeric_evidence": {
+                  "code": "numeric_evidence_not_verified",
+                  "feedback": "Cited chunks do not contain every newly claimed value and unit.",
+                  "missing_values": [
+                    "1.2"
+                  ],
+                  "missing_units": [],
+                  "valid_quote_count": 1
+                },
+                "annotation_invalid": false
+              },
+              {
+                "claim_index": 2,
+                "text": "The unresolved binary fraction determined for the Pleiades is (20.0 ± 0.8)%.",
+                "code": "numeric_evidence_not_verified",
+                "feedback": "Cited chunks do not contain every newly claimed value and unit.",
+                "cited_context_ids": [
+                  "fab2a325-8035-54f0-a031-6d770ecc6d61"
+                ],
+                "need_ids": [],
+                "numeric_evidence": {
+                  "code": "numeric_evidence_not_verified",
+                  "feedback": "Cited chunks do not contain every newly claimed value and unit.",
+                  "missing_values": [
+                    "0.8"
+                  ],
+                  "missing_units": [],
+                  "valid_quote_count": 1
+                },
+                "annotation_invalid": false
+              },
+              {
+                "claim_index": 3,
+                "text": "The unresolved binary fraction determined for Praesepe is (22.1 ± 1.0)%.",
+                "code": "numeric_evidence_not_verified",
+                "feedback": "Cited chunks do not contain every newly claimed value and unit.",
+                "cited_context_ids": [
+                  "fab2a325-8035-54f0-a031-6d770ecc6d61"
+                ],
+                "need_ids": [],
+                "numeric_evidence": {
+                  "code": "numeric_evidence_not_verified",
+                  "feedback": "Cited chunks do not contain every newly claimed value and unit.",
+                  "missing_values": [
+                    "1"
+                  ],
+                  "missing_units": [],
+                  "valid_quote_count": 1
+                },
+                "annotation_invalid": false
+              }
+            ],
+            "review_only": false,
+            "stage_timings": {
+              "repair_seconds": 5.723,
+              "verify_seconds": 5.744
+            },
+            "duplicate_claims_omitted": 0,
+            "answer_anchors": {
+              "a0001": {
+                "claim_index": 0,
+                "text": "The reported average low-mass IMF slope is α_l = 1.24 ± 0.29."
+              },
+              "a0002": {
+                "claim_index": 1,
+                "text": "The unresolved binary fraction determined for Alpha Persei is (23.8 ± 1.2)%."
+              },
+              "a0003": {
+                "claim_index": 2,
+                "text": "The unresolved binary fraction determined for the Pleiades is (20.0 ± 0.8)%."
+              },
+              "a0004": {
+                "claim_index": 3,
+                "text": "The unresolved binary fraction determined for Praesepe is (22.1 ± 1.0)%."
+              }
+            },
+            "method_attributions": [
+              {
+                "claim_index": 0,
+                "checks": [
+                  {
+                    "applicability": "not_applicable"
+                  }
+                ]
+              },
+              {
+                "claim_index": 1,
+                "checks": [
+                  {
+                    "applicability": "not_applicable"
+                  }
+                ]
+              },
+              {
+                "claim_index": 2,
+                "checks": [
+                  {
+                    "applicability": "not_applicable"
+                  }
+                ]
+              },
+              {
+                "claim_index": 3,
+                "checks": [
+                  {
+                    "applicability": "not_applicable"
+                  }
+                ]
+              }
+            ],
+            "method_scope_issues": [],
+            "annotation_validation_failures": [],
+            "requirements": [
+              {
+                "requirement_id": "r1",
+                "description": "Unresolved binary fraction for Alpha Persei (value and uncertainty if provided) as reported in the paper with required_build_id 9d32cd27-8c85-5651-93e6-7c563c20d2f0.",
+                "status": "missing",
+                "feedback": "Coverage referenced absent or unsupported claims.",
+                "claim_indices": [
+                  1
+                ],
+                "essential_claim_indices": [
+                  1
+                ],
+                "unsupported_claim_indices": [
+                  1
+                ],
+                "invalid_essential_claim_indices": [
+                  1
+                ],
+                "absent_claim_indices": [],
+                "missing_details": [
+                  "Coverage referenced absent or unsupported claims."
+                ],
+                "annotation_validation_failures": [],
+                "coverage_issue": "missing_content"
+              },
+              {
+                "requirement_id": "r2",
+                "description": "Unresolved binary fraction for Pleiades (value and uncertainty if provided) as reported in the paper with required_build_id 9d32cd27-8c85-5651-93e6-7c563c20d2f0.",
+                "status": "missing",
+                "feedback": "Coverage referenced absent or unsupported claims.",
+                "claim_indices": [
+                  2
+                ],
+                "essential_claim_indices": [
+                  2
+                ],
+                "unsupported_claim_indices": [
+                  2
+                ],
+                "invalid_essential_claim_indices": [
+                  2
+                ],
+                "absent_claim_indices": [],
+                "missing_details": [
+                  "Coverage referenced absent or unsupported claims."
+                ],
+                "annotation_validation_failures": [],
+                "coverage_issue": "missing_content"
+              },
+              {
+                "requirement_id": "r3",
+                "description": "Unresolved binary fraction for Praesepe (value and uncertainty if provided) as reported in the paper with required_build_id 9d32cd27-8c85-5651-93e6-7c563c20d2f0.",
+                "status": "missing",
+                "feedback": "Coverage referenced absent or unsupported claims.",
+                "claim_indices": [
+                  3
+                ],
+                "essential_claim_indices": [
+                  3
+                ],
+                "unsupported_claim_indices": [
+                  3
+                ],
+                "invalid_essential_claim_indices": [
+                  3
+                ],
+                "absent_claim_indices": [],
+                "missing_details": [
+                  "Coverage referenced absent or unsupported claims."
+                ],
+                "annotation_validation_failures": [],
+                "coverage_issue": "missing_content"
+              },
+              {
+                "requirement_id": "r4",
+                "description": "Reported average low-mass IMF slope (α_l) with its uncertainty as given in the paper with required_build_id 9d32cd27-8c85-5651-93e6-7c563c20d2f0.",
+                "status": "satisfied",
+                "feedback": "",
+                "claim_indices": [
+                  0
+                ],
+                "essential_claim_indices": [
+                  0
+                ],
+                "unsupported_claim_indices": [],
+                "invalid_essential_claim_indices": [],
+                "absent_claim_indices": [],
+                "missing_details": [],
+                "annotation_validation_failures": [],
+                "coverage_issue": null
+              }
+            ],
+            "original_question_parts": [
+              {
+                "requirement_id": "q_original",
+                "description": "According to the paper \"The initial conditions and initial mass functions of Alpha Persei, Pleiades and Praesepe\", what unresolved binary fractions did the authors determine for Alpha Persei, Pleiades and Praesepe, and what is the reported average low-mass IMF slope (α_l) with its uncertainty?",
+                "status": "partial",
+                "feedback": "Some essential answer support could not be verified.",
+                "claim_indices": [
+                  0,
+                  1,
+                  2,
+                  3
+                ],
+                "essential_claim_indices": [
+                  0,
+                  1,
+                  2,
+                  3
+                ],
+                "unsupported_claim_indices": [
+                  1,
+                  2,
+                  3
+                ],
+                "invalid_essential_claim_indices": [
+                  1,
+                  2,
+                  3
+                ],
+                "absent_claim_indices": [],
+                "missing_details": [
+                  "Some essential answer support could not be verified."
+                ],
+                "annotation_validation_failures": [],
+                "coverage_issue": "missing_content"
+              }
+            ]
+          }
+        ],
+        "verified_claim_count": 1,
+        "verifier": "independent_model_with_quote_validation",
+        "verifier_model": "gpt-5-mini",
+        "coverage_contract": "frozen-parameter-effects-v9",
+        "effect_anchor_mode": "immutable_answer_claims",
+        "annotation_correction_attempts": 0,
+        "coverage_policy": "original-question-authority-v3",
+        "completeness_authority": "original_question_parts",
+        "planner_only_gaps": [],
+        "method_role_contract": "answer-bound-cited-operation-v3",
+        "stage_timings": {
+          "draft_seconds": 4.121,
+          "repair_seconds": 5.723,
+          "verify_seconds": 11.671
+        }
+      },
+      "stage_timings": {
+        "retrieval_seconds": 10.78,
+        "agentic_draft_seconds": 4.121,
+        "agentic_repair_seconds": 5.723,
+        "agentic_verify_seconds": 11.671,
+        "generation_seconds": 21.855,
+        "pipeline_seconds": 32.644,
+        "judge_reference_seconds": 4.217,
+        "judge_grounding_seconds": 1.848,
+        "judge_seconds": 6.065
+      },
+      "elapsed_seconds": 38.71,
+      "error": null
+    }
+  ]
+}

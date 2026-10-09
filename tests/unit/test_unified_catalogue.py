@@ -15,6 +15,7 @@ from src.api.papers.consistency import activate_verified, active_filter, audit, 
 from src.api.papers.uploads import process_upload, complete_batch, poll_batches
 from src.api.papers.artifacts import ArtifactStore
 from src.api.papers.arxiv import Paper
+from src.api.rag.sparse import ensure_hybrid_collection
 
 
 @pytest.fixture
@@ -34,7 +35,7 @@ def catalogue(settings):
 @pytest.fixture
 def qdrant():
     with closing(QdrantClient(":memory:")) as client:
-        client.create_collection("uploads", vectors_config=m.VectorParams(size=3, distance=m.Distance.COSINE))
+        ensure_hybrid_collection(client, "uploads", 3)
         yield client
 
 
@@ -130,6 +131,19 @@ def test_failed_new_build_preserves_previous_ready_revision(catalogue, qdrant):
     assert inventory[0]["active_build"] == old["id"]
 
 
+def test_scoped_ready_builds_separates_live_and_frozen_revisions(catalogue):
+    old = upload(catalogue)
+    catalogue.activate(old, {"chunk_count": 1, "point_ids": ["old-point"]})
+    replacement = catalogue.upload("hash1", old["metadata"], "uploads", "test-model", "new-pipeline")
+    catalogue.activate(replacement, {"chunk_count": 1, "point_ids": ["new-point"]})
+
+    live = catalogue.scoped_ready_builds("uploads", [old["id"], replacement["id"]])
+    frozen = catalogue.scoped_ready_builds("uploads", [old["id"]], active_only=False)
+
+    assert [row["id"] for row in live] == [replacement["id"]]
+    assert [row["id"] for row in frozen] == [old["id"]]
+
+
 def process_args(catalogue, qdrant, settings, tmp_path, mode="sync"):
     path = tmp_path / "paper.pdf"
     path.write_bytes(b"%PDF-fixture")
@@ -156,11 +170,44 @@ def test_sync_upload_activates_only_complete_manifest(catalogue, qdrant, setting
     build = catalogue.get_build(args["build"]["id"])
     assert build["status"] == "ready"
     assert build["manifest"]["chunk_count"] == 3  # text + summary + figure
+    assert build["manifest"]["retrieval_index"]["sparse_vector_name"] == "bm25"
     assert check_build(qdrant, build)["ok"] is True
     figure = next(p for p in qdrant.retrieve("uploads", expected_ids(build)) if p.payload["type"] == "figure")
     assert figure.payload["page_number"] == 2
     assert figure.payload["caption"] == "A star cluster"
     assert catalogue.inventory()[0]["title"] == "Scientific paper"
+
+
+def test_metadata_provider_failure_uses_deterministic_fallback(
+        catalogue, qdrant, settings, tmp_path):
+    args = process_args(catalogue, qdrant, settings, tmp_path)
+    chunks, images, first_pages, _ = args["extract"].return_value
+    args["extract"].return_value = (
+        chunks,
+        images,
+        first_pages,
+        {
+            "title": "PDF metadata title",
+            "author": "Author One; Author Two",
+            "keywords": "clusters, galaxies",
+            "creationDate": "D:20240910120000Z",
+        },
+    )
+    args["metadata"].side_effect = RuntimeError("provider response was invalid")
+
+    process_upload(**args)
+
+    build = catalogue.get_build(args["build"]["id"])
+    assert build["status"] == "ready"
+    assert build["manifest"]["metadata_extraction"] == {
+        "strategy": "pdf_metadata_and_text_fallback",
+        "fallback": True,
+        "failure_type": "RuntimeError",
+    }
+    assert build["metadata"]["title"] == "PDF metadata title"
+    assert build["metadata"]["authors"] == ["Author One", "Author Two"]
+    assert build["metadata"]["year"] == "2024"
+    assert check_build(qdrant, build)["ok"] is True
 
 
 def test_upload_saves_structured_evidence_and_manifest(catalogue, qdrant, settings, tmp_path):
@@ -169,7 +216,7 @@ def test_upload_saves_structured_evidence_and_manifest(catalogue, qdrant, settin
     chunks, images, first, _ = args["extract"].return_value
     args["extract"].return_value = (chunks, images, first, {
         "extracted_pages": [{"page_number": 1, "text": "Paper evidence"}], "extraction": SPEC,
-        "structured_chunks": [{"text": "Paper evidence", "page_number": 1, "section_header": "Results",
+        "structured_chunks": [{"chunk_index": 0, "text": "Paper evidence", "page_number": 1, "section_header": "Results",
                                "token_count": 2, "content_kind": "text"}]})
     process_upload(**args)
     build = catalogue.get_build(args["build"]["id"])
@@ -178,6 +225,28 @@ def test_upload_saves_structured_evidence_and_manifest(catalogue, qdrant, settin
     point = next(p for p in qdrant.retrieve("uploads", expected_ids(build)) if p.payload["type"] == "chunk")
     assert point.payload["source_text"] == "Paper evidence"
     assert point.payload["section_header"] == "Results"
+    assert point.payload["chunk_index"] == 0
+    assert build["manifest"]["chunk_order"]["count"] == 1
+
+
+def test_activation_rejects_invalid_chunk_order(catalogue, qdrant):
+    build = upload(catalogue)
+    point_ids = [str(uuid5(NAMESPACE_URL, f"ordered:{index}")) for index in range(2)]
+    qdrant.upsert("uploads", [m.PointStruct(
+        id=point_id, vector=[1., 0., 0.], payload={
+            "build_id": build["id"], "paper_id": build["paper_id"],
+            "paper_version": 1, "type": "chunk", "chunk_index": 0, "text": "evidence",
+        }) for point_id in point_ids])
+    manifest = {"chunk_count": 2, "point_ids": point_ids,
+                "chunk_order": {"field": "chunk_index", "starts_at": 0, "count": 2,
+                                "scope": "text_chunks", "contiguous": True}}
+
+    result = check_build(qdrant, {**build, "manifest": manifest})
+
+    assert result["ok"] is False
+    assert sorted(result["invalid_chunk_order_ids"]) == sorted(point_ids)
+    with pytest.raises(ValueError, match="verification"):
+        activate_verified(catalogue, qdrant, build, manifest)
 
 
 @pytest.mark.parametrize("failure", ["storage", "describe", "embed"])

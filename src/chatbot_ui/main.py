@@ -1,6 +1,7 @@
 # src/chatbot_ui/main.py
 import os
 import re
+from collections import Counter
 from html import escape
 from io import BytesIO
 import streamlit as st
@@ -10,6 +11,71 @@ from htmlTemplates import css, bot_template, user_template
 
 # API_URL = "http://localhost:8000"  # Update for production (e.g., hosted backend)
 API_URL = os.getenv("API_URL", "http://localhost:8000")
+
+RAG_MODE_LABELS = {
+    "vanilla": "Vanilla — dense retrieval",
+    "hybrid": "Hybrid — dense + BM25 fusion",
+    "hybrid_rerank": "Hybrid + Rerank — dense + BM25 + Cohere",
+    "agentic": "Agentic — bounded multi-step retrieval",
+}
+
+STOP_REASON_LABELS = {
+    "sufficient": "Evidence sufficient",
+    "max_rounds": "Retrieval-round limit reached",
+    "tool_call_budget": "Tool-call limit reached",
+    "evidence_budget": "Evidence limit reached",
+    "time_budget": "Time limit reached",
+    "token_budget": "Agent-model token limit reached",
+    "repeated_action": "Repeated action stopped",
+    "no_progress": "No new evidence found",
+    "tool_failure": "Retrieval tool failed safely",
+    "planner_failure": "Agent model failed safely",
+    "insufficient_evidence": "Insufficient evidence",
+}
+
+SYNTHESIS_POLICY_LABELS = {
+    "model_finish": "Planner-selected synthesis",
+    "evidence_fallback": "Grounded synthesis from collected evidence",
+    "hard_stop": "No answer synthesis",
+}
+
+
+def summarize_agent_execution(execution):
+    """Return concise display data without exposing prompts or evidence text."""
+    execution = execution if isinstance(execution, dict) else {}
+    actions = [row for row in execution.get("actions", []) if isinstance(row, dict)]
+    successful_tools = Counter(
+        row.get("tool") for row in actions
+        if row.get("status") == "success" and row.get("tool")
+    )
+    papers = {
+        str(paper_id)
+        for row in actions
+        for paper_id in row.get("paper_ids", [])
+        if paper_id
+    }
+    tools = ", ".join(
+        f"{tool} × {count}" for tool, count in sorted(successful_tools.items())
+    ) or "None completed"
+    stop_reason = str(execution.get("stop_reason") or "insufficient_evidence")
+    synthesis_policy = str(execution.get("synthesis_policy") or "hard_stop")
+    return {
+        "plan_summary": execution.get("plan_summary") or "No validated plan was produced.",
+        "outcome": STOP_REASON_LABELS.get(stop_reason, stop_reason.replace("_", " ").title()),
+        "synthesis_policy": SYNTHESIS_POLICY_LABELS.get(
+            synthesis_policy, synthesis_policy.replace("_", " ").title()
+        ),
+        "rounds": int(execution.get("rounds") or 0),
+        "tool_calls": int(execution.get("tool_calls") or 0),
+        "evidence_count": int(execution.get("evidence_count") or 0),
+        "required_paper_count": int(execution.get("required_paper_count") or 0),
+        "covered_required_paper_count": int(
+            execution.get("covered_required_paper_count") or 0
+        ),
+        "elapsed_seconds": float(execution.get("elapsed_seconds") or 0),
+        "papers_touched": len(papers),
+        "tools": tools,
+    }
 
 
 def get_app_version() -> str:
@@ -133,11 +199,18 @@ def main():
 
     with st.sidebar:
         st.subheader("📚 Knowledge Base")
-        st.selectbox("Query source", ["uploads", "arxiv"], key="corpus",
-                     format_func=lambda value: "Uploaded PDFs" if value == "uploads" else "arXiv star clusters")
-        st.radio("Retrieval mode", ["vanilla", "hybrid"], key="rag_mode",
-                 format_func=lambda value: "Vanilla — dense retrieval" if value == "vanilla" else "Hybrid — fusion + reranking")
-        st.caption("Both presets retrieve evidence directly; neither uses the intent router or a knowledge graph.")
+        st.selectbox("Query source", ["all", "arxiv", "uploads"], key="corpus",
+                     format_func=lambda value: {
+                         "all": "All ready papers",
+                         "uploads": "Uploaded PDFs",
+                         "arxiv": "arXiv star clusters",
+                     }[value])
+        st.radio("Retrieval mode", list(RAG_MODE_LABELS), key="rag_mode",
+                 format_func=RAG_MODE_LABELS.get)
+        if st.session_state.rag_mode == "agentic":
+            st.caption("Agentic uses a bounded read-only tool loop (maximum three retrieval rounds). It does not use a knowledge graph.")
+        else:
+            st.caption("Vanilla, Hybrid and Hybrid + Rerank are one-shot retrieval baselines. They do not use the intent router or a knowledge graph.")
         if st.session_state.corpus == "arxiv":
             st.caption("Default scope: astro-ph.GA + star-cluster terms. Change scope in backend configuration.")
         if st.button("Start new conversation", help="Clears chat history. Your next question uses the latest ready documents from the selected source."):
@@ -147,7 +220,7 @@ def main():
             st.session_state.backend_memory = []
         if st.session_state.get("corpus_snapshot"):
             st.caption(f"Corpus fingerprint: {st.session_state.corpus_snapshot}")
-        st.caption("Queries use only ready documents from the selected source. Inventory below can show all sources.")
+        st.caption("Queries use ready documents from the selected source. “All” searches both arXiv and uploaded-PDF collections.")
 
         # st.markdown("---")
         # st.subheader("📊 Database Content")
@@ -159,11 +232,34 @@ def main():
             st.session_state.inventory = get_document_titles(inventory_source)
         inventory = st.session_state.get("inventory")
         if inventory and inventory.get("source") == inventory_source:
-            st.write(f"Catalogued: {inventory['total_documents']} · Active indexed: {inventory['queryable_documents']}")
+            st.write(f"Catalogued: {inventory['total_documents']} · Query-ready: {inventory['queryable_documents']}")
             st.caption("Latest processing states: " + ", ".join(
                 f"{state}: {count}" for state, count in inventory["status_counts"].items()))
-            st.dataframe([{key: row.get(key) for key in ("title", "source", "status", "queryable", "active_version", "collection", "error")}
-                          for row in inventory["documents"]], hide_index=True)
+            rows = [{
+                "title": row.get("title"),
+                "source": row.get("source"),
+                "processing": row.get("status"),
+                "query_ready": "Yes" if row.get("queryable") else "No",
+                "latest_collection": row.get("latest_collection") or row.get("collection"),
+                "active_collection": row.get("active_collection") or row.get("collection"),
+                "error": row.get("error"),
+            } for row in inventory["documents"]]
+            st.dataframe(rows, hide_index=True, use_container_width=True)
+            not_ready = [row for row in inventory["documents"] if not row.get("queryable")]
+            if not_ready:
+                with st.expander(f"Not query-ready ({len(not_ready)})", expanded=True):
+                    for row in not_ready:
+                        st.markdown(f"**{row.get('title', 'Untitled')}**")
+                        st.caption(
+                            f"Processing: {row.get('status', 'unknown')} · Query ready: No · "
+                            f"Latest collection: {row.get('latest_collection') or row.get('collection') or 'none'}"
+                        )
+                        if row.get("active_collection"):
+                            st.caption(f"Retained active collection: {row['active_collection']}")
+                        if row.get("queryable_reason"):
+                            st.caption(row["queryable_reason"])
+                        if row.get("error"):
+                            st.error(f"Latest attempt failed: {row['error']}")
             st.caption("A failed replacement may still have an older ready version. Run make papers-audit to check live index consistency.")
 
         st.markdown("---")
@@ -308,7 +404,8 @@ def main():
                 "role": "assistant", 
                 "content": result["answer"], 
                 "sources": result.get("sources", []),
-                "images": result.get("images", [])
+                "images": result.get("images", []),
+                "execution": result.get("execution"),
             })            
 
             # Store backend's truncated/summarized memory separately
@@ -338,7 +435,7 @@ def main():
                     full_content = msg["content"]
                     if "sources" in msg and msg["sources"]:
                         sources_list = []
-                        for src in msg["sources"]:
+                        for source_index, src in enumerate(msg["sources"], start=1):
                             authors = src.get("authors") or "Unknown author"
                             if isinstance(authors, list):
                                 authors = ", ".join(authors)
@@ -347,7 +444,7 @@ def main():
                             # sources_list.append(f"- {authors} ({year}). *{title}*")
                             pages = src.get("page")  # this is a list of ints
                             pages_str = f" pp. {', '.join(map(str, pages))}" if pages else ""
-                            reference = f"- {escape(authors)} ({escape(str(year))}). <em>{escape(title)}</em>{pages_str}"
+                            reference = f"- [{source_index}] {escape(authors)} ({escape(str(year))}). <em>{escape(title)}</em>{pages_str}"
                             source_url = src.get("source_url") or ""
                             if source_url.startswith("https://arxiv.org/abs/"):
                                 label = f"arXiv:{src.get('arxiv_id')}v{src.get('paper_version')}"
@@ -426,6 +523,31 @@ def main():
                     # --- DISPLAY FINAL HTML CONTENT ---
                     st.write(bot_template.replace("{{MSG}}", html_content), unsafe_allow_html=True)
                     # st.markdown(full_content)
+
+                    execution = msg.get("execution")
+                    if execution:
+                        details = summarize_agent_execution(execution)
+                        with st.expander("🧭 Agentic retrieval details"):
+                            st.write("Plan:", details["plan_summary"])
+                            st.write("Outcome:", details["outcome"])
+                            metric_columns = st.columns(4)
+                            metric_columns[0].metric("Rounds", details["rounds"])
+                            metric_columns[1].metric("Tool calls", details["tool_calls"])
+                            metric_columns[2].metric("Evidence chunks", details["evidence_count"])
+                            metric_columns[3].metric(
+                                "Elapsed", f"{details['elapsed_seconds']:.1f}s"
+                            )
+                            st.caption(
+                                f"Tools: {details['tools']} · "
+                                f"Papers resolved: {details['papers_touched']} · "
+                                f"Answer policy: {details['synthesis_policy']}"
+                            )
+                            if details["required_paper_count"]:
+                                st.caption(
+                                    "Explicitly named paper coverage: "
+                                    f"{details['covered_required_paper_count']}/"
+                                    f"{details['required_paper_count']}"
+                                )
 
                     # 3. Display Figures immediately after the bubble
                     # Check if the API response included images (figures)

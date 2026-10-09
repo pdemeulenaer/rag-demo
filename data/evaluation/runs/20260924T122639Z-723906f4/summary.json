@@ -1,0 +1,100 @@
+{
+  "agentic": {
+    "questions": 1,
+    "errors": 0,
+    "mean_latency_seconds": 19.963,
+    "metrics": {
+      "all_required_papers_retrieved": 1.0,
+      "answer_correctness": 1.0,
+      "answer_relevance": 1.0,
+      "citation_from_retrieval": 1.0,
+      "gold_citation_recall": 1.0,
+      "groundedness": 1.0,
+      "required_paper_citation_recall": 1.0,
+      "required_paper_retrieval_recall": 1.0,
+      "retrieval_hit": 1.0,
+      "retrieval_recall": 1.0
+    },
+    "agent_execution": {
+      "runs": 1,
+      "stop_reasons": {
+        "sufficient": 1
+      },
+      "synthesis_policies": {
+        "model_finish": 1
+      },
+      "mean_rounds": 2.0,
+      "mean_tool_calls": 3.0,
+      "mean_evidence_count": 10.0,
+      "mean_planner_tokens": 15987.0,
+      "tool_usage": {
+        "get_neighbors": 1,
+        "search_chunks": 2
+      },
+      "tool_errors": 0,
+      "named_paper_runs": 1,
+      "named_paper_full_coverage_rate": 1.0,
+      "mean_atomic_evidence_needs": 1.0,
+      "atomic_need_full_coverage_rate": 1.0
+    },
+    "generation_diagnostics": {
+      "runs": 1,
+      "statuses": {
+        "complete": 1
+      },
+      "reasons": {
+        "verified_answer": 1
+      }
+    },
+    "profiles": {
+      "single_fact": {
+        "questions": 1,
+        "errors": 0,
+        "mean_latency_seconds": 19.963,
+        "metrics": {
+          "all_required_papers_retrieved": 1.0,
+          "answer_correctness": 1.0,
+          "answer_relevance": 1.0,
+          "citation_from_retrieval": 1.0,
+          "gold_citation_recall": 1.0,
+          "groundedness": 1.0,
+          "required_paper_citation_recall": 1.0,
+          "required_paper_retrieval_recall": 1.0,
+          "retrieval_hit": 1.0,
+          "retrieval_recall": 1.0
+        },
+        "agent_execution": {
+          "runs": 1,
+          "stop_reasons": {
+            "sufficient": 1
+          },
+          "synthesis_policies": {
+            "model_finish": 1
+          },
+          "mean_rounds": 2.0,
+          "mean_tool_calls": 3.0,
+          "mean_evidence_count": 10.0,
+          "mean_planner_tokens": 15987.0,
+          "tool_usage": {
+            "get_neighbors": 1,
+            "search_chunks": 2
+          },
+          "tool_errors": 0,
+          "named_paper_runs": 1,
+          "named_paper_full_coverage_rate": 1.0,
+          "mean_atomic_evidence_needs": 1.0,
+          "atomic_need_full_coverage_rate": 1.0
+        },
+        "generation_diagnostics": {
+          "runs": 1,
+          "statuses": {
+            "complete": 1
+          },
+          "reasons": {
+            "verified_answer": 1
+          }
+        }
+      }
+    }
+  }
+}

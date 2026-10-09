@@ -253,15 +253,34 @@ async def rag(
     logger.info(f"Generation model: {gen_model}")
 
     # Explicit demo presets bypass intent routing. Omitted mode keeps legacy API behavior.
-    if payload.mode is not None or payload.corpus == "arxiv":
-        from qdrant_client.models import Filter, FieldCondition, MatchAny
+    if payload.mode is not None or payload.corpus in {"all", "arxiv"}:
         from src.api.api.papers_router import active_corpus
+        from src.api.papers.catalogue import snapshot_id
         from src.api.papers.consistency import active_filter
+        from src.api.rag.contracts import FederatedRetrievalScope, RetrievalScope
         from starlette.concurrency import run_in_threadpool
 
         mode = payload.mode or "hybrid"
         collection, scope, snapshot = None, None, None
-        if payload.corpus == "arxiv":
+        if payload.corpus == "all":
+            settings, arxiv_active, _ = await run_in_threadpool(active_corpus)
+            _, upload_active, _ = await run_in_threadpool(active_corpus, "uploads")
+            active = [*arxiv_active, *upload_active]
+            scopes = []
+            if arxiv_active:
+                scopes.append(RetrievalScope.from_builds(
+                    settings.PAPERS_COLLECTION, arxiv_active,
+                    filter_override=active_filter(arxiv_active),
+                ))
+            if upload_active:
+                scopes.append(RetrievalScope.from_builds(
+                    config.QDRANT_COLLECTION_NAME, upload_active,
+                    filter_override=active_filter(upload_active),
+                ))
+            if scopes:
+                scope = FederatedRetrievalScope(tuple(scopes))
+            snapshot = snapshot_id(active)
+        elif payload.corpus == "arxiv":
             settings, active, snapshot = await run_in_threadpool(active_corpus)
             collection = settings.PAPERS_COLLECTION
         else:
@@ -271,7 +290,10 @@ async def rag(
             raise HTTPException(409, "Corpus changed. Select 'Start new conversation' before comparing modes (API clients: clear corpus_snapshot and start a new session).")
         if not active:
             raise HTTPException(409, "No ready papers in this source. Process pending documents or import legacy uploads first.")
-        scope = active_filter(active)
+        if scope is None:
+            scope = RetrievalScope.from_builds(
+                collection, active, filter_override=active_filter(active)
+            )
         # Keep conversation memories separate by mode, corpus, model and active versions.
         memory_id = f"{session_id}:{payload.corpus}:{mode}:{gen_model}:{snapshot or 'live'}"
         result = await run_in_threadpool(rag_pipeline_wrapper, payload.query, memory_id,
@@ -282,8 +304,19 @@ async def rag(
         history = ([{"role": "system", "content": memory.summary}] if memory.summary else []) + memory.recent_messages
         response_payload = RAGResponse(request_id=request.state.request_id, answer=result["answer"],
             chat_history=history, sources=result.get("sources", []),
-            images=_process_images(result.get("images", []), request), mode=mode, corpus_snapshot=snapshot)
-        update_span(output={"answer": result["answer"], "source_count": len(result.get("sources", []))})
+            images=_process_images(result.get("images", []), request), mode=mode,
+            corpus_snapshot=snapshot, execution=result.get("execution"),
+            claims=result.get("claims", []),
+            generation_diagnostics=result.get("generation_diagnostics"))
+        trace_output = {"answer": result["answer"],
+                        "source_count": len(result.get("sources", []))}
+        if result.get("execution") is not None:
+            execution = result["execution"]
+            trace_output["agent_execution"] = (
+                execution.model_dump(mode="json")
+                if hasattr(execution, "model_dump") else execution
+            )
+        update_span(output=trace_output)
         return response_payload
 
     # 2. Intent Classification
@@ -299,6 +332,7 @@ async def rag(
     answer = ""
     sources = []
     rag_images = []
+    claims = []
 
     # 3. Execution Logic
     # Depending on intent, 
@@ -342,6 +376,7 @@ async def rag(
 
                 answer = result["answer"]
                 sources = result.get("sources", [])
+                claims = result.get("claims", [])
 
                 # Process images for the fallback path too
                 rag_images = _process_images(result.get("images", []), request)
@@ -367,6 +402,7 @@ async def rag(
                                       )        
         answer = result["answer"]
         sources = result.get("sources", [])
+        claims = result.get("claims", [])
 
         # Process images returned by the pipeline
         rag_images = _process_images(result.get("images", []), request)
@@ -392,7 +428,8 @@ async def rag(
         answer=answer,
         chat_history=full_history,
         sources=sources,
-        images=rag_images
+        images=rag_images,
+        claims=claims,
     )
     update_span(output={"answer": answer, "source_count": len(sources)})
     return response_payload

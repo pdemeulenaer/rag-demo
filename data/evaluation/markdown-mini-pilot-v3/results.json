@@ -1,0 +1,974 @@
+{
+  "plan_hash": "610c9481f04c3eea24ab7c09ff87a3016c15ea3e4973b074336d85403bd70801",
+  "results": [
+    {
+      "id": "q0001",
+      "kind": "single_paper",
+      "candidate": {
+        "id": "q0001",
+        "kind": "single_paper",
+        "question": "According to \"BOSS-CLAM: Utilizing a Constrained Linear Absorption Model to Infer Stellar Parameters from BOSS Spectra\", what are the fitted power-law parameters A and B for the relation σ = A × SNR^(−B) between the standard deviation of abundance differences and SNR for (a) [Fe/H] and (b) [α/M], as reported in Figure 15?",
+        "reference_answer": "(a) For [Fe/H]: A = 0.479 and B = 0.486. (b) For [α/M]: A = 0.157 and B = 0.411.",
+        "citations": [
+          {
+            "evidence_id": "14a8f0fd32b4023ac960b1a9"
+          }
+        ],
+        "support_summary": "Figure 15 reports best-fit power-law fits of the standard deviation (σ) of abundance differences versus SNR for wide binary secondaries: for [Fe/H] fit parameters A = 0.479 and B = 0.486; for [α/M] A = 0.157 and B = 0.411.",
+        "review_status": "needs_review",
+        "answerability_scope": "supplied_excerpts_only",
+        "reference_evidence": [
+          {
+            "evidence_id": "14a8f0fd32b4023ac960b1a9",
+            "point_id": "8335a29c-e376-5515-9b2d-b8d667dc894e",
+            "collection": "arxiv_papers_v1",
+            "paper_id": "509fdf0e-a7fd-5509-bb5d-65345e2807c2",
+            "build_id": "f6f8c744-da1c-517e-bda8-80e186e9153e",
+            "version": 3,
+            "source": "arxiv",
+            "title": "BOSS-CLAM: Utilizing a Constrained Linear Absorption Model to Infer Stellar Parameters from BOSS Spectra",
+            "page_number": 23,
+            "source_url": "https://arxiv.org/abs/2607.22822v3",
+            "text": "23 \n\n**==> picture [512 x 293] intentionally omitted <==**\n\n**Figure 15.** Comparison of abundances from the BOSS-CLAM for wide binary pairs that pass the quality cuts outlined in Section 2.3. The top row shows the difference in [Fe _/_ H] and [ _α/_ M] as a function of the difference in temperature between the primary and secondary. The bottom row shows the difference in [Fe _/_ H] and/or [ _α/_ M] as a function of SNR of the secondary. Only binaries with _|_ ∆ _T_ eff _| <_ 500 K are included in the bottom row. In the top row, the cyan points show the mean difference in abundances, tracing the bias in the parameters as a function of the temperature difference. In the bottom row, the cyan stars show the standard deviation of the difference as a function of SNR to trace the average error on the parameters. We also fit these data as _σ_ = _A × SNR[−][B]_ , where we find for [Fe _/_ H] _A_ = 0 _._ 479 and _B_ = 0 _._ 486, and for [ _α/_ M] _A_ = 0 _._ 157 and _B_ = 0 _._ 411, and is shown as the dashed cyan line. \n\ncies between these parameters (see e.g., X. Zhang et al. 2023). Either path would likely greatly improve the parameters, though this requires more implementation and testing of the method and its results. ",
+            "section_header": "**BOSS-CLAM: Utilizing a Constrained Linear Absorption Model to Infer Stellar Parameters from BOSS Spectra** > 6. IMPROVEMENTS TO METHOD",
+            "content_kind": "text",
+            "selection_priority": 0
+          }
+        ],
+        "generation_evidence_ids": [
+          "0c4e089f661c4e086dd3cfab",
+          "14a8f0fd32b4023ac960b1a9",
+          "506341601fbd74c0332157c3",
+          "92dd2f3fd625cb7bcfe23830"
+        ]
+      },
+      "transport": "responses-background-v1",
+      "response_id": "resp_0a0d8479e3e5aee6006aa77f0ec99087d2989f0a95df5a7f05",
+      "model": "gpt-5-mini-2025-08-07",
+      "usage": {
+        "input_tokens": 3105,
+        "input_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0
+        },
+        "output_tokens": 260,
+        "output_tokens_details": {
+          "reasoning_tokens": 0
+        },
+        "total_tokens": 3365
+      }
+    },
+    {
+      "id": "q0002",
+      "kind": "single_paper",
+      "candidate": {
+        "id": "q0002",
+        "kind": "single_paper",
+        "question": "According to \"Globular Clusters in the Time of the JWST. I. Survey Design and First Results on Multiple Populations and Beyond\", what precision can the infrared JWST dataset combined with optical HST data achieve when constraining the metallicity distribution of low-mass (M dwarf) stars in globular clusters?",
+        "reference_answer": "The paper states that combining the infrared JWST dataset with optical HST data will allow constraining the metallicity distribution of low-mass stars with a precision of a few hundredths of a dex. (evidence_id: a0f105b6f53f9c526a56f20f)",
+        "citations": [
+          {
+            "evidence_id": "a0f105b6f53f9c526a56f20f"
+          }
+        ],
+        "support_summary": "The JWST infrared dataset combined with optical HST data will allow constraining the metallicity distribution of low-mass stars (M dwarfs) with a precision of a few hundredths of a dex.",
+        "review_status": "needs_review",
+        "answerability_scope": "supplied_excerpts_only",
+        "reference_evidence": [
+          {
+            "evidence_id": "a0f105b6f53f9c526a56f20f",
+            "point_id": "63da1046-12ee-5c97-86a9-0aaf9dd0cf93",
+            "collection": "arxiv_papers_v1",
+            "paper_id": "723368a4-0f0d-597b-8ede-50157d4601cb",
+            "build_id": "2a658a11-2c9e-55f2-8abe-33e3cdad5123",
+            "version": 2,
+            "source": "arxiv",
+            "title": "Globular Clusters in the Time of the JWST. I. Survey Design and First Results on Multiple Populations and Beyond",
+            "page_number": 17,
+            "source_url": "https://arxiv.org/abs/2606.20979v2",
+            "text": "_Globular Clusters in the times of the JWST._ 17 \n\nFig. 13, where a sequence of cool dwarfs bends toward bluer colors at the faint end of the MS of NGC 6656. These observations open a new window on the stellar mass function and provide stringent tests of stellar models in the very low–mass regime (see Gerasimov et al. 2024; Ventura et al. 2026, for models of very low-mass stars in NGC 104). \n\n_• Metallicity distribution of first-population stars._ Studies of RGB stars have shown that 1P stars in most GCs exhibit extended sequences in ChM (Milone et al. 2015, 2018; Legnardi et al. 2022), reflecting small star-to-star metallicity variations (Marino et al. 2019a, 2023; Legnardi et al. 2022). More recently, a similar feature has been identified among M dwarfs in NGC 104 (Legnardi et al. 2024). The infrared dataset presented in this paper, when combined with optical _HST_ data, will allow us to constrain the metallicity distribution of lowmass stars with a precision of a few hundredths of a dex.[7] providing insight into the chemical properties of the primordial gas from which 1P stars formed. \n\n_• Mass functions of multiple populations._ Determining the luminosity and mass functions of GC stars, including their distinct populations, is crucial for understanding cluster formation and evolution. In particular, comparing the MFs of 1P and 2P stars provides constraints on the possible dependence of the initial mass function (IMF) on the formation environment. If 2P stars formed under significantly denser conditions than 1P stars, differences in their present-day MFs may reveal whether the IMF is universal or varies with environment (Dondoglio et al. 2022). ",
+            "section_header": "**6 OTHER RESULTS AND SCIENTIFIC POTENTIAL OF THE DATASET**",
+            "content_kind": "text",
+            "selection_priority": 0
+          }
+        ],
+        "generation_evidence_ids": [
+          "0acf2f51a67942fa5c2d58c2",
+          "4fdf67ac753de766fd0d2893",
+          "817ea65a6f7184c58db54916",
+          "a0f105b6f53f9c526a56f20f"
+        ]
+      },
+      "transport": "responses-background-v1",
+      "response_id": "resp_059aa796b37f1db1006aa77f15095487d2a4f3e937bde2fbc8",
+      "model": "gpt-5-mini-2025-08-07",
+      "usage": {
+        "input_tokens": 3168,
+        "input_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0
+        },
+        "output_tokens": 236,
+        "output_tokens_details": {
+          "reasoning_tokens": 0
+        },
+        "total_tokens": 3404
+      }
+    },
+    {
+      "id": "q0003",
+      "kind": "single_paper",
+      "candidate": {
+        "id": "q0003",
+        "kind": "single_paper",
+        "question": "In \"Planetary Nebula Central Stars as Tracers of Planetary Nebula\u001fStar Cluster Associations in the Galaxy\", how many candidate planetary-nebula central star (CS)–cluster pairs did the authors initially identify as kinematically/positionally consistent, how many additional pairs lacked CS Gaia kinematic data, and how many pairs passed the authors' kinematic, extinction, and evolutionary selection criteria? Which specific PN–OC pair did the authors single out as their best candidate for follow-up?",
+        "reference_answer": "The authors initially uncovered 38 CS–cluster pairs whose kinematic and positional data cannot exclude a possible association; there are 46 additional pairs whose angular proximity suggests a possible association but which lack CS Gaia kinematic data; and seven pairs pass the kinematic, extinction, and evolutionary selection criteria. The PN PHRJ1855-0116 – OC UBC 1049 pair is identified as their best candidate for follow-up. (evidence: a200bdd230ea10058c5a0c79)",
+        "citations": [
+          {
+            "evidence_id": "a200bdd230ea10058c5a0c79"
+          }
+        ],
+        "support_summary": "The study identified 38 CS–cluster pairs with kinematic/positional data that cannot exclude association; 46 additional angular-proximity pairs lack CS Gaia kinematic data; and after extinction and evolutionary-model checks, seven pairs pass all selection criteria (two already confirmed/reported). The PN PHRJ1855-0116 – OC UBC 1049 pair is highlighted as the best candidate for follow-up.",
+        "review_status": "needs_review",
+        "answerability_scope": "supplied_excerpts_only",
+        "reference_evidence": [
+          {
+            "evidence_id": "a200bdd230ea10058c5a0c79",
+            "point_id": "a8c554a1-d102-588d-8795-011c4450c5a6",
+            "collection": "arxiv_papers_v1",
+            "paper_id": "0c242239-fc36-5eff-aafd-0448b6a0284b",
+            "build_id": "a770991e-c50d-520a-97e8-7ec407b8cb2a",
+            "version": 1,
+            "source": "arxiv",
+            "title": "Planetary Nebula Central Stars as Tracers of Planetary Nebula-Star Cluster Associations in the Galaxy",
+            "page_number": 13,
+            "source_url": "https://arxiv.org/abs/2609.09618v1",
+            "text": "## 6. CONCLUSIONS \n\nPNe that are physically associated with star clusters are scarce, though important for stellar evolution studies. In this work, we used CS and cluster published catalogues along with Gaia data in an attempt to uncover more of such rare occurrences. We initially uncovered 38 CS-cluster pairs whose kinematic and positional data cannot exclude a possible association (see Table 1). There are 46 additional pairs whose components’ angular proximity suggests a possible association but which lack kinematic CS Gaia data. Since these associations cannot be properly explored with the available data, they are presented separately in Table C1 of the Appendix. Our kinematically consistent candidate pairs were then further explored in terms of interstellar extinction compatibility and consistency with evolutionary models and predictions (see Table 3). Based on the available data and our complete analysis, we find that seven pairs in our sample pass all of our kinematic, extinction, and evolutionary selection criteria, and thus have a higher likelihood of being true associations. Two of these associations are already confirmed or reported in the literature. We explore these seven associations separately, along with the questionable GJJC 1 \n\n- NGC 6656 pair, finding that the PN PHRJ1855-0116 - OC UBC 1049 pair is our best candidate for followup. The initial and final masses of our best candidates generally agree with the latest IFMR estimates, as well as the points corresponding to confirmed or reported cluster-PNe (see Figure 2). \n\nThe source catalogues, which serve as the basis of this work, are not complete (e.g., E. L. Hunt & S. Reffert 2023), and thus more possible pairs could remain hidden from the current study. More data are needed to explore the reported candidate CS-cluster associations. Some of the clusters and CSs in our sample are themselves candidates, so they must first be confirmed. Improved precision in the estimation of cluster, PN and CS kinematic and physical parameters is also required in many cases. In particular, the lack of adequate data for precise CS effective temperature estimates is a major limitation in assessing our candidates based on their evolutionary profiles. Deep spectroscopic PN data and photoionization modeling could allow a more precise estimation of the CS physical properties. Moreover, the nebular internal extincti",
+            "section_header": "**Planetary Nebula Central Stars as Tracers of Planetary Nebula–Star Cluster Associations in the Galaxy** > 6. CONCLUSIONS",
+            "content_kind": "text",
+            "selection_priority": 0
+          }
+        ],
+        "generation_evidence_ids": [
+          "20b09817ecfa63e067864be0",
+          "30d3be27d9077debbf265212",
+          "a200bdd230ea10058c5a0c79",
+          "b402a1e23a62079739ac21a9"
+        ]
+      },
+      "transport": "responses-background-v1",
+      "response_id": "resp_004f051f685e8a8e006aa77f1af02087d28f85260e1cf101f3",
+      "model": "gpt-5-mini-2025-08-07",
+      "usage": {
+        "input_tokens": 3413,
+        "input_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0
+        },
+        "output_tokens": 357,
+        "output_tokens_details": {
+          "reasoning_tokens": 0
+        },
+        "total_tokens": 3770
+      }
+    },
+    {
+      "id": "q0004",
+      "kind": "single_paper",
+      "candidate": {
+        "id": "q0004",
+        "kind": "single_paper",
+        "question": "According to the paper \"Dust destruction in bubbles driven by multiple supernovae explosions\", how does the total mass of interstellar dust destroyed by clustered (multiple) SNe compare to the mass destroyed by the same number of isolated SNe, and what quantitative implication does this have for the dust lifetime in the ISM?",
+        "reference_answer": "The paper finds that the mass of dust destroyed by multiple SNe in clusters is approximately 10% of that destroyed by an ensemble of the same number of isolated SNe. Consequently, the lifetime of dust in the ISM is longer by about a factor of ≃10 compared to values previously derived assuming isolated SNe. (evidence: evidence_id 942c7ece2b94197a492ae517)",
+        "citations": [
+          {
+            "evidence_id": "942c7ece2b94197a492ae517"
+          }
+        ],
+        "support_summary": "The paper reports that (1) the mass of dust destroyed in a multi-SNe bubble saturates after a certain epoch and the saturation timescale is proportional to the SN rate; (2) the dust mass destroyed per SN decreases for higher SN rate and the destruction efficiency in homogeneous-media bubbles drops for higher-mass clusters (e.g., around clusters with mass ≳4×10^4 M☉ it is <0.4%); and (3) multiple-SNe in clusters destroy approximately 10% of the dust mass compared to the same number of isolated SNe, implying dust lifetime in the ISM is longer by a factor ≃10 than previous isolated-SN estimates. (evidence: evidence_id 942c7ece2b94197a492ae517).",
+        "review_status": "needs_review",
+        "answerability_scope": "supplied_excerpts_only",
+        "reference_evidence": [
+          {
+            "evidence_id": "942c7ece2b94197a492ae517",
+            "point_id": "a292b8fb-acf9-5eaa-b52e-62693e7061ed",
+            "collection": "arxiv_papers_v1",
+            "paper_id": "b7852225-4b50-5608-bb0b-1a1a242398f4",
+            "build_id": "2456c93e-00f6-5aac-b06e-539e879dbb40",
+            "version": 2,
+            "source": "arxiv",
+            "title": "Dust destruction in bubbles driven by multiple supernovae explosions",
+            "page_number": 11,
+            "source_url": "https://arxiv.org/abs/2512.24670v2",
+            "text": "## **5. Conclusion** \n\nWe have considered the destruction of dust in shells driven by multiple SNe explosions in stellar clusters. Using 3D hydrodynamic simulations, we have investigated how the single-size interstellar dust grains are destroyed in the multiSNe bubble expanding in a homogeneous as well as clumpy medium. Our results can be summarized as follows: \n\n- The mass of dust destroyed in the multi-SNe bubble does not grow after a certain epoch and becomes saturated, while SNe continue to explode. The timescale for this saturation is proportional to SNe rate in cluster; \n\n- The mass of dust destroyed in bubble per SN decreases for higher SN rate; the destruction efficiency – the ratio of the the total mass of dust destroyed by clustered SNe to the value of dust destroyed by the same number of isolated SNe – in bubbles evolving in a homogeneous medium drops for higher mass clusters. E.g., around clusters with _𝑀_ ∗ ∼4 _>_ × 104 _𝑀⊙_ , it is less 0.4%. For lower mass clusters the efficiency is proportional to Δ _𝑡_ ∕ _𝑡𝑙𝑓,𝑚𝑎𝑥_ . Therefore, the destruction of the interstellar dust is controlled by SNe in lowmass clusters. \n\n- The mass of dust destroyed by multiple SNe in clusters approximately 10% of that in an ensemble of equal number of isolated SN. Thus, the lifetime of dust in the ISM is longer by a factor ∼10 compared to the value previously derived in the literature for isolated SN. \n\n- In a clumpy medium the efficiency increases by about a factor of 1 _._ 5 in bubbles formed around clusters with _𝑀_ ∗ ∼4 × 10[4] _𝑀⊙_ and up to 4 times around _𝑀_ ∗ ∼ 8 × 10[5] _𝑀⊙_ .",
+            "section_header": "**5. Conclusion**",
+            "content_kind": "text",
+            "selection_priority": 0
+          }
+        ],
+        "generation_evidence_ids": [
+          "34fa8ecf1886fc3ab9eef54c",
+          "39efd1ff0392835ec3394876",
+          "942c7ece2b94197a492ae517",
+          "b51ba5081286dc68b6f23173"
+        ]
+      },
+      "transport": "responses-background-v1",
+      "response_id": "resp_02c9a4c2fca5a463006aa77f20c6d487d2bbad27bb37074e3c",
+      "model": "gpt-5-mini-2025-08-07",
+      "usage": {
+        "input_tokens": 3449,
+        "input_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0
+        },
+        "output_tokens": 396,
+        "output_tokens_details": {
+          "reasoning_tokens": 0
+        },
+        "total_tokens": 3845
+      }
+    },
+    {
+      "id": "q0005",
+      "kind": "single_paper",
+      "candidate": {
+        "id": "q0005",
+        "kind": "single_paper",
+        "question": "In \"SPURS: An Ultra-deep View Inside the Compact, Nitrogen-Enriched Nuclei of Little Red Dots\", what are the measured full-widths at half-maximum (FWHM) of the broad [O III] components found in the four Little Red Dots when fitting the [O III] 4959,5007 doublet with two narrow and two broad Gaussians, and how strongly do model-selection statistics prefer the fits including broad components?",
+        "reference_answer": "The [O III] 4959,5007 doublet in each of the four LRDs is best fit with models that include two narrow and two broad Gaussians; the broad [O III] components have FWHM between 1130 and 1627 km s^-1, and the fits including broad components are strongly preferred over narrow-only models with ΔBIC in the range 39–621 (favoring the broad-component models).",
+        "citations": [
+          {
+            "evidence_id": "07507c678ea7f30347e2e8bd"
+          }
+        ],
+        "support_summary": "The authors fit the [O III] 4959,5007 doublet in each of the four Little Red Dots (LRDs) with models including two narrow + two broad Gaussians and find broad [O III] components with FWHM = 1130–1627 km s^-1; Bayesian Information Criterion differences (ΔBIC = 39–621) strongly prefer models with broad components.",
+        "review_status": "needs_review",
+        "answerability_scope": "supplied_excerpts_only",
+        "reference_evidence": [
+          {
+            "evidence_id": "07507c678ea7f30347e2e8bd",
+            "point_id": "c8dc4e8c-033f-5931-a796-432d94e54ed1",
+            "collection": "arxiv_papers_v1",
+            "paper_id": "0cfebf74-be71-5769-b950-6ed045b3bdb0",
+            "build_id": "5651ec71-6b3b-576d-8770-404824b7989b",
+            "version": 1,
+            "source": "arxiv",
+            "title": "SPURS: An Ultra-deep View Inside the Compact, Nitrogen-Enriched Nuclei of Little Red Dots",
+            "page_number": 44,
+            "source_url": "https://arxiv.org/abs/2609.11094v1",
+            "text": "Finally, we test whether the [O III] _λ_ 4959, _λ_ 5007 emission lines of the four LRDs present broad components, as have been revealed in a few LRDs in the literature (e.g., I. Juodžbalis et al. 2024). For each LRD, we consider two models: one fitting [O III] _λ_ 4959, _λ_ 5007 with two narrow Gaussians only, and one with two narrow and two broad Gaussians. We mask out the region including H _β_ when performing the fits. For two narrow Gaussian model, we fix the centroids to the rest-frame wavelengths of [O III]. We allow the peak flux and line width of [O III] _λ_ 5007 to vary as free parameters, fix the flux of [O III] _λ_ 4959 according to the theoretical line ratio ( _f_ [OIII] _λ_ 4959 : _f_ [OIII] _λ_ 5007 = 1 : 2 _._ 98), and require the line width of _λ_ 4959 to be the same as _λ_ 5007. With this model, we find excess emission in both blue and red sides of [O III] profiles of each LRD, potentially indicating the presence of broad components. We then simultaneously fit the [O III] doublet of each LRD with two narrow and two broad Gaussian functions, setting the parameters of broad Gaussians in the same way as narrow Gaussians described above. This model can well reproduce the [O III] doublet profiles of all the four LRDs ( _χ_[2] _ν_[= 1] _[.]_[2] _[ −]_[1] _[.]_[5][),][revealing][the][presence][of][broad][[O][III][]] components (FWHM = 1130 _−_ 1627 km s _[−]_[1] ). The fitting results are presented in Section 2.3. Comparing to models including narrow Gaussians only, the differences in BIC (∆BIC = 39 _−_ 621) strongly prefer models with broad components (Figure D.2).",
+            "section_header": "A. BIC ANALYSIS OF EMISSION LINE FITTING",
+            "content_kind": "text",
+            "selection_priority": 0
+          }
+        ],
+        "generation_evidence_ids": [
+          "07507c678ea7f30347e2e8bd",
+          "519db52166677f4caa55743d",
+          "7166e56870a0355d6d709d9d",
+          "bc0d470de9d1b4f5838e95ab"
+        ]
+      },
+      "transport": "responses-background-v1",
+      "response_id": "resp_00d7f84a12ea6f65006aa77f26e21887d28fa5a89e56c48eac",
+      "model": "gpt-5-mini-2025-08-07",
+      "usage": {
+        "input_tokens": 2901,
+        "input_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0
+        },
+        "output_tokens": 340,
+        "output_tokens_details": {
+          "reasoning_tokens": 0
+        },
+        "total_tokens": 3241
+      }
+    },
+    {
+      "id": "q0006",
+      "kind": "single_paper",
+      "candidate": {
+        "id": "q0006",
+        "kind": "single_paper",
+        "question": "According to \"NGC 1901: A new benchmark cluster for gyrochronology in the TESS Southern continuous viewing zone\", what empirical gyrochronology age do the authors derive for NGC 1901 and how does this compare to the isochronal age quoted from Cantat-Gaudin et al. (2020)?",
+        "reference_answer": "The authors derive an empirical gyrochronology age tau_gyro-interp = 830 ± 50 Myr for NGC 1901. This is slightly younger than the isochronal age of 890 Myr reported by Cantat-Gaudin et al. (2020), but the two ages are consistent within less than 2σ. (evidence_id: 9952c85fc88e8c8977854613)",
+        "citations": [
+          {
+            "evidence_id": "9952c85fc88e8c8977854613"
+          }
+        ],
+        "support_summary": "The paper reports an empirical gyrochronology age for NGC 1901: tau_gyro-interp = 830 ± 50 Myr, found by modelling a slow-rotator sequence of 32 benchmark F, G and early K dwarfs spanning Teff = 4100–6200 K; this gyro age is slightly younger than an isochronal age of 890 Myr but consistent within <2σ. (Evidence: excerpts reporting the age and sample properties.)",
+        "review_status": "needs_review",
+        "answerability_scope": "supplied_excerpts_only",
+        "reference_evidence": [
+          {
+            "evidence_id": "9952c85fc88e8c8977854613",
+            "point_id": "7c9aa5f2-3728-526d-8463-71e0d54c0ae3",
+            "collection": "arxiv_papers_v1",
+            "paper_id": "1fffd0ed-d65d-5435-81e0-64114ea87ac1",
+            "build_id": "845a0a6e-5596-586e-a731-c4667b5344ee",
+            "version": 1,
+            "source": "arxiv",
+            "title": "NGC 1901: A new benchmark cluster for gyrochronology in the TESS Southern continuous viewing zone",
+            "page_number": 10,
+            "source_url": "https://arxiv.org/abs/2609.03310v1",
+            "text": "## **6 DISCUSSION** \n\nOur NGC 1901 sample of benchmark stars includes F, G, and early K-type dwarfs and spans the _𝑇_ eff range 4100–6200 K, corresponding to the colour range 0.66≤( _𝐺_ BP − _𝐺_ RP)0 ≤1.7. Hotter stars have a shallower convection zone, responsible for a less efficient angular momentum loss compared to cooler stars with deeper convective envelopes (Barnes 2010). After rejecting fast rotators and outliers, most of our 32 benchmark stars line up on a common slow-rotator sequence (see Fig. 9). The sequence follows the expected morphology: cooler, lower mass stars exhibit longer rotation periods, with a turnover to a more rapid rotation near 5800 K. \n\nThe empirical framework used to model rotational evolution yielded the age value _𝜏_ gyro-interp = 830 ± 50 Myr. While this is slightly younger than the isochronal age of 890 Myr derived by Cantat-Gaudin et al. (2020), it is consistent within _<_ 2 _𝜎_ . Our PARSEC v1.2S isochrones provide the best match to the observed cluster distribution, at the rotational age _𝜏_ gyro-interp (black line in Fig. 2). \n\nFor stars hotter than 5900 K, the rotation sequence of NGC 1901 overlaps with the reference benchmark clusters. However, for late G and K-type dwarfs, our distribution of rotation periods becomes flatter and diverges from them. Our magnitude and membership cuts limited the sample to stars cooler than ∼4100 K (K7 spectral type). Stars at the cooler end of the CMD are also faint, hindering a robust detection of a rotational signal, namely the rotation sequence can become noisy and the scatter in the measured _𝑃_ rot is likely to increase. We note that even after careful membership and rotational analyses, rotational outliers are common in star clusters, as shown in the literature (e.g. Godoy-Rivera et al. 2021). We successfully included in ",
+            "section_header": "**NGC 1901: A new benchmark cluster for gyrochronology in the** _**TESS**_ **Southern continuous viewing zone** > **6 DISCUSSION**",
+            "content_kind": "text",
+            "selection_priority": 0
+          }
+        ],
+        "generation_evidence_ids": [
+          "177ce3f6b7d1a7506bd843fe",
+          "188ef43ff3b073e1bea147fc",
+          "9952c85fc88e8c8977854613",
+          "af04e06b55e77bf78d84218e"
+        ]
+      },
+      "transport": "responses-background-v1",
+      "response_id": "resp_0af4b68a1b10fee3006aa77f2d2ff087d2805c15e59fac6dcd",
+      "model": "gpt-5-mini-2025-08-07",
+      "usage": {
+        "input_tokens": 3642,
+        "input_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0
+        },
+        "output_tokens": 348,
+        "output_tokens_details": {
+          "reasoning_tokens": 0
+        },
+        "total_tokens": 3990
+      }
+    },
+    {
+      "id": "q0007",
+      "kind": "cross_paper",
+      "candidate": {
+        "id": "q0007",
+        "kind": "cross_paper",
+        "question": "Comparing the two papers 'The Ashes of Supermassive Stars: Globular Cluster-like Aluminum Enhancement in Little Red Dots' and 'SPURS: An Ultra-deep View Inside the Compact, Nitrogen-Enriched Nuclei of Little Red Dots': do the spectral signatures reported indicate that (a) the aluminum-rich, magnesium-poor blueshifted absorbing gas identified in the LRD stacked spectrum is kinematically consistent with the broad, high-velocity [O III] emission components seen in individual LRDs, and (b) can the excerpts support a conclusion that both phenomena arise from the same high-velocity outflow around the central engine?",
+        "reference_answer": "No. The excerpts show (a) the stacked LRD spectrum exhibits blueshifted absorption in Al III and other absorption features at ~-140 km s^-1 relative to systemic, indicating aluminum-rich, magnesium-poor gas around the central engine (evidence_id: bcb075d7546ed4fd57924643). (b) The SPURS paper reports broad [O III] emission components in individual LRDs with FWHM = 1130–1627 km s^-1, and that models including broad components are strongly preferred (evidence_id: 07507c678ea7f30347e2e8bd). These two kinematic measurements are incompatible: the absorption is at ~-140 km s^-1 while the broad [O III] components have characteristic widths of >1000 km s^-1. The provided excerpts do not present any evidence tying the ~-140 km s^-1 absorption component to the >1000 km s^-1 [O III] emission (no overlapping velocities, no statement of a common origin), so they do not support a conclusion that both phenomena arise from the same high-velocity outflow around the central engine (evidence_ids: bcb075d7546ed4fd57924643; 07507c678ea7f30347e2e8bd).",
+        "citations": [
+          {
+            "evidence_id": "bcb075d7546ed4fd57924643"
+          },
+          {
+            "evidence_id": "07507c678ea7f30347e2e8bd"
+          }
+        ],
+        "support_summary": "Paper 'The Ashes of Supermassive Stars: Globular Cluster-like Aluminum Enhancement in Little Red Dots' reports that the stacked LRD spectrum shows blueshifted absorption at ~-140 km/s in Al III 1855 and other lines, demonstrating aluminum-rich and magnesium-poor gas around the central engine (evidence_id: bcb075d7546ed4fd57924643). Paper 'SPURS: An Ultra-deep View Inside the Compact, Nitrogen-Enriched Nuclei of Little Red Dots' reports detection of broad [O III] components (FWHM = 1130–1627 km/s) in four LRDs, with fits preferring models including broad components (evidence_id: 07507c678ea7f30347e2e8bd).",
+        "review_status": "needs_review",
+        "answerability_scope": "supplied_excerpts_only",
+        "reference_evidence": [
+          {
+            "evidence_id": "bcb075d7546ed4fd57924643",
+            "point_id": "7c6331f5-8097-5319-9026-9a14fc533279",
+            "collection": "arxiv_papers_v1",
+            "paper_id": "986d784d-1c10-53c7-ba95-6dcc51508f87",
+            "build_id": "bd741810-69a6-56af-b2dd-4a8f3c409cb4",
+            "version": 1,
+            "source": "arxiv",
+            "title": "The Ashes of Supermassive Stars: Globular Cluster-like Aluminum Enhancement in Little Red Dots",
+            "page_number": 10,
+            "source_url": "https://arxiv.org/abs/2609.09271v1",
+            "text": "**Extended Data Figure 3** . **Broad-line emission and aluminum absorption in the LRD stack.** Continuum-normalized line profiles from the stacked LRD spectrum, shown on a common velocity scale relative to the systemic redshift defined by [O III]. From left to right, the broad H _β_ profile in the LRD stack is compared with Al III _λ_ 1855, Fe II _λ_ 1608, Mg II _λ_ 2796, and Si II _λ_ 1527 and Si IV _λ_ 1394. The blueshifted absorption in the H _β_ is kinematically coincident with all absorption features at _∼−_ 140 km s _[−]_[1] away from the systemic redshift. (vertical line). This demonstrates that aluminum-rich and magnesium-poor gas lies around the central engine, rather than the LRD host galaxy. The rightmost panel compares H _β_ in the LRD and matched star-forming-galaxy stacks, the latter lacks both the broad wings and blueshifted absorption characteristic of the LRD spectrum. Profiles have been rescaled vertically for visual comparison, but no velocity shifts have been applied. \n\n10",
+            "section_header": "**Spectral Stacking**",
+            "content_kind": "text",
+            "selection_priority": 1
+          },
+          {
+            "evidence_id": "07507c678ea7f30347e2e8bd",
+            "point_id": "c8dc4e8c-033f-5931-a796-432d94e54ed1",
+            "collection": "arxiv_papers_v1",
+            "paper_id": "0cfebf74-be71-5769-b950-6ed045b3bdb0",
+            "build_id": "5651ec71-6b3b-576d-8770-404824b7989b",
+            "version": 1,
+            "source": "arxiv",
+            "title": "SPURS: An Ultra-deep View Inside the Compact, Nitrogen-Enriched Nuclei of Little Red Dots",
+            "page_number": 44,
+            "source_url": "https://arxiv.org/abs/2609.11094v1",
+            "text": "Finally, we test whether the [O III] _λ_ 4959, _λ_ 5007 emission lines of the four LRDs present broad components, as have been revealed in a few LRDs in the literature (e.g., I. Juodžbalis et al. 2024). For each LRD, we consider two models: one fitting [O III] _λ_ 4959, _λ_ 5007 with two narrow Gaussians only, and one with two narrow and two broad Gaussians. We mask out the region including H _β_ when performing the fits. For two narrow Gaussian model, we fix the centroids to the rest-frame wavelengths of [O III]. We allow the peak flux and line width of [O III] _λ_ 5007 to vary as free parameters, fix the flux of [O III] _λ_ 4959 according to the theoretical line ratio ( _f_ [OIII] _λ_ 4959 : _f_ [OIII] _λ_ 5007 = 1 : 2 _._ 98), and require the line width of _λ_ 4959 to be the same as _λ_ 5007. With this model, we find excess emission in both blue and red sides of [O III] profiles of each LRD, potentially indicating the presence of broad components. We then simultaneously fit the [O III] doublet of each LRD with two narrow and two broad Gaussian functions, setting the parameters of broad Gaussians in the same way as narrow Gaussians described above. This model can well reproduce the [O III] doublet profiles of all the four LRDs ( _χ_[2] _ν_[= 1] _[.]_[2] _[ −]_[1] _[.]_[5][),][revealing][the][presence][of][broad][[O][III][]] components (FWHM = 1130 _−_ 1627 km s _[−]_[1] ). The fitting results are presented in Section 2.3. Comparing to models including narrow Gaussians only, the differences in BIC (∆BIC = 39 _−_ 621) strongly prefer models with broad components (Figure D.2).",
+            "section_header": "A. BIC ANALYSIS OF EMISSION LINE FITTING",
+            "content_kind": "text",
+            "selection_priority": 0
+          }
+        ],
+        "generation_evidence_ids": [
+          "4b03a56505b3df90eced8c45",
+          "72dddefe361c1cdad4b1a868",
+          "bcb075d7546ed4fd57924643",
+          "bffafe567185b94babf103d8",
+          "07507c678ea7f30347e2e8bd",
+          "519db52166677f4caa55743d",
+          "7166e56870a0355d6d709d9d",
+          "bc0d470de9d1b4f5838e95ab"
+        ]
+      },
+      "transport": "responses-background-v1",
+      "response_id": "resp_0bae0b337b8661ce006aa77f3315c887d2805ad4b3707792ac",
+      "model": "gpt-5-mini-2025-08-07",
+      "usage": {
+        "input_tokens": 4894,
+        "input_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0
+        },
+        "output_tokens": 689,
+        "output_tokens_details": {
+          "reasoning_tokens": 0
+        },
+        "total_tokens": 5583
+      }
+    },
+    {
+      "id": "q0008",
+      "kind": "cross_paper",
+      "candidate": {
+        "id": "q0008",
+        "kind": "cross_paper",
+        "question": "Comparing the two studies — 'Tidal origin of dark-matter free dwarf galaxies in the NGC 1052 group' and 'A new clump-based star formation model for galaxy simulations: implications for high-redshift compact star clusters' — do the simulated tidal dwarf galaxies (TDGs) produced in the NGC 1052 major-merger models have the internal properties (stellar mass scale, surface brightness/extension, and likelihood of forming dense bound star clusters) expected from the clump-driven, high-efficiency star formation in compact discs reported by the CSF model paper?",
+        "reference_answer": "No. The NGC 1052 merger models produce TDGs that are described as faint, extended, and low surface brightness and can reach stellar masses up to ~3×10^9 M☉ in favorable cases (evidence: 04c7fdc48bc7db7d6d3415c7, 1080978cacdd4f1923864231). By contrast, the CSF model indicates that formation of dense, bound star clusters and very high local star-formation efficiencies occurs in compact galactic discs that generate very dense clumps (e.g., maximum clump masses up to ~10^7 M☉ and clump surface densities >10^4 M☉ pc^-2 in the 10^10 M☉ halo runs, with bound cluster mass fractions of ~10–70% only for sufficiently high compactness; evidence: 0c3dbf13da9dd4027969933c, 9ee13cd7e925ed789689fa3d, 160dd9270d4a618cf6df643a). The TDGs from the NGC 1052 models are low-surface-brightness, extended objects rather than the compact, cluster-rich systems that the CSF paper associates with high compactness and clump-driven high-efficiency star formation. Therefore, based on the excerpts, the TDGs in the NGC 1052 simulations do not share the compact, cluster-dominated internal structure that the CSF model predicts for systems formed via extreme clump-driven star formation in compact discs (citations: 04c7fdc48bc7db7d6d3415c7; 1080978cacdd4f1923864231; 0c3dbf13da9dd4027969933c; 9ee13cd7e925ed789689fa3d; 160dd9270d4a618cf6df643a).",
+        "citations": [
+          {
+            "evidence_id": "1080978cacdd4f1923864231"
+          },
+          {
+            "evidence_id": "04c7fdc48bc7db7d6d3415c7"
+          },
+          {
+            "evidence_id": "e1b987ad68b0187dfe898157"
+          },
+          {
+            "evidence_id": "0c3dbf13da9dd4027969933c"
+          },
+          {
+            "evidence_id": "160dd9270d4a618cf6df643a"
+          },
+          {
+            "evidence_id": "9ee13cd7e925ed789689fa3d"
+          }
+        ],
+        "support_summary": "Fouquet et al. (this paper: 'Tidal origin of dark-matter free dwarf galaxies in the NGC 1052 group') find that a major merger of NGC 1052 can produce tidal tails and TDGs whose stellar masses can reach ~3×10^9 M☉ and that TDGs produced in their modelling are faint, extended, and low surface brightness. The CSF model paper ('A new clump-based star formation model for galaxy simulations: implications for high-redshift compact star clusters') finds that compact discs produce dense, massive gas clumps (maximum clump mass up to ~10^7 M☉ in 10^10 M☉ halos) and that bound cluster mass fractions can reach ~10–70% depending on compactness and halo mass; self-gravitationally bound star clusters form only in sufficiently compact discs (_\u0013\u0013\u0013>=8 in some runs).",
+        "review_status": "needs_review",
+        "answerability_scope": "supplied_excerpts_only",
+        "reference_evidence": [
+          {
+            "evidence_id": "1080978cacdd4f1923864231",
+            "point_id": "51037c54-8bfc-5efa-a9a9-84ef1c9d32dd",
+            "collection": "arxiv_papers_v1",
+            "paper_id": "99704213-2836-515a-b89f-914766a0c569",
+            "build_id": "e8bbcbf7-bc6e-5bc0-a592-87f18bc60cfa",
+            "version": 5,
+            "source": "arxiv",
+            "title": "Tidal origin of dark-matter free dwarf galaxies in the NGC 1052 group",
+            "page_number": 4,
+            "source_url": "https://arxiv.org/abs/2606.30718v5",
+            "text": "## **5. Conclusions** \n\nIn this work, we have verified that a major merger experienced by NGC 1052 produces tidal tails and TDGs that match the intrinsic properties of DM-deficient dwarfs discovered by van Dokkum et al. (2018, 2019) as well as their alignment along a trail. Our finding results from simple adaptations of the N- body hydrodynamical simulations made by Wang et al. (2020) to reproduce the properties of Cen A, and we addressed the supposed failures of the TDG scenario. The only limitation of our - modelling comes from its very large parameter space and insuffi ciently precise constraints on NGC 1052 and associated dwarfs, which prevented us from experimenting with a more accurate reproduction of the observations. \n\nAccording to the hierarchical scenario, the present-day E4 morphology of NGC 1052 takes its origin from its last major merger, which requires radial orbits, moderate gas fraction, a mass ratio close to 1:1, and specific orientations of the progenitor galaxies (Wang et al. 2020). The latter conditions are necessary to remove most of the angular momentum in the remnant, which is currently accompanied by large tidal tails and TDGs and match better the observations when compared to the bulletdwarf scenario. \n\nThe bullet-dwarf scenario suffers from two major difficulties: first, reproducing the dwarf progenitors and, second, providing far too compact DM-deficient dwarfs. The scenario also neglects the fact that NGC 1052 is an active nucleus E4 galaxy showing tides, and it has likely experienced a major merger that can produce TDGs resembling the observed DM-deficient dwarfs. The likely occurrence of massive galaxy mergers near NGC 1052 has to be compared to the very rare dwarf–dwarf collision events in the field, for which only ten have been found in a (100Mpc)[3] volume from _z_ =3 to _z_ =0 (Lee et al. 2024). Future observations of dwarf radial distances will probe which of the two scenarios is the most likely. The dwarf GC over-luminosity appears to support the bullet-dwarf scenario, though there might be subtle selection effects associated with this property. ",
+            "section_header": "**Tidal origin of dark matter-free dwarf galaxies in the NGC 1052 group** > **5. Conclusions**",
+            "content_kind": "text",
+            "selection_priority": 0
+          },
+          {
+            "evidence_id": "04c7fdc48bc7db7d6d3415c7",
+            "point_id": "7b58a313-41d6-5ef6-be00-b8c3d45863bd",
+            "collection": "arxiv_papers_v1",
+            "paper_id": "99704213-2836-515a-b89f-914766a0c569",
+            "build_id": "e8bbcbf7-bc6e-5bc0-a592-87f18bc60cfa",
+            "version": 5,
+            "source": "arxiv",
+            "title": "Tidal origin of dark-matter free dwarf galaxies in the NGC 1052 group",
+            "page_number": 3,
+            "source_url": "https://arxiv.org/abs/2606.30718v5",
+            "text": "In this work, we did not search for a precise reproduction of the observations and only sought to establish whether or not a TDG scenario could be plausible.[2] This is because (1) the \n\n> 2 During the refereeing process, we were aware of the study by Bellstedt et al. (2018) of the NGC 1052 velocity maps. Our model reproduces well the amplitude of the velocity and velocity dispersion maps. However, it did predict an inversion of the velocity gradient due to our initial choice of adopting the Wang et al. (2020) modelling. This choice would not affect the plausibility of the TDG scenario because another velocity field orientation still produces tidal tails and TDGs, and it would require another way to reproduce the dwarf spatial and velocity properties. \n\ndistances of all the concerned galaxies require TRGB measurements with JWST; (2) some features such as TDG number, positions, and velocities vary temporally; (3) there is an absence of knowledge about the NGC 1052 merger and star formation histories; and (4) the parameter space is much larger than that of the collision of two dwarfs, for which Lee et al. (2024) tested more than 1.5 million simulations. The three models (see Table A.1) shown in this work are of the same family; i.e. we changed very few parameters from one model to another. One may be surprised that the small exploration of parameters presented here provides results as consistent as those of Lee et al. (2024) for reproducing DM-deficient dwarf properties as well as their potential alignment. \n\nThe TDGs produced in our modelling are faint and extended and have a low surface brightness, while Lee et al. (2024) instead recovered a compact DF2 and, for all but one case,[3] a compact DF4. Depending on the model parameters, the recovered TDGs may have masses similar to those of DF2 and DF4. This is in agreement with observations (Kaviraj et al. 2012) establishing that for a merger remnant mass similar to that of M31 or NGC 1052, the TDG stellar mass can reach 3 ×10[9] _M_ ⊙ (Fouquet et al. 2012). ",
+            "section_header": "**Tidal origin of dark matter-free dwarf galaxies in the NGC 1052 group** > **4. Discussion**",
+            "content_kind": "text",
+            "selection_priority": 0
+          },
+          {
+            "evidence_id": "e1b987ad68b0187dfe898157",
+            "point_id": "29598a3d-ec87-5ec5-bc31-91d689038994",
+            "collection": "arxiv_papers_v1",
+            "paper_id": "99704213-2836-515a-b89f-914766a0c569",
+            "build_id": "e8bbcbf7-bc6e-5bc0-a592-87f18bc60cfa",
+            "version": 5,
+            "source": "arxiv",
+            "title": "Tidal origin of dark-matter free dwarf galaxies in the NGC 1052 group",
+            "page_number": 3,
+            "source_url": "https://arxiv.org/abs/2606.30718v5",
+            "text": "**Notes.** Radial velocities are given relative to NGC 1052, for which a radial velocity of 1560 km s[−][1] (Koss et al. 2022) has been adopted. References are 1,2=van Dokkum et al. (2018), van Dokkum et al. (2018); 3= Keim et al. (2025); 4= Tang et al. (2025); and 5=Román et al. (2021), respectively. Properties of the M6a,b,c models are given in Table A.1. \n\nThe estimated 3D distance of 1.7±0.5 Mpc between DF2 and DF4 (Shen et al. 2023) would mean that the trail of dwarfs extends almost exclusively along the line of sight. This estimate is essential for the bullet-dwarf scenario because it is the only way to account for an ancient-dwarf collision consistent with the DF2 age, while it could be fatal for the TDG scenario, which predicts a tidal tail elongated along all directions but limited to ∼ 1 Mpc in length. During the refereeing process, a new study by Tang et al. (2026) has changed the TRGB distance estimate of DF2 from 21.2±1.7 (Shen et al. 2023) to 17.6±0.6 Mpc, the latter value being based on robust JWST observations. Such a considerable change presents serious doubts about the possibility of determining the radial distance from DF2 to DF4 using the former Hubble Space Telescope measurements. According to Tang et al. (2026) distance estimates from surface-brightness fluctuations, DF2 and DF4 could have the same distance within less than 1σ. However, much deeper photometric data from JWST are necessary for a robust estimate of the distance between DF2 and DF4. \n\nIn this work, we did not search for a precise reproduction of the observations and only sought to establish whether or not a TDG scenario could be plausible.[2] This is because (1) the ",
+            "section_header": "**Tidal origin of dark matter-free dwarf galaxies in the NGC 1052 group** > **4. Discussion**",
+            "content_kind": "text",
+            "selection_priority": 0
+          },
+          {
+            "evidence_id": "0c3dbf13da9dd4027969933c",
+            "point_id": "2b1b4ee3-c46d-5ef6-9bab-986185de0852",
+            "collection": "arxiv_papers_v1",
+            "paper_id": "182eff16-1efd-59c5-923f-4ff3626a9770",
+            "build_id": "62c9d621-1cbb-5d39-9eee-a980524d2bbc",
+            "version": 1,
+            "source": "arxiv",
+            "title": "A new clump-based star formation model for galaxy simulations: implications for high-redshift compact star clusters",
+            "page_number": 11,
+            "source_url": "https://arxiv.org/abs/2609.07635v1",
+            "text": "## **5 CONCLUSION** \n\nWe have investigated how the compactness of galactic discs regulates clumpy star formation and the formation of bound star clusters. To this end, we have developed a new star formation model (CSF) in which star-forming gas clumps are identified on-the-fly and converted into stars with an efficiency _𝜖_ SF set by the clump surface density Σc, calibrated against the radiation hydrodynamics simulations of Fukushima & Yajima (2021). We apply the model to isolated disc galaxies embedded in haloes of _𝑀_ h = 10[9] , 10[10] and 10[11] M⊙ with a fixed gas-to-halo mass ratio of 0 _._ 01, adopting disc scale radii \n\nappropriate for _𝑧_ = 0–10 as a proxy for compactness. Our main results are summarised as follows. \n\n(i) Compact discs form more massive and denser gas clumps. In the 10[10] M⊙ haloes, the maximum clump mass increases from ∼ 10[5] _[.]_[1] to 10[7] _[.]_[4] M⊙ and the maximum clump surface density from ∼ 10[2] _[.]_[9] to _>_ 10[4] _[.]_[0] M⊙ pc[−][2] between _𝑧_ = 0 and 10. The fraction of clumps exceeding Σc _,_ th = 300 M⊙ pc[−][2] rises from 0 _._ 25 at _𝑧_ = 0 to 0 _._ 34 at _𝑧_ = 6 and 0 _._ 38 at _𝑧_ = 10, and the most compact discs host clumps with _𝜖_ SF ∼ 1. ",
+            "section_header": "**A new clump-based star formation model for galaxy simulations: implications for high-redshift compact star clusters** > **5 CONCLUSION**",
+            "content_kind": "text",
+            "selection_priority": 0
+          },
+          {
+            "evidence_id": "160dd9270d4a618cf6df643a",
+            "point_id": "80323d0b-059d-57b7-a33d-a489f916a22b",
+            "collection": "arxiv_papers_v1",
+            "paper_id": "182eff16-1efd-59c5-923f-4ff3626a9770",
+            "build_id": "62c9d621-1cbb-5d39-9eee-a980524d2bbc",
+            "version": 1,
+            "source": "arxiv",
+            "title": "A new clump-based star formation model for galaxy simulations: implications for high-redshift compact star clusters",
+            "page_number": 11,
+            "source_url": "https://arxiv.org/abs/2609.07635v1",
+            "text": "(ii) This shift in clump properties translates directly into more efficient and burstier galactic star formation. In the 10[10] M⊙ haloes, the global SFE at _𝑡_ = 3 _𝑡_ dyn increases monotonically from 5 × 10[−][3] at _𝑧_ = 0 to 2 × 10[−][1] at _𝑧_ = 10, with peak SFRs of ∼ 1 M⊙ yr[−][1] reached before _𝑡_ ≈ _𝑡_ dyn for _𝑧_ ≥ 6. Less compact discs instead form stars intermittently at 10[−][2] –10[−][1] M⊙ yr[−][1] . \n\n(iii) The accompanying feedback disrupts the gaseous discs of the most compact systems. The _𝑧_ ≥ 8 galaxies retain little gas near the centre by _𝑡_ = 3 _𝑡_ dyn, whereas the _𝑧_ ≤ 2 discs survive three rotations. Stellar spiral arms show the opposite trend, becoming progressively more prominent towards higher _𝑧_ , indicating that compact discs assemble dynamically coherent stellar structures on timescales of ∼ 100 Myr even while their gas is being expelled. ",
+            "section_header": "**A new clump-based star formation model for galaxy simulations: implications for high-redshift compact star clusters** > **5 CONCLUSION**",
+            "content_kind": "text",
+            "selection_priority": 0
+          },
+          {
+            "evidence_id": "9ee13cd7e925ed789689fa3d",
+            "point_id": "310ee1e7-cc02-5590-9993-5ce3c8b82cf6",
+            "collection": "arxiv_papers_v1",
+            "paper_id": "182eff16-1efd-59c5-923f-4ff3626a9770",
+            "build_id": "62c9d621-1cbb-5d39-9eee-a980524d2bbc",
+            "version": 1,
+            "source": "arxiv",
+            "title": "A new clump-based star formation model for galaxy simulations: implications for high-redshift compact star clusters",
+            "page_number": 11,
+            "source_url": "https://arxiv.org/abs/2609.07635v1",
+            "text": "(iv) Self-gravitationally bound star clusters form only in compact discs. No bound clusters appear at _𝑧_ ≤ 2 in the 10[10] M⊙ haloes, whereas the bound cluster mass fraction reaches ≈ 40 per cent at _𝑧_ ≥ 8. The threshold compactness depends on halo mass. In the 10[9] M⊙ haloes only the _𝑧_ = 10 run forms bound clusters, while in the 10[11] M⊙ haloes every run does, with fractions rising from ≈ 10 per cent at _𝑧_ = 0 to ≈ 70 per cent at _𝑧_ = 10. Halo mass therefore acts alongside compactness in regulating bound cluster formation, and the global SFE spans 2 × 10[−][3] –5 × 10[−][2] , 5 × 10[−][3] –2 × 10[−][1] and 2 × 10[−][2] –4 × 10[−][1] for _𝑀_ h = 10[9] , 10[10] and 10[11] M⊙, respectively. \n\n(v) The choice of star formation prescription is itself a leading factor. In the 10[10] M⊙ haloes, the KS runs retain their gas discs at all redshifts, show no strongly bursty histories, reach peak SFRs an order of magnitude below the CSF runs at _𝑧_ = 10, and saturate at SFE ≈ 5 × 10[−][2] for _𝑧_ ≥ 6 instead of continuing to rise with compactness. The resulting global SFEs are lower than in the CSF runs by factors of a few. ",
+            "section_header": "**A new clump-based star formation model for galaxy simulations: implications for high-redshift compact star clusters** > **5 CONCLUSION**",
+            "content_kind": "text",
+            "selection_priority": 0
+          }
+        ],
+        "generation_evidence_ids": [
+          "04c7fdc48bc7db7d6d3415c7",
+          "1080978cacdd4f1923864231",
+          "7970ef9bb839222221160264",
+          "e1b987ad68b0187dfe898157",
+          "0c3dbf13da9dd4027969933c",
+          "160dd9270d4a618cf6df643a",
+          "6bfd48ec96f5ef707115dca2",
+          "9ee13cd7e925ed789689fa3d"
+        ]
+      },
+      "transport": "responses-background-v1",
+      "response_id": "resp_08a4dbf8cf54735d006aa77f3e5a5887d2b8455a5e61e149e4",
+      "model": "gpt-5-mini-2025-08-07",
+      "usage": {
+        "input_tokens": 5629,
+        "input_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0
+        },
+        "output_tokens": 934,
+        "output_tokens_details": {
+          "reasoning_tokens": 0
+        },
+        "total_tokens": 6563
+      }
+    },
+    {
+      "id": "q0009",
+      "kind": "cross_paper",
+      "candidate": {
+        "id": "q0009",
+        "kind": "cross_paper",
+        "question": "Comparing the two studies 'A Homogenized Catalogue of Variable Stars in the Globular Cluster M22: Membership, Physical Parameters, and Distance' and 'Unresolved triple systems in the aged open cluster Trumpler 19: Discovery, confirmation, and implications', which cluster is more metal-poor, which cluster is closer to the Sun, and which cluster shows a higher fraction of unresolved higher-order (triple or greater) stellar systems according to the reported measurements?",
+        "reference_answer": "M22 is the more metal-poor cluster: the RR Lyrae-based metallicity for M22 is [Fe/H] = -1.73 ± 0.17 dex (evidence_id: 8899fe5bed8a3bb6570dd8c1). Trumpler 19 is farther from the Sun than the comparisons given for M22: M22's distance is D = 3.27 ± 0.14 kpc (evidence_id: 8899fe5bed8a3bb6570dd8c1), while Trumpler 19 is reported at d = 2.3 kpc (evidence_id: 1128d8621ff68fdf6e67654b). Therefore, Trumpler 19 is closer to the Sun than M22. Trumpler 19 shows the higher fraction of unresolved higher-order systems: its unresolved triple+higher-order fraction is THF = 0.084 ± 0.010, which is larger than the quoted THF for the open cluster M67 (0.029 ± 0.010); M22 has no reported THF in the provided excerpts (evidence_ids: 1128d8621ff68fdf6e67654b, 8c7b6a72fd7d4c8cfc22d71c).",
+        "citations": [
+          {
+            "evidence_id": "8899fe5bed8a3bb6570dd8c1"
+          },
+          {
+            "evidence_id": "0baf0c28b22d2b0a1723b2ea"
+          },
+          {
+            "evidence_id": "1128d8621ff68fdf6e67654b"
+          },
+          {
+            "evidence_id": "8c7b6a72fd7d4c8cfc22d71c"
+          }
+        ],
+        "support_summary": "Paper 'A Homogenized Catalogue of Variable Stars in the Globular Cluster M22: Membership, Physical Parameters, and Distance' reports a mean RR Lyrae-based metallicity [Fe/H] = -1.73 ± 0.17 dex and distance D = 3.27 ± 0.14 kpc for M22, and classifies M22 as Oosterhoff Type II with RRab mean period 0.65 ± 0.05 d. Paper 'Unresolved triple systems in the aged open cluster Trumpler 19: Discovery, confirmation, and implications' reports that Trumpler 19 has an unresolved triple+higher-order fraction THF = 0.084 ± 0.010, higher than M67's THF = 0.029 ± 0.010, and discusses multiplicity fractions compared with the solar neighborhood.",
+        "review_status": "needs_review",
+        "answerability_scope": "supplied_excerpts_only",
+        "reference_evidence": [
+          {
+            "evidence_id": "8899fe5bed8a3bb6570dd8c1",
+            "point_id": "6329917b-a96d-5965-b195-2939fc1385f0",
+            "collection": "arxiv_papers_v1",
+            "paper_id": "58fc9409-3fec-5fde-8a4c-67848a571dd7",
+            "build_id": "2e5ab911-78b0-58ae-a114-276f32434f5e",
+            "version": 1,
+            "source": "arxiv",
+            "title": "A Homogenized Catalogue of Variable Stars in the Globular Cluster M22: Membership, Physical Parameters, and Distance",
+            "page_number": 15,
+            "source_url": "https://arxiv.org/abs/2609.11850v1",
+            "text": "stars are included in the Catalogue of Variable Stars in Globular Clusters (CVSGC, Clement et al. 2001). \n\nWe performed a Fourier decomposition of the 𝑉 light curves of the member RR Lyrae stars to estimate the mean metallicity and distance to M22. From the combined sample of 24 RRab and RRc stars, we obtained [Fe∕H] = −1.73 ± 0.17 dex and a distance 𝑑= 3.27±0.14 kpc. Our derived [Fe/H] is consistent with recent high-precision estimates by McKenzie et al. (2022), which report a [Fe/H] range of -1.973 to -1.696 dex between populations. Regarding distance estimates, our result is in good agreement with independent estimates of 𝑑≈3.3 kpc (Baumgardt & Vasiliev, 2021), the photometric estimate of 𝑑= 3.2 ± 0.2 kpc obtained by Kunder et al. (2013a) from the cluster RR Lyrae population, and the 𝐺𝑎𝑖𝑎-DR2-based distance of 𝑑= 3.24 ± 0.08 kpc derived by Baumgardt et al. (2019). A similar value was also obtained by Alonso-García et al. (2021), who reported 𝑑= 3.20 ± 0.06 kpc through a recalibration of the period–luminosity relations anchored to the distance estimate of Baumgardt et al. (2019). \n\nWe also derived the distance from the 𝐼-band light curves, \n\n**1014**",
+            "section_header": "**A Homogenized Catalogue of Variable Stars in the Globular Cluster M22: Membership, Physical Parameters, and Distance** > **9. Conclusions**",
+            "content_kind": "text",
+            "selection_priority": 0
+          },
+          {
+            "evidence_id": "0baf0c28b22d2b0a1723b2ea",
+            "point_id": "de0c85b9-ec20-5cd0-a3fd-62cf8942b796",
+            "collection": "arxiv_papers_v1",
+            "paper_id": "58fc9409-3fec-5fde-8a4c-67848a571dd7",
+            "build_id": "2e5ab911-78b0-58ae-a114-276f32434f5e",
+            "version": 1,
+            "source": "arxiv",
+            "title": "A Homogenized Catalogue of Variable Stars in the Globular Cluster M22: Membership, Physical Parameters, and Distance",
+            "page_number": 16,
+            "source_url": "https://arxiv.org/abs/2609.11850v1",
+            "text": "**Figure 10.** Bailey diagram of M22 for 𝑉 and 𝐼 amplitudes. Blue and green symbols represent RRab and RRc stars, respectively. Triangles represent stars with Blazhko effect. Purple symbol represents the star V15 discussed in section 5.3 and the red symbol represents the star U37 discussed in Appendix A. Empty symbols denote field stars. Continuous and segmented loci are the calibrations discussed in section 7. \n\nobtaining 𝑑= 3.36 ± 0.15 kpc, in good agreement with the value obtained in 𝑉; however, the metallicity derived in the 𝐼 band does show systematic differences with respect to that in 𝑉, depending on the calibration used. \n\nThe distances derived from the SX Phe stars range from 3.22 ± 0.21 to 3.47 ± 0.21 kpc, depending on the calibration used, and remain consistent with the distance obtained from the RR Lyrae stars. \n\nThe Bailey diagram, the member RRab period average of 0.65 ± 0.05 d, and the mode splitting in the HB confirm M22 as an Oosterhoff Type II (OoII) globular cluster, as the distribution of the RR Lyrae stars matches the corresponding relationship for this type. Remarkably, the RR Lyrae stars exhibiting the Blazhko effect also follow these relations. \n\nWe detected the 𝑓0.61 phenomenon in the RRc star V15, with frequency and amplitude ratios consistent with values previously reported in other globular clusters and field stars (Jurcsik et al., 2015; Netzel et al., 2015). The member stars V16, V18, and KT-36 exhibit light curves with the Blazhko effect. \n\n**==> picture [242 x 142] intentionally omitted <==**",
+            "section_header": "**A Homogenized Catalogue of Variable Stars in the Globular Cluster M22: Membership, Physical Parameters, and Distance** > **9. Conclusions**",
+            "content_kind": "text",
+            "selection_priority": 0
+          },
+          {
+            "evidence_id": "1128d8621ff68fdf6e67654b",
+            "point_id": "43fb72de-821a-5969-a58a-1cffdefab5ee",
+            "collection": "arxiv_papers_v1",
+            "paper_id": "8d86d2f1-552f-55cc-bcb9-d4cfd49c4040",
+            "build_id": "049cb426-8ca7-5c5d-ac6e-e829dad82bca",
+            "version": 2,
+            "source": "arxiv",
+            "title": "Unresolved triple systems in the aged open cluster Trumpler 19: Discovery, confirmation, and implications",
+            "page_number": 6,
+            "source_url": "https://arxiv.org/abs/2609.05722v2",
+            "text": "Somehow Trumpler 19 managed to create more multiple systems, or M 67 has more efficiently destroyed the multiple systems. Note that M 67 is an evolved cluster that has a comparable present mass of _M_ = 2000 _M_ ⊙ and that has lost most of its mass in the past (Hurley et al., 2005), similar to Trumpler 19, which has a present mass _M_ = 2400 _M_ ⊙ and which has also lost most of its mass (Sheikh et al., 2025).\n\nIt is well known that a large fraction of stars in the solar neighborhood appear in binary or higher-order systems (Duquennoy & Mayor, 1991). For example, (Tokovinin, 2014, 2023) found that the frequency of field multiple systems follows the distribution _N_ = 1 : 2 : 3 : 4 : 5, with relative numbers of _f_ = 54 : 33 : 8 : 4 : 1..This means that, on average, every 54 isolated stars there are 111 stars in multiple systems. This is in good agreement with the results from Raghavan et al. (2010) that reported 56% singles, 33% binaries, 8% triplets, and 3% higher multiplets. Also, more recently, the updated sample from Reyle et al. (2021) in the 10 pc solar neighborhood yields _N_ = 246 single stars, 69 binaries, 19 triples, 3 quadruples, and 2 quintuples (this means 339 objects in total that would be unresolved if placed at the distance of Trumpler 19). That yields 217 stars belonging to multiplets (47% of the total stars, or 64% of unresolved sources at 2.3 kpc). The RECONS survey (Henry et al., 2018) gives similar numbers, with 262 singles, 66 doubles, 14 triples, 3 quadruples, and 2 quintuples out of 462 \n\nArticle number, page 6 of 8",
+            "section_header": "**4. Results and discussion**",
+            "content_kind": "text",
+            "selection_priority": 0
+          },
+          {
+            "evidence_id": "8c7b6a72fd7d4c8cfc22d71c",
+            "point_id": "241fbc28-21ac-51ba-aa3d-3987f02202ad",
+            "collection": "arxiv_papers_v1",
+            "paper_id": "8d86d2f1-552f-55cc-bcb9-d4cfd49c4040",
+            "build_id": "049cb426-8ca7-5c5d-ac6e-e829dad82bca",
+            "version": 2,
+            "source": "arxiv",
+            "title": "Unresolved triple systems in the aged open cluster Trumpler 19: Discovery, confirmation, and implications",
+            "page_number": 6,
+            "source_url": "https://arxiv.org/abs/2609.05722v2",
+            "text": "There are triple systems known in open clusters that have been previously well characterized. We can cite a few specific examples such as M 67 (Sandquist et al., 2003), NGC2516 and NGC6530 (Gonzalez et al., 2014), NGC6819 (Brewer et al., 2016), and Ruprecht 147 (Torres et al., 2021). However, a sequence such as the one we observe here has never been reported. The comparison with the open cluster M 67 in particular is very interesting, because this cluster has a similar age ( _t_ = 4 Gyr), and metallicity ( _Z_ = 0), as Trumpler 19, and it is very well studied because it is located at _d_ = 900 pc, significantly closer than Trumpler 19, with _d_ = 2300 pc. The CMDs of M 67 (Leiner et al., 2025) show that there are a couple of stars in the region associated with triple and quadruple systems, but these do not form a sequence similar to the one we find in Trumpler 19. This indicates that the multiplicity fractions for these two clusters of a similar age are very different. We measure the unresolved triple and higher-order fraction as defined by Offner et al. (2023), finding that this fraction in Trumpler 19 (THF = 0.084 ± 0.010) is higher than that of the open cluster M 67 (THF = 0.029 ± 0.010). Therefore, there are nearly three times more unresolved triples and quadruples in Trumpler19 than in M 67. This fraction was measured within the color range 2.25 < _BP_ − _Ks_ < 4.75 mag for Trumpler 19, and 1.80 < _BP_ − _Ks_ < 4.30 mag for M 67, respectively (the color difference is due to the different mean cluster reddenings). This color range corresponds approximately to MS stars of spectral types roughly from G5V to M0V, temperatures from 3800 K to 5300 K, and masses within 0.5 < _M_ / _Mo_ < 0.9 (even though it is not straightforward to apply these parameters for our targets because they are composite systems).",
+            "section_header": "**4. Results and discussion**",
+            "content_kind": "text",
+            "selection_priority": 0
+          }
+        ],
+        "generation_evidence_ids": [
+          "0baf0c28b22d2b0a1723b2ea",
+          "8899fe5bed8a3bb6570dd8c1",
+          "e2c924fb4b4c934e4bbac593",
+          "e80800607972f75cb0f0dccf",
+          "1128d8621ff68fdf6e67654b",
+          "8c7b6a72fd7d4c8cfc22d71c",
+          "a5b8822d58d3ae44a62a602b",
+          "e43ff497987575326574175d"
+        ]
+      },
+      "transport": "responses-background-v1",
+      "response_id": "resp_060719ae40f6ea97006aa77f497ba087d2ba739fd1ff8c6044",
+      "model": "gpt-5-mini-2025-08-07",
+      "usage": {
+        "input_tokens": 5955,
+        "input_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0
+        },
+        "output_tokens": 732,
+        "output_tokens_details": {
+          "reasoning_tokens": 0
+        },
+        "total_tokens": 6687
+      }
+    },
+    {
+      "id": "q0010",
+      "kind": "unanswerable_candidate",
+      "candidate": null,
+      "transport": "responses-background-v1",
+      "response_id": "resp_015f2e563e4c59dd006aa77f54e6f087d28a96970b7540ebd3",
+      "model": "gpt-5-mini-2025-08-07",
+      "usage": {
+        "input_tokens": 3221,
+        "input_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0
+        },
+        "output_tokens": 388,
+        "output_tokens_details": {
+          "reasoning_tokens": 0
+        },
+        "total_tokens": 3609
+      },
+      "rejection": "wrong_number_of_cited_papers"
+    }
+  ],
+  "background_jobs": {
+    "q0001": {
+      "transport": "responses-background-v1",
+      "status": "completed",
+      "response_id": "resp_0a0d8479e3e5aee6006aa77f0ec99087d2989f0a95df5a7f05",
+      "submitted_at": "2026-09-14T04:58:53.411421+00:00",
+      "terminal": {
+        "id": "resp_0a0d8479e3e5aee6006aa77f0ec99087d2989f0a95df5a7f05",
+        "status": "completed",
+        "model": "gpt-5-mini-2025-08-07",
+        "output_text": "{\"candidate\":{\"support_summary\":\"Figure 15 reports best-fit power-law fits of the standard deviation (σ) of abundance differences versus SNR for wide binary secondaries: for [Fe/H] fit parameters A = 0.479 and B = 0.486; for [α/M] A = 0.157 and B = 0.411.\",\"citations\":[{\"evidence_id\":\"14a8f0fd32b4023ac960b1a9\"}],\"question\":\"According to \\\"BOSS-CLAM: Utilizing a Constrained Linear Absorption Model to Infer Stellar Parameters from BOSS Spectra\\\", what are the fitted power-law parameters A and B for the relation σ = A × SNR^(−B) between the standard deviation of abundance differences and SNR for (a) [Fe/H] and (b) [α/M], as reported in Figure 15?\",\"reference_answer\":\"(a) For [Fe/H]: A = 0.479 and B = 0.486. (b) For [α/M]: A = 0.157 and B = 0.411.\"},\"skip_reason\":null}",
+        "refused": false,
+        "usage": {
+          "input_tokens": 3105,
+          "input_tokens_details": {
+            "cached_tokens": 0,
+            "cache_write_tokens": 0
+          },
+          "output_tokens": 260,
+          "output_tokens_details": {
+            "reasoning_tokens": 0
+          },
+          "total_tokens": 3365
+        }
+      }
+    },
+    "q0002": {
+      "transport": "responses-background-v1",
+      "status": "completed",
+      "response_id": "resp_059aa796b37f1db1006aa77f15095487d2a4f3e937bde2fbc8",
+      "submitted_at": "2026-09-14T04:59:00.864545+00:00",
+      "terminal": {
+        "id": "resp_059aa796b37f1db1006aa77f15095487d2a4f3e937bde2fbc8",
+        "status": "completed",
+        "model": "gpt-5-mini-2025-08-07",
+        "output_text": "{\"candidate\":{\"support_summary\":\"The JWST infrared dataset combined with optical HST data will allow constraining the metallicity distribution of low-mass stars (M dwarfs) with a precision of a few hundredths of a dex.\",\"citations\":[{\"evidence_id\":\"a0f105b6f53f9c526a56f20f\"}],\"question\":\"According to \\\"Globular Clusters in the Time of the JWST. I. Survey Design and First Results on Multiple Populations and Beyond\\\", what precision can the infrared JWST dataset combined with optical HST data achieve when constraining the metallicity distribution of low-mass (M dwarf) stars in globular clusters?\",\"reference_answer\":\"The paper states that combining the infrared JWST dataset with optical HST data will allow constraining the metallicity distribution of low-mass stars with a precision of a few hundredths of a dex. (evidence_id: a0f105b6f53f9c526a56f20f)\"},\"skip_reason\":null}",
+        "refused": false,
+        "usage": {
+          "input_tokens": 3168,
+          "input_tokens_details": {
+            "cached_tokens": 0,
+            "cache_write_tokens": 0
+          },
+          "output_tokens": 236,
+          "output_tokens_details": {
+            "reasoning_tokens": 0
+          },
+          "total_tokens": 3404
+        }
+      }
+    },
+    "q0003": {
+      "transport": "responses-background-v1",
+      "status": "completed",
+      "response_id": "resp_004f051f685e8a8e006aa77f1af02087d28f85260e1cf101f3",
+      "submitted_at": "2026-09-14T04:59:06.773926+00:00",
+      "terminal": {
+        "id": "resp_004f051f685e8a8e006aa77f1af02087d28f85260e1cf101f3",
+        "status": "completed",
+        "model": "gpt-5-mini-2025-08-07",
+        "output_text": "{\"candidate\":{\"support_summary\":\"The study identified 38 CS–cluster pairs with kinematic/positional data that cannot exclude association; 46 additional angular-proximity pairs lack CS Gaia kinematic data; and after extinction and evolutionary-model checks, seven pairs pass all selection criteria (two already confirmed/reported). The PN PHRJ1855-0116 – OC UBC 1049 pair is highlighted as the best candidate for follow-up.\",\"citations\":[{\"evidence_id\":\"a200bdd230ea10058c5a0c79\"}],\"question\":\"In \\\"Planetary Nebula Central Stars as Tracers of Planetary Nebula\\u001fStar Cluster Associations in the Galaxy\\\", how many candidate planetary-nebula central star (CS)–cluster pairs did the authors initially identify as kinematically/positionally consistent, how many additional pairs lacked CS Gaia kinematic data, and how many pairs passed the authors' kinematic, extinction, and evolutionary selection criteria? Which specific PN–OC pair did the authors single out as their best candidate for follow-up?\",\"reference_answer\":\"The authors initially uncovered 38 CS–cluster pairs whose kinematic and positional data cannot exclude a possible association; there are 46 additional pairs whose angular proximity suggests a possible association but which lack CS Gaia kinematic data; and seven pairs pass the kinematic, extinction, and evolutionary selection criteria. The PN PHRJ1855-0116 – OC UBC 1049 pair is identified as their best candidate for follow-up. (evidence: a200bdd230ea10058c5a0c79)\"},\"skip_reason\":null}",
+        "refused": false,
+        "usage": {
+          "input_tokens": 3413,
+          "input_tokens_details": {
+            "cached_tokens": 0,
+            "cache_write_tokens": 0
+          },
+          "output_tokens": 357,
+          "output_tokens_details": {
+            "reasoning_tokens": 0
+          },
+          "total_tokens": 3770
+        }
+      }
+    },
+    "q0004": {
+      "transport": "responses-background-v1",
+      "status": "completed",
+      "response_id": "resp_02c9a4c2fca5a463006aa77f20c6d487d2bbad27bb37074e3c",
+      "submitted_at": "2026-09-14T04:59:12.587782+00:00",
+      "terminal": {
+        "id": "resp_02c9a4c2fca5a463006aa77f20c6d487d2bbad27bb37074e3c",
+        "status": "completed",
+        "model": "gpt-5-mini-2025-08-07",
+        "output_text": "{\n  \"candidate\": {\n    \"support_summary\": \"The paper reports that (1) the mass of dust destroyed in a multi-SNe bubble saturates after a certain epoch and the saturation timescale is proportional to the SN rate; (2) the dust mass destroyed per SN decreases for higher SN rate and the destruction efficiency in homogeneous-media bubbles drops for higher-mass clusters (e.g., around clusters with mass ≳4×10^4 M☉ it is <0.4%); and (3) multiple-SNe in clusters destroy approximately 10% of the dust mass compared to the same number of isolated SNe, implying dust lifetime in the ISM is longer by a factor ≃10 than previous isolated-SN estimates. (evidence: evidence_id 942c7ece2b94197a492ae517).\",\n    \"citations\": [\n      {\n        \"evidence_id\": \"942c7ece2b94197a492ae517\"\n      }\n    ],\n    \"question\": \"According to the paper \\\"Dust destruction in bubbles driven by multiple supernovae explosions\\\", how does the total mass of interstellar dust destroyed by clustered (multiple) SNe compare to the mass destroyed by the same number of isolated SNe, and what quantitative implication does this have for the dust lifetime in the ISM?\",\n    \"reference_answer\": \"The paper finds that the mass of dust destroyed by multiple SNe in clusters is approximately 10% of that destroyed by an ensemble of the same number of isolated SNe. Consequently, the lifetime of dust in the ISM is longer by about a factor of ≃10 compared to values previously derived assuming isolated SNe. (evidence: evidence_id 942c7ece2b94197a492ae517)\"\n  },\n  \"skip_reason\": null\n}",
+        "refused": false,
+        "usage": {
+          "input_tokens": 3449,
+          "input_tokens_details": {
+            "cached_tokens": 0,
+            "cache_write_tokens": 0
+          },
+          "output_tokens": 396,
+          "output_tokens_details": {
+            "reasoning_tokens": 0
+          },
+          "total_tokens": 3845
+        }
+      }
+    },
+    "q0005": {
+      "transport": "responses-background-v1",
+      "status": "completed",
+      "response_id": "resp_00d7f84a12ea6f65006aa77f26e21887d28fa5a89e56c48eac",
+      "submitted_at": "2026-09-14T04:59:18.486505+00:00",
+      "terminal": {
+        "id": "resp_00d7f84a12ea6f65006aa77f26e21887d28fa5a89e56c48eac",
+        "status": "completed",
+        "model": "gpt-5-mini-2025-08-07",
+        "output_text": "{\"candidate\":{\"support_summary\":\"The authors fit the [O III] 4959,5007 doublet in each of the four Little Red Dots (LRDs) with models including two narrow + two broad Gaussians and find broad [O III] components with FWHM = 1130–1627 km s^-1; Bayesian Information Criterion differences (ΔBIC = 39–621) strongly prefer models with broad components.\",\"citations\":[{\"evidence_id\":\"07507c678ea7f30347e2e8bd\"}],\"question\":\"In \\\"SPURS: An Ultra-deep View Inside the Compact, Nitrogen-Enriched Nuclei of Little Red Dots\\\", what are the measured full-widths at half-maximum (FWHM) of the broad [O III] components found in the four Little Red Dots when fitting the [O III] 4959,5007 doublet with two narrow and two broad Gaussians, and how strongly do model-selection statistics prefer the fits including broad components?\",\"reference_answer\":\"The [O III] 4959,5007 doublet in each of the four LRDs is best fit with models that include two narrow and two broad Gaussians; the broad [O III] components have FWHM between 1130 and 1627 km s^-1, and the fits including broad components are strongly preferred over narrow-only models with ΔBIC in the range 39–621 (favoring the broad-component models).\"},\"skip_reason\":null}",
+        "refused": false,
+        "usage": {
+          "input_tokens": 2901,
+          "input_tokens_details": {
+            "cached_tokens": 0,
+            "cache_write_tokens": 0
+          },
+          "output_tokens": 340,
+          "output_tokens_details": {
+            "reasoning_tokens": 0
+          },
+          "total_tokens": 3241
+        }
+      }
+    },
+    "q0006": {
+      "transport": "responses-background-v1",
+      "status": "completed",
+      "response_id": "resp_0af4b68a1b10fee3006aa77f2d2ff087d2805c15e59fac6dcd",
+      "submitted_at": "2026-09-14T04:59:25.035170+00:00",
+      "terminal": {
+        "id": "resp_0af4b68a1b10fee3006aa77f2d2ff087d2805c15e59fac6dcd",
+        "status": "completed",
+        "model": "gpt-5-mini-2025-08-07",
+        "output_text": "{\n  \"candidate\": {\n    \"support_summary\": \"The paper reports an empirical gyrochronology age for NGC 1901: tau_gyro-interp = 830 ± 50 Myr, found by modelling a slow-rotator sequence of 32 benchmark F, G and early K dwarfs spanning Teff = 4100–6200 K; this gyro age is slightly younger than an isochronal age of 890 Myr but consistent within <2σ. (Evidence: excerpts reporting the age and sample properties.)\",\n    \"citations\": [\n      {\n        \"evidence_id\": \"9952c85fc88e8c8977854613\"\n      }\n    ],\n    \"question\": \"According to \\\"NGC 1901: A new benchmark cluster for gyrochronology in the TESS Southern continuous viewing zone\\\", what empirical gyrochronology age do the authors derive for NGC 1901 and how does this compare to the isochronal age quoted from Cantat-Gaudin et al. (2020)?\",\n    \"reference_answer\": \"The authors derive an empirical gyrochronology age tau_gyro-interp = 830 ± 50 Myr for NGC 1901. This is slightly younger than the isochronal age of 890 Myr reported by Cantat-Gaudin et al. (2020), but the two ages are consistent within less than 2σ. (evidence_id: 9952c85fc88e8c8977854613)\"\n  },\n  \"skip_reason\": null\n}",
+        "refused": false,
+        "usage": {
+          "input_tokens": 3642,
+          "input_tokens_details": {
+            "cached_tokens": 0,
+            "cache_write_tokens": 0
+          },
+          "output_tokens": 348,
+          "output_tokens_details": {
+            "reasoning_tokens": 0
+          },
+          "total_tokens": 3990
+        }
+      }
+    },
+    "q0007": {
+      "transport": "responses-background-v1",
+      "status": "completed",
+      "response_id": "resp_0bae0b337b8661ce006aa77f3315c887d2805ad4b3707792ac",
+      "submitted_at": "2026-09-14T04:59:30.911685+00:00",
+      "terminal": {
+        "id": "resp_0bae0b337b8661ce006aa77f3315c887d2805ad4b3707792ac",
+        "status": "completed",
+        "model": "gpt-5-mini-2025-08-07",
+        "output_text": "{\n  \"candidate\": {\n    \"support_summary\": \"Paper 'The Ashes of Supermassive Stars: Globular Cluster-like Aluminum Enhancement in Little Red Dots' reports that the stacked LRD spectrum shows blueshifted absorption at ~-140 km/s in Al III 1855 and other lines, demonstrating aluminum-rich and magnesium-poor gas around the central engine (evidence_id: bcb075d7546ed4fd57924643). Paper 'SPURS: An Ultra-deep View Inside the Compact, Nitrogen-Enriched Nuclei of Little Red Dots' reports detection of broad [O III] components (FWHM = 1130–1627 km/s) in four LRDs, with fits preferring models including broad components (evidence_id: 07507c678ea7f30347e2e8bd).\",\n    \"citations\": [\n      {\n        \"evidence_id\": \"bcb075d7546ed4fd57924643\"\n      },\n      {\n        \"evidence_id\": \"07507c678ea7f30347e2e8bd\"\n      }\n    ],\n    \"question\": \"Comparing the two papers 'The Ashes of Supermassive Stars: Globular Cluster-like Aluminum Enhancement in Little Red Dots' and 'SPURS: An Ultra-deep View Inside the Compact, Nitrogen-Enriched Nuclei of Little Red Dots': do the spectral signatures reported indicate that (a) the aluminum-rich, magnesium-poor blueshifted absorbing gas identified in the LRD stacked spectrum is kinematically consistent with the broad, high-velocity [O III] emission components seen in individual LRDs, and (b) can the excerpts support a conclusion that both phenomena arise from the same high-velocity outflow around the central engine?\",\n    \"reference_answer\": \"No. The excerpts show (a) the stacked LRD spectrum exhibits blueshifted absorption in Al III and other absorption features at ~-140 km s^-1 relative to systemic, indicating aluminum-rich, magnesium-poor gas around the central engine (evidence_id: bcb075d7546ed4fd57924643). (b) The SPURS paper reports broad [O III] emission components in individual LRDs with FWHM = 1130–1627 km s^-1, and that models including broad components are strongly preferred (evidence_id: 07507c678ea7f30347e2e8bd). These two kinematic measurements are incompatible: the absorption is at ~-140 km s^-1 while the broad [O III] components have characteristic widths of >1000 km s^-1. The provided excerpts do not present any evidence tying the ~-140 km s^-1 absorption component to the >1000 km s^-1 [O III] emission (no overlapping velocities, no statement of a common origin), so they do not support a conclusion that both phenomena arise from the same high-velocity outflow around the central engine (evidence_ids: bcb075d7546ed4fd57924643; 07507c678ea7f30347e2e8bd).\"\n  },\n  \"skip_reason\": null\n}",
+        "refused": false,
+        "usage": {
+          "input_tokens": 4894,
+          "input_tokens_details": {
+            "cached_tokens": 0,
+            "cache_write_tokens": 0
+          },
+          "output_tokens": 689,
+          "output_tokens_details": {
+            "reasoning_tokens": 0
+          },
+          "total_tokens": 5583
+        }
+      }
+    },
+    "q0008": {
+      "transport": "responses-background-v1",
+      "status": "completed",
+      "response_id": "resp_08a4dbf8cf54735d006aa77f3e5a5887d2b8455a5e61e149e4",
+      "submitted_at": "2026-09-14T04:59:42.184151+00:00",
+      "terminal": {
+        "id": "resp_08a4dbf8cf54735d006aa77f3e5a5887d2b8455a5e61e149e4",
+        "status": "completed",
+        "model": "gpt-5-mini-2025-08-07",
+        "output_text": "{\n  \"candidate\": {\n    \"support_summary\": \"Fouquet et al. (this paper: 'Tidal origin of dark-matter free dwarf galaxies in the NGC 1052 group') find that a major merger of NGC 1052 can produce tidal tails and TDGs whose stellar masses can reach ~3×10^9 M☉ and that TDGs produced in their modelling are faint, extended, and low surface brightness. The CSF model paper ('A new clump-based star formation model for galaxy simulations: implications for high-redshift compact star clusters') finds that compact discs produce dense, massive gas clumps (maximum clump mass up to ~10^7 M☉ in 10^10 M☉ halos) and that bound cluster mass fractions can reach ~10–70% depending on compactness and halo mass; self-gravitationally bound star clusters form only in sufficiently compact discs (_\\u0013\\u0013\\u0013>=8 in some runs).\",\n    \"citations\": [\n      {\n        \"evidence_id\": \"1080978cacdd4f1923864231\"\n      },\n      {\n        \"evidence_id\": \"04c7fdc48bc7db7d6d3415c7\"\n      },\n      {\n        \"evidence_id\": \"e1b987ad68b0187dfe898157\"\n      },\n      {\n        \"evidence_id\": \"0c3dbf13da9dd4027969933c\"\n      },\n      {\n        \"evidence_id\": \"160dd9270d4a618cf6df643a\"\n      },\n      {\n        \"evidence_id\": \"9ee13cd7e925ed789689fa3d\"\n      }\n    ],\n    \"question\": \"Comparing the two studies — 'Tidal origin of dark-matter free dwarf galaxies in the NGC 1052 group' and 'A new clump-based star formation model for galaxy simulations: implications for high-redshift compact star clusters' — do the simulated tidal dwarf galaxies (TDGs) produced in the NGC 1052 major-merger models have the internal properties (stellar mass scale, surface brightness/extension, and likelihood of forming dense bound star clusters) expected from the clump-driven, high-efficiency star formation in compact discs reported by the CSF model paper?\",\n    \"reference_answer\": \"No. The NGC 1052 merger models produce TDGs that are described as faint, extended, and low surface brightness and can reach stellar masses up to ~3×10^9 M☉ in favorable cases (evidence: 04c7fdc48bc7db7d6d3415c7, 1080978cacdd4f1923864231). By contrast, the CSF model indicates that formation of dense, bound star clusters and very high local star-formation efficiencies occurs in compact galactic discs that generate very dense clumps (e.g., maximum clump masses up to ~10^7 M☉ and clump surface densities >10^4 M☉ pc^-2 in the 10^10 M☉ halo runs, with bound cluster mass fractions of ~10–70% only for sufficiently high compactness; evidence: 0c3dbf13da9dd4027969933c, 9ee13cd7e925ed789689fa3d, 160dd9270d4a618cf6df643a). The TDGs from the NGC 1052 models are low-surface-brightness, extended objects rather than the compact, cluster-rich systems that the CSF paper associates with high compactness and clump-driven high-efficiency star formation. Therefore, based on the excerpts, the TDGs in the NGC 1052 simulations do not share the compact, cluster-dominated internal structure that the CSF model predicts for systems formed via extreme clump-driven star formation in compact discs (citations: 04c7fdc48bc7db7d6d3415c7; 1080978cacdd4f1923864231; 0c3dbf13da9dd4027969933c; 9ee13cd7e925ed789689fa3d; 160dd9270d4a618cf6df643a).\"\n  },\n  \"skip_reason\": null\n}",
+        "refused": false,
+        "usage": {
+          "input_tokens": 5629,
+          "input_tokens_details": {
+            "cached_tokens": 0,
+            "cache_write_tokens": 0
+          },
+          "output_tokens": 934,
+          "output_tokens_details": {
+            "reasoning_tokens": 0
+          },
+          "total_tokens": 6563
+        }
+      }
+    },
+    "q0009": {
+      "transport": "responses-background-v1",
+      "status": "completed",
+      "response_id": "resp_060719ae40f6ea97006aa77f497ba087d2ba739fd1ff8c6044",
+      "submitted_at": "2026-09-14T04:59:53.309992+00:00",
+      "terminal": {
+        "id": "resp_060719ae40f6ea97006aa77f497ba087d2ba739fd1ff8c6044",
+        "status": "completed",
+        "model": "gpt-5-mini-2025-08-07",
+        "output_text": "{\n  \"candidate\": {\n    \"support_summary\": \"Paper 'A Homogenized Catalogue of Variable Stars in the Globular Cluster M22: Membership, Physical Parameters, and Distance' reports a mean RR Lyrae-based metallicity [Fe/H] = -1.73 ± 0.17 dex and distance D = 3.27 ± 0.14 kpc for M22, and classifies M22 as Oosterhoff Type II with RRab mean period 0.65 ± 0.05 d. Paper 'Unresolved triple systems in the aged open cluster Trumpler 19: Discovery, confirmation, and implications' reports that Trumpler 19 has an unresolved triple+higher-order fraction THF = 0.084 ± 0.010, higher than M67's THF = 0.029 ± 0.010, and discusses multiplicity fractions compared with the solar neighborhood.\",\n    \"citations\": [\n      {\n        \"evidence_id\": \"8899fe5bed8a3bb6570dd8c1\"\n      },\n      {\n        \"evidence_id\": \"0baf0c28b22d2b0a1723b2ea\"\n      },\n      {\n        \"evidence_id\": \"1128d8621ff68fdf6e67654b\"\n      },\n      {\n        \"evidence_id\": \"8c7b6a72fd7d4c8cfc22d71c\"\n      }\n    ],\n    \"question\": \"Comparing the two studies 'A Homogenized Catalogue of Variable Stars in the Globular Cluster M22: Membership, Physical Parameters, and Distance' and 'Unresolved triple systems in the aged open cluster Trumpler 19: Discovery, confirmation, and implications', which cluster is more metal-poor, which cluster is closer to the Sun, and which cluster shows a higher fraction of unresolved higher-order (triple or greater) stellar systems according to the reported measurements?\",\n    \"reference_answer\": \"M22 is the more metal-poor cluster: the RR Lyrae-based metallicity for M22 is [Fe/H] = -1.73 ± 0.17 dex (evidence_id: 8899fe5bed8a3bb6570dd8c1). Trumpler 19 is farther from the Sun than the comparisons given for M22: M22's distance is D = 3.27 ± 0.14 kpc (evidence_id: 8899fe5bed8a3bb6570dd8c1), while Trumpler 19 is reported at d = 2.3 kpc (evidence_id: 1128d8621ff68fdf6e67654b). Therefore, Trumpler 19 is closer to the Sun than M22. Trumpler 19 shows the higher fraction of unresolved higher-order systems: its unresolved triple+higher-order fraction is THF = 0.084 ± 0.010, which is larger than the quoted THF for the open cluster M67 (0.029 ± 0.010); M22 has no reported THF in the provided excerpts (evidence_ids: 1128d8621ff68fdf6e67654b, 8c7b6a72fd7d4c8cfc22d71c).\"\n  },\n  \"skip_reason\": null\n}",
+        "refused": false,
+        "usage": {
+          "input_tokens": 5955,
+          "input_tokens_details": {
+            "cached_tokens": 0,
+            "cache_write_tokens": 0
+          },
+          "output_tokens": 732,
+          "output_tokens_details": {
+            "reasoning_tokens": 0
+          },
+          "total_tokens": 6687
+        }
+      }
+    },
+    "q0010": {
+      "transport": "responses-background-v1",
+      "status": "completed",
+      "response_id": "resp_015f2e563e4c59dd006aa77f54e6f087d28a96970b7540ebd3",
+      "submitted_at": "2026-09-14T05:00:04.584883+00:00",
+      "terminal": {
+        "id": "resp_015f2e563e4c59dd006aa77f54e6f087d28a96970b7540ebd3",
+        "status": "completed",
+        "model": "gpt-5-mini-2025-08-07",
+        "output_text": "{\"candidate\":{\"support_summary\":\"The paper reports that self-gravitationally bound star clusters form only in sufficiently compact discs: in 10^10 Msun haloes no bound clusters appear for compactness parameter C ≤ 2, while the bound cluster mass fraction reaches ≈40% at C ≥ 8; the threshold depends on halo mass (only C=10 forms clusters in 10^9 Msun, every run forms clusters in 10^11 Msun with fractions rising from ≈10% at C=0 to ≈70% at C=10).\",\"citations\":[{\"evidence_id\":\"9ee13cd7e925ed789689fa3d\"}],\"question\":\"In “A new clump-based star formation model for galaxy simulations: implications for high-redshift compact star clusters”, what is the minimum disc compactness parameter C required to form any self-gravitationally bound star clusters in the 10^10 Msun halo runs, and how does that threshold change for the 10^9 Msun and 10^11 Msun halo runs?\",\"reference_answer\":\"According to the paper’s conclusions, in the 10^10 Msun halo runs no bound clusters appear for compactness C ≤ 2, while the bound cluster mass fraction reaches ≈40% at C ≥ 8. For the 10^9 Msun haloes only the C = 10 run forms bound clusters (i.e., threshold at C = 10), whereas in the 10^11 Msun haloes every run forms bound clusters, with bound cluster fractions rising from ≈10% at C = 0 to ≈70% at C = 10 (i.e., effectively no compactness threshold within the tested range).\"},\"skip_reason\":null}",
+        "refused": false,
+        "usage": {
+          "input_tokens": 3221,
+          "input_tokens_details": {
+            "cached_tokens": 0,
+            "cache_write_tokens": 0
+          },
+          "output_tokens": 388,
+          "output_tokens_details": {
+            "reasoning_tokens": 0
+          },
+          "total_tokens": 3609
+        }
+      }
+    }
+  }
+}

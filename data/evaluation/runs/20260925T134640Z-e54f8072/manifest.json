@@ -1,0 +1,111 @@
+{
+  "schema_version": 1,
+  "run_id": "20260925T134640Z-e54f8072",
+  "status": "complete",
+  "started_at": "2026-09-25T13:46:40.207417+00:00",
+  "completed_at": "2026-09-25T13:48:15.601978+00:00",
+  "dataset_path": "data/evaluation/markdown-mini-v4/questions.split.json",
+  "dataset_hash": "9a5fceeaa18570bd7763a34702478ffe7cd235181a4445af9da19cfc6c161327",
+  "dataset_schema_version": 2,
+  "split": "development",
+  "profile_filter": [],
+  "question_id_filter": "q0030",
+  "evaluation_set_hash": "c3154dae7fe50d34b46058cefb717338dc209ae9dc2446d123358e14306e854a",
+  "snapshot_hash": "75b42cafef00a4fbbfa28b36fd1e5d2bac393ada5d5d3293378928257d65b6d5",
+  "corpus_fingerprint": "ff71c91496a097d41b87",
+  "frozen_build_ids": [
+    "f3b6ad52-d682-5bc8-ae7e-ee926d65da36",
+    "c35fa35e-89c3-5a4c-bbd0-3b8745801521",
+    "037d6136-830e-5852-b700-c484e4073412",
+    "830e7d2f-3494-5f6e-ab71-b7d745ad9df0",
+    "ec5aec2f-0a7d-5c46-9721-8c7ae5c18405",
+    "cbff4076-fc51-50a9-8cbf-e75a9002c9c8",
+    "4cbdcff1-6916-56e2-b7b2-eaba9f35c1a2",
+    "34eb5f35-38cc-52c0-b968-919813e40de3",
+    "bee7f645-7b83-52b8-b1f5-03410d99d146",
+    "ac14b211-1f18-59a1-a553-233071f7d868",
+    "3e4b8543-2f79-5ab6-8cbb-c1a55a485a3f",
+    "a811ffe6-e841-5d6c-a352-36541f81f1d8",
+    "cf5f6968-7533-5abd-8e16-74d636697dc8",
+    "8126a180-8d6e-588a-ad91-c32268f66754",
+    "63e049d8-511f-5f60-aed9-09ea7dd816e2",
+    "857f03f5-5a9d-5259-9c13-3fb2366b96f1",
+    "91b45921-084e-551c-b79f-7305f0c97c06",
+    "638d68c8-510d-5437-98bb-ca6dcbc03334",
+    "0f6c6390-30e4-5b94-96f4-5e8ba2c2e31b",
+    "98d92e11-59c4-578b-b42d-dfc56eef2963",
+    "d5d5dd78-83bd-57f4-9313-7beec3e3f105",
+    "40b771f9-4c92-5182-b174-a79130ad75ad",
+    "8a73089c-ce5f-5fc8-9d90-4405dcd72f98",
+    "affc8bf5-8948-59f3-814f-737d0341b67d",
+    "bba07e0b-37a5-53d7-a865-0d6d815f5c40",
+    "7e872b04-edf9-580e-bb62-3fdcde30a06a",
+    "e7cbbf55-28fe-5255-8487-d548a0e8f59f",
+    "663ad286-a7d5-5723-880e-1ea4441d1daf",
+    "5b9a2442-1eb2-51d7-a381-9d1b65ea50e1",
+    "e293560a-3506-5232-aab4-20d03c8cffc4",
+    "3ee890b7-f475-51fc-93bd-8e222f1812de",
+    "e920f838-bca1-5fc9-88a8-6fc76ba4274f",
+    "d7e78b21-29d6-56ff-8b1a-7dc8fb46f2d0",
+    "621afacf-de4a-5b07-a490-61d4ee02f8a4",
+    "653ac19f-9074-5d81-9585-84420c35aea8",
+    "0b2916cd-d83a-5c04-bee9-7c05a9174c30",
+    "60491d2e-5a01-58d6-a224-b12b6e595b98",
+    "0fddf776-843f-5c4b-9281-7e0261ef4005",
+    "efc122f8-2404-5f7f-a86a-2156f5acce7e",
+    "69a8df5a-a63a-5a96-91d7-dcf64c1f0492",
+    "90456f74-656c-5dc3-bac6-5739e80edeee",
+    "0ccad620-8816-5210-aefa-fe3e3f53ec4e",
+    "2ee63d20-daf0-5ece-abe2-d3bbfbe29e0b",
+    "c79a721f-59cc-551c-8f1e-6cc077449e2f",
+    "af2f232a-fb03-5f6b-8a63-c25c702ec8d2",
+    "9ad189f8-1f2a-5555-a5d9-a723117cbf2b",
+    "9d32cd27-8c85-5651-93e6-7c563c20d2f0",
+    "f68cb9e4-8b5a-5b1f-9080-d174a829e777"
+  ],
+  "modes": [
+    "vanilla",
+    "hybrid",
+    "hybrid_rerank",
+    "agentic"
+  ],
+  "question_count": 1,
+  "top_k": 5,
+  "generation_model": "gpt-4.1-nano",
+  "judge_enabled": true,
+  "judge_model": "gpt-5-mini",
+  "judge_reasoning_effort": "minimal",
+  "langfuse_enabled": true,
+  "langfuse_dataset": "scientific-paper-rag-9a5fceeaa185",
+  "langfuse_runs": {
+    "vanilla": {
+      "run_name": "20260925T134640Z-e54f8072-vanilla",
+      "url": "http://localhost:3000/project/cmu29prbc0006nu07suti0bax/datasets/cmue6yhfy002lnu07fd2z5kc2/runs/94f0909cf85606bc"
+    },
+    "hybrid": {
+      "run_name": "20260925T134640Z-e54f8072-hybrid",
+      "url": "http://localhost:3000/project/cmu29prbc0006nu07suti0bax/datasets/cmue6yhfy002lnu07fd2z5kc2/runs/da98d31e7358e74a"
+    },
+    "hybrid_rerank": {
+      "run_name": "20260925T134640Z-e54f8072-hybrid_rerank",
+      "url": "http://localhost:3000/project/cmu29prbc0006nu07suti0bax/datasets/cmue6yhfy002lnu07fd2z5kc2/runs/b53d21327e9b42cc"
+    },
+    "agentic": {
+      "run_name": "20260925T134640Z-e54f8072-agentic",
+      "url": "http://localhost:3000/project/cmu29prbc0006nu07suti0bax/datasets/cmue6yhfy002lnu07fd2z5kc2/runs/4177a12f0c0306ce"
+    }
+  },
+  "question_profiles": {
+    "single_synthesis": 1
+  },
+  "agentic_configuration": {
+    "model": "gpt-5-mini",
+    "reasoning_effort": "low",
+    "max_completion_tokens": 2000,
+    "max_rounds": 4,
+    "max_tool_calls": 16,
+    "max_evidence_chunks": 40,
+    "max_elapsed_seconds": 150.0,
+    "max_planner_tokens": 20000
+  }
+}

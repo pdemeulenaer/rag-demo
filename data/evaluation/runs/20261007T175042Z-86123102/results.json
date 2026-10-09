@@ -1,0 +1,1935 @@
+{
+  "schema_version": 1,
+  "run_id": "20261007T175042Z-86123102",
+  "results": [
+    {
+      "question_id": "q0046",
+      "kind": "cross_paper",
+      "profile": "cross_multihop",
+      "mode": "agentic",
+      "question": "Compare the disk-induced tidal disruption-driven growth scenario for intermediate-mass black holes described in Rapid Growth of Intermediate-Mass Black Holes through Disk-induced Stellar Disruptions (arXiv:2609.03701v2) with the stellar clustering / bound-companion analysis methods used in Star cluster formation from turbulent clumps. V. Stellar clustering around massive stars (arXiv:2604.27382v2). Specifically: (1) What concrete dTDE mass supply rate and sensitivity to the disk outer radius does the Rapid Growth paper report? (2) What simulation/analysis capabilities from the Star cluster formation paper could be used to test or refine the assumptions about the stellar cusp and bound stellar populations feeding the IMBH in the Rapid Growth paper? Provide an explicit synthesis requiring supported facts from both papers.",
+      "reference_answer": "(1) Rapid Growth of Intermediate-Mass Black Holes through Disk-induced Stellar Disruptions reports that disk-induced stellar disruptions can sustain stellar disruption rates of ~ (1–3) × 10^−3 M☉ yr^−1, and that extending the disk outer radius from R_out = R_sg to R_out = 3 R_sg produces only a slight decrease in the dTDE-driven mass supply (from ~8×10^−4 to ~6×10^−4 M☉ yr^−1), i.e., the overall dTDE rate is only weakly dependent on R_out (evidence: da98ceac0da2dfbc4cb8c97e; 41d12c9455789b742b18e36e). (2) The Star cluster formation from turbulent clumps. V. Stellar clustering around massive stars paper describes N-body models of gradual star cluster formation, post-processing to identify bound systems around massive stars, and constructing projected stellar density profiles to compare clustering predictions with observations (evidence: d26d531b97dd532abb0e07dc; 3f5057c15ab6fdac9f804821). Synthesis: By combining these capabilities, one could supply the Rapid Growth model with more realistic initial conditions for the stellar cusp and local bound-companion population: the clustering paper’s N-body simulations and bound-companion identification methods can quantify the number, radial distribution, and projected density profiles of stars near massive objects at specified cluster ages, which would directly test the Rapid Growth assumption about the available stellar reservoir for disk capture and inward migration. This addresses a limitation noted in Rapid Growth that their simulations model the local dynamical feeding mechanism but require galaxy-scale inputs about the formation and lifetime of gas-rich nuclear environments (da98ceac0da2dfbc4cb8c97e). Together, the Star cluster formation methods could refine the Rapid Growth dTDE supply estimates by providing empirically motivated stellar spatial and dynamical distributions for use in the disk-capture and migration prescriptions (evidence: da98ceac0da2dfbc4cb8c97e; d26d531b97dd532abb0e07dc).",
+      "answer": "The Rapid Growth paper reports sustained stellar disruption (dTDE) mass-supply rates of approximately (1–3) × 10^-3 M⊙ yr^-1. [1]\n\nThe Rapid Growth paper defines an inner accretion radius R_dTDE = 10^-4 pc as its fiducial operational criterion for counting a dTDE candidate. [2]\n\nThe Rapid Growth paper tested a smaller inner accretion radius (R_dTDE = 5 × 10^-5 pc) and found the resulting disruption rates to be nearly identical, concluding the measured dTDE rate is insensitive to this choice of R_dTDE. [2] [3]\n\nThe Rapid Growth paper’s figures include model variants labeled with different disk outer-radius settings (e.g., 'Rout = Rsg' and 'Rout = 3Rsg') alongside different R_dTDE values, indicating the authors ran cases with different Rout choices. [1]\n\nThe Star cluster formation paper computes average numbers of bound companions ⟨N_bound⟩ around massive stars for multiple companion-mass thresholds (M_comp ≥ 0.01 M⊙, 0.1 M⊙, 1.0 M⊙) and reports these as functions of cluster model and star subset (central, offset, ejected). [4]\n\nThe Star cluster formation paper constructs time-evolving projected stellar-density profiles ⟨N★(r)⟩ around central massive stars (10–20 M⊙) across cluster ages and reports errorbars/standard deviations for these profiles. [5]\n\nThe Star cluster formation paper reports that ⟨N_bound⟩ is tabulated and compared across cluster models (varying M_cl and Σ_cloud) and that lower stellar velocity dispersion and higher stellar density lead to larger ⟨N_bound⟩ around massive stars. [4] [6]\n\nSynthesis proposal (supported): Projected stellar-density profiles ⟨N★(r)⟩ and the measured ⟨N_bound⟩ from the Star cluster paper can be used to constrain the local stellar reservoir and its mass function near a massive object; these constraints would directly test the Rapid Growth paper’s assumption that a collisional cluster can supply stars onto disk-crossing orbits and sustain the reported dTDE mass-supply rate ((1–3) × 10^-3 M⊙ yr^-1). [1] [2] [5]\n\nSynthesis proposal (supported): The Star cluster paper’s bound-companion catalogs produced by the snowballing algorithm (and their dependence on companion-mass thresholds M_comp ≥ 0.01, 0.1, 1.0 M⊙) could be compared to the Rapid Growth model’s required supply of disk-crossing stars (which the Rapid Growth paper notes must be 'supplied to disk-crossing orbits by the collisional cluster') to test whether realistic companion counts and mass distributions provide sufficient replenishment. [2] [4] [7]\n\nSynthesis proposal (supported): The Star cluster paper’s demonstrated sensitivity of ⟨N_bound⟩ to cluster velocity dispersion and density implies one can test Rapid Growth’s assumption about long-term replenishment by mapping those cluster environmental parameters (σ_S and n_S,b) onto the Rapid Growth required replenishment rate; if cluster models yield low ⟨N_bound⟩ or low inner projected densities, they would necessitate revising the Rapid Growth dTDE-driven growth expectation. [1] [8]\n\nI could not verify these requested details from the retrieved evidence:\n- Some essential answer support could not be verified.",
+      "retrieved_chunks": [
+        {
+          "id": "6e59e4e6-9125-5403-8029-ad3ad678b469",
+          "text": "Disk-induced IMBH growth \n\n9 \n\nmigration remove them through dTDEs. The resulting dTDE-driven mass supply exceeds the Eddingtonlimited gas accretion rate for all three IMBH masses considered here, demonstrating that disk-induced stellar disruptions can dominate the early growth budget of low-mass IMBHs under the assumed cluster and disk conditions.",
+          "collection": "arxiv_papers_v2",
+          "build_id": "e920f838-bca1-5fc9-88a8-6fc76ba4274f",
+          "paper_id": "b1a3e358-8f14-5abc-8158-1091a82a0502",
+          "title": "Rapid Growth of Intermediate-Mass Black Holes through Disk-induced Stellar Disruptions",
+          "arxiv_id": "2609.03701",
+          "paper_version": 2,
+          "source_url": "https://arxiv.org/abs/2609.03701v2",
+          "authors": [
+            "Mengye Wang",
+            "Yiqiu Ma",
+            "Qingwen Wu",
+            "Boyuan Liu",
+            "Zijian Wang",
+            "Zhili Wang"
+          ],
+          "year": 2026,
+          "page": 9,
+          "section_header": "3.3. _Rate of disk-induced TDE_",
+          "content_kind": "text",
+          "chunk_index": 33,
+          "score": 1.0,
+          "rerank_score": null,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        },
+        {
+          "id": "01652764-5579-5e15-bdc0-73b31dbba250",
+          "text": "## 3.3. _Rate of disk-induced TDE_ \n\nIn this subsection, we use the crossing of the inner accretion radius, _R_ dTDE = 10 _[−]_[4] pc, as the operational definition of a dTDE candidate. This radius connects the local orbital outcome of star–disk interactions to the global feeding rate of the IMBH. The disruption rate is not set only by the instantaneous number of stars inside the disk. It is controlled by a sequence of linked processes: stars must first be supplied to disk-crossing orbits by the collisional cluster, then dissipatively captured or driven inward by the disk, and finally avoid being scattered or collisionally removed before reaching _R_ dTDE.",
+          "collection": "arxiv_papers_v2",
+          "build_id": "e920f838-bca1-5fc9-88a8-6fc76ba4274f",
+          "paper_id": "b1a3e358-8f14-5abc-8158-1091a82a0502",
+          "title": "Rapid Growth of Intermediate-Mass Black Holes through Disk-induced Stellar Disruptions",
+          "arxiv_id": "2609.03701",
+          "paper_version": 2,
+          "source_url": "https://arxiv.org/abs/2609.03701v2",
+          "authors": [
+            "Mengye Wang",
+            "Yiqiu Ma",
+            "Qingwen Wu",
+            "Boyuan Liu",
+            "Zijian Wang",
+            "Zhili Wang"
+          ],
+          "year": 2026,
+          "page": 6,
+          "section_header": "3.3. _Rate of disk-induced TDE_",
+          "content_kind": "text",
+          "chunk_index": 26,
+          "score": 0.5,
+          "rerank_score": null,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        },
+        {
+          "id": "7ca42b7e-c620-5183-a10f-752ad3235b96",
+          "text": "with the disk are then gradually captured onto nearcircular, coplanar orbits through the damping forces described above. Once captured, they migrate inward via Type I/II migration, eventually approaching the tidal disruption radius of the central IMBH. By evolving both stages in the same direct _N_ -body calculation, we can measure whether the dTDE rate is sustained by relaxation-driven replenishment rather than by the initially available inner stars alone. \n\nIn our simulations, a star is considered accreted once its semi-major axis _a_ becomes smaller than _R_ dTDE. We adopt _R_ dTDE = 10 _[−]_[4] pc as our fiducial value, which is much larger than the actual physical tidal disruption radius _R_ t ( _∼_ 10 _[−]_[6] pc). This choice is primarily motivated by the computational cost associated with resolving the short orbital timescales near the central IMBH. For a representative IMBH mass of _M•_ = 10[4] _M⊙_ , the Keplerian orbital period at _R_ dTDE = 10 _[−]_[4] pc is approximately _P_ orb _≃_ 1 yr. Since our _N_ -body integration requires a timestep smaller than _P_ orb _/_ 32, resolving a significantly smaller accretion radius would substantially increase the computational cost. Therefore, we use this _R_ dTDE as a proxy for disruption, and this approximation can be justified by the fact that captured stars follow well-defined, deterministic migration trajectories(Just et al. 2012; Kennedy et al. 2016). Even for stars that are not yet fully embedded in the disk, once they cross _R_ dTDE, dynamical friction from the accretion disk will also drag them inward and lead to tidal disruption by the IMBH within _∼_ 10[4] yr (e.g., Wang et al. 2024c). For the same reason, extending our simulations to more massive IMBHs remains computationally challenging. In Section 4, we also perform a controlled run with _R_ dTDE = 5 _×_ 10 _[−]_[5] pc to verify that our results are insensitive to this choice.",
+          "collection": "arxiv_papers_v2",
+          "build_id": "e920f838-bca1-5fc9-88a8-6fc76ba4274f",
+          "paper_id": "b1a3e358-8f14-5abc-8158-1091a82a0502",
+          "title": "Rapid Growth of Intermediate-Mass Black Holes through Disk-induced Stellar Disruptions",
+          "arxiv_id": "2609.03701",
+          "paper_version": 2,
+          "source_url": "https://arxiv.org/abs/2609.03701v2",
+          "authors": [
+            "Mengye Wang",
+            "Yiqiu Ma",
+            "Qingwen Wu",
+            "Boyuan Liu",
+            "Zijian Wang",
+            "Zhili Wang"
+          ],
+          "year": 2026,
+          "page": 5,
+          "section_header": "2.3. _Simulation setup_",
+          "content_kind": "text",
+          "chunk_index": 20,
+          "score": 0.5,
+          "rerank_score": null,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        },
+        {
+          "id": "1e48a53d-f5fe-5835-8ccf-4eea12961e39",
+          "text": "Disk-induced IMBH growth \n\n3 \n\n2011), and incorporates the `SDAR` method to accurately resolve close encounters and tight binaries (Wang et al. 2020b). The gas effects are included through analytic prescriptions for star–disk interactions. This hybrid approach allows us to keep the gravitational scattering, cusp formation, stellar mergers, and relaxation-driven replenishment fully self-consistent, while treating the unresolved gas response through physically motivated drag and migration formulae. In the following, we first describe the stellar cluster and IMBH initialization, then the disk forces, and finally the simulation suite used to measure the dTDE feeding rate.",
+          "collection": "arxiv_papers_v2",
+          "build_id": "e920f838-bca1-5fc9-88a8-6fc76ba4274f",
+          "paper_id": "b1a3e358-8f14-5abc-8158-1091a82a0502",
+          "title": "Rapid Growth of Intermediate-Mass Black Holes through Disk-induced Stellar Disruptions",
+          "arxiv_id": "2609.03701",
+          "paper_version": 2,
+          "source_url": "https://arxiv.org/abs/2609.03701v2",
+          "authors": [
+            "Mengye Wang",
+            "Yiqiu Ma",
+            "Qingwen Wu",
+            "Boyuan Liu",
+            "Zijian Wang",
+            "Zhili Wang"
+          ],
+          "year": 2026,
+          "page": 3,
+          "section_header": "2. METHOD",
+          "content_kind": "text",
+          "chunk_index": 10,
+          "score": 0.44444445,
+          "rerank_score": null,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        },
+        {
+          "id": "0afd0c19-e87d-5328-8167-bfef28b8f5c9",
+          "text": "and subsequent inward migration of embedded stars, thereby significantly reducing the dTDE rate (Tomar et al. 2026). \n\n_Choice of inner accretion radius._ —Due to computational limitations, we replace the tidal disruption radius _R_ t with a larger accretion radius _R_ dTDE. To assess the robustness of this treatment, we compare our fiducial model ( _R_ dTDE = 10 _[−]_[4] pc) with a run adopting a smaller value, _R_ dTDE = 5 _×_ 10 _[−]_[5] pc (green curve), in Figure 8. The resulting disruption rates are nearly identical, indicating that our results are insensitive to the specific choice of _R_ dTDE. This insensitivity is physically expected: once stars are captured by the accretion disk, they settle onto nearly circular orbits and rapidly migrate inward. After crossing _R_ dTDE, they continue migrating toward the central IMBH and typically reach the tidal disruption radius _R_ t within _∼_ 10[4] yr. Therefore, as long as _R_ dTDE is sufficiently small, the resulting stellar disruption rate converges and is insensitive to the exact choice of _R_ dTDE. ",
+          "collection": "arxiv_papers_v2",
+          "build_id": "e920f838-bca1-5fc9-88a8-6fc76ba4274f",
+          "paper_id": "b1a3e358-8f14-5abc-8158-1091a82a0502",
+          "title": "Rapid Growth of Intermediate-Mass Black Holes through Disk-induced Stellar Disruptions",
+          "arxiv_id": "2609.03701",
+          "paper_version": 2,
+          "source_url": "https://arxiv.org/abs/2609.03701v2",
+          "authors": [
+            "Mengye Wang",
+            "Yiqiu Ma",
+            "Qingwen Wu",
+            "Boyuan Liu",
+            "Zijian Wang",
+            "Zhili Wang"
+          ],
+          "year": 2026,
+          "page": 11,
+          "section_header": "4. CONCLUSIONS AND DISCUSSIONS",
+          "content_kind": "text",
+          "chunk_index": 45,
+          "score": 0.34285715,
+          "rerank_score": null,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        },
+        {
+          "id": "6316174c-3df6-5213-9eb4-c613815e75a6",
+          "text": "_Limitations and future work._ —Despite the insights provided by our simulations, several limitations should be acknowledged. First, the conversion efficiency of disrupted stellar mass into black hole growth remains uncertain. Radiative hydrodynamic simulations of classical TDEs suggest accreted fractions of _∼_ 25%–43% for a 10[6] _M⊙_ SMBH disrupting stars of 1–300 _M⊙_ (Bu et al. 2023; Sheng et al. 2026). In our disk-induced TDE scenario, however, stars are delivered on nearly circular, coplanar orbits and migrate inward through the disk prior to disruption. This may lead to more efficient debris circularization and thus a potentially higher accreted fraction than that achieved in the highly eccentric, parabolic orbits typical of classical TDEs. Nevertheless, our current assumption of full accretion should be regarded as an optimistic upper limit. Second, the limited duration of our simulations raises the question of whether the seemingly steady dTDE rate measured over _∼_ 0.3 Myr can be sustained over 30 Myr required to grow an IMBH to _∼_ 10[5] _M⊙_ . This would require both a continuous external gas supply to maintain the disk and a sufficiently large stellar reservoir, from which stars can be continuously replenished into the diskcrossing region via two-body scattering among stars and dynamical friction against the ambient gas over long timescales ( _>_ 30 Myr). Third, our analytic treatment of star–disk interactions, while capturing the essential physics, omits important processes associated with embedded stars, such as gas accretion onto stars and stellar remnants, stellar winds, supernovae, and their feedback on the disk structure. These processes are not included",
+          "collection": "arxiv_papers_v2",
+          "build_id": "e920f838-bca1-5fc9-88a8-6fc76ba4274f",
+          "paper_id": "b1a3e358-8f14-5abc-8158-1091a82a0502",
+          "title": "Rapid Growth of Intermediate-Mass Black Holes through Disk-induced Stellar Disruptions",
+          "arxiv_id": "2609.03701",
+          "paper_version": 2,
+          "source_url": "https://arxiv.org/abs/2609.03701v2",
+          "authors": [
+            "Mengye Wang",
+            "Yiqiu Ma",
+            "Qingwen Wu",
+            "Boyuan Liu",
+            "Zijian Wang",
+            "Zhili Wang"
+          ],
+          "year": 2026,
+          "page": 11,
+          "section_header": "4. CONCLUSIONS AND DISCUSSIONS",
+          "content_kind": "text",
+          "chunk_index": 46,
+          "score": 0.26785713,
+          "rerank_score": null,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        },
+        {
+          "id": "72875e9d-90f7-5749-b1b5-e73c19a42ac9",
+          "text": "Previous studies have proposed dTDEs as a possible mechanism for triggering enhanced nuclear activity (Lei et al. 2026), explaining the changing-look behavior in some AGNs (Wang et al. 2024b,c), and accelerating SMBH mass growth (e.g., Just et al. 2012; Kennedy et al. 2016). These studies have mainly focused on SMBHs in the 10[6] –10[9] _M⊙_ range. In particular, Kennedy et al. (2016) found that dTDEs contribute negligibly to SMBH growth in this mass range, although their simulations were limited by the large particle numbers required for SMBH systems and therefore did not constitute a star-by-star treatment, nor did they account for physical collisions among stars captured into the accretion disk. For IMBHs below 10[5] _M⊙_ , however, dTDEs could be crucial for accelerating their early growth. In this work, we investigate the mass growth of IMBHs driven by dTDEs using high-precision direct star-by-star _N_ -body simulations with analytic prescriptions for star– disk interactions. This approach is essential because the dTDE rate emerges from the live collective dynamics of the stellar system: stars are scattered onto new orbits via multi-body encounters, captured by the disk, and may merge, resulting in a population that is continuously consumed and replenished. By modeling IMBHs embedded in dense stellar clusters with accretion disks, we track the entire sequence from cusp formation and disk capture to inward migration and tidal disruption, enabling us to quantify the stellar feeding rate of IMBHs. \n\nAlthough our simulations are not designed to model a specific cosmological environment, the measured feed- ",
+          "collection": "arxiv_papers_v2",
+          "build_id": "e920f838-bca1-5fc9-88a8-6fc76ba4274f",
+          "paper_id": "b1a3e358-8f14-5abc-8158-1091a82a0502",
+          "title": "Rapid Growth of Intermediate-Mass Black Holes through Disk-induced Stellar Disruptions",
+          "arxiv_id": "2609.03701",
+          "paper_version": 2,
+          "source_url": "https://arxiv.org/abs/2609.03701v2",
+          "authors": [
+            "Mengye Wang",
+            "Yiqiu Ma",
+            "Qingwen Wu",
+            "Boyuan Liu",
+            "Zijian Wang",
+            "Zhili Wang"
+          ],
+          "year": 2026,
+          "page": 2,
+          "section_header": "1. INTRODUCTION",
+          "content_kind": "text",
+          "chunk_index": 6,
+          "score": 0.25263157,
+          "rerank_score": null,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        },
+        {
+          "id": "52a69f9f-96e8-5e4b-a695-61e27a993b5e",
+          "text": "## 4. CONCLUSIONS AND DISCUSSIONS \n\nIn this work, we investigate dTDEs as a stellar feeding channel for IMBHs embedded in gas-rich dense nuclear star clusters. By performing high-precision direct _N_ - body simulations with analytic prescriptions for star– disk interactions, we follow the coupled evolution of the stellar cusp, relaxation-driven replenishment, disk \n\ncapture, inward migration, stellar mergers, and eventual accretion onto the central IMBH. We find that this process can sustain stellar disruption rates of _∼_ (1 _−_ 3) _×_ 10 _[−]_[3] _M⊙_ yr _[−]_[1] , significantly exceeding the Eddington accretion rate for black holes with _M• <_ 10[5] _M⊙_ . The main conclusion is therefore that disk-induced stellar disruptions can provide an efficient and dynamically sustained stellar mass supply to IMBHs in compact gasrich stellar systems. As a conditional application, this feeding channel can help grow _∼_ 10[3] _M⊙_ IMBHs toward ≳ 10[5] _M⊙_ if the required cluster and disk conditions are maintained. \n\n**==> picture [234 x 173] intentionally omitted <==**\n\n**----- Start of picture text -----**<br>\nRdTDE =10 [4] pc, Rout = Rsg<br>RdTDE =10 [4] pc, Rout = 3Rsg<br>RdTDE =5×10 [5] pc, Rout = Rsg<br>10 3<br>10 4<br>0.00 0.05 0.10 0.15 0.20 0.25 0.30<br>t [Myr]<br>1]<br>yr<br>M<br> [<br>dTDE<br>M<br>**----- End of picture text -----**<br>",
+          "collection": "arxiv_papers_v2",
+          "build_id": "e920f838-bca1-5fc9-88a8-6fc76ba4274f",
+          "paper_id": "b1a3e358-8f14-5abc-8158-1091a82a0502",
+          "title": "Rapid Growth of Intermediate-Mass Black Holes through Disk-induced Stellar Disruptions",
+          "arxiv_id": "2609.03701",
+          "paper_version": 2,
+          "source_url": "https://arxiv.org/abs/2609.03701v2",
+          "authors": [
+            "Mengye Wang",
+            "Yiqiu Ma",
+            "Qingwen Wu",
+            "Boyuan Liu",
+            "Zijian Wang",
+            "Zhili Wang"
+          ],
+          "year": 2026,
+          "page": 10,
+          "section_header": "4. CONCLUSIONS AND DISCUSSIONS",
+          "content_kind": "text",
+          "chunk_index": 41,
+          "score": 0.2361111,
+          "rerank_score": null,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        },
+        {
+          "id": "d3329fd8-438e-5caf-b2b2-8f5fe3158e73",
+          "text": "_Stellar clustering around massive stars_ 9 \n\n**==> picture [507 x 276] intentionally omitted <==**\n\n**Figure 3.** Each panel in the grid shows the comparison between different _𝑀_ cl models showing the average number of bound companions ⟨ _𝑁_ bound ⟩ around massive stars in that model. Panels in the first and second rows show the low (Σcloud = 0 _._ 1 g cm[−][2] ) and high (Σcloud = 1 _._ 0 g cm[−][2] ) cloud mass surface density cases, respectively, for the fiducial ( _𝜖_ ff = 0.03) models at cluster age of _𝑡_ = 3 _._ 0 Myr. In the columns, we vary the threshold for companion mass ( _𝑀_ comp) between 0.01 _𝑀_ ⊙ (fiducial), 0.1 _𝑀_ ⊙ and 1 _𝑀_ ⊙. Each panel, on the _𝑦_ −axis, shows ⟨ _𝑁_ bound ⟩ around massive stars in three subsets: _central_ stars (blue), _offset_ stars (orange) and _ejected_ stars (magenta). ⟨ _..._ ⟩ indicates averaging over massive stars in all realizations of each model. The points for different subsets are offset by [0.1,0.0,-0.1] along _𝑥_ −axis to allow for visual comparison. For each point, the dotted errorbar indicates the spread of _𝑁_ bound from the 16th percentile to the 84th percentile, while the solid errorbar shows the standard error in ⟨ _𝑁_ bound ⟩. We find that massive stars in smaller _𝑀_ cl star clusters with lower velocity dispersion have more bound companions. ",
+          "collection": "arxiv_papers_v2",
+          "build_id": "af2f232a-fb03-5f6b-8a63-c25c702ec8d2",
+          "paper_id": "d9257f93-05c9-5a20-831a-66b64cb6bb20",
+          "title": "Star cluster formation from turbulent clumps. V. Stellar clustering around massive stars",
+          "arxiv_id": "2604.27382",
+          "paper_version": 2,
+          "source_url": "https://arxiv.org/abs/2604.27382v2",
+          "authors": [
+            "Aayush Gautam",
+            "Juan P. Farias",
+            "Jonathan C. Tan"
+          ],
+          "year": 2026,
+          "page": 9,
+          "section_header": "**3.2 Comparison across models**",
+          "content_kind": "text",
+          "chunk_index": 47,
+          "score": 0.5909091,
+          "rerank_score": null,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        },
+        {
+          "id": "4a856248-8b2d-5996-ba01-91d03ef1a0ad",
+          "text": "## **5 CONCLUSIONS** \n\nAnosova J. P., 1986, Ap&SS, 124, 217 \n\n- Appel S. M., et al., 2026, AJ, 172, 12 \n\nIn this paper, we studied the clustering of bound and unbound companions around massive stars inside gradually forming star clusters via “Turbulent Clump Core Accretion” (TCCA) by post-processing existing _𝑁_ −body simulations. In these simulations, star clusters are formed in different formation timescales ( _𝑡★_ ) parameterized by star formation efficiency per freefall time ( _𝜖_ ff), mass of star-forming clump ( _𝑀_ cl) and mass surface densities (Σcloud) of the parent cloud. \n\nWe found that massive stars in the center of bound cluster gather more companions than massive stars that have been ejected from the cluster. We found that ejected stars are mostly single or in binaries. The number of companions is greater for massive stars in star clusters with lower stellar velocity dispersion and higher stellar densities. When we compared the clustering of companions around our massive stars with projected stellar density profiles, we found a good match to YSO profiles in the AFGL 5180 and G19.88-0.53 star-forming regions. Finally, we noted a lack of close triple companions around our simulated O-stars when compared to companions around O-stars in the `SMASH+` survey. Since these companions were not captured dynamically, they are likely formed via primordial routes like core or disk fragmentation. \n\nIn the future, we aim to extend our gradual star cluster formation models with hydrodynamical coupling and an accurate treatment of primordial triples. We are also currently working on extending the analysis of dynamically gathered companions around primary stars across the full stellar mass spectrum. \n\n- Bate M. R., Bonnell I. A., 1997, MNRAS, 285, 33 \n\n- Beuther H., Kuiper R., Tafalla M., 2025, ARA&A, 63, 1 \n\n- Blaauw A., 1961, Bull. Astron. Inst. Netherlands, 15, 265 \n\n- Bonnell I. A., Bate M. R., Clarke C. J., Pringle J. E., 2001, MNRAS, 323, 785 ",
+          "collection": "arxiv_papers_v2",
+          "build_id": "af2f232a-fb03-5f6b-8a63-c25c702ec8d2",
+          "paper_id": "d9257f93-05c9-5a20-831a-66b64cb6bb20",
+          "title": "Star cluster formation from turbulent clumps. V. Stellar clustering around massive stars",
+          "arxiv_id": "2604.27382",
+          "paper_version": 2,
+          "source_url": "https://arxiv.org/abs/2604.27382v2",
+          "authors": [
+            "Aayush Gautam",
+            "Juan P. Farias",
+            "Jonathan C. Tan"
+          ],
+          "year": 2026,
+          "page": 22,
+          "section_header": "**5 CONCLUSIONS**",
+          "content_kind": "text",
+          "chunk_index": 94,
+          "score": 0.54761904,
+          "rerank_score": null,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        },
+        {
+          "id": "fc9d9d17-f4a8-5333-9a73-88936a819532",
+          "text": "_Stellar clustering around massive stars_ 7 \n\n**==> picture [507 x 515] intentionally omitted <==**\n\n**Figure 1.** Masses of massive stars ( _𝑀★_ ) versus the number of bound companions ( _𝑁_ bound) around them, in our fiducial _𝜖_ ff = 0 _._ 03 models at cluster age _𝑡_ = 3.0 Myr. From top to bottom, the rows show M300, M3000, and M30000 models, respectively. The left and right columns show low (Σcloud = 0 _._ 1 g cm[−][2] ) and high (Σcloud = 1 _._ 0 g cm[−][2] ) cloud mass surface density cases, respectively. In each panel, the colored symbols (blue circles, orange pluses, magenta crosses) show the three subsets of massive stars: _central_ stars, _offset_ stars and _ejected_ stars, respectively. In each side panel, we show the mean number of companions, ⟨ _𝑁_ bound ⟩, averaged around massive stars in each subset. The dotted errorbar indicates the spread of _𝑁_ bound from the 16th percentile to the 84th percentile, while the solid errorbar shows the standard error in ⟨ _𝑁_ bound ⟩. We find that more massive stars have a larger number of bound companions, however this also depends on their location within the star cluster. \n\nEach model has its own formation timescale ( _𝑡★_ ) indicated by the dashed vertical line in each panel. The star cluster is still embedded in background gas before _𝑡★_ . We find that across all models, there is a gradual rise in _𝑁_ bound before a decline and/or flattening as the cluster ages. This indicates that the formation timescale and stellar environ- \n\nment (density and velocity dispersion) have a significant effect on ⟨ _𝑁_ bound⟩. \n\nBesides ⟨ _𝑁_ bound⟩, the build-up of bound stellar systems around massive stars is also reflected in the triple/higher-order fraction of massive stars (THF, Equation 8). Our simulations have only 50% \n\nMNRAS **000** , 1–23 (2026)",
+          "collection": "arxiv_papers_v2",
+          "build_id": "af2f232a-fb03-5f6b-8a63-c25c702ec8d2",
+          "paper_id": "d9257f93-05c9-5a20-831a-66b64cb6bb20",
+          "title": "Star cluster formation from turbulent clumps. V. Stellar clustering around massive stars",
+          "arxiv_id": "2604.27382",
+          "paper_version": 2,
+          "source_url": "https://arxiv.org/abs/2604.27382v2",
+          "authors": [
+            "Aayush Gautam",
+            "Juan P. Farias",
+            "Jonathan C. Tan"
+          ],
+          "year": 2026,
+          "page": 7,
+          "section_header": "**3.2 Comparison across models**",
+          "content_kind": "text",
+          "chunk_index": 45,
+          "score": 0.45833334,
+          "rerank_score": null,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        },
+        {
+          "id": "cd915036-85be-5761-a546-acb4e23fbbcb",
+          "text": "## **2.2 Clustering around Massive Stars** \n\nWe examine the stellar clustering around massive stars (≥ 8 _𝑀_ ⊙) formed in our simulations. To study the effect of cluster environment on such clustering, we divide these massive stars into three different subsets according to their location and boundedness. First, we determine stars that are bound to the star cluster using a snowballing algorithm developed in Farias & Tan (2023). Then, we refer bound massive stars in the central regions within 20% of the half-mass radius of their star cluster as _central stars_ . Similarly, massive stars beyond 20% of the half-mass radius which are in the outer regions of the star cluster are referred as _offset stars_ . Finally, massive stars that are unbound from the star cluster are referred to as _ejected stars_ . \n\nAfter dividing massive stars into subsets, we study the properties of bound and unbound companions around them. For this purpose, we have developed routines to identify bound companions around any given massive star. The routine works as follows: First, we identify the closest bound companion (a binary partner) to the massive star. Then, we replace the two stars with a center of mass particle. Next, we search for the next closest star that is bounded to this center of mass particle, hence forming a triple. If present, we replace the triple with its corresponding center of mass particle. Then, we search for the next closest bound companion. We perform this process iteratively to identify all the stars that are bound to the massive star. We start this search around the most massive star, identify its bound companions and tag them. Then, we move to the next most massive untagged star and search for its bound companions, ensuring there is no doublecounting of stars during this iterative process. This allows us to identify all the bound stars that are centered on independent primary massive stars within our star cluster. ",
+          "collection": "arxiv_papers_v2",
+          "build_id": "af2f232a-fb03-5f6b-8a63-c25c702ec8d2",
+          "paper_id": "d9257f93-05c9-5a20-831a-66b64cb6bb20",
+          "title": "Star cluster formation from turbulent clumps. V. Stellar clustering around massive stars",
+          "arxiv_id": "2604.27382",
+          "paper_version": 2,
+          "source_url": "https://arxiv.org/abs/2604.27382v2",
+          "authors": [
+            "Aayush Gautam",
+            "Juan P. Farias",
+            "Jonathan C. Tan"
+          ],
+          "year": 2026,
+          "page": 3,
+          "section_header": "**2.2 Clustering around Massive Stars**",
+          "content_kind": "text",
+          "chunk_index": 17,
+          "score": 0.39285713,
+          "rerank_score": null,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        },
+        {
+          "id": "f7e41359-0c82-557f-b5cf-9a0e99903c3d",
+          "text": "velocity dispersion gathered more companions than those in clusters with a higher stellar velocity dispersion. This is because the lower velocity dispersion enhances the gravitational focusing experienced by a potential companion star during the encounter with the massive star and its bound multiple system. This means that captures are favored over disruptions in lower velocity dispersion environments. In higher velocity dispersion environments, the captures become harder because encounters are more energetic on average. Therefore, \n\nthe extent of bound systems is determined by the stellar velocity dispersion and number density of the star cluster environment. \n\nThe time evolution of stellar velocity dispersion and number density of systems in the bound cluster means that the bound systems around massive stars evolve with time. In early stages of formation when new stars are being formed and number densities are high, the bound systems build up. However, once the star cluster expands after gas removal and the number densities fall, bound systems lose members due to dynamical encounters and/or stripping of weakly bound members by the rest of the star cluster. These stripped companions would become part of the field star population that remains bound to the star cluster. \n\nDuring our analysis, we identified ejected stars that were unbound from their star cluster. They comprised around 1-30% of the primary massive star population at _𝑡_ = 3.0 Myr, depending on the model. These stars could have become unbound during the phase of cluster expansion after loss of gas potential. In addition, some stars might have been ejected through three-body encounters in the crowded region of the cluster or during the chaotic breakup of non-hierarchical multiple systems (Poveda et al. 1967; Anosova 1986; Reipurth et al. 2010, 2026), in the dynamical ejection scenario (DES). Some stars might have received supernova kicks at the end of stellar evolution, either as single stars or part of a binary system, in the binary supernova (BSS) scenario (Blaauw 1961; Dinçel et al. 2025). Carretero-Castrillo et al. \n\nMNRAS **000** , 1–23 (2026)",
+          "collection": "arxiv_papers_v2",
+          "build_id": "af2f232a-fb03-5f6b-8a63-c25c702ec8d2",
+          "paper_id": "d9257f93-05c9-5a20-831a-66b64cb6bb20",
+          "title": "Star cluster formation from turbulent clumps. V. Stellar clustering around massive stars",
+          "arxiv_id": "2604.27382",
+          "paper_version": 2,
+          "source_url": "https://arxiv.org/abs/2604.27382v2",
+          "authors": [
+            "Aayush Gautam",
+            "Juan P. Farias",
+            "Jonathan C. Tan"
+          ],
+          "year": 2026,
+          "page": 20,
+          "section_header": "**4.1 Massive stars in the environment of a star cluster**",
+          "content_kind": "text",
+          "chunk_index": 84,
+          "score": 0.39215687,
+          "rerank_score": null,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        },
+        {
+          "id": "196dccb2-68d9-550d-9f70-f2ae67c9ffaa",
+          "text": "_Stellar clustering around massive stars_ 15 \n\n**==> picture [507 x 407] intentionally omitted <==**\n\n**Figure 9.** Each panel shows the time evolution of projected stellar density profiles (⟨ _𝑁★_ ( _𝑟_ )⟩) around massive stars in simulated clusters for the fiducial ( _𝜖_ ff = 0.03) case in low cloud mass surface density (Σcloud = 0 _._ 1 g cm[−][2] ) sets. The rows show M300L, M3000L and M30000L models, respectively. The columns show the results considering companions with masses above 0 _._ 01 _𝑀_ ⊙, 0 _._ 1 _𝑀_ ⊙ and 1 _._ 0 _𝑀_ ⊙, respectively. In every panel, each line represents averaged values of projected stellar density around _central_ stars in the 10 _𝑀_ ⊙ to 20 _𝑀_ ⊙ mass range at the given cluster age, across multiple realizations for that model. The errorbars represent the standard errors. The shaded region represents the standard deviation for the _𝑡_ = 3.0 Myr profile. We find that the projected stellar density profile around a massive star rises during ongoing star formation, reaches a maximum before gas expulsion, and declines as the star cluster expands following gas removal. \n\nalso include the cases of _𝑀_ comp ≥ 0 _._ 01 _𝑀_ ⊙ and _𝑀_ comp ≥ 1 _._ 0 _𝑀_ ⊙ in Table 3. ",
+          "collection": "arxiv_papers_v2",
+          "build_id": "af2f232a-fb03-5f6b-8a63-c25c702ec8d2",
+          "paper_id": "d9257f93-05c9-5a20-831a-66b64cb6bb20",
+          "title": "Star cluster formation from turbulent clumps. V. Stellar clustering around massive stars",
+          "arxiv_id": "2604.27382",
+          "paper_version": 2,
+          "source_url": "https://arxiv.org/abs/2604.27382v2",
+          "authors": [
+            "Aayush Gautam",
+            "Juan P. Farias",
+            "Jonathan C. Tan"
+          ],
+          "year": 2026,
+          "page": 15,
+          "section_header": "_3.4.1 Comparison of high-mass star formation models_",
+          "content_kind": "text",
+          "chunk_index": 61,
+          "score": 0.25,
+          "rerank_score": null,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        },
+        {
+          "id": "dd54df96-ac7f-5c67-91b0-5d956ba6826c",
+          "text": "To compare our projected stellar density profiles with observations in section 3.4.1, we considered _central_ massive stars in the mass range from 10 to 20 _𝑀_ ⊙. Then, we constructed projected stellar density profiles around these stars at different cluster ages to study their time evolution as the cluster is formed. Figures 9 and 10 show time evolution of ⟨ _𝑁★_ ⟩ profiles for different _𝑀_ cl models (rows) in low and high Σcloud cases, respectively. These profiles include all bound and unbound companions around the massive stars. To reproduce the effect of observational detection limits, we vary the companion mass threshold between _𝑀_ comp ≥ 0 _._ 01 _𝑀_ ⊙, _𝑀_ comp ≥ 0 _._ 1 _𝑀_ ⊙ and _𝑀_ comp ≥ 1 _._ 0 _𝑀_ ⊙ across the columns. In the rows, we compare different _𝑀_ cl models for the fiducial _𝜖_ ff = 0.03 case. \n\nLet us consider the first column in each figure. We find that across each model, the ⟨ _𝑁★_ ⟩ profile around _𝑡_ = 0.5 Myr starts at a baseline level determined by the mass (hence, number of stars formed) \n\nMNRAS **000** , 1–23 (2026)",
+          "collection": "arxiv_papers_v2",
+          "build_id": "af2f232a-fb03-5f6b-8a63-c25c702ec8d2",
+          "paper_id": "d9257f93-05c9-5a20-831a-66b64cb6bb20",
+          "title": "Star cluster formation from turbulent clumps. V. Stellar clustering around massive stars",
+          "arxiv_id": "2604.27382",
+          "paper_version": 2,
+          "source_url": "https://arxiv.org/abs/2604.27382v2",
+          "authors": [
+            "Aayush Gautam",
+            "Juan P. Farias",
+            "Jonathan C. Tan"
+          ],
+          "year": 2026,
+          "page": 9,
+          "section_header": "**3.3 Evolution of projected stellar density profiles**",
+          "content_kind": "text",
+          "chunk_index": 50,
+          "score": 0.21428572,
+          "rerank_score": null,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        },
+        {
+          "id": "8e2157a4-10d5-561e-aead-a39a51ce8d58",
+          "text": "_Stellar clustering around massive stars_ 11 \n\n**==> picture [482 x 594] intentionally omitted <==**\n\n**Figure 5.** Comparison between different ( _𝑀_ cl,Σcloud, _𝜖_ ff ) models showing how ⟨ _𝑁_ bound ⟩ around _central_ stars (left column) and _offset_ stars (right column) is affected by the stellar velocity dispersion ( _𝜎_ S) and stellar number density ( _𝑛_ S _,_ b) within their respective radial regions in the bound star cluster. The first and second rows show ⟨ _𝑁_ bound ⟩ for each model versus the corresponding _𝜎_ S and _𝑛_ S _,_ b, respectively, at a cluster age of _𝑡_ = 3.0 Myr. The gray lines show the standard errors on the means calculated from the multiple realizations ( _𝑁_ sims) of each model. In the third row, a scatter plot of _𝜎_ S and _𝑛_ S _,_ b for each ( _𝑀_ cl, Σcloud) model is color-coded by the value of ⟨ _𝑁_ bound ⟩ for that model. The colorbar shows the range of ⟨ _𝑁_ bound ⟩. We find that in star clusters with lower velocity dispersion and higher stellar densities, massive stars will gather more bound companions. \n\nMNRAS **000** , 1–23 (2026)",
+          "collection": "arxiv_papers_v2",
+          "build_id": "af2f232a-fb03-5f6b-8a63-c25c702ec8d2",
+          "paper_id": "d9257f93-05c9-5a20-831a-66b64cb6bb20",
+          "title": "Star cluster formation from turbulent clumps. V. Stellar clustering around massive stars",
+          "arxiv_id": "2604.27382",
+          "paper_version": 2,
+          "source_url": "https://arxiv.org/abs/2604.27382v2",
+          "authors": [
+            "Aayush Gautam",
+            "Juan P. Farias",
+            "Jonathan C. Tan"
+          ],
+          "year": 2026,
+          "page": 11,
+          "section_header": "_3.4.1 Comparison of high-mass star formation models_",
+          "content_kind": "text",
+          "chunk_index": 56,
+          "score": 0.21111111,
+          "rerank_score": null,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        }
+      ],
+      "claims": [
+        {
+          "text": "The Rapid Growth paper reports sustained stellar disruption (dTDE) mass-supply rates of approximately (1–3) × 10^-3 M⊙ yr^-1.",
+          "cited_context_ids": [
+            "52a69f9f-96e8-5e4b-a695-61e27a993b5e"
+          ],
+          "need_ids": [
+            "r1"
+          ]
+        },
+        {
+          "text": "The Rapid Growth paper defines an inner accretion radius R_dTDE = 10^-4 pc as its fiducial operational criterion for counting a dTDE candidate.",
+          "cited_context_ids": [
+            "01652764-5579-5e15-bdc0-73b31dbba250"
+          ],
+          "need_ids": [
+            "r1"
+          ]
+        },
+        {
+          "text": "The Rapid Growth paper tested a smaller inner accretion radius (R_dTDE = 5 × 10^-5 pc) and found the resulting disruption rates to be nearly identical, concluding the measured dTDE rate is insensitive to this choice of R_dTDE.",
+          "cited_context_ids": [
+            "0afd0c19-e87d-5328-8167-bfef28b8f5c9",
+            "01652764-5579-5e15-bdc0-73b31dbba250"
+          ],
+          "need_ids": [
+            "r1"
+          ]
+        },
+        {
+          "text": "The Rapid Growth paper’s figures include model variants labeled with different disk outer-radius settings (e.g., 'Rout = Rsg' and 'Rout = 3Rsg') alongside different R_dTDE values, indicating the authors ran cases with different Rout choices.",
+          "cited_context_ids": [
+            "52a69f9f-96e8-5e4b-a695-61e27a993b5e"
+          ],
+          "need_ids": [
+            "r1"
+          ]
+        },
+        {
+          "text": "The Star cluster formation paper computes average numbers of bound companions ⟨N_bound⟩ around massive stars for multiple companion-mass thresholds (M_comp ≥ 0.01 M⊙, 0.1 M⊙, 1.0 M⊙) and reports these as functions of cluster model and star subset (central, offset, ejected).",
+          "cited_context_ids": [
+            "d3329fd8-438e-5caf-b2b2-8f5fe3158e73",
+            "dd54df96-ac7f-5c67-91b0-5d956ba6826c"
+          ],
+          "need_ids": [
+            "r2"
+          ]
+        },
+        {
+          "text": "The Star cluster formation paper constructs time-evolving projected stellar-density profiles ⟨N★(r)⟩ around central massive stars (10–20 M⊙) across cluster ages and reports errorbars/standard deviations for these profiles.",
+          "cited_context_ids": [
+            "196dccb2-68d9-550d-9f70-f2ae67c9ffaa"
+          ],
+          "need_ids": [
+            "r2"
+          ]
+        },
+        {
+          "text": "The Star cluster formation paper reports that ⟨N_bound⟩ is tabulated and compared across cluster models (varying M_cl and Σ_cloud) and that lower stellar velocity dispersion and higher stellar density lead to larger ⟨N_bound⟩ around massive stars.",
+          "cited_context_ids": [
+            "d3329fd8-438e-5caf-b2b2-8f5fe3158e73",
+            "f7e41359-0c82-557f-b5cf-9a0e99903c3d"
+          ],
+          "need_ids": [
+            "r2"
+          ]
+        },
+        {
+          "text": "Synthesis proposal (supported): Projected stellar-density profiles ⟨N★(r)⟩ and the measured ⟨N_bound⟩ from the Star cluster paper can be used to constrain the local stellar reservoir and its mass function near a massive object; these constraints would directly test the Rapid Growth paper’s assumption that a collisional cluster can supply stars onto disk-crossing orbits and sustain the reported dTDE mass-supply rate ((1–3) × 10^-3 M⊙ yr^-1).",
+          "cited_context_ids": [
+            "196dccb2-68d9-550d-9f70-f2ae67c9ffaa",
+            "52a69f9f-96e8-5e4b-a695-61e27a993b5e",
+            "01652764-5579-5e15-bdc0-73b31dbba250"
+          ],
+          "need_ids": [
+            "r3"
+          ]
+        },
+        {
+          "text": "Synthesis proposal (supported): The Star cluster paper’s bound-companion catalogs produced by the snowballing algorithm (and their dependence on companion-mass thresholds M_comp ≥ 0.01, 0.1, 1.0 M⊙) could be compared to the Rapid Growth model’s required supply of disk-crossing stars (which the Rapid Growth paper notes must be 'supplied to disk-crossing orbits by the collisional cluster') to test whether realistic companion counts and mass distributions provide sufficient replenishment.",
+          "cited_context_ids": [
+            "cd915036-85be-5761-a546-acb4e23fbbcb",
+            "d3329fd8-438e-5caf-b2b2-8f5fe3158e73",
+            "01652764-5579-5e15-bdc0-73b31dbba250"
+          ],
+          "need_ids": [
+            "r3"
+          ]
+        },
+        {
+          "text": "Synthesis proposal (supported): The Star cluster paper’s demonstrated sensitivity of ⟨N_bound⟩ to cluster velocity dispersion and density implies one can test Rapid Growth’s assumption about long-term replenishment by mapping those cluster environmental parameters (σ_S and n_S,b) onto the Rapid Growth required replenishment rate; if cluster models yield low ⟨N_bound⟩ or low inner projected densities, they would necessitate revising the Rapid Growth dTDE-driven growth expectation.",
+          "cited_context_ids": [
+            "8e2157a4-10d5-561e-aead-a39a51ce8d58",
+            "52a69f9f-96e8-5e4b-a695-61e27a993b5e"
+          ],
+          "need_ids": [
+            "r3"
+          ]
+        }
+      ],
+      "cited_context_ids": [
+        "01652764-5579-5e15-bdc0-73b31dbba250",
+        "0afd0c19-e87d-5328-8167-bfef28b8f5c9",
+        "196dccb2-68d9-550d-9f70-f2ae67c9ffaa",
+        "52a69f9f-96e8-5e4b-a695-61e27a993b5e",
+        "8e2157a4-10d5-561e-aead-a39a51ce8d58",
+        "cd915036-85be-5761-a546-acb4e23fbbcb",
+        "d3329fd8-438e-5caf-b2b2-8f5fe3158e73",
+        "dd54df96-ac7f-5c67-91b0-5d956ba6826c",
+        "f7e41359-0c82-557f-b5cf-9a0e99903c3d"
+      ],
+      "metrics": {
+        "retrieval_hit": 1.0,
+        "retrieval_recall": 0.25,
+        "gold_citation_recall": 0.25,
+        "citation_from_retrieval": 1.0,
+        "retrieved_count": 16,
+        "cited_count": 9,
+        "required_paper_count": 2,
+        "retrieved_required_paper_count": 2,
+        "cited_required_paper_count": 2,
+        "required_paper_retrieval_recall": 1.0,
+        "required_paper_citation_recall": 1.0,
+        "all_required_papers_retrieved": 1.0,
+        "answer_correctness": 0.5,
+        "groundedness": 1.0,
+        "answer_relevance": 1.0,
+        "correct_abstention": null
+      },
+      "judge": {
+        "correctness": 0.5,
+        "answer_relevance": 1.0,
+        "abstention": "not_applicable",
+        "reason": "Reference assessment: The actual answer includes the correct main dTDE mass-supply range and correctly reports weak sensitivity to R_out with the specific numbers for Rout=R_sg vs 3R_sg present in the reference, but it omitted the explicit numeric pair (~8e-4 to ~6e-4 M⊙ yr^-1) when discussing Rout dependence (the answer stated only weak dependence and listed Rout variants). The second part correctly lists applicable simulation/analysis capabilities from the clustering paper and provides a reasonable synthesis mapping those capabilities to testing Rapid Growth assumptions. Some specific numeric detail about Rout sensitivity from the reference is missing in the answer, causing partial correctness. Grounding assessment: Each atomic claim cites and quotes text from the respective paper(s) that directly supports the claim's wording (Rapid Growth for dTDE rates, R_dTDE and Rout labels; Star cluster paper for ⟨N_bound⟩, projected density profiles, snowballing method, and sensitivity to cluster parameters). Where a named method attribution was not part of the answer claims, no method entries are required. All claims are supported by their provided evidence excerpts.",
+        "answer_checks": [
+          {
+            "question_part_id": "q_1",
+            "requested_fact": "dTDE mass-supply rate (numeric)",
+            "status": "answered",
+            "required_numeric_values": [
+              "0.001",
+              "0.003"
+            ],
+            "missing_or_incorrect_detail": "",
+            "deficit_basis": "none",
+            "claimed_missing_answer_fragments": [],
+            "answer_claim_ids": [
+              "a0001"
+            ],
+            "answer_quotes": [
+              "The Rapid Growth paper reports sustained stellar disruption (dTDE) mass-supply rates of approximately (1–3) × 10^-3 M⊙ yr^-1."
+            ]
+          },
+          {
+            "question_part_id": "q_1",
+            "requested_fact": "sensitivity to disk outer radius (concrete numeric change Rout=R_sg to 3R_sg)",
+            "status": "partial",
+            "required_numeric_values": [
+              "0.0008",
+              "0.0006"
+            ],
+            "missing_or_incorrect_detail": "Reference gives a specific decrease from ~8×10^-4 to ~6×10^-4 M⊙ yr^-1 when extending Rout from R_sg to 3R_sg; the answer mentioned Rout variants and claimed weak dependence but did not give the numeric pair ~8×10^-4 and ~6×10^-4 M⊙ yr^-1.",
+            "deficit_basis": "missing_content",
+            "claimed_missing_answer_fragments": [
+              "from ~8×10^-4 to ~6×10^-4 M⊙ yr^-1"
+            ],
+            "answer_claim_ids": [
+              "a0007"
+            ],
+            "answer_quotes": [
+              "The Rapid Growth paper’s figures include model variants labeled with different disk outer-radius settings (e.g., 'Rout = Rsg' and 'Rout = 3Rsg') alongside different R_dTDE values, indicating the authors ran cases with different Rout choices."
+            ]
+          },
+          {
+            "question_part_id": "q_2",
+            "requested_fact": "N-body models, bound-system identification, projected stellar density profiles (capabilities)",
+            "status": "answered",
+            "required_numeric_values": [],
+            "missing_or_incorrect_detail": "",
+            "deficit_basis": "none",
+            "claimed_missing_answer_fragments": [],
+            "answer_claim_ids": [
+              "a0008",
+              "a0010",
+              "a0007"
+            ],
+            "answer_quotes": [
+              "The Star cluster formation paper computes average numbers of bound companions ⟨N_bound⟩ around massive stars for multiple companion-mass thresholds (M_comp ≥ 0.01 M⊙, 0.1 M⊙, 1.0 M⊙) and reports these as functions of cluster model and star subset (central, offset, ejected).",
+              "The Star cluster formation paper constructs time-evolving projected stellar-density profiles ⟨N★(r)⟩ around central massive stars (10–20 M⊙) across cluster ages and reports errorbars/standard deviations for these profiles.",
+              "The Rapid Growth paper’s figures include model variants labeled with different disk outer-radius settings (e.g., 'Rout = Rsg' and 'Rout = 3Rsg') alongside different R_dTDE values, indicating the authors ran cases with different Rout choices."
+            ]
+          },
+          {
+            "question_part_id": "q_2",
+            "requested_fact": "Explicit synthesis requiring supported facts from both papers (use clustering outputs to test Rapid Growth feeding assumptions)",
+            "status": "answered",
+            "required_numeric_values": [],
+            "missing_or_incorrect_detail": "",
+            "deficit_basis": "none",
+            "claimed_missing_answer_fragments": [],
+            "answer_claim_ids": [
+              "a0014",
+              "a0016",
+              "a0018"
+            ],
+            "answer_quotes": [
+              "Synthesis proposal (supported): Projected stellar-density profiles ⟨N★(r)⟩ and the measured ⟨N_bound⟩ from the Star cluster paper can be used to constrain the local stellar reservoir and its mass function near a massive object; these constraints would directly test the Rapid Growth paper’s assumption that a collisional cluster can supply stars onto disk-crossing orbits and sustain the reported dTDE mass-supply rate ((1–3) × 10^-3 M⊙ yr^-1).",
+              "Synthesis proposal (supported): The Star cluster paper’s bound-companion catalogs produced by the snowballing algorithm (and their dependence on companion-mass thresholds M_comp ≥ 0.01, 0.1, 1.0 M⊙) could be compared to the Rapid Growth model’s required supply of disk-crossing stars (which the Rapid Growth paper notes must be 'supplied to disk-crossing orbits by the collisional cluster') to test whether realistic companion counts and mass distributions provide sufficient replenishment.",
+              "Synthesis proposal (supported): The Star cluster paper’s demonstrated sensitivity of ⟨N_bound⟩ to cluster velocity dispersion and density implies one can test Rapid Growth’s assumption about long-term replenishment by mapping those cluster environmental parameters (σ_S and n_S,b) onto the Rapid Growth required replenishment rate; if cluster models yield low ⟨N_bound⟩ or low inner projected densities, they would necessitate revising the Rapid Growth dTDE-driven growth expectation."
+            ]
+          }
+        ],
+        "answer_anchors": [
+          {
+            "id": "a0001",
+            "text": "The Rapid Growth paper reports sustained stellar disruption (dTDE) mass-supply rates of approximately (1–3) × 10^-3 M⊙ yr^-1.",
+            "source": "claim",
+            "claim_index": 0
+          },
+          {
+            "id": "a0002",
+            "text": " [1]",
+            "source": "answer_span",
+            "claim_index": null
+          },
+          {
+            "id": "a0003",
+            "text": "The Rapid Growth paper defines an inner accretion radius R_dTDE = 10^-4 pc as its fiducial operational criterion for counting a dTDE candidate.",
+            "source": "claim",
+            "claim_index": 1
+          },
+          {
+            "id": "a0004",
+            "text": " [2]",
+            "source": "answer_span",
+            "claim_index": null
+          },
+          {
+            "id": "a0005",
+            "text": "The Rapid Growth paper tested a smaller inner accretion radius (R_dTDE = 5 × 10^-5 pc) and found the resulting disruption rates to be nearly identical, concluding the measured dTDE rate is insensitive to this choice of R_dTDE.",
+            "source": "claim",
+            "claim_index": 2
+          },
+          {
+            "id": "a0006",
+            "text": " [2] [3]",
+            "source": "answer_span",
+            "claim_index": null
+          },
+          {
+            "id": "a0007",
+            "text": "The Rapid Growth paper’s figures include model variants labeled with different disk outer-radius settings (e.g., 'Rout = Rsg' and 'Rout = 3Rsg') alongside different R_dTDE values, indicating the authors ran cases with different Rout choices.",
+            "source": "claim",
+            "claim_index": 3
+          },
+          {
+            "id": "a0008",
+            "text": "The Star cluster formation paper computes average numbers of bound companions ⟨N_bound⟩ around massive stars for multiple companion-mass thresholds (M_comp ≥ 0.01 M⊙, 0.1 M⊙, 1.0 M⊙) and reports these as functions of cluster model and star subset (central, offset, ejected).",
+            "source": "claim",
+            "claim_index": 4
+          },
+          {
+            "id": "a0009",
+            "text": " [4]",
+            "source": "answer_span",
+            "claim_index": null
+          },
+          {
+            "id": "a0010",
+            "text": "The Star cluster formation paper constructs time-evolving projected stellar-density profiles ⟨N★(r)⟩ around central massive stars (10–20 M⊙) across cluster ages and reports errorbars/standard deviations for these profiles.",
+            "source": "claim",
+            "claim_index": 5
+          },
+          {
+            "id": "a0011",
+            "text": " [5]",
+            "source": "answer_span",
+            "claim_index": null
+          },
+          {
+            "id": "a0012",
+            "text": "The Star cluster formation paper reports that ⟨N_bound⟩ is tabulated and compared across cluster models (varying M_cl and Σ_cloud) and that lower stellar velocity dispersion and higher stellar density lead to larger ⟨N_bound⟩ around massive stars.",
+            "source": "claim",
+            "claim_index": 6
+          },
+          {
+            "id": "a0013",
+            "text": " [4] [6]",
+            "source": "answer_span",
+            "claim_index": null
+          },
+          {
+            "id": "a0014",
+            "text": "Synthesis proposal (supported): Projected stellar-density profiles ⟨N★(r)⟩ and the measured ⟨N_bound⟩ from the Star cluster paper can be used to constrain the local stellar reservoir and its mass function near a massive object; these constraints would directly test the Rapid Growth paper’s assumption that a collisional cluster can supply stars onto disk-crossing orbits and sustain the reported dTDE mass-supply rate ((1–3) × 10^-3 M⊙ yr^-1).",
+            "source": "claim",
+            "claim_index": 7
+          },
+          {
+            "id": "a0015",
+            "text": " [1] [2] [5]",
+            "source": "answer_span",
+            "claim_index": null
+          },
+          {
+            "id": "a0016",
+            "text": "Synthesis proposal (supported): The Star cluster paper’s bound-companion catalogs produced by the snowballing algorithm (and their dependence on companion-mass thresholds M_comp ≥ 0.01, 0.1, 1.0 M⊙) could be compared to the Rapid Growth model’s required supply of disk-crossing stars (which the Rapid Growth paper notes must be 'supplied to disk-crossing orbits by the collisional cluster') to test whether realistic companion counts and mass distributions provide sufficient replenishment.",
+            "source": "claim",
+            "claim_index": 8
+          },
+          {
+            "id": "a0017",
+            "text": " [2] [4] [7]",
+            "source": "answer_span",
+            "claim_index": null
+          },
+          {
+            "id": "a0018",
+            "text": "Synthesis proposal (supported): The Star cluster paper’s demonstrated sensitivity of ⟨N_bound⟩ to cluster velocity dispersion and density implies one can test Rapid Growth’s assumption about long-term replenishment by mapping those cluster environmental parameters (σ_S and n_S,b) onto the Rapid Growth required replenishment rate; if cluster models yield low ⟨N_bound⟩ or low inner projected densities, they would necessitate revising the Rapid Growth dTDE-driven growth expectation.",
+            "source": "claim",
+            "claim_index": 9
+          },
+          {
+            "id": "a0019",
+            "text": " [1] [8]",
+            "source": "answer_span",
+            "claim_index": null
+          },
+          {
+            "id": "a0020",
+            "text": "I could not verify these requested details from the retrieved evidence:",
+            "source": "answer_span",
+            "claim_index": null
+          },
+          {
+            "id": "a0021",
+            "text": "- Some essential answer support could not be verified.",
+            "source": "answer_span",
+            "claim_index": null
+          }
+        ],
+        "reference_score_status": "scored",
+        "groundedness": 1.0
+      },
+      "judge_request": {
+        "reference": {
+          "response_id": "resp_0c352cddf2a6c26f016ac686ca873087d2ae23bc2dbdd68171",
+          "response_ids": [
+            "resp_0c352cddf2a6c26f016ac686ca873087d2ae23bc2dbdd68171"
+          ],
+          "attempts": 1,
+          "quote_validation_failures": [],
+          "schema_validation_failures": [],
+          "consistency_validation_failures": [],
+          "consistency_status": "no_detected_conflict",
+          "raw_correctness": 0.5,
+          "score_status": "scored",
+          "answer_anchor_mode": "claim_ids",
+          "request_id": "req_a156c435787945dcbf3e3137c65d6adb",
+          "model": "gpt-5-mini-2025-08-07",
+          "max_output_tokens": 16384,
+          "usage": {
+            "input_tokens": 6343,
+            "output_tokens": 706,
+            "total_tokens": 7049
+          }
+        },
+        "grounding": {
+          "response_id": "resp_0b088edc3917d835016ac686d0d33c87d2bc571c43383ac0bb",
+          "response_ids": [
+            "resp_0b088edc3917d835016ac686d0d33c87d2bc571c43383ac0bb"
+          ],
+          "attempts": 1,
+          "quote_validation_failures": [],
+          "schema_validation_failures": [],
+          "consistency_validation_failures": [],
+          "consistency_status": "no_detected_conflict",
+          "raw_correctness": null,
+          "score_status": "scored",
+          "answer_anchor_mode": "claim_ids",
+          "request_id": "req_0d8b16d1acd8493d97a03fd96bbb1621",
+          "model": "gpt-5-mini-2025-08-07",
+          "max_output_tokens": 16384,
+          "usage": {
+            "input_tokens": 11468,
+            "output_tokens": 404,
+            "total_tokens": 11872
+          },
+          "method_attributions": [
+            {
+              "applicability": "not_applicable",
+              "answer_claim_id": "a0001",
+              "claim_index": 0
+            },
+            {
+              "applicability": "not_applicable",
+              "answer_claim_id": "a0002",
+              "claim_index": 1
+            },
+            {
+              "applicability": "not_applicable",
+              "answer_claim_id": "a0003",
+              "claim_index": 2
+            },
+            {
+              "applicability": "not_applicable",
+              "answer_claim_id": "a0004",
+              "claim_index": 3
+            },
+            {
+              "applicability": "not_applicable",
+              "answer_claim_id": "a0005",
+              "claim_index": 4
+            },
+            {
+              "applicability": "not_applicable",
+              "answer_claim_id": "a0006",
+              "claim_index": 5
+            },
+            {
+              "applicability": "not_applicable",
+              "answer_claim_id": "a0007",
+              "claim_index": 6
+            },
+            {
+              "applicability": "not_applicable",
+              "answer_claim_id": "a0008",
+              "claim_index": 7
+            },
+            {
+              "applicability": "not_applicable",
+              "answer_claim_id": "a0009",
+              "claim_index": 8
+            },
+            {
+              "applicability": "not_applicable",
+              "answer_claim_id": "a0010",
+              "claim_index": 9
+            }
+          ],
+          "claim_anchors": [
+            {
+              "id": "a0001",
+              "claim_index": 0
+            },
+            {
+              "id": "a0002",
+              "claim_index": 1
+            },
+            {
+              "id": "a0003",
+              "claim_index": 2
+            },
+            {
+              "id": "a0004",
+              "claim_index": 3
+            },
+            {
+              "id": "a0005",
+              "claim_index": 4
+            },
+            {
+              "id": "a0006",
+              "claim_index": 5
+            },
+            {
+              "id": "a0007",
+              "claim_index": 6
+            },
+            {
+              "id": "a0008",
+              "claim_index": 7
+            },
+            {
+              "id": "a0009",
+              "claim_index": 8
+            },
+            {
+              "id": "a0010",
+              "claim_index": 9
+            }
+          ],
+          "annotation_validation_failures": [],
+          "method_validation_failures": [],
+          "method_scope_issues": [],
+          "raw_groundedness": 1.0
+        }
+      },
+      "judge_error": null,
+      "judge_safeguards": [
+        {
+          "metric": "correctness",
+          "from": 0.5,
+          "to": 0.5,
+          "reason": "reference_assessment_not_answer_anchored",
+          "checks": [
+            {
+              "check_index": 1,
+              "status": "partial",
+              "invalid_quote_count": 0,
+              "missing_numeric_values": [
+                "0.0008",
+                "0.0006"
+              ]
+            }
+          ]
+        }
+      ],
+      "agent_execution": {
+        "question_scope": "cross_paper",
+        "plan_summary": "r1 (from Rapid Growth paper, build e920f838...): The paper reports sustained dTDE-driven mass supply rates of ≈ (1–3) × 10⁻³ M⊙ yr⁻¹. They adopt a fiducial inner accretion (dTDE) radius R_dTDE = 10⁻⁴ pc and explicitly test sensitivity: a run with R_dTDE = 5×10⁻⁵ pc gives nearly identical disruption rates, so the reported dTDE rates are insensitive to the specific choice of R_dTDE (within that tested factor-of-two range). (Support: Sec. 3.3 text and Conclusions.)\n\nr2 (from Star cluster formation",
+        "stop_reason": "sufficient",
+        "synthesis_policy": "model_finish",
+        "rounds": 1,
+        "tool_calls": 2,
+        "evidence_count": 16,
+        "required_paper_count": 2,
+        "covered_required_paper_count": 2,
+        "missing_required_build_ids": [],
+        "required_evidence_need_count": 2,
+        "covered_evidence_need_count": 2,
+        "missing_evidence_need_ids": [],
+        "planner_tokens": 14139,
+        "next_call_estimated_tokens": null,
+        "planner_context_compactions": 0,
+        "requirement_correction_attempts": 0,
+        "requirement_validation_failures": [],
+        "elapsed_seconds": 19.807,
+        "actions": [
+          {
+            "action_id": "initial_1",
+            "need_id": "r1",
+            "need_ids": [
+              "r1"
+            ],
+            "tool": "search_chunks",
+            "query": "disk-induced tidal disruption mass supply rate disk outer radius dependence Rapid Growth IMBH dTDE rate outer radius sensitivity",
+            "status": "success",
+            "result_count": 8,
+            "evidence_ids": [
+              "6e59e4e6-9125-5403-8029-ad3ad678b469",
+              "01652764-5579-5e15-bdc0-73b31dbba250",
+              "7ca42b7e-c620-5183-a10f-752ad3235b96",
+              "1e48a53d-f5fe-5835-8ccf-4eea12961e39",
+              "0afd0c19-e87d-5328-8167-bfef28b8f5c9",
+              "6316174c-3df6-5213-9eb4-c613815e75a6",
+              "72875e9d-90f7-5749-b1b5-e73c19a42ac9",
+              "52a69f9f-96e8-5e4b-a695-61e27a993b5e"
+            ],
+            "paper_ids": [
+              "b1a3e358-8f14-5abc-8158-1091a82a0502"
+            ],
+            "error_type": null
+          },
+          {
+            "action_id": "initial_2",
+            "need_id": "r2",
+            "need_ids": [
+              "r2"
+            ],
+            "tool": "search_chunks",
+            "query": "stellar clustering bound companion simulation outputs resolved densities bound fraction clustering diagnostics Star cluster formation V capabilities mass ranges time resolution",
+            "status": "success",
+            "result_count": 8,
+            "evidence_ids": [
+              "d3329fd8-438e-5caf-b2b2-8f5fe3158e73",
+              "4a856248-8b2d-5996-ba01-91d03ef1a0ad",
+              "fc9d9d17-f4a8-5333-9a73-88936a819532",
+              "cd915036-85be-5761-a546-acb4e23fbbcb",
+              "f7e41359-0c82-557f-b5cf-9a0e99903c3d",
+              "196dccb2-68d9-550d-9f70-f2ae67c9ffaa",
+              "dd54df96-ac7f-5c67-91b0-5d956ba6826c",
+              "8e2157a4-10d5-561e-aead-a39a51ce8d58"
+            ],
+            "paper_ids": [
+              "d9257f93-05c9-5a20-831a-66b64cb6bb20"
+            ],
+            "error_type": null
+          }
+        ],
+        "requirements": [
+          {
+            "id": "r1",
+            "description": "Report the concrete disk-induced tidal disruption event (dTDE) stellar mass supply rate (units Msun/yr or yr^-1 as given) and the sensitivity of that rate to the disk outer radius (including numeric dependence, quoted scaling, or reported percentage/change for specified radius variations) as reported in 'Rapid Growth of Intermediate-Mass Black Holes through Disk-induced Stellar Disruptions' (required_build_id=e920f838-bca1-5fc9-88a8-6fc76ba4274f).",
+            "kind": "fact"
+          },
+          {
+            "id": "r2",
+            "description": "List the simulation and analysis capabilities, outputs, or methods from 'Star cluster formation from turbulent clumps. V. Stellar clustering around massive stars' (required_build_id=af2f232a-fb03-5f6b-8a63-c25c702ec8d2) that could be used to test or refine assumptions about (a) the existence and profile of a stellar cusp near an IMBH, and (b) the bound companion population feeding the IMBH in the Rapid Growth paper. For each capability, cite the concrete outputs (e.g., resolved stellar densities, bound-fraction metrics, clustering diagnostics, time resolution, mass ranges) and any limits the paper reports.",
+            "kind": "fact"
+          },
+          {
+            "id": "r3",
+            "description": "Provide an explicit synthesis (comparison) that states how to combine the facts from the two papers to test or refine the Rapid Growth paper's assumptions: which measured outputs from the Star cluster simulations would constrain which specific parameters or assumptions in the Rapid Growth model (list pairings), and specify what observed/derived numerical thresholds or ranges from the Star cluster paper would confirm, refute, or necessitate modification of the Rapid Growth disk-fed IMBH growth rates.  This synthesis is a derivation-only task (no new numerical modeling), so mark it as synthesis_indices referencing the factual requirements above.",
+            "kind": "synthesis"
+          }
+        ],
+        "initial_searches": [
+          {
+            "query": "disk-induced tidal disruption mass supply rate disk outer radius dependence Rapid Growth IMBH dTDE rate outer radius sensitivity",
+            "requirement_indices": [
+              1
+            ],
+            "retrieval_mode": "hybrid",
+            "build_ids": [
+              "e920f838-bca1-5fc9-88a8-6fc76ba4274f"
+            ],
+            "paper_ids": [],
+            "limit": 8
+          },
+          {
+            "query": "stellar clustering bound companion simulation outputs resolved densities bound fraction clustering diagnostics Star cluster formation V capabilities mass ranges time resolution",
+            "requirement_indices": [
+              2
+            ],
+            "retrieval_mode": "hybrid",
+            "build_ids": [
+              "af2f232a-fb03-5f6b-8a63-c25c702ec8d2"
+            ],
+            "paper_ids": [],
+            "limit": 8
+          }
+        ],
+        "max_parallel_tools": 4
+      },
+      "retrieval_diagnostics": null,
+      "generation_diagnostics": {
+        "status": "partial",
+        "reason": "incomplete_answer",
+        "attempts": 2,
+        "requirements": [
+          {
+            "requirement_id": "r1",
+            "description": "Report the concrete disk-induced tidal disruption event (dTDE) stellar mass supply rate (units Msun/yr or yr^-1 as given) and the sensitivity of that rate to the disk outer radius (including numeric dependence, quoted scaling, or reported percentage/change for specified radius variations) as reported in 'Rapid Growth of Intermediate-Mass Black Holes through Disk-induced Stellar Disruptions' (required_build_id=e920f838-bca1-5fc9-88a8-6fc76ba4274f).",
+            "status": "satisfied",
+            "feedback": "",
+            "claim_indices": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "essential_claim_indices": [
+              0,
+              1,
+              2
+            ],
+            "unsupported_claim_indices": [],
+            "invalid_essential_claim_indices": [],
+            "absent_claim_indices": [],
+            "missing_details": [],
+            "effect_status": "reported_effect",
+            "effect_claim_indices": [
+              0
+            ],
+            "effect_outcomes": [
+              {
+                "claim_index": 0,
+                "answer_claim_id": "a0001",
+                "answer_text": "The Rapid Growth paper reports sustained stellar disruption (dTDE) mass-supply rates of approximately (1–3) × 10^-3 M⊙ yr^-1.",
+                "reports_requested_outcome": true
+              }
+            ],
+            "annotation_validation_failures": [],
+            "coverage_issue": null
+          },
+          {
+            "requirement_id": "r2",
+            "description": "List the simulation and analysis capabilities, outputs, or methods from 'Star cluster formation from turbulent clumps. V. Stellar clustering around massive stars' (required_build_id=af2f232a-fb03-5f6b-8a63-c25c702ec8d2) that could be used to test or refine assumptions about (a) the existence and profile of a stellar cusp near an IMBH, and (b) the bound companion population feeding the IMBH in the Rapid Growth paper. For each capability, cite the concrete outputs (e.g., resolved stellar densities, bound-fraction metrics, clustering diagnostics, time resolution, mass ranges) and any limits the paper reports.",
+            "status": "partial",
+            "feedback": "Some essential answer support could not be verified.",
+            "claim_indices": [
+              4,
+              5,
+              6,
+              10
+            ],
+            "essential_claim_indices": [
+              4,
+              5,
+              10
+            ],
+            "unsupported_claim_indices": [
+              10
+            ],
+            "invalid_essential_claim_indices": [
+              10
+            ],
+            "absent_claim_indices": [],
+            "missing_details": [
+              "Some essential answer support could not be verified."
+            ]
+          },
+          {
+            "requirement_id": "r3",
+            "description": "Provide an explicit synthesis (comparison) that states how to combine the facts from the two papers to test or refine the Rapid Growth paper's assumptions: which measured outputs from the Star cluster simulations would constrain which specific parameters or assumptions in the Rapid Growth model (list pairings), and specify what observed/derived numerical thresholds or ranges from the Star cluster paper would confirm, refute, or necessitate modification of the Rapid Growth disk-fed IMBH growth rates.  This synthesis is a derivation-only task (no new numerical modeling), so mark it as synthesis_indices referencing the factual requirements above.",
+            "status": "satisfied",
+            "feedback": "",
+            "claim_indices": [
+              7,
+              8,
+              9
+            ],
+            "essential_claim_indices": [
+              7,
+              8
+            ],
+            "unsupported_claim_indices": [],
+            "invalid_essential_claim_indices": [],
+            "absent_claim_indices": [],
+            "missing_details": []
+          }
+        ],
+        "original_question_parts": [
+          {
+            "requirement_id": "q_1",
+            "description": "Original question part (1): What concrete dTDE mass supply rate and sensitivity to the disk outer radius does the Rapid Growth paper report",
+            "status": "satisfied",
+            "feedback": "",
+            "claim_indices": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "essential_claim_indices": [
+              0,
+              1,
+              2
+            ],
+            "unsupported_claim_indices": [],
+            "invalid_essential_claim_indices": [],
+            "absent_claim_indices": [],
+            "missing_details": [],
+            "effect_status": "reported_effect",
+            "effect_claim_indices": [
+              0
+            ],
+            "effect_outcomes": [
+              {
+                "claim_index": 0,
+                "answer_claim_id": "a0001",
+                "answer_text": "The Rapid Growth paper reports sustained stellar disruption (dTDE) mass-supply rates of approximately (1–3) × 10^-3 M⊙ yr^-1.",
+                "reports_requested_outcome": true
+              }
+            ],
+            "annotation_validation_failures": [],
+            "coverage_issue": null
+          },
+          {
+            "requirement_id": "q_2",
+            "description": "Original question part (2): What simulation/analysis capabilities from the Star cluster formation paper could be used to test or refine the assumptions about the stellar cusp and bound stellar populations feeding the IMBH in the Rapid Growth paper? Provide an explicit synthesis requiring supported facts from both papers",
+            "status": "partial",
+            "feedback": "Some essential answer support could not be verified.",
+            "claim_indices": [
+              4,
+              5,
+              6,
+              10,
+              7,
+              8,
+              9
+            ],
+            "essential_claim_indices": [
+              4,
+              5,
+              10
+            ],
+            "unsupported_claim_indices": [
+              10
+            ],
+            "invalid_essential_claim_indices": [
+              10
+            ],
+            "absent_claim_indices": [],
+            "missing_details": [
+              "Some essential answer support could not be verified."
+            ]
+          }
+        ],
+        "unplanned_requests": [],
+        "validation_attempts": [
+          {
+            "attempt": 1,
+            "rejected_claims": [
+              {
+                "claim_index": 6,
+                "text": "The Star cluster formation paper identifies bound companions using a snowballing algorithm (from Farias & Tan 2023), iteratively locating binaries, triples, etc., and thereby produces catalogs of bound systems and their membership.",
+                "code": "method_role_not_verified",
+                "feedback": "The method audit must quote the actual claim's named-method attribution, not an invented operation or wording from another claim.",
+                "cited_context_ids": [
+                  "cd915036-85be-5761-a546-acb4e23fbbcb"
+                ],
+                "need_ids": [],
+                "numeric_evidence": null
+              }
+            ],
+            "review_only": false,
+            "stage_timings": {
+              "draft_seconds": 17.155,
+              "verify_seconds": 20.397
+            },
+            "duplicate_claims_omitted": 0,
+            "answer_anchors": {
+              "a0001": {
+                "claim_index": 0,
+                "text": "The Rapid Growth paper reports sustained stellar disruption (dTDE) mass-supply rates of approximately (1–3) × 10^-3 M⊙ yr^-1."
+              },
+              "a0002": {
+                "claim_index": 1,
+                "text": "The Rapid Growth paper defines an inner accretion radius R_dTDE = 10^-4 pc as its fiducial operational criterion for counting a dTDE candidate."
+              },
+              "a0003": {
+                "claim_index": 2,
+                "text": "The Rapid Growth paper tested a smaller inner accretion radius (R_dTDE = 5 × 10^-5 pc) and found the resulting disruption rates to be nearly identical, concluding the measured dTDE rate is insensitive to this choice of R_dTDE."
+              },
+              "a0004": {
+                "claim_index": 3,
+                "text": "The Rapid Growth paper’s figures include model variants labeled with different disk outer-radius settings (e.g., 'Rout = Rsg' and 'Rout = 3Rsg') alongside different R_dTDE values, indicating the authors ran cases with different Rout choices."
+              },
+              "a0005": {
+                "claim_index": 4,
+                "text": "The Star cluster formation paper computes average numbers of bound companions ⟨N_bound⟩ around massive stars for multiple companion-mass thresholds (M_comp ≥ 0.01 M⊙, 0.1 M⊙, 1.0 M⊙) and reports these as functions of cluster model and star subset (central, offset, ejected)."
+              },
+              "a0006": {
+                "claim_index": 5,
+                "text": "The Star cluster formation paper constructs time-evolving projected stellar-density profiles ⟨N★(r)⟩ around central massive stars (10–20 M⊙) across cluster ages and reports errorbars/standard deviations for these profiles."
+              },
+              "a0007": {
+                "claim_index": 6,
+                "text": "The Star cluster formation paper identifies bound companions using a snowballing algorithm (from Farias & Tan 2023), iteratively locating binaries, triples, etc., and thereby produces catalogs of bound systems and their membership."
+              },
+              "a0008": {
+                "claim_index": 7,
+                "text": "The Star cluster formation paper reports that ⟨N_bound⟩ is tabulated and compared across cluster models (varying M_cl and Σ_cloud) and that lower stellar velocity dispersion and higher stellar density lead to larger ⟨N_bound⟩ around massive stars."
+              },
+              "a0009": {
+                "claim_index": 8,
+                "text": "Synthesis proposal (supported): Projected stellar-density profiles ⟨N★(r)⟩ and the measured ⟨N_bound⟩ from the Star cluster paper can be used to constrain the local stellar reservoir and its mass function near a massive object; these constraints would directly test the Rapid Growth paper’s assumption that a collisional cluster can supply stars onto disk-crossing orbits and sustain the reported dTDE mass-supply rate ((1–3) × 10^-3 M⊙ yr^-1)."
+              },
+              "a0010": {
+                "claim_index": 9,
+                "text": "Synthesis proposal (supported): The Star cluster paper’s bound-companion catalogs produced by the snowballing algorithm (and their dependence on companion-mass thresholds M_comp ≥ 0.01, 0.1, 1.0 M⊙) could be compared to the Rapid Growth model’s required supply of disk-crossing stars (which the Rapid Growth paper notes must be 'supplied to disk-crossing orbits by the collisional cluster') to test whether realistic companion counts and mass distributions provide sufficient replenishment."
+              },
+              "a0011": {
+                "claim_index": 10,
+                "text": "Synthesis proposal (supported): The Star cluster paper’s demonstrated sensitivity of ⟨N_bound⟩ to cluster velocity dispersion and density implies one can test Rapid Growth’s assumption about long-term replenishment by mapping those cluster environmental parameters (σ_S and n_S,b) onto the Rapid Growth required replenishment rate; if cluster models yield low ⟨N_bound⟩ or low inner projected densities, they would necessitate revising the Rapid Growth dTDE-driven growth expectation."
+              }
+            },
+            "method_attributions": [
+              {
+                "claim_index": 0,
+                "checks": [
+                  {
+                    "applicability": "not_applicable"
+                  }
+                ]
+              },
+              {
+                "claim_index": 1,
+                "checks": [
+                  {
+                    "applicability": "not_applicable"
+                  }
+                ]
+              },
+              {
+                "claim_index": 2,
+                "checks": [
+                  {
+                    "applicability": "not_applicable"
+                  }
+                ]
+              },
+              {
+                "claim_index": 3,
+                "checks": [
+                  {
+                    "applicability": "not_applicable"
+                  }
+                ]
+              },
+              {
+                "claim_index": 4,
+                "checks": [
+                  {
+                    "applicability": "not_applicable"
+                  }
+                ]
+              },
+              {
+                "claim_index": 5,
+                "checks": [
+                  {
+                    "applicability": "not_applicable"
+                  }
+                ]
+              },
+              {
+                "claim_index": 6,
+                "checks": [
+                  {
+                    "applicability": "reported_operation",
+                    "claim_quote": "identifies bound companions using a snowballing algorithm ... and thereby produces catalogs of bound systems and their membership.",
+                    "method": "snowballing algorithm",
+                    "claimed_operation": "identifies bound companions",
+                    "source_operation": "identify stars that are bound to the star cluster",
+                    "status": "matched",
+                    "evidence_quotes": [
+                      {
+                        "context_id": "cd915036-85be-5761-a546-acb4e23fbbcb",
+                        "quote": "we determine stars that are bound to the star cluster using a snowballing algorithm developed in Farias & Tan (2023)."
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "claim_index": 7,
+                "checks": [
+                  {
+                    "applicability": "not_applicable"
+                  }
+                ]
+              },
+              {
+                "claim_index": 8,
+                "checks": [
+                  {
+                    "applicability": "not_applicable"
+                  }
+                ]
+              },
+              {
+                "claim_index": 9,
+                "checks": [
+                  {
+                    "applicability": "not_applicable"
+                  }
+                ]
+              },
+              {
+                "claim_index": 10,
+                "checks": [
+                  {
+                    "applicability": "not_applicable"
+                  }
+                ]
+              }
+            ],
+            "method_scope_issues": [],
+            "annotation_validation_failures": [],
+            "requirements": [
+              {
+                "requirement_id": "r1",
+                "description": "Report the concrete disk-induced tidal disruption event (dTDE) stellar mass supply rate (units Msun/yr or yr^-1 as given) and the sensitivity of that rate to the disk outer radius (including numeric dependence, quoted scaling, or reported percentage/change for specified radius variations) as reported in 'Rapid Growth of Intermediate-Mass Black Holes through Disk-induced Stellar Disruptions' (required_build_id=e920f838-bca1-5fc9-88a8-6fc76ba4274f).",
+                "status": "satisfied",
+                "feedback": "",
+                "claim_indices": [
+                  0,
+                  1,
+                  2,
+                  3
+                ],
+                "essential_claim_indices": [
+                  0,
+                  1,
+                  2
+                ],
+                "unsupported_claim_indices": [],
+                "invalid_essential_claim_indices": [],
+                "absent_claim_indices": [],
+                "missing_details": [],
+                "effect_status": "reported_effect",
+                "effect_claim_indices": [
+                  0
+                ],
+                "effect_outcomes": [
+                  {
+                    "claim_index": 0,
+                    "answer_claim_id": "a0001",
+                    "answer_text": "The Rapid Growth paper reports sustained stellar disruption (dTDE) mass-supply rates of approximately (1–3) × 10^-3 M⊙ yr^-1.",
+                    "reports_requested_outcome": true
+                  }
+                ],
+                "annotation_validation_failures": [],
+                "coverage_issue": null
+              },
+              {
+                "requirement_id": "r2",
+                "description": "List the simulation and analysis capabilities, outputs, or methods from 'Star cluster formation from turbulent clumps. V. Stellar clustering around massive stars' (required_build_id=af2f232a-fb03-5f6b-8a63-c25c702ec8d2) that could be used to test or refine assumptions about (a) the existence and profile of a stellar cusp near an IMBH, and (b) the bound companion population feeding the IMBH in the Rapid Growth paper. For each capability, cite the concrete outputs (e.g., resolved stellar densities, bound-fraction metrics, clustering diagnostics, time resolution, mass ranges) and any limits the paper reports.",
+                "status": "partial",
+                "feedback": "Some essential answer support could not be verified.",
+                "claim_indices": [
+                  4,
+                  5,
+                  6,
+                  7
+                ],
+                "essential_claim_indices": [
+                  4,
+                  6
+                ],
+                "unsupported_claim_indices": [
+                  6
+                ],
+                "invalid_essential_claim_indices": [
+                  6
+                ],
+                "absent_claim_indices": [],
+                "missing_details": [
+                  "Some essential answer support could not be verified."
+                ]
+              },
+              {
+                "requirement_id": "r3",
+                "description": "Provide an explicit synthesis (comparison) that states how to combine the facts from the two papers to test or refine the Rapid Growth paper's assumptions: which measured outputs from the Star cluster simulations would constrain which specific parameters or assumptions in the Rapid Growth model (list pairings), and specify what observed/derived numerical thresholds or ranges from the Star cluster paper would confirm, refute, or necessitate modification of the Rapid Growth disk-fed IMBH growth rates.  This synthesis is a derivation-only task (no new numerical modeling), so mark it as synthesis_indices referencing the factual requirements above.",
+                "status": "satisfied",
+                "feedback": "",
+                "claim_indices": [
+                  8,
+                  9,
+                  10
+                ],
+                "essential_claim_indices": [
+                  8,
+                  9
+                ],
+                "unsupported_claim_indices": [],
+                "invalid_essential_claim_indices": [],
+                "absent_claim_indices": [],
+                "missing_details": []
+              }
+            ],
+            "original_question_parts": [
+              {
+                "requirement_id": "q_1",
+                "description": "Original question part (1): What concrete dTDE mass supply rate and sensitivity to the disk outer radius does the Rapid Growth paper report",
+                "status": "satisfied",
+                "feedback": "",
+                "claim_indices": [
+                  0,
+                  1,
+                  2,
+                  3
+                ],
+                "essential_claim_indices": [
+                  0,
+                  1,
+                  2
+                ],
+                "unsupported_claim_indices": [],
+                "invalid_essential_claim_indices": [],
+                "absent_claim_indices": [],
+                "missing_details": [],
+                "effect_status": "reported_effect",
+                "effect_claim_indices": [
+                  0
+                ],
+                "effect_outcomes": [
+                  {
+                    "claim_index": 0,
+                    "answer_claim_id": "a0001",
+                    "answer_text": "The Rapid Growth paper reports sustained stellar disruption (dTDE) mass-supply rates of approximately (1–3) × 10^-3 M⊙ yr^-1.",
+                    "reports_requested_outcome": true
+                  }
+                ],
+                "annotation_validation_failures": [],
+                "coverage_issue": null
+              },
+              {
+                "requirement_id": "q_2",
+                "description": "Original question part (2): What simulation/analysis capabilities from the Star cluster formation paper could be used to test or refine the assumptions about the stellar cusp and bound stellar populations feeding the IMBH in the Rapid Growth paper? Provide an explicit synthesis requiring supported facts from both papers",
+                "status": "partial",
+                "feedback": "Some essential answer support could not be verified.",
+                "claim_indices": [
+                  4,
+                  5,
+                  6,
+                  7,
+                  8,
+                  9,
+                  10
+                ],
+                "essential_claim_indices": [
+                  4,
+                  5,
+                  6
+                ],
+                "unsupported_claim_indices": [
+                  6
+                ],
+                "invalid_essential_claim_indices": [
+                  6
+                ],
+                "absent_claim_indices": [],
+                "missing_details": [
+                  "Some essential answer support could not be verified."
+                ]
+              }
+            ],
+            "citation_repair": {
+              "tasks": [
+                {
+                  "claim_index": 6,
+                  "code": "method_role_not_verified",
+                  "missing_values": [],
+                  "missing_units": [],
+                  "candidate_context_ids": [
+                    "d3329fd8-438e-5caf-b2b2-8f5fe3158e73",
+                    "fc9d9d17-f4a8-5333-9a73-88936a819532",
+                    "dd54df96-ac7f-5c67-91b0-5d956ba6826c"
+                  ]
+                }
+              ],
+              "candidate_count": 3,
+              "excerpt_chars": 2700
+            }
+          },
+          {
+            "attempt": 2,
+            "rejected_claims": [
+              {
+                "claim_index": 10,
+                "text": "The Star cluster formation paper determines bound companions using a snowballing algorithm (developed in Farias & Tan 2023) that iteratively (1) identifies the closest bound companion to a massive star, (2) replaces the pair with a center-of-mass particle, (3) searches for the next closest star bound to that center-of-mass (forming triples, etc.), and (4) repeats this process to identify all stars bound to each massive-star primary, ensuring no double-counting across primaries.",
+                "code": "method_role_not_verified",
+                "feedback": "The method audit must quote the actual claim's named-method attribution, not an invented operation or wording from another claim.",
+                "cited_context_ids": [
+                  "cd915036-85be-5761-a546-acb4e23fbbcb",
+                  "fc9d9d17-f4a8-5333-9a73-88936a819532"
+                ],
+                "need_ids": [],
+                "numeric_evidence": {
+                  "code": "numeric_evidence_not_verified",
+                  "feedback": "Cited chunks do not contain every newly claimed value and unit.",
+                  "missing_values": [
+                    "4"
+                  ],
+                  "missing_units": [],
+                  "valid_quote_count": 1
+                }
+              }
+            ],
+            "review_only": false,
+            "stage_timings": {
+              "repair_seconds": 3.408,
+              "verify_seconds": 24.903
+            },
+            "duplicate_claims_omitted": 0,
+            "answer_anchors": {
+              "a0001": {
+                "claim_index": 0,
+                "text": "The Rapid Growth paper reports sustained stellar disruption (dTDE) mass-supply rates of approximately (1–3) × 10^-3 M⊙ yr^-1."
+              },
+              "a0002": {
+                "claim_index": 1,
+                "text": "The Rapid Growth paper defines an inner accretion radius R_dTDE = 10^-4 pc as its fiducial operational criterion for counting a dTDE candidate."
+              },
+              "a0003": {
+                "claim_index": 2,
+                "text": "The Rapid Growth paper tested a smaller inner accretion radius (R_dTDE = 5 × 10^-5 pc) and found the resulting disruption rates to be nearly identical, concluding the measured dTDE rate is insensitive to this choice of R_dTDE."
+              },
+              "a0004": {
+                "claim_index": 3,
+                "text": "The Rapid Growth paper’s figures include model variants labeled with different disk outer-radius settings (e.g., 'Rout = Rsg' and 'Rout = 3Rsg') alongside different R_dTDE values, indicating the authors ran cases with different Rout choices."
+              },
+              "a0005": {
+                "claim_index": 4,
+                "text": "The Star cluster formation paper computes average numbers of bound companions ⟨N_bound⟩ around massive stars for multiple companion-mass thresholds (M_comp ≥ 0.01 M⊙, 0.1 M⊙, 1.0 M⊙) and reports these as functions of cluster model and star subset (central, offset, ejected)."
+              },
+              "a0006": {
+                "claim_index": 5,
+                "text": "The Star cluster formation paper constructs time-evolving projected stellar-density profiles ⟨N★(r)⟩ around central massive stars (10–20 M⊙) across cluster ages and reports errorbars/standard deviations for these profiles."
+              },
+              "a0007": {
+                "claim_index": 6,
+                "text": "The Star cluster formation paper reports that ⟨N_bound⟩ is tabulated and compared across cluster models (varying M_cl and Σ_cloud) and that lower stellar velocity dispersion and higher stellar density lead to larger ⟨N_bound⟩ around massive stars."
+              },
+              "a0008": {
+                "claim_index": 7,
+                "text": "Synthesis proposal (supported): Projected stellar-density profiles ⟨N★(r)⟩ and the measured ⟨N_bound⟩ from the Star cluster paper can be used to constrain the local stellar reservoir and its mass function near a massive object; these constraints would directly test the Rapid Growth paper’s assumption that a collisional cluster can supply stars onto disk-crossing orbits and sustain the reported dTDE mass-supply rate ((1–3) × 10^-3 M⊙ yr^-1)."
+              },
+              "a0009": {
+                "claim_index": 8,
+                "text": "Synthesis proposal (supported): The Star cluster paper’s bound-companion catalogs produced by the snowballing algorithm (and their dependence on companion-mass thresholds M_comp ≥ 0.01, 0.1, 1.0 M⊙) could be compared to the Rapid Growth model’s required supply of disk-crossing stars (which the Rapid Growth paper notes must be 'supplied to disk-crossing orbits by the collisional cluster') to test whether realistic companion counts and mass distributions provide sufficient replenishment."
+              },
+              "a0010": {
+                "claim_index": 9,
+                "text": "Synthesis proposal (supported): The Star cluster paper’s demonstrated sensitivity of ⟨N_bound⟩ to cluster velocity dispersion and density implies one can test Rapid Growth’s assumption about long-term replenishment by mapping those cluster environmental parameters (σ_S and n_S,b) onto the Rapid Growth required replenishment rate; if cluster models yield low ⟨N_bound⟩ or low inner projected densities, they would necessitate revising the Rapid Growth dTDE-driven growth expectation."
+              },
+              "a0011": {
+                "claim_index": 10,
+                "text": "The Star cluster formation paper determines bound companions using a snowballing algorithm (developed in Farias & Tan 2023) that iteratively (1) identifies the closest bound companion to a massive star, (2) replaces the pair with a center-of-mass particle, (3) searches for the next closest star bound to that center-of-mass (forming triples, etc.), and (4) repeats this process to identify all stars bound to each massive-star primary, ensuring no double-counting across primaries."
+              }
+            },
+            "method_attributions": [
+              {
+                "claim_index": 0,
+                "checks": [
+                  {
+                    "applicability": "not_applicable"
+                  }
+                ]
+              },
+              {
+                "claim_index": 1,
+                "checks": [
+                  {
+                    "applicability": "not_applicable"
+                  }
+                ]
+              },
+              {
+                "claim_index": 2,
+                "checks": [
+                  {
+                    "applicability": "not_applicable"
+                  }
+                ]
+              },
+              {
+                "claim_index": 3,
+                "checks": [
+                  {
+                    "applicability": "not_applicable"
+                  }
+                ]
+              },
+              {
+                "claim_index": 4,
+                "checks": [
+                  {
+                    "applicability": "not_applicable"
+                  }
+                ]
+              },
+              {
+                "claim_index": 5,
+                "checks": [
+                  {
+                    "applicability": "not_applicable"
+                  }
+                ]
+              },
+              {
+                "claim_index": 6,
+                "checks": [
+                  {
+                    "applicability": "not_applicable"
+                  }
+                ]
+              },
+              {
+                "claim_index": 7,
+                "checks": [
+                  {
+                    "applicability": "not_applicable"
+                  }
+                ]
+              },
+              {
+                "claim_index": 8,
+                "checks": [
+                  {
+                    "applicability": "not_applicable"
+                  }
+                ]
+              },
+              {
+                "claim_index": 9,
+                "checks": [
+                  {
+                    "applicability": "not_applicable"
+                  }
+                ]
+              },
+              {
+                "claim_index": 10,
+                "checks": [
+                  {
+                    "applicability": "reported_operation",
+                    "claim_quote": "we determine stars that are bound to the star cluster using a snowballing algorithm developed in Farias & Tan (2023).",
+                    "method": "snowballing algorithm",
+                    "claimed_operation": "determine stars that are bound to the star cluster",
+                    "source_operation": "identify bound companions",
+                    "status": "matched",
+                    "evidence_quotes": [
+                      {
+                        "context_id": "cd915036-85be-5761-a546-acb4e23fbbcb",
+                        "quote": "First, we determine stars that are bound to the star cluster using a snowballing algorithm developed in Farias & Tan (2023)."
+                      }
+                    ]
+                  }
+                ]
+              }
+            ],
+            "method_scope_issues": [],
+            "annotation_validation_failures": [],
+            "requirements": [
+              {
+                "requirement_id": "r1",
+                "description": "Report the concrete disk-induced tidal disruption event (dTDE) stellar mass supply rate (units Msun/yr or yr^-1 as given) and the sensitivity of that rate to the disk outer radius (including numeric dependence, quoted scaling, or reported percentage/change for specified radius variations) as reported in 'Rapid Growth of Intermediate-Mass Black Holes through Disk-induced Stellar Disruptions' (required_build_id=e920f838-bca1-5fc9-88a8-6fc76ba4274f).",
+                "status": "satisfied",
+                "feedback": "",
+                "claim_indices": [
+                  0,
+                  1,
+                  2,
+                  3
+                ],
+                "essential_claim_indices": [
+                  0,
+                  1,
+                  2
+                ],
+                "unsupported_claim_indices": [],
+                "invalid_essential_claim_indices": [],
+                "absent_claim_indices": [],
+                "missing_details": [],
+                "effect_status": "reported_effect",
+                "effect_claim_indices": [
+                  0
+                ],
+                "effect_outcomes": [
+                  {
+                    "claim_index": 0,
+                    "answer_claim_id": "a0001",
+                    "answer_text": "The Rapid Growth paper reports sustained stellar disruption (dTDE) mass-supply rates of approximately (1–3) × 10^-3 M⊙ yr^-1.",
+                    "reports_requested_outcome": true
+                  }
+                ],
+                "annotation_validation_failures": [],
+                "coverage_issue": null
+              },
+              {
+                "requirement_id": "r2",
+                "description": "List the simulation and analysis capabilities, outputs, or methods from 'Star cluster formation from turbulent clumps. V. Stellar clustering around massive stars' (required_build_id=af2f232a-fb03-5f6b-8a63-c25c702ec8d2) that could be used to test or refine assumptions about (a) the existence and profile of a stellar cusp near an IMBH, and (b) the bound companion population feeding the IMBH in the Rapid Growth paper. For each capability, cite the concrete outputs (e.g., resolved stellar densities, bound-fraction metrics, clustering diagnostics, time resolution, mass ranges) and any limits the paper reports.",
+                "status": "partial",
+                "feedback": "Some essential answer support could not be verified.",
+                "claim_indices": [
+                  4,
+                  5,
+                  6,
+                  10
+                ],
+                "essential_claim_indices": [
+                  4,
+                  5,
+                  10
+                ],
+                "unsupported_claim_indices": [
+                  10
+                ],
+                "invalid_essential_claim_indices": [
+                  10
+                ],
+                "absent_claim_indices": [],
+                "missing_details": [
+                  "Some essential answer support could not be verified."
+                ]
+              },
+              {
+                "requirement_id": "r3",
+                "description": "Provide an explicit synthesis (comparison) that states how to combine the facts from the two papers to test or refine the Rapid Growth paper's assumptions: which measured outputs from the Star cluster simulations would constrain which specific parameters or assumptions in the Rapid Growth model (list pairings), and specify what observed/derived numerical thresholds or ranges from the Star cluster paper would confirm, refute, or necessitate modification of the Rapid Growth disk-fed IMBH growth rates.  This synthesis is a derivation-only task (no new numerical modeling), so mark it as synthesis_indices referencing the factual requirements above.",
+                "status": "satisfied",
+                "feedback": "",
+                "claim_indices": [
+                  7,
+                  8,
+                  9
+                ],
+                "essential_claim_indices": [
+                  7,
+                  8
+                ],
+                "unsupported_claim_indices": [],
+                "invalid_essential_claim_indices": [],
+                "absent_claim_indices": [],
+                "missing_details": []
+              }
+            ],
+            "original_question_parts": [
+              {
+                "requirement_id": "q_1",
+                "description": "Original question part (1): What concrete dTDE mass supply rate and sensitivity to the disk outer radius does the Rapid Growth paper report",
+                "status": "satisfied",
+                "feedback": "",
+                "claim_indices": [
+                  0,
+                  1,
+                  2,
+                  3
+                ],
+                "essential_claim_indices": [
+                  0,
+                  1,
+                  2
+                ],
+                "unsupported_claim_indices": [],
+                "invalid_essential_claim_indices": [],
+                "absent_claim_indices": [],
+                "missing_details": [],
+                "effect_status": "reported_effect",
+                "effect_claim_indices": [
+                  0
+                ],
+                "effect_outcomes": [
+                  {
+                    "claim_index": 0,
+                    "answer_claim_id": "a0001",
+                    "answer_text": "The Rapid Growth paper reports sustained stellar disruption (dTDE) mass-supply rates of approximately (1–3) × 10^-3 M⊙ yr^-1.",
+                    "reports_requested_outcome": true
+                  }
+                ],
+                "annotation_validation_failures": [],
+                "coverage_issue": null
+              },
+              {
+                "requirement_id": "q_2",
+                "description": "Original question part (2): What simulation/analysis capabilities from the Star cluster formation paper could be used to test or refine the assumptions about the stellar cusp and bound stellar populations feeding the IMBH in the Rapid Growth paper? Provide an explicit synthesis requiring supported facts from both papers",
+                "status": "partial",
+                "feedback": "Some essential answer support could not be verified.",
+                "claim_indices": [
+                  4,
+                  5,
+                  6,
+                  10,
+                  7,
+                  8,
+                  9
+                ],
+                "essential_claim_indices": [
+                  4,
+                  5,
+                  10
+                ],
+                "unsupported_claim_indices": [
+                  10
+                ],
+                "invalid_essential_claim_indices": [
+                  10
+                ],
+                "absent_claim_indices": [],
+                "missing_details": [
+                  "Some essential answer support could not be verified."
+                ]
+              }
+            ]
+          }
+        ],
+        "verified_claim_count": 10,
+        "verifier": "independent_model_with_quote_validation",
+        "verifier_model": "gpt-5-mini",
+        "coverage_contract": "original-scope-effects-v7",
+        "effect_anchor_mode": "immutable_answer_claims",
+        "annotation_correction_attempts": 0,
+        "coverage_policy": "original-question-authority-v3",
+        "completeness_authority": "original_question_parts",
+        "planner_only_gaps": [],
+        "method_role_contract": "conditional-cited-operation-v2",
+        "stage_timings": {
+          "draft_seconds": 17.155,
+          "repair_seconds": 3.408,
+          "verify_seconds": 45.3
+        }
+      },
+      "stage_timings": {
+        "retrieval_seconds": 20.128,
+        "agentic_draft_seconds": 17.155,
+        "agentic_repair_seconds": 3.408,
+        "agentic_verify_seconds": 45.3,
+        "generation_seconds": 66.253,
+        "pipeline_seconds": 86.39,
+        "judge_reference_seconds": 6.365,
+        "judge_grounding_seconds": 4.076,
+        "judge_seconds": 10.441
+      },
+      "elapsed_seconds": 96.839,
+      "error": null
+    }
+  ]
+}

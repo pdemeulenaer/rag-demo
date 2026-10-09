@@ -31,7 +31,7 @@ It starts **paused**. The normal `make compose` does not start Airflow.
    login credentials locally (do not paste them into logs or chat):
 
     ```bash
-    docker compose --profile airflow exec airflow cat /opt/airflow/simple_auth_manager_passwords.json.generated
+    make airflow-password
     ```
 
 4. Review `ARXIV_DAILY_LIMIT` (default **10**) and monitoring configuration. **Unpause
@@ -44,8 +44,8 @@ Restarting Airflow preserves the DAG's previous paused/unpaused state.
 
 ## Everyday commands
 
-For the Markdown-extraction upgrade, pause/drain ingestion and follow the
-[re-indexing instructions](../getting-started/arxiv.md#upgrade-existing-pdfs-to-markdown-extraction).
+For an extraction or retrieval-index upgrade, pause/drain ingestion and follow the
+[re-indexing instructions](../getting-started/arxiv.md#upgrade-existing-pdfs-to-the-current-retrieval-index).
 Rebuild Airflow as well as the API: an old worker must not keep producing old-extractor builds.
 
 ```bash

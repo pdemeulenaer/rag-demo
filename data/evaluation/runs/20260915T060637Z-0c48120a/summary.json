@@ -1,0 +1,30 @@
+{
+  "vanilla": {
+    "questions": 2,
+    "errors": 0,
+    "mean_latency_seconds": 13.39,
+    "metrics": {
+      "answer_correctness": 0.75,
+      "answer_relevance": 1.0,
+      "citation_from_retrieval": 1.0,
+      "gold_citation_recall": 0.25,
+      "groundedness": 0.75,
+      "retrieval_hit": 0.5,
+      "retrieval_recall": 0.5
+    }
+  },
+  "hybrid": {
+    "questions": 2,
+    "errors": 0,
+    "mean_latency_seconds": 8.607,
+    "metrics": {
+      "answer_correctness": 1.0,
+      "answer_relevance": 1.0,
+      "citation_from_retrieval": 1.0,
+      "gold_citation_recall": 0.5,
+      "groundedness": 1.0,
+      "retrieval_hit": 0.5,
+      "retrieval_recall": 0.5
+    }
+  }
+}

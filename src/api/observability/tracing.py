@@ -55,6 +55,11 @@ if config.LANGFUSE_ENABLED:
     def langfuse_client():
         return get_client()
 
+    def langchain_callback():
+        """Return Langfuse's LangChain/LangGraph callback for one invocation."""
+        from langfuse.langchain import CallbackHandler
+        return CallbackHandler()
+
 else:
     def observe(name=None, **decorator_options):
         def decorator(function):
@@ -82,4 +87,7 @@ else:
         return None
 
     def langfuse_client():
+        return None
+
+    def langchain_callback():
         return None

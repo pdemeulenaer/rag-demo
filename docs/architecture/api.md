@@ -23,7 +23,28 @@ Static figure files are additionally mounted at `/api/images`, backed by
 
 The main entry point. It resolves the session's memory, runs the
 [RAG pipeline](rag-pipeline.md), and returns the answer together with deduplicated sources
-and any cited figures. Supporting helpers in `rag_router.py`:
+and any cited figures. Claim-level provenance is returned in `claims`; each record contains
+the atomic statement, its cited context IDs and (in Agentic mode) its evidence need IDs. The
+answer text also contains inline numbered citations corresponding to `sources`, whose
+`evidence_ids` list identifies the point IDs grouped under each source/page entry. Supporting
+helpers in `rag_router.py`:
+
+Explicit `mode` values are `vanilla`, `hybrid`, `hybrid_rerank` and `agentic`. Agentic returns an additional
+`generation_diagnostics` object for reviewed synthesis: complete/partial/safe_abstention,
+per-requirement semantic coverage and validation attempts. Partial answers explicitly list
+missing details while retaining verified claims. These are model assessments, not proof of
+correctness. Agentic also returns an
+`execution` object containing its plan summary, safe action
+records, stop reason, rounds, tool calls, evidence count, agent-model tokens (the stable wire
+field remains `planner_tokens`) and elapsed time.
+The response's `corpus_snapshot` is the corpus fingerprint. Omit `mode` only when the legacy
+intent-routed behaviour is desired.
+
+```bash
+curl -sS http://localhost:8000/rag2 \
+  -H 'Content-Type: application/json' \
+  -d '{"query":"Compare the reported cluster mass estimates across papers", "corpus":"arxiv", "mode":"agentic"}'
+```
 
 - `chat_memory(session_id)` — renders the stored history into prompt-ready text.
 - `answer_from_chat_context(question, chat_history, model)` — answers directly from
@@ -39,7 +60,9 @@ real-time and OpenAI Batch processing. See [Ingestion](ingestion.md).
 ## Corpus listings
 
 Streamlit's **Refresh document inventory** button calls `GET /catalogue`, defaulting
-to **All sources** independently of **Query source**. It returns total registered
+to **All sources** independently of **Query source**. Query source defaults to **All ready
+papers** and federates retrieval over the separately scoped arXiv and upload collections.
+The endpoint returns total registered
 documents, active indexed documents, latest-state counts, and per-document source,
 state, active version and collection. A failed replacement can coexist with an older
 active version. `/documents` remains a ready-upload compatibility listing and `/papers`

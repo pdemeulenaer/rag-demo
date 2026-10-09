@@ -105,6 +105,13 @@ def test_approved_unanswerable_requires_full_corpus_verification():
         review.validate_v2(reviewed, frozen, require_splits=False)
 
 
+def test_profile_must_match_question_kind():
+    frozen, reviewed = dataset()
+    reviewed["questions"][0]["profile"] = "cross_multihop"
+    with pytest.raises(review.ReviewDatasetError, match="profile does not match"):
+        review.validate_v2(reviewed, frozen, require_splits=False)
+
+
 def test_cross_paper_group_cannot_leak_across_splits():
     frozen, reviewed = dataset()
     result = review.assign_splits(reviewed, frozen, test_ratio=0.25, seed=42)

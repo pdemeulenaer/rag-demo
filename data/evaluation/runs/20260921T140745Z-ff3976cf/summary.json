@@ -1,0 +1,66 @@
+{
+  "agentic": {
+    "questions": 1,
+    "errors": 0,
+    "mean_latency_seconds": 13.538,
+    "metrics": {
+      "answer_correctness": 1.0,
+      "answer_relevance": 1.0,
+      "citation_from_retrieval": 1.0,
+      "gold_citation_recall": 1.0,
+      "groundedness": 1.0,
+      "retrieval_hit": 1.0,
+      "retrieval_recall": 1.0
+    },
+    "agent_execution": {
+      "runs": 1,
+      "stop_reasons": {
+        "sufficient": 1
+      },
+      "synthesis_policies": {
+        "model_finish": 1
+      },
+      "mean_rounds": 1.0,
+      "mean_tool_calls": 1.0,
+      "mean_evidence_count": 8.0,
+      "mean_planner_tokens": 5926.0,
+      "tool_usage": {
+        "search_chunks": 1
+      },
+      "tool_errors": 0
+    },
+    "profiles": {
+      "single_fact": {
+        "questions": 1,
+        "errors": 0,
+        "mean_latency_seconds": 13.538,
+        "metrics": {
+          "answer_correctness": 1.0,
+          "answer_relevance": 1.0,
+          "citation_from_retrieval": 1.0,
+          "gold_citation_recall": 1.0,
+          "groundedness": 1.0,
+          "retrieval_hit": 1.0,
+          "retrieval_recall": 1.0
+        },
+        "agent_execution": {
+          "runs": 1,
+          "stop_reasons": {
+            "sufficient": 1
+          },
+          "synthesis_policies": {
+            "model_finish": 1
+          },
+          "mean_rounds": 1.0,
+          "mean_tool_calls": 1.0,
+          "mean_evidence_count": 8.0,
+          "mean_planner_tokens": 5926.0,
+          "tool_usage": {
+            "search_chunks": 1
+          },
+          "tool_errors": 0
+        }
+      }
+    }
+  }
+}

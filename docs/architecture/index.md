@@ -76,6 +76,14 @@ usage. All integration calls pass through a no-op-capable local shim, so
 `LANGFUSE_ENABLED=false` avoids importing Langfuse at runtime. LangSmith is not an active
 component. See [Observability](../operations/observability.md).
 
+## Planned RAG evolution
+
+See [RAG modes](rag-modes.md) for the precise definitions and current availability of
+Vanilla, Hybrid, Hybrid + Rerank, Agentic, KG and KG-Agentic RAG. The four non-KG modes are
+implemented; the next milestone is their fresh dense+sparse benchmark. Knowledge-graph
+retrieval follows as a separate tool and comparison mode. The [RAG evolution roadmap](rag-evolution-roadmap.md)
+defines sequencing and acceptance criteria.
+
 ## Repository layout
 
 ```
