@@ -22,7 +22,7 @@ from time import monotonic
 from typing import Annotated, Literal
 from uuid import uuid4
 
-from pydantic import BaseModel, ConfigDict, Field, ValidationError, create_model
+from pydantic import BaseModel, ConfigDict, Field, ValidationError, create_model, model_validator
 from qdrant_client import QdrantClient
 
 from evals.diagnostics import error_details
@@ -45,6 +45,12 @@ from src.api.rag.contracts import RetrievalScope, ScopedBuild
 from src.api.rag.question_coverage import (
     has_explicit_comparison, original_question_parts, requests_explicit_comparison,
 )
+from src.api.rag.modes.agentic.answering import (
+    COVERAGE_CONTRACT, MethodAttributionCheck, NonApplicableMethodCheck, _contains_literal_span, _contains_quote,
+    _method_scope_issue,
+)
+from src.api.rag.answer_contracts import RAGClaim
+from src.api.rag.modes.agentic.method_evidence import reported_method_names
 
 
 class BenchmarkError(ValueError):
@@ -52,7 +58,7 @@ class BenchmarkError(ValueError):
 
 
 Score = Literal[0.0, 0.5, 1.0]
-JUDGE_POLICY = "claim-anchored-v8"
+JUDGE_POLICY = "claim-role-bound-v13"
 # Native Pydantic/SDK schema constraint: finite decimal literals, not symbolic
 # settings, scientific notation, units, or strings pretending to be empty lists.
 DecimalTarget = Annotated[str, Field(
@@ -86,10 +92,53 @@ class ReferenceJudgeResult(BaseModel):
     answer_checks: list[ReferenceAnswerCheck] = Field(min_length=1, max_length=20)
 
 
+class GroundingMethodCheck(MethodAttributionCheck):
+    claim_index: int = Field(ge=0, le=29)
+    answer_claim_id: str | None = None
+
+
+class GroundingNonApplicableMethodCheck(NonApplicableMethodCheck):
+    claim_index: int = Field(ge=0, le=29)
+    answer_claim_id: str | None = None
+
+
 class GroundingJudgeResult(BaseModel):
     model_config = ConfigDict(extra="forbid")
     groundedness: Score
     reason: str
+    method_attributions: list[GroundingMethodCheck | GroundingNonApplicableMethodCheck] = Field(max_length=30)
+
+    @model_validator(mode="before")
+    @classmethod
+    def allow_legacy_grounding_objects(cls, value):
+        # The native schema requires the field; historical local fixtures remain readable.
+        if isinstance(value, dict):
+            value = {**value, "method_attributions": value.get("method_attributions", [])}
+        return value
+
+
+def _grounding_judge_schema(claims):
+    """Native enum references to this answer's claims, not arbitrary indices."""
+    ids = tuple(f"a{index + 1:04d}" for index in range(len(claims)))
+    id_type = Literal[ids] if ids else str
+    # Keep provider and historical normalized contracts separate. The SDK owns
+    # schema serialization; no schema rewriting or permissive ID normalization.
+    method = create_model("AnchoredGroundingMethod", __base__=MethodAttributionCheck,
+                          answer_claim_id=(id_type, ...))
+    compact = create_model("AnchoredGroundingNonApplicable", __base__=NonApplicableMethodCheck,
+                           answer_claim_id=(id_type, ...))
+    return create_model("ScopedGroundingJudgeResult", __base__=GroundingJudgeResult,
+                        method_attributions=(list[method | compact],
+                                             Field(max_length=30 if ids else 0)))
+
+
+def _resolve_grounding_claims(result, claims):
+    indices = {f"a{index + 1:04d}": index for index in range(len(claims))}
+    return {**result, "method_attributions": [
+        {**row, "claim_index": indices[row["answer_claim_id"]],
+         **({"claim_quote": claims[indices[row["answer_claim_id"]]]["text"]}
+            if row.get("applicability") == "reported_operation" else {})}
+        for row in result.get("method_attributions", [])]}
 
 
 def _reference_judge_schema(parts, answer_anchors=None):
@@ -236,6 +285,30 @@ method purpose, target population and pipeline step as well: a membership-select
 does not support attributing a separate relationship-identification step to that procedure.
 For example, "Gate groups records into a dataset; Link separately finds pairs" does NOT support
 "Gate finds pairs". Shared inputs, pipeline or paragraph proximity are not entailment.
+The method audit is conditional: ordinary numeric results, parameter effects, paper outputs
+and unnamed routines need no named method. Use [] or an entry with ONLY answer_claim_id and
+applicability:"not_applicable". Never invent method:"[]" or import a method from the source
+when the answer claim does not name it. For an explicit proposed future use, applicability:
+"proposed_use" is allowed; review its source-backed premises but do not demand the paper
+already performed the proposed operation. Actual reported method roles still need their checks.
+For each actual named method credited with a reported operation, return a method_attributions
+entry with answer_claim_id, applicability:"reported_operation", claim_quote (literal wording
+from that claim), method (shortest literal method name in the claim and source),
+claimed_operation, source_operation, status and evidence_quotes.
+Extract source_operation independently as a short VERBATIM operation phrase from that claim's
+own cited_evidence, before comparing it with the claimed role. Quote the shortest cited passage
+naming the SAME method and its operation, using its point_id as context_id. Never stitch
+quotes or replace source wording with a summary/ellipsis. Use matched only for
+the same operation, population and pipeline step; mismatched for a different step, or
+not_established when absent. Never transfer a nearby method's role to the named method.
+Use [] when there are no named-method attributions. Non-matched roles preclude full grounding.
+Select answer_claim_id ONLY from the supplied claim_anchors and claims. Never invent an ID
+or emit a numeric claim_index. The runner resolves the selected ID to the unchanged claim.
+An ID establishes identity, not factual support; own-source and method-role checks still apply.
+reported_methods_to_audit lists explicit named-operation cues in the actual answer. Their
+reported premises cannot be waived by not_applicable/proposed_use. Independently assess
+the role from its own citations; these cues are not evidence of support. The application
+binds claim_quote to the unchanged claim selected by ID, never copied source text.
 If claims are provided, assess those claim objects; the displayed answer is only their rendering.
 If the claims array is empty, there are no factual claims to ground. No reference answer or gold evidence is available. Give
 one concise reason."""
@@ -412,10 +485,61 @@ def _inconsistent_reference_checks(checks, answer: str) -> list[dict]:
     return failures
 
 
+def _grounding_audit(result: dict, claims: list[dict], context_by_id: dict):
+    """Separate malformed judge annotations from anchored, declared answer defects.
+
+    Literal bindings validate the annotation, not semantic entailment. A genuine
+    declared role mismatch still caps grounding; an invalid annotation is unscored.
+    """
+    invalid, defects, scope_issues = [], [], []
+    audits = GroundingJudgeResult.model_validate(result).method_attributions
+    for index, value in enumerate(claims):
+        required = reported_method_names(value["text"])
+        if any(not any(isinstance(row, MethodAttributionCheck) and row.claim_index == index
+                       and _contains_literal_span(row.method, name)
+                       and not _method_scope_issue(RAGClaim.model_validate(value), row)
+                       for row in audits) for name in required):
+            invalid.append({"claim_index": index, "code": "missing_reported_method_audit"})
+    for row in audits:
+        index = row.claim_index
+        if index >= len(claims):
+            invalid.append({"claim_index": index, "code": "unknown_method_claim_index"})
+            continue
+        claim = RAGClaim.model_validate(claims[index])
+        if not isinstance(row, MethodAttributionCheck):
+            continue
+        if issue := _method_scope_issue(claim, row):
+            scope_issues.append({"claim_index": index, "method": row.method, "code": issue})
+            continue
+        if not (_contains_literal_span(claim.text, row.claim_quote)
+                and _contains_literal_span(row.claim_quote, row.method)):
+            invalid.append({"claim_index": index, "code": "invalid_method_claim_quote"})
+            continue
+        quotes = [quote for quote in row.evidence_quotes
+                  if quote.context_id in claim.cited_context_ids
+                  and _contains_quote(str(context_by_id.get(quote.context_id, {}).get("text") or ""),
+                                      quote.quote)]
+        if len(quotes) != len(row.evidence_quotes):
+            invalid.append({"claim_index": index, "code": "invalid_method_source_quote"})
+            continue
+        if row.status != "not_established":
+            if not row.source_operation.strip() or not any(
+                    _contains_literal_span(quote.quote, row.method)
+                    and _contains_literal_span(quote.quote, row.source_operation) for quote in quotes):
+                invalid.append({"claim_index": index, "code": "invalid_method_source_quote"})
+                continue
+        if row.status != "matched":
+            defects.append({"claim_index": index, "code": "method_role_not_verified",
+                            "status": row.status})
+    return invalid, defects, scope_issues
+
+
 def _judge_request(*, instructions: str, payload: dict, schema: type[BaseModel],
                    model: str, reasoning_effort: str,
                    answer_for_quotes: str | None = None,
-                   answer_anchors: list[dict] | None = None) -> tuple[dict, dict]:
+                   answer_anchors: list[dict] | None = None,
+                   grounding_claims: list[dict] | None = None,
+                   grounding_context: dict | None = None) -> tuple[dict, dict]:
     from src.api.core.clients import openai_client
     from src.api.core.structured import StructuredOutputError, parse_response
 
@@ -431,7 +555,21 @@ def _judge_request(*, instructions: str, payload: dict, schema: type[BaseModel],
     responses, usage, quote_failures, schema_failures, consistency_failures = [], {}, [], [], []
     inconsistent_checks = []
     invalid_quotes = []
+    annotation_failures, invalid_annotations, role_failures, scope_issues = [], [], [], []
     client = openai_client().with_options(max_retries=0)
+
+    def failed_metadata():
+        return {"score_status": "unscored_error", "attempts": attempt + 1,
+                "response_ids": [item.id for item in responses],
+                "schema_validation_failures": schema_failures,
+                "quote_validation_failures": quote_failures,
+                "consistency_validation_failures": consistency_failures,
+                "annotation_validation_failures": annotation_failures,
+                "answer_anchor_mode": "claim_ids" if "claim_anchors" in payload else None,
+                "claim_anchors": payload.get("claim_anchors", []),
+                "max_output_tokens": request["max_output_tokens"],
+                "usage": {**usage, "usage_incomplete": True}}
+
     for attempt in range(2):
         try:
             parsed, response = parse_response(client, schema, **request)
@@ -440,6 +578,27 @@ def _judge_request(*, instructions: str, payload: dict, schema: type[BaseModel],
             for name, value in current_usage.items():
                 if isinstance(value, (int, float)):
                     usage[name] = usage.get(name, 0) + value
+            if grounding_claims is not None:
+                grounding_assessment = parsed.model_dump(mode="json")
+                if "claim_anchors" in payload:
+                    grounding_assessment = _resolve_grounding_claims(
+                        grounding_assessment, grounding_claims)
+                invalid_annotations, role_failures, scope_issues = _grounding_audit(
+                    grounding_assessment, grounding_claims, grounding_context or {})
+                if invalid_annotations:
+                    annotation_failures.append({"attempt": attempt + 1, "checks": invalid_annotations})
+                    if attempt == 0:
+                        request["input"] = json.dumps({**payload, "method_annotation_feedback": {
+                            "checks": invalid_annotations,
+                            "instruction": "Repair the judge annotation, not the answer. Use literal "
+                            "claim wording and its own cited source quotes. Name only the shortest "
+                            "actual method; ordinary metrics/results use not_applicable. A reported "
+                            "operation needs its method and independently extracted source operation "
+                            "in the same contiguous own-citation quote. Preserve genuine mismatches "
+                            "or unsupported claims; do not automatically upgrade groundedness. "
+                            "Return the complete schema.",
+                        }}, ensure_ascii=False)
+                        continue
             if answer_for_quotes is not None:
                 assessment = parsed.model_dump()
                 if answer_anchors is not None:
@@ -491,12 +650,15 @@ def _judge_request(*, instructions: str, payload: dict, schema: type[BaseModel],
                     if isinstance(value, (int, float)):
                         usage[name] = usage.get(name, 0) + value
             if attempt == 1:
+                error.judge_request_metadata = failed_metadata()
                 raise
             request["input"] = json.dumps({**payload, "structured_format_feedback": {
                 "instruction": "Match the supplied schema exactly. Numeric targets must be "
                 "finite decimal strings; use an actual empty array [] for qualitative facts. "
                 "Never return symbolic settings or a string containing []. Select only supplied "
                 "answer anchor IDs when answer_claim_ids is required; never rewrite their text. "
+                "For grounding, answer_claim_id selects one supplied claim_anchors ID; "
+                "never return claim_index or invent an ID. "
                 "Include missing_or_incorrect_detail for each check: empty for answered, "
                 "otherwise explicitly name the missing or incorrect fact, value, unit or condition. "
                 "Set deficit_basis to none for answered, otherwise missing_content, "
@@ -506,7 +668,12 @@ def _judge_request(*, instructions: str, payload: dict, schema: type[BaseModel],
                 "validation_error_codes": error.safe_diagnostics.get("validation_error_codes", []),
                 "validation_error_locations": error.safe_diagnostics.get("validation_error_locations", []),
             }}, ensure_ascii=False)
-    result = parsed.model_dump()
+        except Exception as error:
+            error.judge_request_metadata = failed_metadata()
+            raise
+    result = parsed.model_dump(mode="json")
+    if grounding_claims is not None and "claim_anchors" in payload:
+        result = _resolve_grounding_claims(result, grounding_claims)
     if answer_anchors is not None:
         result = _resolve_answer_claims(result, answer_anchors)
         result["answer_anchors"] = answer_anchors
@@ -518,7 +685,7 @@ def _judge_request(*, instructions: str, payload: dict, schema: type[BaseModel],
         result["reference_score_status"] = "unscored_needs_review" if needs_review else "scored"
         if needs_review:
             result["correctness"] = None
-    return result, {"response_id": response.id,
+    metadata = {"response_id": response.id,
                                  "response_ids": [item.id for item in responses],
                                  "attempts": attempt + 1,
                                  "quote_validation_failures": quote_failures,
@@ -534,6 +701,21 @@ def _judge_request(*, instructions: str, payload: dict, schema: type[BaseModel],
                                  "request_id": getattr(response, "_request_id", None),
                                  "model": response.model,
                                  "max_output_tokens": request["max_output_tokens"], "usage": usage}
+    if grounding_claims is not None:
+        metadata.update(method_attributions=result.get("method_attributions", []),
+                        answer_anchor_mode="claim_ids" if "claim_anchors" in payload else "legacy_indices",
+                        claim_anchors=payload.get("claim_anchors", []),
+                        annotation_validation_failures=annotation_failures,
+                        method_validation_failures=role_failures,
+                        method_scope_issues=scope_issues,
+                        raw_groundedness=result["groundedness"],
+                        score_status="unscored_needs_review" if invalid_annotations else "scored",
+                        consistency_status="needs_review" if invalid_annotations else "no_detected_conflict")
+        if invalid_annotations:
+            result["groundedness"] = None
+        elif role_failures:
+            result["groundedness"] = min(result["groundedness"], 0.5)
+    return result, metadata
 
 
 def judge(question: dict, answer: str, retrieved: list[dict], model: str,
@@ -567,12 +749,19 @@ def judge(question: dict, answer: str, retrieved: list[dict], model: str,
             {"question_part_id": part_id, **check}
             for part_id, checks in reference_result["answer_checks"].items() for check in checks
         ]
+    except Exception as error:
+        reference_meta = {**getattr(error, "judge_request_metadata", {}),
+                          "score_status": "unscored_error", "error": error_details(error)}
+        reference_result = {"correctness": None, "answer_relevance": None,
+                            "abstention": "not_applicable", "answer_checks": [],
+                            "reference_score_status": "unscored_error",
+                            "reason": "Reference judging failed; scores are unavailable."}
     finally:
         if stage_timings is not None:
             stage_timings["judge_reference_seconds"] = round(monotonic() - reference_started, 3)
     retrieved_by_id = {str(row.get("id")): row for row in retrieved}
     grounded_claims = []
-    for claim in claims or []:
+    for index, claim in enumerate(claims or []):
         cited_evidence = []
         for point_id in claim.get("cited_context_ids", []):
             row = retrieved_by_id.get(str(point_id))
@@ -583,7 +772,9 @@ def judge(question: dict, answer: str, retrieved: list[dict], model: str,
                     "page": row.get("page"), "text": row.get("text"),
                 })
         grounded_claims.append({
+            "answer_claim_id": f"a{index + 1:04d}",
             "text": claim.get("text", ""),
+            "reported_methods_to_audit": reported_method_names(claim.get("text", "")),
             "need_ids": claim.get("need_ids", []),
             "cited_evidence": cited_evidence,
         })
@@ -593,9 +784,17 @@ def judge(question: dict, answer: str, retrieved: list[dict], model: str,
             instructions=GROUNDING_JUDGE_INSTRUCTIONS,
             payload={"question": question["question"], "actual_answer": answer,
                      "claims": grounded_claims,
+                     "claim_anchors": [{"id": row["answer_claim_id"], "claim_index": index}
+                                       for index, row in enumerate(grounded_claims)],
                      "retrieved_evidence": evidence if claims is None else []},
-            schema=GroundingJudgeResult, model=model, reasoning_effort=reasoning_effort,
+            schema=_grounding_judge_schema(claims or []), model=model, reasoning_effort=reasoning_effort,
+            grounding_claims=claims or [], grounding_context=retrieved_by_id,
         )
+    except Exception as error:
+        grounding_meta = {**getattr(error, "judge_request_metadata", {}),
+                          "score_status": "unscored_error", "error": error_details(error)}
+        grounding_result = {"groundedness": None,
+                            "reason": "Grounding judging failed; score is unavailable."}
     finally:
         if stage_timings is not None:
             stage_timings["judge_grounding_seconds"] = round(monotonic() - grounding_started, 3)
@@ -752,7 +951,8 @@ def apply_judge_safeguards(question: dict, metrics: dict, cited_ids: list[str],
     # requested paper was never retrieved, claims answering the cross-paper question
     # cannot be fully grounded regardless of a semantic judge's opinion. Citation-free
     # safe abstentions are intentionally left to correctness/abstention scoring.
-    if is_cross_paper and incomplete_required_coverage and cited_ids:
+    if (adjusted.get("groundedness") is not None and is_cross_paper
+            and incomplete_required_coverage and cited_ids):
         previous = adjusted.get("groundedness")
         adjusted["groundedness"] = 0.0
         adjustments.append({
@@ -831,6 +1031,7 @@ def evaluate_item(question: dict, mode: str, *, qdrant: QdrantClient, collection
                     generation_diagnostics = None
                 metrics = deterministic_metrics(question, chunks, cited_ids, result["answer"])
                 judge_result = judge_meta = None
+                judge_error = None
                 judge_safeguards = []
                 if judge_enabled:
                     claims = result.get("claims", [])
@@ -841,8 +1042,21 @@ def evaluate_item(question: dict, mode: str, *, qdrant: QdrantClient, collection
                             judge_reasoning_effort, claims=claims,
                             stage_timings=stage_timings,
                         )
+                    except Exception as error:
+                        # A judge transport/schema failure is not a RAG failure.
+                        # Retain all completed answer/evidence and deterministic metrics.
+                        judge_error = {"judge": error_details(error)}
+                        judge_meta = {"judge": {"score_status": "unscored_error",
+                                                "error": judge_error["judge"]}}
+                        judge_result = {"correctness": None, "answer_relevance": None,
+                                        "groundedness": None, "abstention": "not_applicable",
+                                        "reference_score_status": "unscored_error"}
                     finally:
                         stage_timings["judge_seconds"] = round(monotonic() - judge_started, 3)
+                    judge_error = judge_error or {
+                        stage: metadata["error"] for stage, metadata in (judge_meta or {}).items()
+                        if isinstance(metadata, dict) and metadata.get("error")
+                    } or None
                     judge_result, judge_safeguards = apply_judge_safeguards(
                         question, metrics, cited_ids, judge_result, result["answer"], claims,
                     )
@@ -853,7 +1067,7 @@ def evaluate_item(question: dict, mode: str, *, qdrant: QdrantClient, collection
                         "correct_abstention": (
                             {"correct": 1.0, "incorrect": 0.0}.get(judge_result["abstention"])
                             if (question.get("kind") == "unanswerable_candidate"
-                                and judge_result.get("reference_score_status") != "unscored_needs_review") else None
+                                and judge_result.get("reference_score_status", "scored") == "scored") else None
                         ),
                     })
                 record = {
@@ -864,6 +1078,7 @@ def evaluate_item(question: dict, mode: str, *, qdrant: QdrantClient, collection
                     "claims": result.get("claims", []),
                     "cited_context_ids": cited_ids, "metrics": metrics,
                     "judge": judge_result, "judge_request": judge_meta,
+                    "judge_error": judge_error,
                     "judge_safeguards": judge_safeguards,
                     "agent_execution": agent_execution,
                     "retrieval_diagnostics": retrieval_diagnostics,
@@ -881,7 +1096,11 @@ def evaluate_item(question: dict, mode: str, *, qdrant: QdrantClient, collection
                                         "retrieval_diagnostics": retrieval_diagnostics,
                                         "generation_diagnostics": generation_diagnostics,
                                         "judge_consistency": (judge_meta or {}).get("reference", {}),
+                                        "grounding_consistency": (judge_meta or {}).get("grounding", {}),
+                                        "judge_error": judge_error,
                                         "stage_timings": stage_timings})
+                    if judge_error:
+                        span.update(level="WARNING", status_message="judge_failed_answer_preserved")
                 return record
             except Exception as error:  # continue the benchmark and retain a safe failure record
                 details = error_details(error)
@@ -903,6 +1122,7 @@ def evaluate_item(question: dict, mode: str, *, qdrant: QdrantClient, collection
                         "answer": None, "retrieved_chunks": [], "claims": [],
                         "cited_context_ids": [], "metrics": {},
                         "judge": None, "judge_request": None,
+                        "judge_error": None,
                         "judge_safeguards": [],
                         "agent_execution": agent_execution,
                         "retrieval_diagnostics": retrieval_diagnostics,
@@ -942,6 +1162,12 @@ def _summarize_agent_execution(rows: list[dict]) -> dict | None:
         "preflight_stop_runs": len(preflight_stops),
         "planner_context_compaction_runs": sum(
             int(row.get("planner_context_compactions") or 0) > 0 for row in executions),
+        "planner_context_compaction_attempt_runs": sum(
+            int(row.get("planner_context_compaction_attempts") or 0) > 0 for row in executions),
+        "requirement_correction_runs": sum(
+            int(row.get("requirement_correction_attempts") or 0) > 0 for row in executions),
+        "requirement_validation_failure_runs": sum(
+            bool(row.get("requirement_validation_failures")) for row in executions),
         "mean_preflight_required_total_tokens": (
             round(fmean(float(row.get("planner_tokens") or 0)
                         + float(row["next_call_estimated_tokens"])
@@ -1067,12 +1293,27 @@ def _summarize_judge_consistency(rows: list[dict]) -> dict | None:
     }
 
 
+def _summarize_grounding_consistency(rows: list[dict]) -> dict | None:
+    checked = [(row, (row.get("judge_request") or {}).get("grounding") or {}) for row in rows]
+    checked = [(row, metadata) for row, metadata in checked if "score_status" in metadata]
+    if not checked:
+        return None
+    return {
+        "runs": len(checked),
+        "statuses": dict(sorted(Counter(metadata["score_status"] for _, metadata in checked).items())),
+        "flagged_runs": sum(bool(metadata.get("annotation_validation_failures")) for _, metadata in checked),
+        "needs_review_question_ids": sorted({str(row["question_id"]) for row, metadata in checked
+                                             if metadata["score_status"] == "unscored_needs_review"}),
+    }
+
+
 def _summarize_rows(rows: list[dict]) -> dict:
     names = sorted({name for row in rows for name, value in row.get("metrics", {}).items()
                     if (value is None or isinstance(value, (int, float))) and name not in COUNT_METRICS})
     samples = {name: [row["metrics"][name] for row in rows
                      if isinstance(row.get("metrics", {}).get(name), (int, float))] for name in names}
     result = {"questions": len(rows), "errors": sum(row["error"] is not None for row in rows),
+              "judge_errors": sum(bool(row.get("judge_error")) for row in rows),
               "mean_latency_seconds": round(fmean(row["elapsed_seconds"] for row in rows), 3)
               if rows else None,
               "metrics": {name: round(fmean(values), 4) if values else None
@@ -1094,6 +1335,9 @@ def _summarize_rows(rows: list[dict]) -> dict:
     judge_consistency = _summarize_judge_consistency(rows)
     if judge_consistency is not None:
         result["judge_consistency"] = judge_consistency
+    grounding_consistency = _summarize_grounding_consistency(rows)
+    if grounding_consistency is not None:
+        result["grounding_consistency"] = grounding_consistency
     return result
 
 
@@ -1118,16 +1362,30 @@ def report_markdown(manifest: dict, summary: dict) -> str:
              f"Dataset: `{manifest['dataset_hash']}`", "",
              f"Split: `{manifest.get('split', 'all')}`; evaluation set: "
              f"`{manifest.get('evaluation_set_hash', 'legacy')}`", "",
-             "| Mode | Questions | Errors | Mean latency (s) | Retrieval recall | Correctness | Correctness scored / unscored | Groundedness | Relevance |",
-             "| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |"]
+             "| Mode | Questions | RAG errors | Judge errors | Mean latency (s) | Retrieval recall | Correctness | Correctness scored / unscored | Groundedness | Groundedness scored / unscored | Relevance |",
+             "| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |"]
     for mode in manifest["modes"]:
         row, metrics = summary[mode], summary[mode]["metrics"]
         show = lambda name: "—" if metrics.get(name) is None else f"{metrics[name]:.3f}"
         count = row.get("metric_sample_counts", {}).get("answer_correctness")
         coverage = f"{count['scored']} / {count['unscored']}" if count else "—"
-        lines.append(f"| {mode} | {row['questions']} | {row['errors']} | {row['mean_latency_seconds']} | "
+        grounding_count = row.get("metric_sample_counts", {}).get("groundedness")
+        grounding_coverage = (f"{grounding_count['scored']} / {grounding_count['unscored']}"
+                              if grounding_count else "—")
+        lines.append(f"| {mode} | {row['questions']} | {row['errors']} | {row.get('judge_errors', 0)} | {row['mean_latency_seconds']} | "
                      f"{show('retrieval_recall')} | {show('answer_correctness')} | "
-                     f"{coverage} | {show('groundedness')} | {show('answer_relevance')} |")
+                     f"{coverage} | {show('groundedness')} | {grounding_coverage} | {show('answer_relevance')} |")
+    if any(summary[mode].get("judge_errors") or summary[mode].get("grounding_consistency")
+           for mode in manifest["modes"]):
+        lines.extend(["", "## Judge failures and grounding annotations", "",
+                      "Judge errors do not discard completed RAG answers, evidence or retrieval metrics.",
+                      "Invalid grounding annotations share the existing single retry; unresolved annotations",
+                      "leave groundedness null/unscored, not a fabricated answer penalty.", ""])
+        for mode in manifest["modes"]:
+            diagnostic = summary[mode].get("grounding_consistency") or {}
+            pending = ", ".join(diagnostic.get("needs_review_question_ids", [])) or "none"
+            lines.append(f"- {mode}: {summary[mode].get('judge_errors', 0)} judge error(s); "
+                         f"grounding question IDs needing review: {pending}.")
     if any(summary[mode].get("judge_consistency") for mode in manifest["modes"]):
         lines.extend(["", "## Judge consistency", "",
                       "Unresolved reference correctness is null/unscored, not zero or a promoted score.",
@@ -1318,7 +1576,7 @@ def run(args) -> Path:
             "max_completion_tokens": config.AGENT_MAX_COMPLETION_TOKENS,
             "verifier_reasoning_effort": config.AGENT_VERIFIER_REASONING_EFFORT,
             "draft_reasoning_effort": config.AGENT_DRAFT_REASONING_EFFORT or "provider_default",
-            "answer_review_policy": "required-keys-effects-v3",
+            "answer_review_policy": COVERAGE_CONTRACT,
             "verifier_max_completion_tokens": config.AGENT_VERIFIER_MAX_COMPLETION_TOKENS,
             "max_rounds": config.AGENT_MAX_ROUNDS,
             "max_tool_calls": config.AGENT_MAX_TOOL_CALLS,
@@ -1348,7 +1606,9 @@ def run(args) -> Path:
         with state_lock:
             state["results"].append(record)
             write_json(run_dir / "results.json", state)
-        print(f"{mode} {question['id']}: {'failed' if record['error'] else 'complete'}", flush=True)
+        outcome = ("failed" if record["error"] else
+                   "RAG returned; judging failed" if record.get("judge_error") else "complete")
+        print(f"{mode} {question['id']}: {outcome}", flush=True)
         return record
 
     try:
@@ -1396,7 +1656,9 @@ def run(args) -> Path:
         summary = summarize(state["results"], modes)
         write_json(run_dir / "summary.json", summary)
         (run_dir / "report.md").write_text(report_markdown(manifest, summary))
-        manifest["status"] = "complete" if not any(row["error"] for row in state["results"]) else "completed_with_errors"
+        manifest["status"] = ("completed_with_errors" if any(row["error"] for row in state["results"]) else
+                              "completed_with_judge_errors" if any(row.get("judge_error") for row in state["results"]) else
+                              "complete")
         manifest["completed_at"] = datetime.now(timezone.utc).isoformat()
         write_json(run_dir / "manifest.json", manifest)
         print(json.dumps({"run_id": run_id, "status": manifest["status"],

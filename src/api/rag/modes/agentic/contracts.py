@@ -17,6 +17,28 @@ class AnswerRequirement(ContractModel):
     id: str = Field(min_length=1, max_length=128)
     description: str = Field(min_length=1, max_length=2000)
     kind: Literal["fact", "synthesis"] = "fact"
+    effect_parameters: list[str] = Field(default_factory=list, max_length=20)
+
+
+class ParameterEffectNeed(ContractModel):
+    """Separate a requested parameter response from its optional baseline measurement."""
+
+    requirement_index: int = Field(strict=True, ge=1, le=20)
+    baseline_requirement_index: int | None = Field(default=None, strict=True, ge=1, le=20,
+        description="Different factual description index when the question ALSO requests the baseline; null only for an effect-only request.")
+    parameter: str = Field(min_length=1, max_length=150, description=(
+        "Short literal name from the ORIGINAL question, including distinguishing qualifiers. "
+        "Do not replace a requested outer/physical/projected parameter with another parameter."))
+
+
+class ParameterEffectEvidence(ContractModel):
+    """Planner's observable support decision, not private reasoning or semantic proof."""
+
+    need_id: str = Field(min_length=1, max_length=128)
+    context_id: str = Field(min_length=1, max_length=128)
+    parameter_quote: str = Field(min_length=1, max_length=500)
+    outcome_quote: str = Field(min_length=1, max_length=1000)
+    outcome_kind: Literal["reported_change", "reported_no_change", "baseline", "settings_only", "other_parameter"]
 
 
 class InitialSearch(ContractModel):
@@ -60,7 +82,7 @@ class AgentBudget(ContractModel):
     max_parallel_tools: int = Field(default=4, ge=1, le=8)
     max_evidence_chunks: int = Field(default=30, ge=1, le=50)
     max_elapsed_seconds: float = Field(default=120.0, ge=5.0, le=300.0)
-    max_planner_tokens: int = Field(default=20000, ge=256, le=20000)
+    max_planner_tokens: int = Field(default=20000, ge=256, le=40000)
 
 
 class AgentActionRecord(ContractModel):
@@ -76,6 +98,19 @@ class AgentActionRecord(ContractModel):
     evidence_ids: list[str] = Field(max_length=50)
     paper_ids: list[str] = Field(max_length=20)
     error_type: Annotated[str, Field(min_length=1, max_length=100)] | None
+
+
+class RequirementValidationIssue(ContractModel):
+    """Safe field paths, codes and static guidance; never rejected values/reasoning."""
+
+    field: str = Field(min_length=1, max_length=200)
+    code: str = Field(min_length=1, max_length=100)
+    message: str | None = Field(default=None, min_length=1, max_length=500)
+
+
+class RequirementValidationFailure(ContractModel):
+    attempt: int = Field(ge=1, le=2)
+    issues: list[RequirementValidationIssue] = Field(max_length=20)
 
 
 class AgentExecutionMetadata(ContractModel):
@@ -97,8 +132,14 @@ class AgentExecutionMetadata(ContractModel):
     planner_tokens: int = Field(ge=0)
     next_call_estimated_tokens: int | None = Field(default=None, ge=0)
     planner_context_compactions: int = Field(default=0, ge=0)
+    planner_context_compaction_attempts: int = Field(default=0, ge=0)
+    requirement_correction_attempts: int = Field(default=0, ge=0, le=1)
+    requirement_validation_failures: list[RequirementValidationFailure] = Field(
+        default_factory=list, max_length=2)
     elapsed_seconds: float = Field(ge=0)
     actions: list[AgentActionRecord] = Field(max_length=20)
     requirements: list[AnswerRequirement] = Field(default_factory=list, max_length=20)
+    parameter_effects: list[ParameterEffectNeed] = Field(default_factory=list, max_length=20)
+    effect_finish_checks: list[dict] = Field(default_factory=list, max_length=11)
     initial_searches: list[InitialSearch] = Field(default_factory=list, max_length=20)
     max_parallel_tools: int = Field(default=4, ge=1, le=8)

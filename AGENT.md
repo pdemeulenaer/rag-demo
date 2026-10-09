@@ -164,20 +164,70 @@ evaluation output and Langfuse. `need_id` is excluded from duplicate fingerprint
 search coverage is diagnostic only: ANY scoped retrieved chunk may support ANY requirement.
 Never reinstate per-search citation groups as answer-validation gates.
 Initial searches normalize their associated needs to factual even if the planner labels
-them synthesis-only. Separate measurements and parameter-dependence facts when they need
-different passages; do not mandate extra searches for derived comparisons. Confirmed bare
+them synthesis-only. Planner/tool-schema guidance requires separate factual needs and focused
+initial queries when BOTH a baseline measurement and parameter effect are requested; an
+effect-only request must not acquire an unrequested baseline. This is semantic model guidance,
+not a keyword classifier or hard decomposition guarantee. Recover only missing factual targets,
+not the already established baseline. Do not mandate extra searches for derived comparisons. Confirmed bare
 build UUIDs, like resolved full titles, belong in filters, not content queries. Remove an
 eight-or-more-character UUID prefix only when it matches an already-filtered confirmed build;
 never resolve/infer a filter from a prefix. For missing parameter effects, guide recovery toward
 outcome + parameter + change/dependence passages rather than repeatedly reading settings/captions.
 Do not inject expected values or mandate an analytic power law when an empirical effect suffices. Preserve
 unknown identifiers; never infer a new filter merely from a UUID in user text.
+An initial definition schema error receives one native ToolMessage error tied to the rejected
+call ID, with whitelisted schema field paths/codes and no raw values. `requirement_validation.py`
+also supplies static application-owned correction messages, never raw exception messages/context.
+Parameter-effect rules have separate indexed codes (e.g. baseline_required,
+parameter_not_in_question, baseline_effect_same_query), not opaque invalid_effect_definition.
+Persist the same field/code/message in execution diagnostics and native correction feedback;
+historical records without message remain readable. Check distinct content queries after
+confirmed title/ID cleanup and whitespace/case normalization; changing filters/mode/limit
+alone does not separate a baseline from its effect. Metadata-first and effect-only null-baseline
+plans remain valid. Permit at most one
+corrective definition call, charged to existing planner-token/time limits; freeze requirements
+only after validation. Scope escapes, mixed tools, duplicate requirements and redefinitions
+remain immediate hard stops. Persist requirement_validation_failures and actual
+requirement_correction_attempts in execution/API/evaluation/Langfuse, including budget-blocked
+or failed correction paths. No normal-path extra call, hidden retry, budget/model/default
+change, schema rewriter, reindex or implicit paid trial. Graph recursion allowance includes
+the two correction nodes without increasing retrieval rounds/tools.
+Standalone protocol/tool labels (e.g. initial_searches, build_ids, get_neighbors) in
+descriptions fail native Pydantic validation with internal_tool_requirement and use
+that same one-correction path. Do not block scientific prose merely containing a field
+name, silently delete/renumber entries, or add a classification call.
+The native definition also records parameter_effects (literal original-question parameter,
+effect requirement_index and nullable baseline_requirement_index). Declared baselines/effects
+must have distinct factual indices and distinct initial queries; malformed/missing effect
+declarations use the existing definition correction. Do not invent a baseline for effect-only
+questions. finish_with_evidence requires effect_evidence for these needs: retrieved IDs,
+contiguous parameter/outcome quotes and reported_change/reported_no_change classification.
+Preserve qualifiers and signed numeric quote identity; settings, baseline or another
+parameter cannot establish sufficiency. Rejecting a finish guides scoped recovery inside
+existing budgets. At most two rejected finishes per round, and no recovery past max_rounds;
+collected chunks remain eligible for reviewed partial synthesis. Persist parameter_effects
+and effect_finish_checks in execution metadata/traces. Search-origin need labels remain
+diagnostic, not citation allowlists. These native assessments are fallible, not semantic proof;
+do not add expected values, new paid classification calls, automatic aliases or budget increases.
 After freezing requirements, do not expose define_requirements again. On an over-budget
 next-call reservation, `planner_context.py` supplies read-only query-focused tool previews
 (400 chars/chunk, 6000 total), with truncation/deduplication flags and protocol IDs intact.
 Recount before invocation; hard budgets still apply. Never mutate full evidence/artifacts
 or interpret hidden preview text as missing source evidence. Execution/evaluation records
 planner_context_compactions; no additional provider call or q-specific recovery is added.
+Subsequent planner calls replace the completed definition call/result pair with one frozen
+requirements/parameter snapshot, preserving the original question and all retrieval/error
+pairs. Budget compaction removes repeated titles from chunk rows (retained once in a paper
+catalogue); full evidence is unchanged. Record planner_context_compaction_attempts even when
+the recounted call is blocked; planner_context_compactions counts invoked calls only. Never
+loosen preflight when token counting fails.
+Explicit coordinated measurement-plus-effect requests cannot declare a null baseline to
+bypass distinct factual indices/queries. This grammatical routing hint is not an exhaustive
+complexity/entailment classifier; effect-only questions must not acquire a baseline.
+Freeze effect_parameters on validated AnswerRequirement records and propagate only literal,
+applicable parameters into original-question checks. Native Pydantic parameter enums prevent
+a reviewer substituting the measured output for the changed input. Original-question scope
+and semantic support remain authoritative; no gold values or extra calls enter runtime.
 
 Agentic's review checks each claim using only its cited excerpts, and actual answer coverage
 against the question/requirements (values, units, ranges, uncertainty, comparisons). No gold
@@ -190,9 +240,48 @@ configured generation-token cap, no provider retries), outside retrieval budgets
 Provider coverage uses Pydantic-generated required object keys for every frozen requirement
 and original question part (lettered or numbered), not a free-ID list that permits omissions.
 Normalize successful reviews to the existing public list format; record coverage_contract
-required-keys-effects-v3. Explicit parameter-dependence requirements additionally require
+frozen-parameter-effects-v9. Native coverage also requires essential_claim_indices (the minimal
+subset of claim_indices supporting ALL user-requested facts) and specific missing_details.
+Essential links must exist, belong to the declared coverage links and pass claim checks;
+unknown links/empty essential support prevent completion. Rejected supplementary claims
+remain diagnostic but cannot erase otherwise verified core coverage. Legacy adapters without
+essential links conservatively treat all links as essential. Partial output names specific
+missing_details, or local validation uncertainty, not the whole answered requirement.
+When every original-question check is satisfied, omit rejected optional claims and
+stop after draft+review instead of repairing unrequested background. Frozen plan coverage
+is diagnostic, not another completeness gate. Review payload separates original_question_requirements
+from planned_retrieval_requirements without duplicating their descriptions; completeness_authority
+is original_question_parts. Persist planner_only_gaps and unplanned_requests as diagnostics,
+never append them as mandatory gaps. Genuine omissions must be assessed under their original
+q_ keys; repairs and displayed limitations are driven by those checks. A satisfied original
+part still requires supported essential claims and the existing numeric/effect checks.
+Never promote a partial
+review merely because some claims survived, or relax semantic/numeric/own-citation gates.
+Explicit parameter-dependence requirements additionally require
 effect_status (reported_effect/test_settings_only/missing) and effect_claim_indices. Satisfied
-effects must link nonempty supported answer claims; baseline values, tested settings or an
+effects require effect_outcomes selecting a native-enum answer_claim_id and
+reports_requested_outcome=true. Freeze a0001/etc. anchors from the actual screened answer
+claims; resolve IDs locally to unchanged answer_text and claim_index. Never use source text,
+gold text, truncated or rewritten text as an answer anchor. Every effect link needs one
+unique outcome audit, and at least one must be essential. ID selection proves identity,
+not outcome relevance or support; those remain model-assessed. Test existence,
+proposed tests or effects of a different parameter are not reported outcomes. No gold
+values enter runtime and no additional review call is added. Historical/local quote adapters
+retain strict quote identity; malformed audit wording is annotation uncertainty, not proof
+of missing content. Persist answer_anchors and annotation_validation_failures per attempt,
+effect_anchor_mode and annotation_correction_attempts. An annotation-only gap or failed review
+may spend the existing second review on the SAME unchanged claims, without an answer repair.
+Preserve previously verified claims; never auto-promote a verdict. Real content gaps retain
+one targeted repair. Correction and content repair share the two-review limit: no third
+review or later extra content repair. Unresolved annotations disclose validation uncertainty.
+Native effect outcomes additionally bind requested_parameter (literal original-question name)
+to answer_parameter_quote / answer_outcome_quote and outcome_kind. Preserve distinguishing
+qualifiers; baseline/settings/other-parameter verdicts cannot pass an optimistic Boolean.
+Malformed method claim/source quotes alone also use review-only correction when the claim
+is otherwise supported, no numeric error exists, and every blocked essential link is an
+annotation failure. Record invalid_method_annotation; do not auto-approve a real role
+mismatch or request another content rewrite merely to repair audit wording.
+Effects must link nonempty supported answer claims; baseline values, tested settings or an
 absent formula do not answer an effect request. Qualitative effects can satisfy qualitative
 requests without numbers/formulas. This is model-assessed semantics, not a keyword entailment
 gate. Original-question checks apply even when the planner omits the effect. Preserve supported
@@ -223,9 +312,40 @@ The first validation attempt records `citation_repair` diagnostics for candidate
 inspection in results and Langfuse.
 Presentation-only normalization handles mathematical-font solar masses, braced inverse
 units and attached Unicode scientific exponents; preserve signs, magnitudes and dimensions.
+Approximation symbols bind an explicit spaced/Markdown sign to a following number, e.g.
+∼−_ 1 _._ 75 becomes ∼-1.75 in the read-only validation view. Do not join ordinary range
+separators/subtraction or infer missing signs. Wrong-sign/magnitude/uncited values still fail.
 Malformed generated control characters fail screening with `invalid_control_character`
 and use the existing repair. Never guess their glyphs or strip them into phantom values.
 Stored chunks remain unchanged; retain citation-scoped numeric and semantic checks.
+Clean abbreviated citation UUIDs from prose only when uniquely resolved within retrieved
+context and distinguishable from bare numeric counts/ranges. Unknown/ambiguous UUID-like
+abbreviations fail with unresolved_internal_citation_reference, not phantom numeric values.
+Never auto-attach citations. Runtime ClaimCheck requires conditional typed method_attributions
+in the native schema. Ordinary measurements/effects and unnamed routines use [] or not_applicable;
+labelled future uses may use proposed_use. Those compact branches have no dummy method fields.
+Reported named-method roles require applicability reported_operation, literal claim_quote,
+short method name, claimed/source operation, status and own-citation quotes naming BOTH method
+and operation. Record annotations naming methods absent from the actual claim as method_scope_issues;
+do not let method:"[]" or a source-only method reject an ordinary fact. General support, numeric,
+citation and coverage checks still apply. A proposal's reported method premises still need checks.
+Actual role non-matches/invalid claim or own-source quotes override supported=true. Record
+method_role_contract answer-bound-cited-operation-v3 and per-attempt checks;
+semantic role equivalence remains a fallible model assessment, not a keyword proof.
+Normalize letter-to-letter word hyphens only for quote presentation; retain numeric signs/values
+and ellipsis markers. Never accept stitched/invented quote wording or change stored source text.
+Use the native nested Pydantic union/SDK anyOf path, not a custom provider schema rewriter.
+Native method audits resolve claim_quote locally from the selected actual claim index/ID;
+copied source wording cannot replace answer identity. Historical quote adapters remain strict.
+method_evidence.py supplies conservative literal named-algorithm/proper-name method cues,
+not a method inventory or semantic proof. Expose reported_methods_to_audit to reviewers;
+empty/not_applicable/proposed_use audits cannot waive these reported premises. Missing runtime
+audits use existing content repair; missing grounding audits share its existing single
+annotation/schema correction and otherwise remain unscored. Ordinary facts and clearly
+labelled proposals retain independent support/numeric checks without an invented method gate.
+Repair only missing details; preserve approved claims. Deduplicate whitespace/case-equivalent
+claim text even with different citations/need IDs and record duplicate_claims_omitted. Never
+fuzzy-collapse distinct conditions/values or change the two-draft/two-review bounds.
 Surface-density validation recognizes equivalent g/cm² inverse-unit presentations and
 does not mistake their -2 exponent for a measured value. A percentage-bearing fraction
 does not require the noun "fraction" in a source supporting that percentage. Keep exact
@@ -251,13 +371,14 @@ planner tokens, named-paper coverage and deterministic reviewed-paper coverage, 
 freeze the effective Agentic configuration. Correctness/relevance and groundedness use
 separate judge requests so gold evidence cannot leak into grounding. Answerable abstentions are
 scored incorrect deterministically; claim-level grounding checks source/entity attribution
-against only the claim's cited chunks. New reference judging uses claim-anchored-v8:
+against only the claim's cited chunks. New judging uses claim-role-bound-v13, retaining v8's
+reference anchoring:
 required per-question-part assessments, native-enum answer_claim_ids and required numeric values.
 The runner freezes exact rendered claim spans plus remaining answer spans (including refusals/gaps),
 assigns deterministic a0001/etc. IDs and resolves selections locally into answer_quotes for
 numeric safeguards. Never use unrendered claims, gold text or retrieved text as answer anchors;
 never truncate/rewrite resolved text or treat selection as proof of semantic correctness.
-Only the benchmark reference provider schema changes; runtime answer/citation contracts remain.
+Answer/citation shapes remain unchanged; typed runtime/grounding method audits are separate.
 Read the whole answer, not merely selected claims. Unknown IDs remain strict schema errors;
 empty answered selections/duplicate IDs share the existing one-retry validation budget.
 Persist judge.answer_anchors, per-check answer_claim_ids and reference answer_anchor_mode.
@@ -266,6 +387,19 @@ needs_review_question_ids records only unresolved conflicts. Historical runs rem
 Runtime review and both judges explicitly check method purpose, population and pipeline step;
 sharing a paragraph or pipeline does not license assigning a separate method's operation.
 Offline generic method-role fixtures test rejection/repair and prompt wiring, not live accuracy.
+Grounding v12 uses a native enum of actual claim answer_claim_id values; the runner resolves
+them locally to claim_index. Persist claim_anchors/answer_anchor_mode and require [] when
+there are no claims. Unknown IDs and emitted numeric indices fail strict parsing and share
+the same schema/annotation correction allowance; exhausted schema failures remain unscored_error.
+Do not transfer reference answer anchors (which include other rendered spans) into grounding.
+Historical index-based adapters remain readable. The conditional method audit retains independently extracted
+source operations and own-citation quotes. Irrelevant method annotations are diagnostic scope
+issues, not a gate for ordinary facts. Anchored declared actual-role mismatches cap groundedness
+at 0.5; preserve raw_groundedness and method_validation_failures. Invalid claim/source quotes
+or unknown claim indices are judge annotation failures, not proven answer defects: share
+grounding's existing single schema retry, then leave groundedness null/unscored_needs_review
+if unresolved. Persist annotation_validation_failures and grounding_consistency summaries.
+No separate retry loop or reference/gold transfer into grounding is permitted.
 Genuine missing facts or absent quoted target numbers cap scorable correctness at 0.5 with
 observable safeguards; correct unanswerable refusals remain exempt from missing-fact penalties.
 No gold facts enter runtime verification or the grounding judge. Preserve historical scores;
@@ -292,6 +426,13 @@ Skip numeric Langfuse correctness scores and reference abstention accuracy for u
 Do not fabricate scores through correctness safeguards. Summary/profile metric_sample_counts
 and report scored/unscored denominators make exclusions explicit; null is not zero or success.
 Invalid JSON/types/missing fields/enums remain strict parsing failures with existing handling.
+Judge transport or exhausted-schema failures preserve completed RAG outputs and deterministic
+metrics; record separate judge_error stages with safe cause types, failed scores null and
+score_status unscored_error. Keep valid independent-stage scores and known IDs/usage, marking
+usage_incomplete where billing is unknown. Summary errors counts RAG failures, judge_errors
+counts judging failures; manifest completed_with_judge_errors distinguishes them. Null scores
+must not be converted to penalties/success by safeguards or Langfuse. In-flight item persistence
+and judge-only replay are not implemented. Never claim a full benchmark rerun skips paid RAG work.
 Semantic omissions/incorrect statements still receive normal penalties. Offline native-SDK
 tests prove format, feedback, isolation and retry bounds, not live judge quality. No default
 reasoning/model changes, historical edits, reindex or implicit paid trials.
@@ -306,7 +447,7 @@ list, never ["[]"] or symbolic settings. Settings belong in requested_fact, not 
 Malformed schema feedback shares the existing one-retry budget; record schema_validation_failures.
 Exhausted schema retries remain judge errors, not false correctness penalties. Judges assess
 reported outcome effects independently of input settings; no gold facts enter runtime.
-Runtime coverage records original-question-effects-v2: original user requests define mandatory
+Runtime coverage records original-question-authority-v3: original user requests define mandatory
 scope, not optional planner examples or paper-title words. Deterministic completeness-unit
 checks intersect plan units with those explicitly requested in the question; independent
 claim review still checks measurement units. Conceptual proposed cross-paper tests need

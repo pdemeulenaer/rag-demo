@@ -19,7 +19,7 @@ def test_initial_plan_uses_native_typed_tool_schema():
     schema = define_requirements.args_schema.model_json_schema()
     assert "initial_searches" in schema["required"]
     assert set(schema["properties"]) == {
-        "descriptions", "initial_searches", "synthesis_indices"}
+        "descriptions", "initial_searches", "synthesis_indices", "parameter_effects"}
     assert "requirement_indices" in schema["$defs"]["InitialSearch"]["required"]
     provider_schema = convert_to_openai_tool(define_requirements)["function"]["parameters"]
     search_schema = provider_schema["properties"]["initial_searches"]["items"]

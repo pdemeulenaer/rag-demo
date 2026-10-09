@@ -7,13 +7,17 @@ from langchain_core.messages import AnyMessage
 from langgraph.graph.message import add_messages
 
 from src.api.rag.contracts import EvidenceChunk
-from src.api.rag.modes.agentic.contracts import AgentActionRecord, AnswerRequirement, InitialSearch
+from src.api.rag.modes.agentic.contracts import (
+    AgentActionRecord, AnswerRequirement, InitialSearch, ParameterEffectNeed, RequirementValidationFailure,
+)
 
 
 class AgentState(TypedDict, total=False):
     messages: Annotated[list[AnyMessage], add_messages]
     evidence: list[EvidenceChunk]
     requirements: list[AnswerRequirement]
+    parameter_effects: list[ParameterEffectNeed]
+    effect_finish_checks: list[dict]
     initial_searches: list[InitialSearch]
     pending_initial_searches: list[InitialSearch]
     action_need_ids: dict[str, list[str]]
@@ -30,6 +34,9 @@ class AgentState(TypedDict, total=False):
     planner_tokens: int
     next_call_estimated_tokens: int | None
     planner_context_compactions: int
+    planner_context_compaction_attempts: int
+    requirement_correction_attempts: int
+    requirement_validation_failures: list[RequirementValidationFailure]
     no_progress_rounds: int
     started_at: float
     question_scope: str | None

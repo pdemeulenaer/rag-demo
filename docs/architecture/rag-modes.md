@@ -157,16 +157,65 @@ uncertainty,” while its search query is “dynamical mass uncertainty.” A se
 still checks it, but retrieval does not invent a mandatory comparison query.
 
 The native `define_requirements` schema accepts `descriptions`, `initial_searches` (query,
-1-based `requirement_indices`, mode, filters and limit), and optional `synthesis_indices`.
+1-based `requirement_indices`, mode, filters and limit), `synthesis_indices`, and
+`parameter_effects`. Each effect records its literal requested parameter, effect requirement
+index and nullable baseline index. A declared baseline needs a different factual index and
+distinct focused search. Missing effect declarations, invalid indices and non-question
+parameter names use the existing one-definition correction.
+For explicit coordinated measurement-plus-effect requests, a null baseline no longer
+bypasses this separation. Effect-only requests still permit null; the grammatical routing
+hint is not an exhaustive scientific classifier. Validated effects also freeze
+`effect_parameters` on their requirements for subsequent answer review.
 Use an empty initial list when catalogue discovery must happen first. This replaces the old
 automatic one-description/one-search mapping; it does not add another planner call.
 
-A measured value and its dependence on a parameter can require separate passages and focused
-queries. Reporting the baseline, listing parameter variants, or discussing a different parameter
+If this initial definition fails schema validation, the graph returns a native tool-error
+message with safe field paths (for example `initial_searches[0].query`) and error codes,
+then permits **one corrective planner call**. Requirements freeze only after validation.
+Parameter-effect failures now identify the specific rule and indexed field, with a static
+correction message. For example, `parameter_effects[0].baseline_requirement_index` /
+`baseline_required` asks for a separate baseline entry instead of null; `parameter_not_in_question`
+asks for a literal parameter name, and `baseline_effect_same_query` asks for distinct content
+queries **after** confirmed titles/IDs are removed. Case/whitespace changes or different
+filters/modes/limits alone do not separate the facts. The same safe `field`, `code` and
+`message` are recorded and sent back to the planner; rejected values and raw exception
+messages are not copied. These checks live in `agentic/requirement_validation.py`; the
+LangGraph/native tool correction flow is unchanged. Effect-only requests and metadata-first
+plans remain allowed; no silent rewriting, extra correction or extra normal-path call is added.
+The correction is charged to the same cumulative planner-token and retrieval-time limits;
+preflight can prevent it. A second malformed definition stops safely. Scope escapes,
+mixed tools, duplicate requirements and attempts to redefine frozen requirements still
+fail closed without a correction. Valid initial plans incur no extra call.
+`execution.requirement_validation_failures` records both rejected schema attempts without
+raw arguments, and `requirement_correction_attempts` counts actual corrective model calls.
+This uses the existing [native tool-output protocol](https://developers.openai.com/api/docs/guides/function-calling),
+not another planning framework or a hidden provider retry.
+Standalone tool/field names in requirement descriptions, such as `initial_searches`, now
+fail native validation with `internal_tool_requirement` and use this same correction.
+Scientific prose mentioning a field is not rejected; invalid entries are not silently removed.
+
+A question requesting **both** a baseline measurement and a parameter effect is now instructed
+to use two factual requirements and distinct focused initial queries, even within the same paper.
+An effect-only question does not acquire an unrequested baseline requirement. Typed index and
+query checks enforce declared separation; identifying every requested parameter remains
+model-assessed. The existing question-pattern hint routes these checks, not a new classifier.
+Reporting the baseline, listing parameter variants, or discussing a different parameter
 does not establish that dependence. Requirements associated with explicit initial searches are
 normalized to factual needs even if the planner mistakenly labels them synthesis-only.
 For resolved-paper searches, confirmed titles and bare build IDs are removed from the search
 text and retained as filters; unknown identifiers and partial title text are not blindly removed.
+
+For declared effects, `finish_with_evidence` now supplies typed `effect_evidence`: need ID,
+retrieved context ID, contiguous parameter/outcome quotes and an outcome classification.
+Only a reported change/no-change for the requested parameter can pass; baseline values,
+test settings, another parameter, missing IDs and invented quotes reject the finish.
+Parameter binding retains qualifiers (for example, inner is not outer); word order can
+vary, but symbolic-only aliases require reading their definition rather than guessing.
+A rejection guides a focused in-paper search or targeted read within the existing budgets.
+Repeated failed finishes without retrieval progress are bounded; collected chunks remain
+available for verified partial synthesis. This adds no normal-path classifier or reviewer
+call. `execution.parameter_effects` and `effect_finish_checks` record the decisions.
+Literal bindings and a model-assessed outcome category are safeguards, not scientific proof.
 
 LangGraph's native `ToolNode` runs independent calls **within a batch** concurrently.
 This applies both to initial searches and to additional searches/reads chosen together in
@@ -207,12 +256,20 @@ Section reads recover an exact observed heading when only Markdown bold/heading 
 differ; they do not guess or fuzzy-match unseen section names.
 
 Requirement definition is removed from the available tools after the requirements freeze.
+Its completed call/result pair is replaced by one frozen requirements/parameter snapshot
+on later planner calls. The original question and retrieval/error tool pairs are preserved;
+no extra summarizing model is used. This avoids repeatedly paying for descriptions and
+initial queries in both tool arguments and tool replies.
 If a subsequent planner call would exceed its cumulative token allowance, a read-only
 compaction shortens tool text to query-focused windows (400 characters per chunk, 6,000
 total), deduplicates repeated text, and marks truncation. The original question, requirements,
 tool-call/result IDs, paper/build/chunk identifiers and full generation evidence remain
 unchanged. The graph recomputes the reservation and still stops if the call cannot fit;
-compaction neither increases limits nor adds a model call. These tool instructions follow
+compaction neither increases limits nor adds a model call.
+`planner_context_compaction_attempts` counts attempted compaction even if the next call
+still cannot fit; `planner_context_compactions` counts calls actually invoked with shorter
+previews. Repeated titles remain once per build in a paper catalogue instead of every
+chunk row. These tool instructions follow
 [OpenAI's function-calling guidance](https://developers.openai.com/api/docs/guides/function-calling).
 
 ### Agentic answer checks and repair
@@ -235,6 +292,79 @@ If necessary, one repair requests only corrected/additional claims and preserves
 verified ones. Remaining gaps appear in the displayed answer. No verified claims means a safe
 abstention; partial evidence no longer forces the entire answer to disappear.
 
+Coverage now distinguishes all related `claim_indices` from `essential_claim_indices`:
+the reviewer must choose a minimal subset supporting **every actual requested fact**.
+Essential links must exist, be included in the related links and pass the same citation,
+numeric and semantic checks. Rejecting supplementary background does not invalidate those
+verified core facts. Unknown references, unverified essential claims or an empty essential
+set cannot establish completion. Legacy adapters retain the conservative all-links-essential
+rule. This is model-assessed semantic relevance, not proof that a fact is optional.
+
+The native schema also requires `missing_details`, naming specific unanswered user-requested
+facts. Partial answers use those details rather than declaring the entire broad requirement
+unanswered; contradictory local checks disclose validation uncertainty. Original-question
+checks remain independent of the planner. They are the **only completeness gate**: frozen
+retrieval requirements are navigation and diagnostics, not authority to add requests.
+Review input separates `original_question_requirements` from `planned_retrieval_requirements`;
+repairs and displayed gaps use original-question checks. `planner_only_gaps` and
+`unplanned_requests` remain observable, but cannot alone turn an answered question into
+a partial answer. Actual omissions must appear under their original `q_` key, with verified
+essential support still required for satisfaction. If every requested fact is verified, rejected
+optional claims are omitted and the answer finishes after draft + review, avoiding an
+unnecessary repair/review pair. Rejections and original/essential claim links remain visible
+in diagnostics. Partial/unsupported requested facts still use the existing single repair.
+No additional model call or increase in budgets is introduced.
+
+Before numeric checks, abbreviated citation IDs are removed from prose only when they uniquely
+resolve to this request's retrieved context and have hex letters or an abbreviation marker.
+Bare decimal counts/ranges remain untouched. Unknown/ambiguous UUID-like abbreviations receive
+`unresolved_internal_citation_reference` repair feedback, rather than phantom measurement errors.
+Cleanup never adds citations; exact IDs must already be in `cited_context_ids`.
+
+The existing review uses conditional typed `method_attributions`. Ordinary measurements,
+parameter effects and unnamed routines use `[]` or the compact `not_applicable` branch; a
+labelled future use can use `proposed_use`. Neither branch supplies a dummy method/operation.
+Factual premises and claims about what an existing method actually does still need support.
+For a `reported_operation`, the audit includes a literal `claim_quote`, the short named method,
+claimed/source operations, verdict and short own-citation quotes. An annotation naming a method
+absent from the actual claim is recorded in `method_scope_issues`, not used to reject an
+ordinary fact. This does not override general support, numeric, citation or coverage checks.
+
+A declared role mismatch, invented claim attribution, or missing/invalid source quote prevents
+approval of an actual named-method claim even if `supported` is true. A source quote must
+contain both the named method and the independently extracted operation; quoting a separate
+unnamed routine cannot establish that method's role. Letter-to-letter word hyphens normalize
+presentation (`N-body` / `_N_ - body`), but numeric signs/values and ellipsis markers remain.
+Invented/stitched quotes still fail. The model judges role equivalence and applicability;
+format checks are not semantic proof. Diagnostics record
+`method_role_contract: answer-bound-cited-operation-v3` and each attempt's method checks.
+The conditional branches use native Pydantic/SDK schemas, consistent with
+[OpenAI's structured-output guidance](https://developers.openai.com/api/docs/guides/structured-outputs);
+no hand-written provider-schema conversion or extra classification call is introduced.
+Native audits bind `claim_quote` locally to the actual selected answer claim, so copied
+source wording cannot change answer identity or cause a false copied-quote retry. Own-source
+operation quotes and independent semantic verdicts remain required; legacy quote adapters
+remain strict. Conservative literal named-algorithm/proper-name method cues are passed as
+`reported_methods_to_audit`. Empty or `not_applicable`/`proposed_use` checks cannot waive
+those reported premises. Missing runtime audits use the existing content repair, while
+missing grounding audits use the existing annotation correction or remain unscored. These
+cues are not an exhaustive method inventory or proof of role equivalence.
+
+An otherwise supported method claim with malformed claim/source audit quotations is now an
+**annotation-only** failure when it alone blocks essential coverage. The existing second
+review reassesses the unchanged claims; it does not ask the generator to rewrite them.
+Nothing is approved automatically. A real role mismatch, unsupported claim or simultaneous
+numeric deficit remains a content failure. Unresolved annotations disclose verification
+uncertainty, and correction/content repair still share the two-review limit.
+
+Repair instructions add only missing details, not another baseline/method catalogue. Exact
+restatements (ignoring whitespace/case) are omitted even with different citations or need IDs;
+the first approved claim remains unchanged. New values/conditions are retained. This is not
+fuzzy semantic deduplication; `duplicate_claims_omitted` records the count per attempt.
+There are no extra review calls. Separate initial searches share the existing parallel round
+and budgets; richer review output can increase tokens. Avoiding false rejections/repetition
+may save repairs, but quality and latency must be measured in fresh evaluations.
+
 Formatting normalization recognizes equivalent solar-mass notation (`_𝑀_ ⊙`, `M⊙`,
 `M_{\odot}`) and inverse-year notation (`yr^{-1}`, `yr⁻¹`, extracted bracketed
 superscripts). Unit exponents are not newly claimed measurements; scientific powers such
@@ -245,6 +375,11 @@ Equivalent `g cm^-2`/`g/cm²`/bracketed inverse-centimetre notation is a surface
 unit: its exponent is not a measurement. “50% binary fraction” does not require the
 literal word `fraction` when the cited text supports that percentage of systems.
 Neither normalization changes values/dimensions or replaces semantic support review.
+
+An explicit approximation symbol also binds a spaced/Markdown sign to its value:
+`∼−_ 1 _._ 75` becomes `∼-1.75` in the read-only validation view. Ordinary range separators
+or subtraction are not joined, and absent signs are never guessed. Opposite signs,
+different magnitudes and values found only in uncited chunks still fail validation.
 
 Shared scientific multipliers apply to both range endpoints: `(1–3) × 10^-3` means
 `0.001–0.003`, not standalone coefficients `1` and `3`. Separately scaled endpoints keep
@@ -260,7 +395,7 @@ facts from both papers and a clearly labelled proposed linkage. It does not requ
 numerical conversion or proof that the papers already establish that relationship unless
 the user asks for it. Unsupported claims presented as established findings remain rejected.
 These rules guide planning, drafting and independent review without adding model calls.
-Diagnostics record `coverage_policy: original-question-effects-v2`; semantic judgments remain
+Diagnostics record `coverage_policy: original-question-authority-v3`; semantic judgments remain
 fallible and must be inspected in fresh evaluations.
 
 For explicit parameter-dependence requests, the reviewer must distinguish a **reported
@@ -269,6 +404,27 @@ supported answer claims that describe the effect. Listing tested parameter value
 baseline measurement, or saying “no formula is given” does not establish the effect.
 A reported decrease, weak dependence or unchanged outcome can answer a qualitative
 question without an analytic law. Quantitative details remain mandatory when requested.
+Native coverage requires `effect_outcomes`: each audit selects an `answer_claim_id` from
+the native enum of actual answer claims and assesses `reports_requested_outcome`. It also
+records a literal `requested_parameter` from the original question. `effect_parameters`
+freezes the declared varied input in a native enum for each applicable
+requirement/original-question check. A reviewer cannot replace it with the measured output
+merely because that output also occurs in the question. Missing effects must be assessed
+as missing/partial. Outcome audits additionally record short literal
+`answer_parameter_quote` / `answer_outcome_quote` spans and `outcome_kind`. Binding checks
+retain parameter qualifiers and reject observable baseline/settings/other-parameter
+classifications even when the Boolean assessment is optimistic. Malformed annotations
+use review correction; identified content deficits use the existing answer repair. The
+application freezes `a0001`, etc. against the unchanged screened claim text, then resolves
+the selection locally into `claim_index` and exact `answer_text`. The model does not copy
+answer quotations, so source wording cannot accidentally become an answer annotation.
+Unknown IDs fail native validation; unsupported or mismatched claim links cannot establish
+completion. “A sensitivity
+test was performed” is not a result; neither are baseline numbers, proposed future tests,
+or outcomes for a different parameter. The result must be among the essential claims.
+These ID bindings check text identity; outcome relevance remains a fallible model
+assessment, not a keyword entailment rule. A missing outcome uses the existing single repair
+or a specific partial-answer warning, with no new model call or expected-value injection.
 The semantic classification is model-assessed, not a keyword-based proof; claim support
 still uses only the claim's cited chunks. These fields use the existing review/repair calls.
 
@@ -300,9 +456,18 @@ The provider review uses a Pydantic-generated object with a required key for eve
 planner requirement and every original question part, including numbered and lettered parts.
 Omitted or renamed keys fail validation; reviewers must explicitly report missing coverage.
 The public diagnostics retain their list format and record
-`coverage_contract: required-keys-effects-v3`. Effect requirements additionally expose
-`effect_status` and `effect_claim_indices`; the native provider schema requires these fields.
-This uses the existing bounded repair, without adding model calls.
+`coverage_contract: frozen-parameter-effects-v9`. Effect requirements additionally expose
+`effect_status`, `effect_claim_indices` and `effect_outcomes`; the native provider schema requires these fields.
+Each validation attempt also records `answer_anchors` and `annotation_validation_failures`;
+diagnostics expose `effect_anchor_mode: immutable_answer_claims` and
+`annotation_correction_attempts`. Historical/local quote adapters remain conservatively
+validated. Invalid audit wording is **verification uncertainty**, not proof that the answer
+omits the outcome. An annotation-only failure or failed review spends the existing second
+review on the **same unchanged claims**, without asking the answer model to rewrite them.
+Previously verified claims remain fixed; the correction cannot automatically promote coverage.
+A genuine content gap still uses one targeted answer repair. These alternatives share the
+two-review limit: no third review or extra content repair after annotation correction.
+Unresolved audit errors disclose uncertainty; genuine missing facts disclose the actual gap.
 
 If a sensitivity search finds only baseline values or a caption listing settings, the planner
 is guided to search the same paper for the outcome, parameter and reported change/dependence.
@@ -313,7 +478,8 @@ a paper or infer a filter. These are general query improvements, not automatic r
 or evaluation-answer hints. Existing round/tool/token limits and parallel tool execution remain.
 
 This adds one planning call for requirement definition. Synthesis uses two calls normally
-(draft + review), at most four with repair (draft + review + repair + review), with provider
+(draft + review), at most four with content repair (draft + review + repair + review), or
+three for annotation-only correction (draft + review + review), with provider
 retries disabled. Each call uses a 60-second timeout. The independent GPT-5 verifier uses
 `AGENT_VERIFIER_REASONING_EFFORT` and `AGENT_VERIFIER_MAX_COMPLETION_TOKENS`; draft and repair
 continue using the generation-model token limit. Reasoning tokens count against the provider's

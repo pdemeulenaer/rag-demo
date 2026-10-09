@@ -5,7 +5,7 @@ import json
 import logging
 from time import monotonic
 
-from langchain_core.messages import AIMessage, ToolMessage
+from langchain_core.messages import AIMessage, HumanMessage, ToolMessage
 from langgraph.graph import END, START, StateGraph
 from langgraph.prebuilt import ToolNode
 from pydantic import ValidationError
@@ -16,14 +16,19 @@ from src.api.rag.modes.agentic.contracts import (
     AgentBudget,
     AnswerRequirement,
     InitialSearch,
+    RequirementValidationFailure,
     StopReason,
 )
 from src.api.rag.modes.agentic.policies import (
     action_fingerprint, observed_section_header, scoped_requirement_query,
 )
-from src.api.rag.modes.agentic.planner_context import compact_planner_messages
+from src.api.rag.modes.agentic.planner_context import compact_planner_messages, frozen_planner_messages
 from src.api.rag.modes.agentic.state import AgentState
 from src.api.rag.modes.agentic.tools import TERMINAL_TOOLS, define_requirements
+from src.api.rag.modes.agentic.effect_evidence import literal_span, names_parameter
+from src.api.rag.modes.agentic.requirement_validation import (
+    requirement_validation_issues, validate_parameter_effects,
+)
 
 
 logger = logging.getLogger(__name__)
@@ -43,6 +48,7 @@ Rules:
   the relevant requirement. Avoid duplicates and include every actual part of the question.
   The original question is the scope authority: do not turn optional examples, alternative
   reporting formats, paper-title terms, or proposed analyses into extra mandatory facts.
+  Tool names/fields such as initial_searches are protocol, never scientific requirements.
   For a conceptual "how could these methods test these assumptions" synthesis, require
   supported inputs and a clearly labelled proposed linkage, not a new numerical derivation
   or an empirically established relationship unless the question explicitly asks for one.
@@ -57,8 +63,17 @@ Rules:
   Use initial_searches=[] only if metadata discovery must precede chunk retrieval.
 - Requested measurements, dependencies, sensitivity tests and analysis capabilities are
   factual evidence needs even inside a comparative question. Only a purely derived
-  comparison is synthesis-only. A baseline value and its parameter sensitivity may live
-  in different passages: use separate focused queries when their evidence is not colocated.
+  comparison is synthesis-only. When the question asks BOTH a baseline measurement and
+  its parameter sensitivity, define TWO distinct factual requirements and TWO focused
+  initial queries, even for the same paper. One target is the baseline; the other is the
+  outcome change under the specifically named parameter. Do not bundle them into one
+  broad need/query or let finding the baseline satisfy the effect. An effect-only request
+  does not require inventing an extra baseline need. Independent searches run in parallel.
+  Record parameter_effects using the literal requested parameter and separate baseline/effect
+  indices. Before finishing, provide effect_evidence naming that precise parameter and
+  quoting its reported outcome from a retrieved chunk. A baseline, caption settings or a
+  different parameter's insensitivity is not sufficient. A rejected finish needs focused
+  in-paper recovery or targeted reading, not repetition of the broad baseline query.
   For example, split "measured cluster mass" and "mass sensitivity to distance" into
   factual requirements and focused searches; a third "compare the implications" task
   is synthesis-only. Do not label the measured inputs as synthesis merely because they
@@ -99,6 +114,9 @@ Rules:
 - Tool metadata alone is not answer evidence; answers require retrieved chunks.
 - After every retrieval round, check every atomic need against the returned text. Reformulate
   and search again for unsupported needs; paper-level coverage alone is not sufficient.
+  Recover ONLY the missing factual target: do not expand or reconfirm an already established
+  baseline while its distinct effect is missing. Prefer a new focused parameter-effect lookup
+  over neighbours of a general measurement, unless an observed hit actually locates that effect.
 - If an expansion does not expose a requested fact, try a focused hybrid search for that
   fact within the observed paper/build, rather than repeatedly expanding the baseline hit.
   Do not guess section headings. Empty sections or shortened previews do not prove absence.
@@ -278,41 +296,53 @@ def build_agent_graph(*, model, retrieval_tools: list, budget: AgentBudget):
     def call_agent(state: AgentState) -> dict:
         if state.get("pending_initial_searches"):
             return schedule_initial_searches(state)
+        if monotonic() - state["started_at"] >= budget.max_elapsed_seconds:
+            return _terminate(state, StopReason.TIME_BUDGET)
+        correction_update = {}
         try:
             has_requirements = bool(state.get("requirements"))
             active_model = bound_model if has_requirements else definition_model
             available_tools = ([*retrieval_tools, *TERMINAL_TOOLS]
                                if has_requirements else [define_requirements])
             messages = state["messages"]
+            if has_requirements:
+                messages = frozen_planner_messages(messages, state["requirements"],
+                                                   state.get("parameter_effects", []))
             reserved = _estimated_next_call_tokens(model, messages, available_tools)
             spent = state.get("planner_tokens", 0)
             compacted = False
             if (has_requirements and spent < budget.max_planner_tokens
                     and reserved is not None and spent + reserved > budget.max_planner_tokens):
-                compact_messages = compact_planner_messages(messages, state["requirements"])
+                compact_messages = compact_planner_messages(messages, state["requirements"],
+                                                           state.get("parameter_effects", []))
                 compact_reserved = _estimated_next_call_tokens(model, compact_messages, available_tools)
+                correction_update["planner_context_compaction_attempts"] = (
+                    state.get("planner_context_compaction_attempts", 0) + 1)
                 if compact_reserved is not None:
                     messages, reserved, compacted = compact_messages, compact_reserved, True
             if spent >= budget.max_planner_tokens or (
                 reserved is not None and spent + reserved > budget.max_planner_tokens
             ):
                 return {
+                    **correction_update,
                     **_terminate(state, StopReason.TOKEN_BUDGET),
                     "next_call_estimated_tokens": reserved,
                 }
+            if not has_requirements and state.get("requirement_validation_failures"):
+                correction_update["requirement_correction_attempts"] = 1
             response = active_model.invoke(messages)
         except Exception as exc:
             logger.exception("Agentic model call failed (%s)", type(exc).__name__)
-            return _terminate(
+            return {**correction_update, **_terminate(
                 state, StopReason.PLANNER_FAILURE,
                 summary="The LangGraph agent model call failed after bounded retrieval.",
-            )
+            )}
         if not isinstance(response, AIMessage):
             logger.error("Agentic model returned %s instead of AIMessage", type(response).__name__)
-            return _terminate(
+            return {**correction_update, **_terminate(
                 state, StopReason.PLANNER_FAILURE,
                 summary="The LangGraph agent returned an invalid response.",
-            )
+            )}
         # Normalize only confirmed identities/observed headings before fingerprints,
         # invocation and diagnostics, so records describe the actual lookup.
         normalized_calls = []
@@ -330,6 +360,7 @@ def build_agent_graph(*, model, retrieval_tools: list, budget: AgentBudget):
             normalized_calls.append({**call, "args": args})
         response = response.model_copy(update={"tool_calls": normalized_calls})
         return {
+            **correction_update,
             "messages": [response],
             "action_need_ids": {},
             "planner_tokens": state.get("planner_tokens", 0) + _token_usage(response),
@@ -405,15 +436,42 @@ def build_agent_graph(*, model, retrieval_tools: list, budget: AgentBudget):
                 requirements = [row.model_copy(update={"kind": "fact"})
                                 if index in searched_indices else row
                                 for index, row in enumerate(requirements, start=1)]
+                question = next((str(message.content) for message in state["messages"]
+                                 if isinstance(message, HumanMessage)), "")
+                validate_parameter_effects(question, requirements, searches, args.parameter_effects)
+                for effect in args.parameter_effects:
+                    index = effect.requirement_index - 1
+                    requirements[index] = requirements[index].model_copy(update={
+                        "effect_parameters": [effect.parameter]})
             except ValidationError as error:
-                # Report validation codes only. Do not leak model inputs into logs/results.
-                codes = sorted({str(item.get("type", "invalid"))
-                                for item in error.errors(include_input=False)})
-                logger.warning("Agentic requirement definition rejected (codes=%s)", codes)
-                return _terminate(
+                issues = requirement_validation_issues(error, define_requirements.args_schema.model_fields)
+                failures = [*state.get("requirement_validation_failures", []),
+                            RequirementValidationFailure(
+                                attempt=state.get("requirement_correction_attempts", 0) + 1,
+                                issues=issues)]
+                diagnostics = {"requirement_validation_failures": failures}
+                details = [row.model_dump() for row in issues]
+                logger.warning("Agentic requirement definition rejected (issues=%s)", details)
+                if not state.get("requirement_correction_attempts"):
+                    return {**diagnostics, "messages": [ToolMessage(
+                        name="define_requirements", tool_call_id=definitions[0]["id"],
+                        status="error", content=json.dumps({
+                            "error": "invalid_requirement_definition",
+                            "issues": details,
+                            "instruction": "Call define_requirements alone once more with complete "
+                            "valid arguments. Include descriptions and initial_searches; each search "
+                            "needs query and requirement_indices. Fix each listed field using its "
+                            "specific message; descriptions "
+                            "must name user-requested facts, never standalone tool names/fields. Use only "
+                            "approved paper/build filters. Parameter effects need literal requested "
+                            "parameter names and distinct baseline/effect indices and queries. "
+                            "No requirements have been frozen yet.",
+                        }))]}
+                return {**diagnostics, **_terminate(
                     state, StopReason.PLANNER_FAILURE,
-                    summary="Question requirements failed validation: " + ", ".join(codes),
-                )
+                    summary=("Question requirements failed validation after one correction: "
+                             + "; ".join(f"{row.field} ({row.code})" for row in issues))[:500],
+                )}
             except ValueError as error:
                 code = str(error)[:80] or "invalid_requirements"
                 logger.warning("Agentic requirement definition rejected (code=%s)", code)
@@ -427,7 +485,8 @@ def build_agent_graph(*, model, retrieval_tools: list, budget: AgentBudget):
                     [row.model_dump() for row in requirements]),
             )
             plan_state = {"requirements": requirements, "initial_searches": searches,
-                          "pending_initial_searches": searches}
+                          "pending_initial_searches": searches,
+                          "parameter_effects": args.parameter_effects}
             return {**plan_state, "messages": [definition_reply]}
         if not state.get("requirements"):
             return _terminate(state, StopReason.PLANNER_FAILURE,
@@ -466,7 +525,58 @@ def build_agent_graph(*, model, retrieval_tools: list, budget: AgentBudget):
                 and not missing_required
             )
             if can_finish:
+                effects = state.get("parameter_effects", [])
+                if effects:
+                    finish_tool = next(tool for tool in TERMINAL_TOOLS if tool.name == "finish_with_evidence")
+                    failures = []
+                    evidence = {row.id: row for row in state.get("evidence", [])}
+                    try:
+                        audits = finish_tool.args_schema.model_validate(args).effect_evidence
+                        known_ids = {f"r{row.requirement_index}" for row in effects}
+                        if any(row.need_id not in known_ids for row in audits):
+                            failures.append({"code": "unknown_effect_need"})
+                        for effect in effects:
+                            need_id = f"r{effect.requirement_index}"
+                            rows = [row for row in audits if row.need_id == need_id]
+                            valid = False
+                            for row in rows:
+                                source = evidence.get(row.context_id)
+                                valid |= bool(source and row.outcome_kind in {
+                                    "reported_change", "reported_no_change"}
+                                    and literal_span(source.text, row.parameter_quote)
+                                    and literal_span(source.text, row.outcome_quote)
+                                    and names_parameter(row.parameter_quote, effect.parameter)
+                                    and row.parameter_quote != row.outcome_quote)
+                            if not valid:
+                                failures.append({"need_id": need_id, "parameter": effect.parameter,
+                                                 "code": "requested_parameter_outcome_not_established"})
+                    except ValidationError:
+                        failures.append({"code": "invalid_effect_evidence_schema"})
+                        audits = []
+                    checks = [*state.get("effect_finish_checks", []), {
+                        "round": state.get("rounds", 0), "status": "rejected" if failures else "accepted",
+                        "evidence": [row.model_dump() for row in audits], "failures": failures}]
+                    if failures:
+                        # No new call budget: allow recovery only within existing rounds/tokens.
+                        # At most two rejected finishes per round (annotation correction included).
+                        if (state.get("rounds", 0) >= budget.max_rounds
+                                or sum(row["status"] == "rejected" and row["round"] == state.get("rounds", 0)
+                                       for row in checks) >= 2):
+                            return {"effect_finish_checks": checks, **_terminate(
+                                state, StopReason.INSUFFICIENT_EVIDENCE,
+                                summary="The requested parameter outcome could not be established.")}
+                        return {"effect_finish_checks": checks, "messages": [ToolMessage(
+                            name=call["name"], tool_call_id=call["id"], status="error",
+                            content=json.dumps({"error": "effect_evidence_incomplete", "failures": failures,
+                                "instruction": "Do not treat baseline values, settings, or another parameter as "
+                                "the requested effect. Use a focused search within the relevant paper for the "
+                                "specific parameter and reported outcome, or read its definition/nearby text. "
+                                "If an annotation was malformed, correct it using actual retrieved text. "
+                                "Use the existing need IDs and remaining budgets; abstain if evidence is absent."}))]}
+                else:
+                    checks = state.get("effect_finish_checks", [])
                 return {
+                    "effect_finish_checks": checks,
                     "stop_reason": StopReason.SUFFICIENT.value,
                     "should_synthesize": True,
                     "synthesis_policy": "model_finish",

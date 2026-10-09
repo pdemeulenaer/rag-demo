@@ -31,6 +31,23 @@ def requests_parameter_effect(text: str) -> bool:
     return bool(_PARAMETER_EFFECT_REQUEST.search(text))
 
 
+def requests_baseline_and_effect(text: str) -> bool:
+    """Route explicit coordinated measurement/effect requests, not effect-only ones.
+
+    This grammatical hint closes a null-baseline escape; it does not establish
+    scientific coverage. Unknown paraphrases still depend on the typed planner.
+    """
+    if not requests_parameter_effect(text):
+        return False
+    effect = _PARAMETER_EFFECT_REQUEST.search(text)
+    before, after = text[:effect.start()], text[effect.end():]
+    measurement = r"\b(?:baseline|measurement|measured|value|rate|flux|mass|density|temperature|yield|level|amount)\b"
+    return bool((re.search(measurement, before, re.I)
+                 and re.search(r"\b(?:and|also|plus)\b\s*(?:its|the|their|how)?\s*$", before, re.I))
+                or re.search(r"\b(?:and|also|plus)\s+(?:(?:the|its|a)\s+)?(?:baseline\b|"
+                             r"(?:report|give|state|measure)\b[^.!?;]{0,40}" + measurement + r")", after, re.I))
+
+
 def original_question_parts(question: str) -> list[tuple[str, str]]:
     """Keep the user's enumerated requests independent of the agent's plan."""
     matches = list(_PART_LABEL.finditer(question))

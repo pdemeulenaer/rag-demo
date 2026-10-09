@@ -341,6 +341,8 @@ def test_agentic_partial_answer_survives_missing_named_paper_and_exposes_diagnos
             {"requirement_id": "r1", "status": "satisfied", "claim_indices": [0], "feedback": ""},
             {"requirement_id": "r2", "status": "missing", "claim_indices": [],
              "feedback": "No evidence from Paper B."},
+            {"requirement_id": "q_original", "status": "partial", "claim_indices": [0],
+             "missing_details": ["Report the mass in Paper B."], "feedback": "No evidence from Paper B."},
         ], unplanned_requests=[])
     request = Mock(side_effect=[
         retrieval.RAGGenerationResponse(claims=[retrieval.RAGClaim(
@@ -399,7 +401,8 @@ def test_agentic_provider_round_trip_enforces_required_coverage_keys(runtime, mo
         AnswerRequirement(id="q_original", description="Report mass and uncertainty."),
     ]
     schema = _review_schema(requirements)
-    coverage = {row.id: {"status": "missing", "claim_indices": [], "feedback": "Not answered."}
+    coverage = {row.id: {"status": "missing", "claim_indices": [], "feedback": "Not answered.",
+                         "essential_claim_indices": [], "missing_details": ["Not answered."]}
                 for row in requirements}
     if omit_original:
         coverage.pop("q_original")
@@ -441,7 +444,7 @@ def test_agentic_provider_round_trip_enforces_required_coverage_keys(runtime, mo
 
 @pytest.mark.parametrize("contract", ["review", "reference_judge", "grounding_judge", "draft"])
 def test_structured_answer_and_judge_schemas_use_standalone_resolved_refs(runtime, contract):
-    from evals.run_benchmark import _reference_judge_schema, GroundingJudgeResult
+    from evals.run_benchmark import _reference_judge_schema, _grounding_judge_schema
     from src.api.rag.modes.agentic.answering import _review_schema
     from src.api.rag.modes.agentic.contracts import AnswerRequirement
 
@@ -454,7 +457,7 @@ def test_structured_answer_and_judge_schemas_use_standalone_resolved_refs(runtim
         "reference_judge": _reference_judge_schema([
             ("q_1", "Report mass."), ("q_2", "Report uncertainty."),
         ]),
-        "grounding_judge": GroundingJudgeResult,
+        "grounding_judge": _grounding_judge_schema([{"text": "The measured mass is reported."}]),
         "draft": retrieval.RAGGenerationResponse,
     }
     schema = schemas[contract].model_json_schema()

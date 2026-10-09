@@ -6,7 +6,8 @@ from collections.abc import Callable
 from typing import Annotated, Literal
 
 from langchain_core.tools import BaseTool, tool
-from pydantic import Field
+from pydantic import AfterValidator, Field
+from pydantic_core import PydanticCustomError
 
 from src.api.rag.contracts import (
     EvidenceChunk,
@@ -16,7 +17,7 @@ from src.api.rag.contracts import (
     RetrievalScope,
 )
 from src.api.rag.modes.agentic.policies import narrow_scope
-from src.api.rag.modes.agentic.contracts import InitialSearch
+from src.api.rag.modes.agentic.contracts import InitialSearch, ParameterEffectNeed, ParameterEffectEvidence
 from src.api.rag.tools.chunk_search import search_chunks as scoped_chunk_search
 from src.api.rag.tools.neighbor_retrieval import (
     MAX_NEIGHBORS_PER_SIDE,
@@ -45,6 +46,25 @@ SearchQuery = Annotated[str, Field(
     max_length=500,
     description="Focused evidence lookup, not a copy of the full multi-part question.",
 )]
+
+# Reject standalone protocol labels, not scientific prose containing one of
+# these words. Native Pydantic validation uses the graph's existing correction.
+_PROTOCOL_LABELS = set(InitialSearch.model_fields) | {
+    "descriptions", "initial_searches", "synthesis_indices", "parameter_effects", "need_id", "need_ids",
+    "define_requirements", "search_papers", "search_chunks", "get_section",
+    "get_neighbors", "finish_with_evidence", "abstain",
+}
+
+
+def _scientific_requirement(description: str) -> str:
+    if description.strip().strip("`\"' .:").casefold() in _PROTOCOL_LABELS:
+        raise PydanticCustomError(
+            "internal_tool_requirement", "Describe a user-requested fact, not a tool field or name.")
+    return description
+
+
+RequirementDescription = Annotated[str, Field(min_length=1, max_length=2000),
+                                  AfterValidator(_scientific_requirement)]
 
 
 def _artifact(*, chunks: list[EvidenceChunk] | None = None,
@@ -208,8 +228,16 @@ def build_retrieval_tools(*, client, catalogue, scope: RetrievalBoundary,
 
 
 @tool("finish_with_evidence")
-def finish_with_evidence(summary: str, question_scope: QuestionScopeLiteral) -> str:
-    """Finish retrieval when accumulated chunk evidence can answer the question."""
+def finish_with_evidence(summary: str, question_scope: QuestionScopeLiteral,
+                         effect_evidence: Annotated[list[ParameterEffectEvidence], Field(max_length=20)] = []) -> str:
+    """Finish retrieval when accumulated chunk evidence can answer the question.
+
+    For every declared parameter effect, cite a retrieved context ID and short contiguous
+    parameter/outcome quotes from that chunk. Keep distinguishing parameter qualifiers.
+    Baselines, settings and another parameter's effect cannot establish sufficiency.
+    If only symbolic notation is visible, read its definition/nearby text first.
+    Use [] for questions without requested parameter effects.
+    """
     return summary
 
 
@@ -224,11 +252,15 @@ TERMINAL_TOOLS = [finish_with_evidence, abstain]
 
 @tool("define_requirements")
 def define_requirements(
-    descriptions: Annotated[list[Annotated[str, Field(min_length=1, max_length=2000)]],
-                      Field(min_length=1, max_length=20)],
+    descriptions: Annotated[list[RequirementDescription],
+                      Field(min_length=1, max_length=20, description=
+                            "Atomic factual targets, not one summary per paper. When both a baseline "
+                            "measurement and a parameter effect are requested, give them separate "
+                            "entries and separate focused initial queries. Keep range endpoints together.")],
     initial_searches: Annotated[list[InitialSearch], Field(max_length=20)],
     synthesis_indices: Annotated[list[Annotated[int, Field(strict=True, ge=1, le=20)]],
                                 Field(max_length=20)] = [],
+    parameter_effects: Annotated[list[ParameterEffectNeed], Field(max_length=20)] = [],
 ) -> str:
     """Declare one need per independently answerable question part or requested metric.
 
@@ -236,8 +268,22 @@ def define_requirements(
     retrieval actions cannot add answer requirements. Keep requested comparison/range
     endpoints together and include their units/qualifiers; do not create metadata-only needs.
     Preserve the original question's scope; optional examples/formats are not mandatory needs.
+    Never insert tool names or argument labels such as initial_searches into descriptions.
     A proposed cross-paper test needs supported inputs and a labelled proposal, not an
     unrequested numerical derivation or a claim that the papers already prove the linkage.
+    When BOTH a baseline and its sensitivity are requested, declare TWO factual needs:
+    the baseline measurement, and the outcome's response to the named parameter.
+    Give each a distinct initial query, even within one paper; neither can stand in for the other.
+    If only the effect is requested, do not invent an extra baseline requirement.
+    Record each in parameter_effects with its effect requirement_index and the exact
+    short parameter name from the original question, preserving qualifiers. When a
+    baseline is also requested, baseline_requirement_index MUST be a different factual
+    entry. Give them distinct initial queries. Otherwise use null for the baseline index.
+    Queries must remain distinct after confirmed titles/IDs are removed; varying only
+    filters, retrieval mode or limit does not separate the baseline from its effect.
+    Use parameter_effects=[] only when no reported parameter dependence is requested.
+    A parameter-effect query prioritizes the precise parameter and outcome change/dependence;
+    avoid a broad rate/method summary. A simple fact still needs only one query.
     Parameter sensitivity needs the reported outcome change, not just tested settings;
     do not require an analytic exponent unless requested. Focus queries on the outcome
     and parameter; confirmed full/short build IDs belong in filters, not search text.

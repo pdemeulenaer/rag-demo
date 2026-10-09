@@ -171,6 +171,33 @@ def test_agentic_summary_records_planner_context_compaction():
     assert summary["planner_context_compaction_runs"] == 2
 
 
+def test_agentic_summary_distinguishes_blocked_compaction_attempt_from_used_context():
+    row = {"mode": "agentic", "profile": "single_fact", "kind": "single_paper",
+        "metrics": {}, "elapsed_seconds": 1.0, "error": None, "agent_execution": {
+            "stop_reason": "token_budget", "actions": [], "planner_context_compactions": 0,
+            "planner_context_compaction_attempts": 1}}
+    summary = runner.summarize([row], ["agentic"])["agentic"]["agent_execution"]
+    assert summary["planner_context_compaction_attempt_runs"] == 1
+    assert summary["planner_context_compaction_runs"] == 0
+
+
+def test_agentic_summary_records_bounded_requirement_correction():
+    rows = [{"mode": "agentic", "profile": "single_fact", "kind": "single_paper",
+             "metrics": {}, "elapsed_seconds": 1.0, "error": None,
+             "agent_execution": execution} for execution in (
+                 {"stop_reason": "sufficient", "actions": []},  # Historical metadata.
+                 {"stop_reason": "token_budget", "actions": [],
+                  "requirement_correction_attempts": 0,
+                  "requirement_validation_failures": [{"attempt": 1, "issues": []}]},
+                 {"stop_reason": "sufficient", "actions": [],
+                  "requirement_correction_attempts": 1,
+                  "requirement_validation_failures": [{"attempt": 1, "issues": []}]},
+             )]
+    summary = runner.summarize(rows, ["agentic"])["agentic"]["agent_execution"]
+    assert summary["requirement_correction_runs"] == 1
+    assert summary["requirement_validation_failure_runs"] == 2
+
+
 def test_summary_counts_safe_generation_abstentions():
     rows = [{
         "mode": "hybrid", "profile": "cross_multihop", "kind": "cross_paper",
@@ -418,6 +445,61 @@ def test_evaluate_item_persists_pipeline_and_judge_stage_timings(monkeypatch):
     assert timings["judge_seconds"] >= 0
 
 
+def test_unexpected_judge_connection_failure_preserves_completed_pipeline(monkeypatch):
+    import src.api.rag.retrieval as retrieval
+    import httpx
+
+    chunks = [{"id": "p1", "paper_id": "paper-1", "text": "A result."}]
+    claims = [{"text": "A result.", "cited_context_ids": ["p1"], "need_ids": []}]
+    execution = {"stop_reason": "sufficient", "rounds": 1, "actions": []}
+    generation = {"status": "complete", "reason": "verified_answer"}
+    monkeypatch.setattr(retrieval, "rag_pipeline", lambda *a, **kw: {
+        "answer": "A result.", "retrieved_chunks": chunks, "claims": claims,
+        "cited_context_ids": ["p1"], "execution": execution, "generation_diagnostics": generation})
+
+    def failing_judge(*args, stage_timings, **kwargs):
+        stage_timings["judge_reference_seconds"] = 0.1
+        raise httpx.RemoteProtocolError("private endpoint or credential must not be logged")
+
+    monkeypatch.setattr(runner, "judge", failing_judge)
+    monkeypatch.setattr(runner, "trace_attributes", lambda **kwargs: nullcontext())
+    span = Mock()
+    monkeypatch.setattr(runner, "observation", lambda **kwargs: nullcontext(span))
+    monkeypatch.setattr(runner, "score_trace", Mock())
+    record = runner.evaluate_item(
+        {"id": "q1", "kind": "single_paper", "question": "What happened?",
+         "reference_answer": "A result.", "reference_evidence": [{"point_id": "p1"}],
+         "paper_ids": ["paper-1"]}, "agentic", qdrant=Mock(), collection="papers", scope=Mock(),
+        top_k=5, generation_model="offline", judge_enabled=True, judge_model="offline",
+        judge_reasoning_effort="minimal", run_id="offline")
+    assert record["error"] is None
+    assert record["judge_error"]["judge"]["category"] == "connection_interrupted"
+    assert record["answer"] == "A result."
+    assert record["claims"] == claims
+    assert record["retrieved_chunks"] == chunks
+    assert record["agent_execution"] == execution
+    assert record["generation_diagnostics"] == generation
+    assert record["metrics"]["retrieval_recall"] == 1
+    assert record["metrics"]["answer_correctness"] is None
+    assert record["metrics"]["groundedness"] is None
+    assert "private endpoint" not in json.dumps(record)
+    assert {call.args[0] for call in runner.score_trace.call_args_list}.isdisjoint(
+        {"answer_correctness", "groundedness", "answer_relevance"})
+    summary = runner.summarize([record], ["agentic"])["agentic"]
+    assert summary["errors"] == 0
+    assert summary["judge_errors"] == 1
+    assert summary["metric_sample_counts"]["groundedness"] == {"scored": 0, "unscored": 1}
+    assert span.update.call_args.kwargs["status_message"] == "judge_failed_answer_preserved"
+
+
+def test_unscored_grounding_cannot_be_manufactured_by_paper_coverage_safeguards():
+    result, safeguards = runner.apply_judge_safeguards(
+        {"kind": "cross_paper"}, {"all_required_papers_retrieved": 0}, ["p1"],
+        {"correctness": None, "groundedness": None}, "A result.", [{"text": "A result."}])
+    assert result["groundedness"] is None
+    assert safeguards == []
+
+
 def test_judge_retries_one_invalid_structured_response(monkeypatch):
     monkeypatch.setattr(runner.config, "EVAL_JUDGE_MAX_OUTPUT_TOKENS", 32768)
     invalid = SimpleNamespace(id="response-1", model="judge", output_text="{}",
@@ -463,7 +545,7 @@ def test_judge_retries_one_invalid_structured_response(monkeypatch):
     assert create.call_count == 3
     assert [row.kwargs["max_output_tokens"] for row in create.call_args_list] == [32768] * 3
     assert "text" not in create.call_args.kwargs
-    assert create.call_args.kwargs["text_format"] is runner.GroundingJudgeResult
+    assert create.call_args.kwargs["text_format"].__name__ == "ScopedGroundingJudgeResult"
     client.with_options.assert_has_calls([call(max_retries=0)] * 2)
     assert metadata["reference"]["attempts"] == 2
     assert metadata["reference"]["response_ids"] == ["response-1", "response-2"]
@@ -841,8 +923,8 @@ def test_groundedness_cap_does_not_penalize_citation_free_safe_abstention():
     assert safeguards == []
 
 
-@pytest.mark.parametrize("judge_enabled", [False, True])
-def test_local_run_checkpoints_both_modes(tmp_path, monkeypatch, judge_enabled):
+@pytest.mark.parametrize("judge_enabled,judge_failed", [(False, False), (True, False), (True, True)])
+def test_local_run_checkpoints_both_modes(tmp_path, monkeypatch, judge_enabled, judge_failed):
     monkeypatch.setattr(runner.config, "EVAL_JUDGE_MAX_OUTPUT_TOKENS", 32768)
     dataset = reviewed_dataset(tmp_path / "dataset")
     qdrant = Mock()
@@ -856,6 +938,7 @@ def test_local_run_checkpoints_both_modes(tmp_path, monkeypatch, judge_enabled):
                 "question": question["question"], "reference_answer": question["reference_answer"],
                 "answer": mode, "retrieved_chunks": [], "cited_context_ids": [],
                 "metrics": {"retrieval_recall": 1.0}, "judge": None, "judge_request": None,
+                "judge_error": {"reference": {"category": "connection"}} if judge_failed else None,
                 "elapsed_seconds": 0.1, "error": None}
 
     monkeypatch.setattr(runner, "evaluate_item", fake_evaluate)
@@ -869,10 +952,13 @@ def test_local_run_checkpoints_both_modes(tmp_path, monkeypatch, judge_enabled):
     manifest = json.loads((output / "manifest.json").read_text())
     summary = json.loads((output / "summary.json").read_text())
     assert [row["mode"] for row in results] == ["vanilla", "hybrid"]
-    assert manifest["status"] == "complete"
+    assert manifest["status"] == ("completed_with_judge_errors" if judge_failed else "complete")
     assert manifest["judge_max_output_tokens"] == (32768 if judge_enabled else None)
     assert manifest["question_profiles"] == {"single_fact": 1}
     assert summary["vanilla"]["profiles"]["single_fact"]["questions"] == 1
+    assert summary["vanilla"]["judge_errors"] == int(judge_failed)
+    assert summary["vanilla"]["errors"] == 0
+    assert [row["answer"] for row in results] == ["vanilla", "hybrid"]
     assert (output / "report.md").exists()
     qdrant.close.assert_called_once()
 

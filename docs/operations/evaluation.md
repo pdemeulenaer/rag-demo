@@ -370,8 +370,31 @@ atomic `need_id` and bounded lookup query, which makes decomposition directly in
 For recovery diagnosis, check that named-paper queries omit titles/arXiv IDs and use the
 resolved build filters. `agent_execution.planner_context_compactions` counts planner calls
 using shortened, deduplicated tool previews when the full history would exceed the token
-budget; summaries report `planner_context_compaction_runs`. Full retrieved chunks remain
+budget; summaries report `planner_context_compaction_runs`.
+`planner_context_compaction_attempts` also records attempts that could not make the next
+call fit; summaries expose `planner_context_compaction_attempt_runs`. A zero count of
+used compactions does not prove that no compaction was attempted. Completed definition
+messages become one frozen snapshot on later planner calls without an extra model request.
+Full retrieved chunks remain
 unchanged, so this is not re-extraction or a smaller answer evidence set.
+For an initial-plan schema failure, inspect
+`agent_execution.requirement_validation_failures`: each attempt lists safe `field`/`code`
+pairs plus a static correction `message`, not rejected argument values or raw exception text.
+Parameter-effect checks distinguish missing declarations/baselines, invalid indices,
+non-question parameter names, nonfactual needs, missing searches and identical normalized queries.
+For example, `baseline_effect_same_query` means the two content queries are identical after
+confirmed title/ID cleanup (ignoring whitespace/case); changing filters alone is not a fix.
+The feedback identifies the specific `parameter_effects[i]` field and is sent unchanged
+to the planner's existing correction. Historical diagnostics without `message` remain readable.
+The graph permits one native corrective definition
+call within the existing token/time limits. `requirement_correction_attempts` is 0 if
+preflight/time prevents it, or 1 if invoked. Summaries count `requirement_correction_runs`
+and `requirement_validation_failure_runs`. A second invalid definition remains a safe
+planner failure; a successful correction proceeds with ordinary scoped retrieval. Valid
+plans need no extra call, and unsafe scope/redefinition errors are not retried.
+Run `status: complete` means the benchmark finished; it does not prove a usable RAG answer.
+If `stop_reason: planner_failure` occurs with zero tools/evidence, inspect these definition
+issues first. Generation did not run, so lower latency is an early stop, not a speedup.
 Execution metadata includes the frozen requirement descriptions and covered/missing search
 needs. These counts describe retrieval results, not semantic answer coverage. Search origin
 does not constrain which claim may cite a chunk.
@@ -382,12 +405,58 @@ a requested value, unit, range or comparison was answered.
 The provider coverage contract requires a key for every frozen requirement and original
 question part (lettered or numbered). Missing keys are malformed output, not implicit
 success. Public diagnostics keep the list format and record
-`coverage_contract: required-keys-effects-v3`; no extra review calls are added.
+`coverage_contract: frozen-parameter-effects-v9`; no extra review calls are added.
+Native coverage requires `essential_claim_indices` and `missing_details` in addition to
+the related `claim_indices`. Inspect the recorded links, `unsupported_claim_indices`,
+`invalid_essential_claim_indices` and `absent_claim_indices` when coverage disagrees with
+the actual answer. Rejected optional claims do not erase supported essential facts; an
+invalid/empty essential set, an absent reference, or a genuinely missing requested fact
+still prevents completion. Specific missing details appear in partial-answer warnings.
+All **original-question** checks must pass before skipping repair for discarded background.
+Frozen-plan checks remain diagnostic: inspect `planner_only_gaps` if the planner invented
+an unrequested numerical derivation or another demand. `completeness_authority` is
+`original_question_parts`; free-form `unplanned_requests` do not expand mandatory scope.
+Real omissions still require partial/missing original checks and specific limitations.
+Standalone protocol descriptions such as `initial_searches` fail initial native validation
+with `internal_tool_requirement`, within the existing one-correction bound.
+Legacy adapters without essential links retain conservative behavior.
+Presentation cleanup additionally preserves explicit approximation-bound signed OCR
+decimals, such as `∼−_ 1 _._ 75`; it does not guess absent signs or change stored chunks.
 Explicit parameter-dependence checks require `effect_status` (`reported_effect`,
-`test_settings_only`, or `missing`) and `effect_claim_indices`. A satisfied effect needs
+`test_settings_only`, or `missing`), `effect_claim_indices` and `effect_outcomes`. Inspect
+each outcome's `answer_claim_id`, locally resolved `answer_text` and `reports_requested_outcome`:
+the answer must report the requested outcome, not merely a test's existence/settings or
+another parameter's result. The native enum permits only this review's actual answer claims;
+the application resolves their unchanged text, never copies it from a source quotation.
+at least one verified outcome must be essential to coverage. A satisfied effect needs
 nonempty links to supported answer claims, not merely tested input values or “no formula
 reported.” Qualitative findings can satisfy qualitative requests without inventing a formula.
 Original question parts receive the same checks even if the planner omits the effect.
+Inspect per-attempt `answer_anchors`, `annotation_validation_failures` and `review_only`,
+plus overall `annotation_correction_attempts`. A malformed review or annotation-only failure
+can use the second review on unchanged claims instead of generating another answer.
+There are still at most two reviews total, shared with content repair. An unresolved
+annotation is disclosed as validation uncertainty, not a proven missing fact. Real gaps
+still get the one allowed content repair; selecting an anchor does not prove semantic
+correctness or permit skipping citation/numeric/support checks. The manifest records the
+new runtime review policy. Models, caps and frozen datasets remain unchanged.
+
+For parameter-effect questions, additionally inspect `agent_execution.parameter_effects`
+(separate baseline/effect indices) and `effect_finish_checks` (accepted/rejected finishes,
+context IDs, parameter/outcome quotes and failure codes). A rejected finish can recover
+through a focused search/read within existing limits; exhausted retrieval still permits
+verified evidence fallback. Generation outcomes now include `requested_parameter`,
+`answer_parameter_quote`, `answer_outcome_quote` and `outcome_kind`; an answer ID alone
+cannot establish a particular parameter's response. These checks remain model-assisted,
+not proof of entailment.
+Explicit measurement-plus-effect coordination cannot hide its baseline behind a null
+baseline index. Effect-only requests remain baseline-free. Inspect frozen `effect_parameters`
+in execution requirements/original-question checks: native parameter enums prevent the
+reviewer reassigning the changed input to a baseline output quantity. An absent effect
+must remain missing/partial, not be reinterpreted as a successful baseline audit.
+`invalid_method_annotation` uses the existing second review on
+unchanged claims when there is no separate content deficit; inspect `review_only` and
+`annotation_correction_attempts` rather than expecting another answer draft.
 Requirement descriptions are carried in the review prompt, not as siblings of schema
 `$ref` fields. Run `20261005T091720Z-990f5774` exposed an HTTP 400 from incompatible
 `$ref`/`description` combinations: both reviews failed and the result was safe abstention.
@@ -518,9 +587,10 @@ a safe abstention with the retrieved chunks and `generation_diagnostics`. It is 
 answer rather than counted as a runtime error; summaries aggregate the diagnostic status and
 reason.
 
-Agentic uses one initial draft/review and at most one repair/review, preserving verified
-claims instead of treating missing coverage as an all-or-nothing failure. The same configured
-answer model performs review; this is not an independent ground-truth judge. It increases
+Agentic uses one initial draft/review and at most one repair/review, or one review-only
+annotation correction instead of content repair, preserving verified claims rather than
+treating missing coverage as an all-or-nothing failure. `AGENT_MODEL` performs runtime
+review; draft/repair use the answer model. This is not an independent ground-truth judge. It increases
 latency/cost and must be evaluated as a pipeline change. Planner usage excludes these calls;
 full benchmark latency includes them. Langfuse records separate draft, verify and repair
 generation spans. See [Agentic answer checks](../architecture/rag-modes.md#agentic-answer-checks-and-repair).
@@ -621,7 +691,7 @@ deterministic metrics show a required paper was never retrieved, the runner over
 to `0` and records the change in `judge_safeguards`; an LLM judge cannot overrule that provenance
 fact.
 
-New runs use `judge_policy: claim-anchored-v8` in the manifest. The reference judge must
+New runs use `judge_policy: claim-role-bound-v13` in the manifest. The reference judge must
 assess every original question part, enumerate its requested facts, and select existing
 `answer_claim_ids` from the **actual generated answer**, rather than retyping quotations.
 For numeric facts, checks also list the canonical
@@ -636,7 +706,7 @@ semantic correctness. The grounding judge remains reference-isolated. Do not tre
 scores from previous judge policies as like-for-like
 comparisons, and do not rewrite historical runs.
 
-The following version history explains older results; current runs use version 8 below.
+The following version history explains older results; current runs use version 11 below.
 Version 3 fixes presentation-related false penalties: shared scientific range multipliers
 apply to both endpoints, explicit `50%` can match the canonical fraction `0.5`, and quoted
 answer passages tolerate whitespace/capitalization differences. Bare counts do not become
@@ -784,6 +854,16 @@ Legacy quote safeguards remain available for old results; historical artifacts a
 semantic-consistency failures, including repaired attempts. `needs_review_question_ids` lists
 only unresolved conflicts. A recovered structural parse failure alone is not a consistency flag.
 
+Version 9 adds typed source-operation records to isolated grounding. Inspect
+`judge_request.grounding.method_attributions`: each entry identifies a claim, named method,
+claimed/source operation, verdict and quotes. The source operation is extracted independently
+as a short verbatim phrase from that claim's own cited evidence. Declared mismatches or
+unsupported operation quotes cap full groundedness at `0.5`; metadata retains
+`raw_groundedness` and `method_validation_failures`. No additional judge request or semantic
+retry is added. Reference anchoring remains version 8's native claim-ID scheme. Grounding still
+receives no reference answer or gold evidence. Do not compare different judge policies as
+like-for-like or rewrite historical scores.
+
 Both benchmark reviewers and Agentic's runtime verifier explicitly check **method purpose,
 target population and pipeline step**. For example, a procedure selecting dataset membership
 must not be credited with a separate procedure identifying relationships within that dataset.
@@ -791,10 +871,71 @@ Nearby text or shared inputs do not make the methods interchangeable. Generic of
 exercise prompt wiring and preservation/repair of these verdicts; they do not prove a live model
 will detect every semantic error. A fresh run is still needed to confirm quality and latency.
 
+Version 10 narrows v9's method audit. Ordinary facts need no named-method gate: the native
+schema permits `[]` or a compact `not_applicable` entry (grounding adds `claim_index`).
+`proposed_use` distinguishes a labelled future use from a claim about an operation already
+performed; its reported premises still require support. Actual `reported_operation` entries
+require literal `claim_quote` wording and a source quote naming both the method and operation.
+An audit that names a method absent from the answer claim appears in `method_scope_issues`
+instead of creating a spurious unsupported-method rejection. General factual/numeric checks
+and the judge's own score remain in force; ignoring an irrelevant method annotation does not
+automatically promote an unsupported claim or judge score.
+
+Quote matching normalizes letter-word hyphen presentation, not numeric signs/values, and
+retains ellipsis markers so omitted/invented source words do not pass as contiguous quotes.
+The same rules apply to runtime review and reference-isolated grounding. Native SDK tests
+exercise both conditional branches, false placeholder annotations, own-citation scope and
+bounded request counts. They do not prove live semantic accuracy or fix network failures.
+No models, budgets, retries, datasets or historical results are changed; fewer false rejections
+may avoid repair/review calls, but latency improvement needs a new run.
+
+Version 11 (`claim-anchored-v11`) separates invalid judge annotations from answer defects.
+A method audit quoting invented claim wording, an unknown claim index, or an uncited/invalid
+source passage uses the grounding request's **existing single retry**, shared with schema
+validation. Inspect `judge_request.grounding.annotation_validation_failures` for attempt
+indices and safe error codes. If still invalid, `groundedness` is null and grounding
+`score_status` is `unscored_needs_review`; `raw_groundedness` remains diagnostic, not a score.
+A correctly anchored declared role mismatch or unestablished role still caps grounding
+at 0.5. No repair is added for genuine semantic disagreement, and an irrelevant method
+annotation remains a scope diagnostic rather than an ordinary-fact gate.
+
+Summary/profile `grounding_consistency` records corrected/remaining annotation failures and
+question IDs needing review. The report shows grounding scored/unscored denominators.
+Version 12 binds grounding method audits to `answer_claim_id` from a native enum of this
+answer's actual claims. `claim_anchors` maps those IDs to local indices; the unchanged claim
+text and its own citations are supplied once per claim. The runner resolves IDs locally
+and records `answer_anchor_mode: claim_ids`. Do not confuse these anchors with reference
+anchors, which also include other rendered answer spans. Unknown IDs or a provider-emitted
+numeric `claim_index` are strict schema errors, using the same single correction;
+exhaustion leaves grounding null/`unscored_error`, preserving the completed RAG output.
+Valid IDs do not establish support: literal own-source quotes and method-role checks remain
+strict. Historical index-based outputs stay readable; no historical score is rewritten.
+There are normally two judge requests, at most four when BOTH isolated requests need their
+single correction. No provider transport retry, model change or automatic cap escalation is
+introduced. This preserves the native [SDK/Pydantic structured-output path](https://developers.openai.com/api/docs/guides/structured-outputs).
+
 There are no additional calls, higher token limits, model/reasoning changes, new datasets or
 re-indexing. The ID scheme should avoid copied-quote retries and reduce response text, but does
 not guarantee faster model execution. Host benchmarks use this code immediately; rebuild the
-API to pick up the runtime verifier's method-role guidance.
+API to pick up the runtime verifier's method-role contract. Runtime diagnostics expose
+`method_role_contract: answer-bound-cited-operation-v3`, per-attempt `method_attributions`,
+`method_scope_issues` and
+`duplicate_claims_omitted`. Confirmed citation prefixes are cleaned before numeric checking;
+unresolved UUID-like abbreviations remain observable format failures. Planning guidance splits
+requested baseline measurements and parameter effects into focused evidence needs. These
+changes use the existing bounded parallel searches and single repair, without guaranteeing
+that every model-generated plan or method verdict is semantically correct.
+
+Version 13 binds the method audit's `claim_quote` locally to the actual answer selected
+by claim index/ID; a copied source quotation cannot replace that identity. Source-operation
+quotes remain independently checked against only the claim's own citations. Conservative
+explicit named-method cues are supplied as `reported_methods_to_audit`, not source evidence.
+Empty/non-applicable/proposal audits cannot waive a reported premise: runtime uses its
+existing content-repair slot, while grounding shares its existing single annotation/schema
+correction and remains unscored if unresolved. Genuine declared mismatches still cap
+grounding, and ordinary facts/proposals do not acquire an invented method gate. These cues
+are not exhaustive classification or semantic proof. Models, limits, indexes, historical
+results and reviewed datasets remain unchanged; use fresh comparable runs under v13.
 
 All four explicit modes resolve quoted full paper titles against the bounded catalogue. If
 retrieval omits any resolved build, generation is skipped and `generation_diagnostics`
@@ -820,9 +961,22 @@ possible to audit which exact excerpt was offered as support for each statement.
 answer is displayed with inline numbered references; each number maps to a source/page entry in
 the UI.
 
-Errors are retained per item, processing continues, and the final manifest becomes
-`completed_with_errors`. Partial results survive a stopped process, but automatic resume
+RAG pipeline errors are retained per item and produce `completed_with_errors`. A judge
+connection/schema failure instead preserves the completed answer, claims, evidence,
+retrieval metrics, execution/generation diagnostics and timings. `error` remains null;
+`judge_error` identifies the failed reference/grounding stage using safe cause types only.
+Failed-stage scores are null with `score_status: unscored_error`; the other isolated judge
+still runs and keeps its own valid scores. No gold evidence crosses into grounding.
+Summary/profile `errors` counts RAG failures and `judge_errors` counts items with failed
+judging. A run with only judge failures becomes `completed_with_judge_errors`, not a clean
+success or a generation failure. Known response IDs/usage survive failed corrections;
+`usage_incomplete` marks unknown billing, never zero paid usage. Null scores are excluded
+from averages/Langfuse numeric scores but counted in unscored denominators.
+
+Processing continues. Partial results survive a stopped process, but automatic resume
 of an interrupted benchmark run is not implemented yet; a new invocation creates a new run.
+An in-flight question is saved after evaluation returns; process termination mid-question
+is not covered. Judge-only replay is not implemented; do not claim a retry avoids paid RAG work.
 OpenAI answer generation and each of the two judge calls make at most one additional call
 when a structured model response fails local validation. Judge metadata records reference
 and grounding requests separately, including response IDs and usage. Other service failures

@@ -94,7 +94,7 @@ def run_agentic(question: str, *, client, catalogue, scope: RetrievalBoundary,
         graph = build_agent_graph(
             model=model or _default_model(), retrieval_tools=tools, budget=budget,
         )
-        invoke_config = {"recursion_limit": budget.max_rounds * 4 + 8,
+        invoke_config = {"recursion_limit": budget.max_rounds * 8 + 14,
                          "max_concurrency": budget.max_parallel_tools}
         callback = langchain_callback()
         if callback is not None:
@@ -188,6 +188,11 @@ def run_agentic(question: str, *, client, catalogue, scope: RetrievalBoundary,
         planner_tokens=state.get("planner_tokens", 0),
         next_call_estimated_tokens=state.get("next_call_estimated_tokens"),
         planner_context_compactions=state.get("planner_context_compactions", 0),
+        planner_context_compaction_attempts=state.get("planner_context_compaction_attempts", 0),
+        requirement_correction_attempts=state.get("requirement_correction_attempts", 0),
+        requirement_validation_failures=state.get("requirement_validation_failures", []),
+        parameter_effects=state.get("parameter_effects", []),
+        effect_finish_checks=state.get("effect_finish_checks", []),
         elapsed_seconds=round(max(0.0, monotonic() - started), 3),
         actions=actions,
         requirements=requirements,

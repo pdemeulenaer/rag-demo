@@ -1,0 +1,38 @@
+{
+  "agentic": {
+    "questions": 1,
+    "errors": 1,
+    "judge_errors": 0,
+    "mean_latency_seconds": 0.321,
+    "metrics": {},
+    "metric_sample_counts": {},
+    "stage_timings": {
+      "runs": 1,
+      "mean_seconds": {
+        "pipeline_seconds": 0.32
+      },
+      "sample_counts": {
+        "pipeline_seconds": 1
+      }
+    },
+    "profiles": {
+      "single_synthesis": {
+        "questions": 1,
+        "errors": 1,
+        "judge_errors": 0,
+        "mean_latency_seconds": 0.321,
+        "metrics": {},
+        "metric_sample_counts": {},
+        "stage_timings": {
+          "runs": 1,
+          "mean_seconds": {
+            "pipeline_seconds": 0.32
+          },
+          "sample_counts": {
+            "pipeline_seconds": 1
+          }
+        }
+      }
+    }
+  }
+}

@@ -6,12 +6,14 @@ import pytest
 
 from src.api.rag.answer_contracts import RAGGenerationResponse
 from src.api.rag.modes.agentic.answering import (
-    AgenticStructuredOutputError, AnswerReview, ClaimCheck, EvidenceQuote,
+    AgenticStructuredOutputError, AnswerReview, ClaimCheck, EvidenceQuote, EffectOutcomeCheck, MethodAttributionCheck,
+    NonApplicableMethodCheck, _contains_quote, _method_attribution_error,
     _numeric_evidence_error, _numeric_tokens, _safe_validation_details,
     _citation_repair_context, MAX_CITATION_REPAIR_TASKS, MAX_CITATION_REPAIR_TEXT_CHARS,
     _rank_requirement_evidence, _strip_internal_citation_refs, _unit_markers,
     _screen_claims, generate_agentic_answer,
     _review_schema, _parse_review,
+    _assess,
 )
 from src.api.rag.modes.agentic.contracts import AnswerRequirement
 
@@ -22,6 +24,29 @@ CONTEXTS = [
     {"id": "b", "paper_id": "paper-b", "title": "Paper B", "page": 2,
      "text": "The object has mass 2 solar masses."},
 ]
+
+
+@pytest.mark.parametrize("count, expected", [(1, "partial"), (2, "satisfied")])
+def test_every_frozen_parameter_needs_its_own_outcome_even_in_one_answer_claim(count, expected):
+    text = "Flux decreases as pressure increases; flux increases with temperature."
+    claims = draft(claim(text)).claims
+    outcomes = [EffectOutcomeCheck(claim_index=0, answer_claim_id="a0001", answer_text=text,
+        requested_parameter=parameter, answer_parameter_quote=parameter, answer_outcome_quote=effect,
+        outcome_kind="reported_change", reports_requested_outcome=True)
+        for parameter, effect in (("pressure", "Flux decreases"), ("temperature", "flux increases"))]
+    assessment = AnswerReview(claims=[ClaimCheck(claim_index=0, supported=True, feedback="",
+        evidence_quotes=[], method_attributions=[])], requirements=[{
+            "requirement_id": "q_original", "status": "satisfied", "claim_indices": [0],
+            "essential_claim_indices": [0], "missing_details": [], "feedback": "",
+            "effect_status": "reported_effect", "effect_claim_indices": [0], "effect_outcomes": outcomes[:count]}],
+        unplanned_requests=[])
+    requirement = AnswerRequirement(id="q_original",
+        description="Report flux sensitivity to pressure and dependence on temperature.",
+        effect_parameters=["pressure", "temperature"])
+    kept, coverage, rejected = _assess(assessment, claims, [requirement], 0,
+        {"a": {"text": text}}, question=requirement.description)
+    assert len(kept) == 1 and not rejected
+    assert coverage[0]["status"] == expected
 
 
 def claim(text="The flow is inward.", ids=("a",), needs=()):
@@ -198,7 +223,7 @@ def test_wrong_unit_conversion_does_not_discard_other_verified_claims():
     ], descriptions=("Report the inflow.", "Report the mass."))
     assert result.diagnostics["status"] == "partial"
     assert [row.text for row in result.response.claims] == ["The flow is inward."]
-    assert result.limitations == ["Report the mass."]
+    assert result.limitations == ["Report the inflow. Report the mass."]
     assert result.diagnostics["validation_attempts"][0]["rejected_claims"][0]["code"] == "claim_not_verified"
     assert request.call_count == 4
 
@@ -223,7 +248,10 @@ def test_invalid_citation_is_dropped_per_claim_not_per_answer(ids, code):
 def test_verifier_sees_only_each_claims_cited_evidence_no_pooled_or_gold_context():
     _, request = run([draft(claim()), review()])
     payload = json.loads(request.call_args_list[1].args[0][1]["content"])
-    assert set(payload) == {"question", "requirements", "claims"}
+    assert set(payload) == {"question", "claims", "answer_anchors",
+                            "original_question_requirements", "planned_retrieval_requirements",
+                            "completeness_authority"}
+    assert payload["answer_anchors"] == {"a0001": {"claim_index": 0, "text": "The flow is inward."}}
     assert payload["claims"][0]["cited_evidence"] == [CONTEXTS[0]]
     assert "Paper B" not in json.dumps(payload)
     assert "need_ids" not in payload["claims"][0]
@@ -237,7 +265,7 @@ def test_review_failure_during_repair_preserves_previously_verified_claims():
         ValueError("invalid review"),
     ], descriptions=("Report the inflow.", "Report the mass."))
     assert result.response.answer == "The flow is inward."
-    assert result.limitations == ["Report the mass."]
+    assert result.limitations == ["Report the inflow. Report the mass."]
     assert result.diagnostics["status"] == "partial"
     assert result.diagnostics["validation_attempts"][1]["error_type"] == "ValueError"
     assert request.call_count == 4
@@ -263,9 +291,9 @@ def test_duplicate_support_assessments_fail_closed():
     assert request.call_count == 4
 
 
-def test_duplicate_requirement_assessments_cannot_claim_complete_answer():
+def test_duplicate_original_question_assessments_cannot_claim_complete_answer():
     bad = review()
-    bad.requirements.append(bad.requirements[0])
+    bad.requirements.append(bad.requirements[-1])
     result, _ = run([draft(claim()), bad, draft(), bad])
     assert result.response.answer == "The flow is inward."
     assert result.diagnostics["status"] == "partial"
@@ -281,10 +309,51 @@ def test_all_unverified_claims_abstain_after_one_repair():
 
 def test_requested_detail_omitted_by_planner_is_reported_and_repaired_once():
     incomplete = review(unplanned=("Report the uncertainty.",))
-    result, request = run([draft(claim()), incomplete, draft(), incomplete])
+    incomplete.requirements[-1].status = "partial"
+    incomplete.requirements[-1].missing_details = ["Report the uncertainty."]
+    request = Mock(side_effect=[draft(claim()), incomplete, draft(), incomplete])
+    result = generate_agentic_answer(question="Report the flow and its uncertainty.",
+        requirements=[AnswerRequirement(id="r1", description="Report the flow.")],
+        contexts=CONTEXTS, prompt=[], request=request)
     assert result.diagnostics["status"] == "partial"
     assert result.limitations == ["Report the uncertainty."]
     assert request.call_count == 4
+
+
+@pytest.mark.parametrize("extra", ["initial_searches", "Calculate an unrequested numerical conversion."])
+def test_planner_only_gaps_and_unplanned_notes_cannot_expand_question_scope(extra):
+    assessment = review(statuses=("satisfied", "missing"), indices=[[0], []], unplanned=(extra,))
+    assessment.requirements[-1].status = "satisfied"
+    request = Mock(side_effect=[draft(claim()), assessment])
+    result = generate_agentic_answer(question="Report the flow direction.",
+        requirements=[AnswerRequirement(id="r1", description="Report the flow direction."),
+                      AnswerRequirement(id="r2", description=extra)],
+        contexts=CONTEXTS, prompt=[], request=request)
+    assert result.diagnostics["status"] == "complete"
+    assert result.limitations == []
+    assert result.diagnostics["planner_only_gaps"] == ["r2"]
+    assert result.diagnostics["unplanned_requests"] == [extra]
+    assert request.call_count == 2
+    payload = json.loads(request.call_args_list[1].args[0][-1]["content"])
+    assert payload["completeness_authority"] == "original_question_requirements"
+    assert all(extra not in row["description"] for row in payload["original_question_requirements"])
+
+
+def test_original_requested_numeric_derivation_still_requires_repair_and_explicit_gap():
+    assessment = review(statuses=("satisfied",))
+    assessment.requirements[-1].status = "partial"
+    assessment.requirements[-1].missing_details = ["The requested numerical conversion is missing."]
+    question = "Report the flow direction and calculate its numerical conversion."
+    request = Mock(side_effect=[draft(claim()), assessment, draft(), assessment])
+    result = generate_agentic_answer(question=question,
+        requirements=[AnswerRequirement(id="r1", description="Report the flow direction.")],
+        contexts=CONTEXTS, prompt=[], request=request)
+    assert result.diagnostics["status"] == "partial"
+    assert result.limitations == ["The requested numerical conversion is missing."]
+    assert request.call_count == 4
+    repair = json.loads(request.call_args_list[2].args[0][-1]["content"].split("\n", 1)[1])
+    assert "missing_requirements" not in repair
+    assert repair["missing_original_question_parts"][0]["missing_details"] == result.limitations
 
 
 def test_malformed_generation_has_only_one_repair_and_no_unverified_output():
@@ -428,6 +497,207 @@ def test_short_hex_evidence_ids_in_prose_are_not_numeric_claims():
     text = "The rate is 10^-3 M⊙ yr^-1 (citations: 19f1f525; 74cc4dba; 4a856248)."
     assert _numeric_tokens(text) == {"0.001"}
     assert _strip_internal_citation_refs(text) == "The rate is 10^-3 M⊙ yr^-1."
+
+
+@pytest.mark.parametrize("label", ["abcdef12-3456...", "abcdef12-3456…", "abcdef12", "01234567-3456..."])
+def test_confirmed_citation_prefixes_do_not_become_measurements(label):
+    full_id = "01234567-3456-1234-abcd-123456789abc" if label.startswith("0") else "abcdef12-3456-1234-abcd-123456789abc"
+    text = f"The mass is 8 solar masses ({label})."
+    cleaned = _strip_internal_citation_refs(text, [full_id])
+    assert cleaned == "The mass is 8 solar masses."
+    assert _numeric_tokens(cleaned) == {"8"}
+    valid, rejected = _screen_claims(draft(claim(text, ids=(full_id,))).claims,
+                                     {full_id: {"text": "The mass is 8 solar masses."}})
+    assert not rejected
+    assert valid[0].cited_context_ids == [full_id]  # Never auto-add citations.
+
+
+def test_citation_cleanup_preserves_real_counts_and_scientific_values():
+    text = "A sample of 12345678 records has a rate of 8×10^-4 M⊙ yr^-1 and radius 3 pc."
+    cleaned = _strip_internal_citation_refs(text, ["12345678-3456-1234-abcd-123456789abc"])
+    assert cleaned == text
+    assert _numeric_tokens(cleaned) == {"12345678", "0.0008", "3"}
+
+
+def test_numeric_hyphenated_values_are_not_removed_as_matching_uuid_prefixes():
+    text = "The interval is 12345678-3456 records."
+    full_id = "12345678-3456-1234-abcd-123456789abc"
+    assert _strip_internal_citation_refs(text, [full_id]) == text
+    valid, rejected = _screen_claims(draft(claim(text, ids=(full_id,))).claims,
+                                    {full_id: {"text": text}})
+    assert not rejected
+    assert valid[0].text == text
+
+
+@pytest.mark.parametrize("ids", [[], ["abcdef12-3456-1234-abcd-123456789abc",
+                                         "abcdef12-3456-9999-abcd-123456789abc"]])
+def test_unknown_or_ambiguous_abbreviated_citations_are_format_errors_not_numeric_values(ids):
+    text = "The mass is 8 solar masses (abcdef12-3456...)."
+    assert "abcdef12-3456..." in _strip_internal_citation_refs(text, ids)
+    _, rejected = _screen_claims(draft(claim(text, ids=("source",))).claims,
+                                {"source": {"text": "8 solar masses"}, **dict.fromkeys(ids, {})})
+    assert rejected[0]["code"] == "unresolved_internal_citation_reference"
+
+
+def test_repair_deduplicates_same_approved_fact_with_new_citations_but_keeps_new_conditions():
+    repeated = claim("  The flow is INWARD.  ", ids=("b",))
+    additional = claim("The flow is inward under the low-density condition.", ids=("a",))
+    second = review(supported=(True, True), statuses=("satisfied", "satisfied"), indices=[[0], [1]])
+    result, request = run([
+        draft(claim()), review(statuses=("satisfied", "missing")),
+        draft(repeated, additional), second,
+    ], descriptions=("Report the flow.", "Report the low-density condition."))
+    assert [row.text for row in result.response.claims] == [
+        "The flow is inward.", "The flow is inward under the low-density condition."]
+    assert result.response.claims[0].cited_context_ids == ["a"]
+    assert result.diagnostics["validation_attempts"][1]["duplicate_claims_omitted"] == 1
+    assert request.call_count == 4
+
+
+@pytest.mark.parametrize("status", ["mismatched", "not_established"])
+def test_explicit_method_role_conflict_overrides_support_flag_and_uses_existing_repair(status):
+    source = "Gate selects dataset members. Link finds pairs among those members."
+    bad = review()
+    bad.claims[0].method_attributions = [MethodAttributionCheck(
+        method="Gate", claimed_operation="finds pairs", source_operation="selects dataset members",
+        status=status, evidence_quotes=[EvidenceQuote(context_id="source", quote=source)])]
+    fixed = review()
+    fixed.claims[0].method_attributions = [MethodAttributionCheck(
+        method="Link", claimed_operation="finds pairs", source_operation="finds pairs",
+        status="matched", evidence_quotes=[EvidenceQuote(context_id="source", quote=source)])]
+    request = Mock(side_effect=[draft(claim("Gate finds pairs.", ids=("source",))), bad,
+                               draft(claim("Link finds pairs.", ids=("source",))), fixed])
+    result = generate_agentic_answer(
+        question="Which method finds pairs?", requirements=[AnswerRequirement(id="r1", description="Identify method.")],
+        contexts=[{"id": "source", "text": source}], prompt=[], request=request)
+    assert request.call_count == 4
+    assert result.response.claims[0].text == "Link finds pairs."
+    assert result.diagnostics["method_role_contract"] == "answer-bound-cited-operation-v3"
+    first = result.diagnostics["validation_attempts"][0]
+    assert first["rejected_claims"][0]["code"] == "method_role_not_verified"
+    assert first["method_attributions"][0]["checks"][0]["status"] == status
+
+
+@pytest.mark.parametrize("quote_id,quote,operation", [
+    ("uncited", "Link finds pairs.", "finds pairs"),
+    ("source", "Invented operation text.", "Invented operation"),
+    ("source", "Link finds pairs.", "selects members"),
+])
+def test_matched_method_role_requires_own_cited_operation_quote(quote_id, quote, operation):
+    from src.api.rag.modes.agentic.answering import _method_attribution_error
+    check = MethodAttributionCheck(method="Link", claimed_operation="finds pairs",
+        source_operation=operation, status="matched",
+        evidence_quotes=[EvidenceQuote(context_id=quote_id, quote=quote)])
+    answer = draft(claim("Link finds pairs.", ids=("source",))).claims[0]
+    assert _method_attribution_error(answer, [check], {"source": {"text": "Link finds pairs."}})["code"] == "method_role_not_verified"
+
+
+@pytest.mark.parametrize("audit", [[], [NonApplicableMethodCheck(applicability="not_applicable")],
+    [MethodAttributionCheck(method="[]", claimed_operation="reports the mass", source_operation="",
+                            status="not_established", evidence_quotes=[])],
+    [MethodAttributionCheck(method="Gate", claimed_operation="reports the mass", source_operation="",
+                            status="mismatched", evidence_quotes=[])]])
+def test_ordinary_measurement_is_not_rejected_by_irrelevant_method_audits(audit):
+    assessment = review()
+    assessment.claims[0].method_attributions = audit
+    assessment.claims[0].evidence_quotes = [EvidenceQuote(context_id="a", quote="The mass is 8 solar masses.")]
+    request = Mock(side_effect=[draft(claim("The mass is 8 solar masses.")), assessment])
+    result = generate_agentic_answer(
+        question="Report the mass.", requirements=[AnswerRequirement(id="r1", description="Report the mass.")],
+        contexts=[{"id": "a", "text": "The mass is 8 solar masses."}], prompt=[], request=request,
+        reviewer_model="offline")
+    assert result.diagnostics["status"] == "complete"
+    assert request.call_count == 2
+    assert result.response.claims[0].text == "The mass is 8 solar masses."
+    issues = result.diagnostics["validation_attempts"][0]["method_scope_issues"]
+    assert bool(issues) == bool(audit and isinstance(audit[0], MethodAttributionCheck))
+
+
+def test_nonapplicable_method_branch_does_not_bypass_numeric_or_support_checks():
+    assessment = review()
+    assessment.claims[0].method_attributions = [NonApplicableMethodCheck(applicability="not_applicable")]
+    request = Mock(side_effect=[draft(claim("The mass is 9 solar masses.")), assessment,
+                               draft(), assessment])
+    result = generate_agentic_answer(
+        question="Report the mass.", requirements=[AnswerRequirement(id="r1", description="Report the mass.")],
+        contexts=[{"id": "a", "text": "The mass is 8 solar masses."}], prompt=[], request=request,
+        reviewer_model="offline")
+    assert result.diagnostics["status"] == "safe_abstention"
+    assert result.diagnostics["validation_attempts"][0]["rejected_claims"][0]["code"] == "numeric_evidence_not_verified"
+    assert request.call_count <= 4
+    unsupported = review(supported=(False,))
+    unsupported.claims[0].method_attributions = assessment.claims[0].method_attributions
+    result, _ = run([draft(claim()), unsupported, draft(), unsupported])
+    assert result.diagnostics["status"] == "safe_abstention"
+
+
+def test_labelled_proposed_use_needs_supported_premises_not_a_preexisting_paper_result():
+    proposed = "Proposal: use the measured inward flow to test a future density model."
+    assessment = review()
+    assessment.claims[0].method_attributions = [NonApplicableMethodCheck(applicability="proposed_use")]
+    result, request = run([draft(claim(proposed)), assessment], descriptions=("Propose a future test.",))
+    assert result.diagnostics["status"] == "complete"
+    assert result.response.claims[0].text == proposed
+    assert request.call_count == 2
+
+
+def test_proposal_branch_does_not_excuse_a_false_reported_method_premise():
+    text = "Proposal: use Gate, which finds pairs, to study a new population."
+    answer = draft(claim(text)).claims[0]
+    audits = [NonApplicableMethodCheck(applicability="proposed_use"), MethodAttributionCheck(
+        applicability="reported_operation", claim_quote="Gate, which finds pairs",
+        method="Gate", claimed_operation="finds pairs", source_operation="selects members",
+        status="mismatched", evidence_quotes=[EvidenceQuote(context_id="a", quote="Gate selects members.")])]
+    assert _method_attribution_error(answer, audits, {"a": {"text": "Gate selects members."}})[
+        "code"] == "method_role_not_verified"
+
+
+@pytest.mark.parametrize("source,quote", [
+    ("We describe the _𝑁_ - body models used to study the evolution of clustering.",
+     "We describe the N-body models used to study the evolution of clustering."),
+    ("We use state - of - the - art models for membership selection.",
+     "We use state-of-the-art models for membership selection."),
+])
+def test_contiguous_quote_accepts_letter_word_hyphen_presentation_only(source, quote):
+    assert _contains_quote(source, quote)
+
+
+@pytest.mark.parametrize("quote", ["We describe the N-body models … used for classification.",
+                                     "We describe the N-body models used for classification...",
+                                     "We describe the N-body models used for a DIFFERENT classification."])
+def test_quote_normalization_does_not_accept_ellipsis_stitching_or_invented_wording(quote):
+    source = "We describe the _N_ - body models used for classification."
+    assert not _contains_quote(source, quote)
+    assert _contains_quote("We report ... an intentionally omitted phrase.",
+                           "We report ... an intentionally omitted phrase.")
+
+
+@pytest.mark.parametrize("quote", ["The N-body models report rates of 8 × 10^4 per year.",
+                                     "The N-body models report rates of 6 × 10^-4 per year.",
+                                     "The N-body models report rates of 8 × 10^-4 per second."])
+def test_word_hyphen_cleanup_preserves_scientific_sign_value_and_dimension_checks(quote):
+    assert not _contains_quote("The _N_ - body models report rates of 8 × 10^-4 per year.", quote)
+
+
+def test_real_named_method_cannot_borrow_an_unnamed_or_different_methods_operation():
+    source = "Gate identifies dataset members. A separate routine finds the closest pair."
+    answer = draft(claim("Gate finds the closest pair.", ids=("a",))).claims[0]
+    check = MethodAttributionCheck(applicability="reported_operation", claim_quote=answer.text,
+        method="Gate", claimed_operation="finds the closest pair", source_operation="finds the closest pair",
+        status="matched", evidence_quotes=[EvidenceQuote(context_id="a", quote="A separate routine finds the closest pair.")])
+    error = _method_attribution_error(answer, [check], {"a": {"text": source}})
+    assert error["code"] == "method_role_not_verified"
+
+
+def test_method_attribution_accepts_own_short_operation_phrase_with_equivalent_word_hyphens():
+    source = "We describe the _𝑁_ - body models used for this paper."
+    answer = draft(claim("The N-body models study clustering.", ids=("a",))).claims[0]
+    check = MethodAttributionCheck(applicability="reported_operation", claim_quote=answer.text,
+        method="N-body", claimed_operation="study clustering", source_operation="models used for this paper",
+        status="matched", evidence_quotes=[EvidenceQuote(context_id="a", quote="We describe the N-body models used for this paper.")])
+    assert _method_attribution_error(answer, [check], {"a": {"text": source}}) is None
+    check.claim_quote = "The N-body models find pairs."
+    assert _method_attribution_error(answer, [check], {"a": {"text": source}})["code"] == "method_role_not_verified"
 
 
 def test_resonance_ratio_and_author_year_are_not_measurement_values():
@@ -865,8 +1135,11 @@ def test_planner_optional_percentage_format_does_not_force_a_repair():
     assessment = review()
     assessment.requirements[-1].effect_status = "reported_effect"
     assessment.requirements[-1].effect_claim_indices = [0]
+    assessment.requirements[-1].effect_outcomes = [EffectOutcomeCheck(
+        claim_index=0, parameter_quote="outer radius", outcome_quote="decreases from 8 × 10^-4 to 6 × 10^-4",
+        reports_requested_outcome=True)]
     request = Mock(side_effect=[
-        draft(claim("The rate decreases from 8 × 10^-4 to 6 × 10^-4 M⊙ yr^-1.")),
+        draft(claim("As the outer radius increases, the rate decreases from 8 × 10^-4 to 6 × 10^-4 M⊙ yr^-1.")),
         assessment,
     ])
     result = generate_agentic_answer(
@@ -874,10 +1147,10 @@ def test_planner_optional_percentage_format_does_not_force_a_repair():
         requirements=[AnswerRequirement(id="r1", description=(
             "Report the numerical rate and sensitivity: quantitative scaling, percent "
             "changes, formulas or descriptive statements."))],
-        contexts=[{"id": "a", "text": "The rate decreases from 8 × 10^-4 to 6 × 10^-4 M⊙ yr^-1."}],
+        contexts=[{"id": "a", "text": "As the outer radius increases, the rate decreases from 8 × 10^-4 to 6 × 10^-4 M⊙ yr^-1."}],
         prompt=[], request=request, reviewer_model="offline")
     assert result.diagnostics["status"] == "complete"
-    assert result.diagnostics["coverage_policy"] == "original-question-effects-v2"
+    assert result.diagnostics["coverage_policy"] == "original-question-authority-v3"
     assert result.limitations == []
     assert request.call_count == 2
 
@@ -925,7 +1198,8 @@ def test_review_schema_requires_every_request_specific_coverage_key():
     definition = schema.model_json_schema()["$defs"]["RequiredCoverage"]
     assert definition["required"] == ["r1", "q_1", "q_2"]
     assert definition["additionalProperties"] is False
-    assessment = {"status": "satisfied", "claim_indices": [0], "feedback": ""}
+    assessment = {"status": "satisfied", "claim_indices": [0],
+                  "essential_claim_indices": [0], "missing_details": [], "feedback": ""}
     payload = {"claims": review().model_dump()["claims"],
                "requirements": {key: dict(assessment) for key in ("r1", "q_1", "q_2")},
                "unplanned_requests": []}
@@ -945,11 +1219,27 @@ def test_review_prompt_keeps_requirement_descriptions_outside_schema_refs():
     requirements = [AnswerRequirement(id="r1", description="Report the measured mass and uncertainty.")]
     messages = _review_messages("Report mass.", requirements, [], {}, 0)
     payload = json.loads(messages[-1]["content"])
-    assert payload["requirements"] == [row.model_dump() for row in requirements]
+    assert payload["planned_retrieval_requirements"] == [row.model_dump() for row in requirements]
+    assert payload["original_question_requirements"] == []
     schema = _review_schema(requirements).model_json_schema()
     assert schema["$defs"]["RequiredCoverage"]["properties"]["r1"] == {
         "$ref": "#/$defs/CoverageCheck",
     }
+
+
+def test_answer_anchor_preserves_full_math_text_once_without_truncation_or_source_substitution():
+    from src.api.rag.modes.agentic.answering import _review_messages
+
+    text = "The yield is unchanged when pressure varies; " + "unchanged conditions; " * 60 + "Δy ≈ 0."
+    claims = draft(claim(text)).claims
+    messages = _review_messages("How does pressure affect yield?", [], claims,
+        {"a": {"id": "a", "text": "SOURCE TEXT MUST NOT REPLACE ANSWER TEXT"}}, 0)
+    payload = json.loads(messages[-1]["content"])
+    assert len(text) > 500
+    assert payload["answer_anchors"]["a0001"] == {"claim_index": 0, "text": text}
+    assert payload["claims"][0]["answer_claim_id"] == "a0001"
+    assert "text" not in payload["claims"][0]
+    assert messages[-1]["content"].count(text) == 1
 
 
 def test_numbered_original_requests_remain_separate_from_an_incomplete_plan():
@@ -958,11 +1248,15 @@ def test_numbered_original_requests_remain_separate_from_an_incomplete_plan():
             return draft(claim())
         payload = {"claims": review().model_dump()["claims"], "unplanned_requests": [],
                    "requirements": {
-                       "r1": {"status": "satisfied", "claim_indices": [0], "feedback": ""},
-                       "q_1": {"status": "satisfied", "claim_indices": [0], "feedback": ""},
+                       "r1": {"status": "satisfied", "claim_indices": [0],
+                              "essential_claim_indices": [0], "missing_details": [], "feedback": ""},
+                       "q_1": {"status": "satisfied", "claim_indices": [0],
+                                "essential_claim_indices": [0], "missing_details": [], "feedback": ""},
                        "q_2": {"status": "missing", "claim_indices": [],
-                               "effect_status": "missing", "effect_claim_indices": [],
-                               "feedback": "Dependence on the specified parameter is absent."},
+                               "effect_status": "missing", "effect_claim_indices": [], "effect_outcomes": [],
+                               "feedback": "Dependence on the specified parameter is absent.",
+                               "essential_claim_indices": [], "missing_details": [
+                                   "Dependence on the specified parameter is absent."]},
                    }}
         return schema.model_validate(payload)
 
@@ -972,7 +1266,7 @@ def test_numbered_original_requests_remain_separate_from_an_incomplete_plan():
         contexts=CONTEXTS, prompt=[], request=request, reviewer_model="offline")
     assert result.diagnostics["status"] == "partial"
     assert len(result.response.claims) == 1
-    assert result.limitations == ["Original question part (2): State its dependence on the chosen parameter"]
+    assert result.limitations == ["Dependence on the specified parameter is absent."]
     assert [row["requirement_id"] for row in result.diagnostics["original_question_parts"]] == ["q_1", "q_2"]
 
 
@@ -985,13 +1279,14 @@ def test_omitted_original_question_check_fails_validation_without_extra_review_c
             return draft(claim())
         return schema.model_validate({"claims": review().model_dump()["claims"],
                                       "requirements": {"r1": {
-                                          "status": "satisfied", "claim_indices": [0], "feedback": ""}},
+                                          "status": "satisfied", "claim_indices": [0], "feedback": "",
+                                          "essential_claim_indices": [0], "missing_details": []}},
                                       "unplanned_requests": []})
 
     result = generate_agentic_answer(
         question="Describe the flow.", requirements=[AnswerRequirement(id="r1", description="Describe the flow.")],
         contexts=CONTEXTS, prompt=[], request=request)
-    assert calls == ["draft", "verify", "repair", "verify"]
+    assert calls == ["draft", "verify", "verify"]
     assert result.diagnostics["status"] == "safe_abstention"
     assert all(row["failed_stage"] == "verify" for row in result.diagnostics["validation_attempts"])
     assert "requirements.q_original" in result.diagnostics["validation_attempts"][0]["validation_error_locations"]
@@ -1005,16 +1300,19 @@ def test_effect_schema_requires_a_result_assessment_and_claim_links():
         AnswerRequirement(id="r2", description="Report the measured mass."),
     ])
     payload = {"claims": [], "unplanned_requests": [], "requirements": {
-        "r1": {"status": "missing", "claim_indices": [], "feedback": "Effect absent."},
-        "r2": {"status": "missing", "claim_indices": [], "feedback": "Mass absent."},
+        "r1": {"status": "missing", "claim_indices": [], "feedback": "Effect absent.",
+               "essential_claim_indices": [], "missing_details": ["Effect absent."]},
+        "r2": {"status": "missing", "claim_indices": [], "feedback": "Mass absent.",
+               "essential_claim_indices": [], "missing_details": ["Mass absent."]},
     }}
     with pytest.raises(ValidationError) as caught:
         schema.model_validate(payload)
     assert {row["loc"] for row in caught.value.errors()} == {
         ("requirements", "r1", "effect_status"),
         ("requirements", "r1", "effect_claim_indices"),
+        ("requirements", "r1", "effect_outcomes"),
     }
-    payload["requirements"]["r1"].update(effect_status="missing", effect_claim_indices=[])
+    payload["requirements"]["r1"].update(effect_status="missing", effect_claim_indices=[], effect_outcomes=[])
     parsed = _parse_review(payload, schema)
     assert parsed.requirements[0].effect_status == "missing"
     assert parsed.requirements[1].effect_status is None
@@ -1042,7 +1340,13 @@ def test_effect_coverage_needs_supported_result_claims_not_settings(
         payload = json.loads(messages[-1]["content"])
         assert payload["parameter_effect_requirements"] == ["r1", "q_original"]
         coverage = {"status": "satisfied", "claim_indices": [0], "feedback": "",
-                    "effect_status": effect_status, "effect_claim_indices": effect_indices}
+                    "essential_claim_indices": [0], "missing_details": [],
+                    "effect_status": effect_status, "effect_claim_indices": effect_indices,
+                    "effect_outcomes": ([{"answer_claim_id": "a0001", "reports_requested_outcome": True}]
+                        if expected == "complete" else [])}
+        for audit in coverage["effect_outcomes"]:
+            audit.update(requested_parameter="distance", answer_parameter_quote="distance",
+                         answer_outcome_quote="mass is independent of distance", outcome_kind="reported_no_change")
         return schema.model_validate({
             "claims": review().model_dump()["claims"], "unplanned_requests": [],
             "requirements": {"r1": coverage, "q_original": coverage},
@@ -1053,7 +1357,7 @@ def test_effect_coverage_needs_supported_result_claims_not_settings(
         requirements=[AnswerRequirement(id="r1", description="Report the mass dependence on distance.")],
         contexts=[{"id": "a", "text": text}], prompt=[], request=request)
     assert result.diagnostics["status"] == expected
-    assert result.diagnostics["coverage_contract"] == "required-keys-effects-v3"
+    assert result.diagnostics["coverage_contract"] == "frozen-parameter-effects-v9"
     assert len(result.response.claims) == 1
     assert stages == (["draft", "verify"] if expected == "complete"
                       else ["draft", "verify", "repair", "verify"])
@@ -1066,6 +1370,9 @@ def test_qualitative_reported_rate_dependence_does_not_require_a_formula_or_numb
     for row in assessment.requirements:
         row.effect_status = "reported_effect"
         row.effect_claim_indices = [0]
+        row.effect_outcomes = [EffectOutcomeCheck(
+            claim_index=0, parameter_quote="distance", outcome_quote="rate is unchanged",
+            reports_requested_outcome=True)]
     result, request = run([
         draft(claim("The rate is unchanged when distance varies.")), assessment,
     ], descriptions=("Report the rate dependence on distance.",))
@@ -1085,3 +1392,369 @@ def test_unsupported_result_cannot_satisfy_effect_coverage():
     assert result.diagnostics["status"] == "partial"
     assert [row.text for row in result.response.claims] == ["Two distances were tested."]
     assert request.call_count == 4
+
+
+@pytest.mark.parametrize("outcome", [
+    {"parameter_quote": "pressure", "outcome_quote": "", "reports_requested_outcome": False},
+    {"parameter_quote": "pressure", "outcome_quote": "yield fell slightly", "reports_requested_outcome": True},
+    {"parameter_quote": "temperature", "outcome_quote": "two pressures", "reports_requested_outcome": True},
+])
+def test_settings_only_cannot_complete_via_a_top_level_reported_effect_flag(outcome):
+    text = "The experiment tested two pressures."
+    assessment = review()
+    for row in assessment.requirements:
+        row.effect_status = "reported_effect"  # Erroneous aggregate label must not suffice.
+        row.effect_claim_indices = [0]
+        row.effect_outcomes = [EffectOutcomeCheck(claim_index=0, **outcome)]
+    result, request = run([
+        draft(claim(text)), assessment, assessment if outcome["reports_requested_outcome"] else draft(), assessment,
+    ], descriptions=("Report yield sensitivity to pressure.",))
+    assert result.diagnostics["status"] == "partial"
+    assert result.response.answer == text
+    assert request.call_count == (3 if outcome["reports_requested_outcome"] else 4)
+    assert result.diagnostics["requirements"][0]["effect_outcomes"][0] == {"claim_index": 0, **outcome}
+
+
+def test_effect_outcome_repair_adds_missing_result_without_redrafting_verified_baseline():
+    text = "The yield decreases when pressure increases."
+    first = review()
+    for row in first.requirements:
+        row.effect_status = "reported_effect"
+        row.effect_claim_indices = [0]
+        row.effect_outcomes = [EffectOutcomeCheck(claim_index=0, parameter_quote="pressure",
+            outcome_quote="", reports_requested_outcome=False)]
+    second = review(supported=(True, True), indices=[[0, 1]])
+    for row in second.requirements:
+        row.essential_claim_indices = [1]
+        row.effect_status = "reported_effect"
+        row.effect_claim_indices = [1]
+        row.effect_outcomes = [EffectOutcomeCheck(claim_index=1, parameter_quote="pressure",
+            outcome_quote="yield decreases", reports_requested_outcome=True)]
+    result, request = run([
+        draft(claim("Two pressures were tested.")), first, draft(claim(text)), second,
+    ], descriptions=("Report yield dependence on pressure.",))
+    assert result.diagnostics["status"] == "complete"
+    assert [row.text for row in result.response.claims] == ["Two pressures were tested.", text]
+    assert request.call_count == 4
+
+
+def test_another_parameters_reported_outcome_is_not_the_requested_effect():
+    assessment = review()
+    for row in assessment.requirements:
+        row.effect_status = "reported_effect"
+        row.effect_claim_indices = [0]
+        row.effect_outcomes = [EffectOutcomeCheck(claim_index=0, parameter_quote="temperature",
+            outcome_quote="yield is unchanged", reports_requested_outcome=False)]
+    result, request = run([
+        draft(claim("The yield is unchanged when temperature increases.")), assessment, draft(), assessment,
+    ], descriptions=("Report yield dependence on pressure.",))
+    assert result.diagnostics["status"] == "partial"
+    assert request.call_count == 4
+
+
+@pytest.mark.parametrize("corrected", [True, False])
+def test_bad_effect_quote_is_review_uncertainty_not_missing_content_and_never_redrafts(corrected):
+    text = "The yield falls slightly when pressure increases."
+    first = review()
+    for row in first.requirements:
+        row.essential_claim_indices = [0]
+        row.effect_status = "reported_effect"
+        row.effect_claim_indices = [0]
+        row.effect_outcomes = [EffectOutcomeCheck(
+            claim_index=0, parameter_quote="applied pressure",
+            outcome_quote="leads to a small decrease", reports_requested_outcome=True)]
+    second = first.model_copy(deep=True)
+    if corrected:
+        for row in second.requirements:
+            row.effect_outcomes = [EffectOutcomeCheck(claim_index=0,
+                answer_claim_id="a0001", answer_text=text, reports_requested_outcome=True)]
+    result, request = run([draft(claim(text)), first, second],
+        descriptions=("Report yield sensitivity to pressure.",))
+    assert [call.args[2] for call in request.call_args_list] == ["draft", "verify", "verify"]
+    assert result.response.claims[0].text == text
+    assert result.diagnostics["annotation_correction_attempts"] == 1
+    assert result.diagnostics["status"] == ("complete" if corrected else "partial")
+    initial = result.diagnostics["validation_attempts"][0]["requirements"][0]
+    assert initial["coverage_issue"] == "annotation_invalid"
+    assert initial["annotation_validation_failures"] == [{
+        "claim_index": 0, "code": "invalid_effect_answer_quote"}]
+    assert "outcome is missing" not in initial["feedback"]
+    assert initial["missing_details"] == [initial["feedback"]]
+    if not corrected:
+        assert "review annotation" in result.limitations[0]
+        assert "outcome is missing" not in result.limitations[0]
+    payloads = [json.loads(call.args[0][-1]["content"]) for call in request.call_args_list[1:]]
+    assert payloads[0]["answer_anchors"] == payloads[1]["answer_anchors"]
+    assert payloads[1]["claims"][0]["previously_approved"] is True
+
+
+@pytest.mark.parametrize("audit", [
+    {"answer_claim_id": "a0002", "answer_text": "The yield decreases when pressure increases."},
+    {"answer_claim_id": "a0001", "answer_text": "Source-only changed wording"},
+])
+def test_normalized_anchor_cannot_be_rebound_to_source_or_another_claim(audit):
+    text = "The yield decreases when pressure increases."
+    assessment = review()
+    for row in assessment.requirements:
+        row.essential_claim_indices = [0]
+        row.effect_status = "reported_effect"
+        row.effect_claim_indices = [0]
+        row.effect_outcomes = [EffectOutcomeCheck(claim_index=0, **audit, reports_requested_outcome=True)]
+    result, request = run([draft(claim(text)), assessment, assessment],
+        descriptions=("Report yield sensitivity to pressure.",))
+    assert request.call_count == 3
+    assert result.diagnostics["status"] == "partial"
+    assert result.diagnostics["requirements"][0]["annotation_validation_failures"][0]["code"] == (
+        "invalid_effect_answer_anchor")
+    assert result.response.answer == text
+
+
+def test_annotation_correction_cannot_add_a_third_review_or_later_content_repair():
+    text = "Two pressures were tested."
+    first = review()
+    for row in first.requirements:
+        row.essential_claim_indices = [0]
+        row.effect_status = "reported_effect"
+        row.effect_claim_indices = [0]
+        row.effect_outcomes = [EffectOutcomeCheck(claim_index=0, parameter_quote="pressure",
+            outcome_quote="source-only reported result", reports_requested_outcome=True)]
+    second = first.model_copy(deep=True)
+    for row in second.requirements:
+        row.effect_outcomes = [EffectOutcomeCheck(claim_index=0, answer_claim_id="a0001",
+            answer_text=text, reports_requested_outcome=False)]
+    result, request = run([draft(claim(text)), first, second],
+        descriptions=("Report yield sensitivity to pressure.",))
+    assert request.call_count == 3
+    assert result.diagnostics["status"] == "partial"
+    assert result.diagnostics["requirements"][0]["coverage_issue"] == "missing_content"
+    assert "outcome is missing" in result.limitations[0]
+
+
+def test_bad_optional_background_does_not_turn_annotation_correction_into_content_repair():
+    text = "The yield decreases when pressure increases."
+    first = review(supported=(True, False), indices=[[0, 1]])
+    for row in first.requirements:
+        row.essential_claim_indices = [0]
+        row.effect_status = "reported_effect"
+        row.effect_claim_indices = [0]
+        row.effect_outcomes = [EffectOutcomeCheck(claim_index=0,
+            parameter_quote="applied pressure", outcome_quote="source wording", reports_requested_outcome=True)]
+    second = first.model_copy(deep=True)
+    for row in second.requirements:
+        row.effect_outcomes = [EffectOutcomeCheck(claim_index=0, answer_claim_id="a0001",
+            answer_text=text, reports_requested_outcome=True)]
+    result, request = run([draft(claim(text), claim("Unsupported optional background.")), first, second],
+        descriptions=("Report yield dependence on pressure.",))
+    assert [call.args[2] for call in request.call_args_list] == ["draft", "verify", "verify"]
+    assert result.diagnostics["status"] == "complete"
+    assert result.response.answer == text
+    assert result.limitations == []
+    assert all(row["rejected_claims"][0]["claim_index"] == 1
+               for row in result.diagnostics["validation_attempts"])
+
+
+def test_review_annotation_correction_timings_have_no_answer_repair(monkeypatch):
+    monkeypatch.setattr("src.api.rag.modes.agentic.answering.monotonic",
+                        Mock(side_effect=[0, 2, 2, 5, 5, 9]))
+    result, request = run([draft(claim()), ValueError("private review output"), review()])
+    assert request.call_count == 3
+    assert result.diagnostics["status"] == "complete"
+    assert result.diagnostics["stage_timings"] == {"draft_seconds": 2, "verify_seconds": 7}
+    assert [row["stage_timings"] for row in result.diagnostics["validation_attempts"]] == [
+        {"draft_seconds": 2, "verify_seconds": 3}, {"verify_seconds": 4}]
+    assert "private review output" not in json.dumps(result.diagnostics)
+
+
+@pytest.mark.parametrize("corrected_status", ["matched", "mismatched"])
+def test_bad_method_claim_quote_corrects_review_without_rewriting_supported_answer(corrected_status):
+    text = "Link identifies connected pairs."
+    source = "Using Link, the analysis identifies connected pairs."
+    first = essential_review(supported=(True,), essential=(0,), indices=(0,))
+    first.claims[0].method_attributions = [MethodAttributionCheck(
+        claim_quote=source, method="Link", claimed_operation="identifies connected pairs",
+        source_operation="identifies connected pairs", status="matched",
+        evidence_quotes=[EvidenceQuote(context_id="a", quote=source)])]
+    second = first.model_copy(deep=True)
+    second.claims[0].method_attributions[0].claim_quote = text
+    second.claims[0].method_attributions[0].status = corrected_status
+    request = Mock(side_effect=[draft(claim(text)), first, second])
+    result = generate_agentic_answer(question="How does Link identify pairs?",
+        requirements=[AnswerRequirement(id="r1", description="Explain the Link operation.")],
+        contexts=[{"id": "a", "text": source}], prompt=[], request=request, reviewer_model="offline")
+    assert [call.args[2] for call in request.call_args_list] == ["draft", "verify", "verify"]
+    assert result.diagnostics["annotation_correction_attempts"] == 1
+    assert result.diagnostics["validation_attempts"][0]["original_question_parts"][0]["coverage_issue"] == "annotation_invalid"
+    first_payload, second_payload = [json.loads(call.args[0][-1]["content"])
+                                    for call in request.call_args_list[1:]]
+    assert first_payload["answer_anchors"] == second_payload["answer_anchors"]
+    assert second_payload["annotation_feedback"]["failures"][0]["code"] == "invalid_method_annotation"
+    if corrected_status == "matched":
+        assert result.response.answer == text
+        assert result.diagnostics["status"] == "complete"
+    else:
+        assert result.response.claims == []  # Correcting identity cannot promote a real role conflict.
+        assert result.diagnostics["status"] == "safe_abstention"
+
+
+def test_numeric_content_error_cannot_be_hidden_as_method_annotation_error():
+    text = "Link identifies 9 pairs."
+    source = "Link identifies 2 pairs."
+    assessment = essential_review(supported=(True,), essential=(0,), indices=(0,))
+    assessment.claims[0].method_attributions = [MethodAttributionCheck(
+        claim_quote=source, method="Link", claimed_operation="identifies pairs",
+        source_operation="identifies", status="matched",
+        evidence_quotes=[EvidenceQuote(context_id="a", quote=source)])]
+    request = Mock(side_effect=[draft(claim(text)), assessment, draft(claim(text)), assessment])
+    result = generate_agentic_answer(question="How many pairs does Link identify?",
+        requirements=[AnswerRequirement(id="r1", description="Report the pair count.")],
+        contexts=[{"id": "a", "text": source}], prompt=[], request=request, reviewer_model="offline")
+    assert [call.args[2] for call in request.call_args_list] == ["draft", "verify", "repair", "verify"]
+    assert result.diagnostics["annotation_correction_attempts"] == 0
+    assert result.response.claims == []
+
+
+@pytest.mark.parametrize("text,parameter_quote,outcome_quote,kind", [
+    ("The flux is high at the outer radius.", "outer radius", "flux is high", "baseline"),
+    ("Two outer radius settings were tested.", "outer radius", "settings were tested", "settings_only"),
+    ("Changing inner radius leaves flux unchanged.", "inner radius", "flux unchanged", "reported_no_change"),
+])
+def test_valid_answer_id_cannot_pass_a_baseline_or_different_parameters_outcome(
+        text, parameter_quote, outcome_quote, kind):
+    # The model supplies an optimistic bool; typed parameter/kind bindings override
+    # this observable contradiction without changing supported claim text.
+    assessment = essential_review(supported=(True,), essential=(0,), indices=(0,))
+    for row in assessment.requirements:
+        row.effect_status = "reported_effect"
+        row.effect_claim_indices = [0]
+        row.effect_outcomes = [EffectOutcomeCheck(claim_index=0, answer_claim_id="a0001", answer_text=text,
+            requested_parameter="outer radius", answer_parameter_quote=parameter_quote,
+            answer_outcome_quote=outcome_quote, outcome_kind=kind, reports_requested_outcome=True)]
+    result, request = run([draft(claim(text)), assessment, draft(), assessment],
+                         descriptions=("Report flux sensitivity to outer radius.",))
+    assert result.diagnostics["status"] == "partial"
+    assert result.diagnostics["requirements"][0]["coverage_issue"] == "missing_content"
+    assert [call.args[2] for call in request.call_args_list] == ["draft", "verify", "repair", "verify"]
+    assert result.response.answer == text
+
+
+def test_effect_quote_binding_does_not_discard_numeric_sign_or_stitch_passages():
+    from src.api.rag.modes.agentic.effect_evidence import literal_span, names_parameter
+    assert literal_span("The result is −3 units.", "result is -3 units")
+    assert not literal_span("The result is −3 units.", "result is +3 units")
+    assert not literal_span("Outer radius changes. Elsewhere flux decreases.", "Outer radius flux decreases")
+    assert names_parameter("outer disk radius", "disk outer radius")
+    assert not names_parameter("inner disk radius", "disk outer radius")
+
+
+@pytest.mark.parametrize("approx", ["∼", "≈", "≃", "~"])
+@pytest.mark.parametrize("sign", ["−", "-", "+"])
+def test_signed_approximate_extracted_decimal_retains_sign(approx, sign):
+    expected = "1.75" if sign == "+" else "-1.75"
+    assert _numeric_tokens(f"The exponent is _γ {approx}{sign}_ 1 _._ 75.") == {expected}
+    assert _numeric_tokens(f"The exponent is γ {approx} {sign} 1.75.") == {expected}
+
+
+def test_approximation_sign_cleanup_does_not_invent_signs_for_ranges_or_subtraction():
+    assert _numeric_tokens("The range is (1 _−_ 3).") == {"1", "3"}
+    assert "-1.75" not in _numeric_tokens("The values are 2 _−_ 1 _._ 75.")
+    assert _numeric_tokens("The slope is ∼−_ 1 _._ 75; the rate is 3 × 10⁻³ M⊙ yr⁻¹.") == {
+        "-1.75", "0.003"}
+    assert _numeric_tokens("The offset is ∼−_ 3 × 10^-3.") == {"-0.003"}
+    assert _numeric_tokens("The offset is ∼−_ 1.75e-3.") == {"-0.00175"}
+    assert _numeric_tokens("The offset is +3 × 10^-3.") == {"0.003"}
+
+
+def test_signed_pdf_decimal_is_checked_only_in_own_cited_evidence():
+    from src.api.rag.answer_contracts import RAGClaim
+    source = "The density profile approaches _γ ∼−_ 1 _._ 75 in the inner region."
+    row = RAGClaim(**claim("The density profile approaches γ ≃ −1.75.", ids=("a",)))
+    check = ClaimCheck(claim_index=0, supported=True, feedback="", evidence_quotes=[],
+                       method_attributions=[])
+    assert _numeric_evidence_error(row, check, {"a": {"text": source}}) is None
+    assert _contains_quote(source, "The density profile approaches γ ∼−1.75 in the inner region.")
+    wrong = row.model_copy(update={"text": "The density profile approaches γ ≃ +1.75."})
+    assert _numeric_evidence_error(wrong, check, {"a": {"text": source}})["missing_values"] == ["1.75"]
+    assert _numeric_evidence_error(row, check, {
+        "a": {"text": "The density profile is not specified."}, "b": {"text": source},
+    })["missing_values"] == ["-1.75"]
+
+
+def essential_review(*, supported=(True, False), essential=(0,), indices=(0, 1),
+                     status="satisfied", missing_details=()):
+    result = review(supported=supported, statuses=(status,), indices=[list(indices)])
+    for row in result.requirements:
+        row.essential_claim_indices = list(essential)
+        row.missing_details = list(missing_details)
+    return result
+
+
+def test_rejected_background_does_not_erase_verified_fact_or_trigger_repair():
+    result, request = run([
+        draft(claim(), claim("An unrequested supplementary claim.")), essential_review(),
+    ])
+    assert result.diagnostics["status"] == "complete"
+    assert result.limitations == []
+    assert [row.text for row in result.response.claims] == ["The flow is inward."]
+    assert request.call_count == 2
+    diagnostic = result.diagnostics["requirements"][0]
+    assert diagnostic["claim_indices"] == [0, 1]
+    assert diagnostic["essential_claim_indices"] == [0]
+    assert diagnostic["unsupported_claim_indices"] == [1]
+    assert diagnostic["invalid_essential_claim_indices"] == []
+    assert result.diagnostics["validation_attempts"][0]["rejected_claims"][0]["claim_index"] == 1
+
+
+@pytest.mark.parametrize("essential,indices", [([0, 1], [0, 1]), ([2], [0, 1]),
+                                               ([0, 29], [0, 1]), ([], [0, 1]),
+                                               ([0], [0, 29])])
+def test_bad_essential_or_absent_links_cannot_claim_complete(essential, indices):
+    assessment = essential_review(essential=essential, indices=indices)
+    result, request = run([
+        draft(claim(), claim("Unsupported detail.")), assessment, draft(), assessment,
+    ])
+    assert result.diagnostics["status"] == "partial"
+    assert request.call_count == 4
+    assert len(result.response.claims) == 1
+
+
+def test_specific_missing_fact_is_reported_without_erasing_answered_parts():
+    assessment = essential_review(status="partial", missing_details=("The requested uncertainty.",))
+    result, request = run([
+        draft(claim(), claim("Unsupported background.")), assessment, draft(), assessment,
+    ])
+    assert result.limitations == ["The requested uncertainty."]
+    assert result.response.answer == "The flow is inward."
+    assert result.diagnostics["status"] == "partial"
+    assert request.call_count == 4
+
+
+def test_satisfied_with_missing_detail_never_auto_upgrades_to_complete():
+    assessment = essential_review(missing_details=("The requested uncertainty.",))
+    result, request = run([
+        draft(claim(), claim("Unsupported background.")), assessment, draft(), assessment,
+    ])
+    assert result.diagnostics["status"] == "partial"
+    assert result.limitations == ["The requested uncertainty."]
+    assert request.call_count == 4
+
+
+def test_legacy_coverage_without_essential_links_remains_conservative():
+    assessment = review(supported=(True, False), indices=[[0, 1]])
+    result, request = run([
+        draft(claim(), claim("Unsupported detail.")), assessment, draft(), assessment,
+    ])
+    assert result.diagnostics["status"] == "partial"
+    assert result.diagnostics["requirements"][0]["essential_claim_indices"] == [0, 1]
+    assert request.call_count == 4
+
+
+def test_review_requires_new_essential_and_missing_detail_fields():
+    from pydantic import ValidationError
+    schema = _review_schema([AnswerRequirement(id="r1", description="Report flow.")])
+    with pytest.raises(ValidationError) as caught:
+        schema.model_validate({"claims": [], "unplanned_requests": [], "requirements": {
+            "r1": {"status": "missing", "claim_indices": [], "feedback": "Absent."}}})
+    assert {row["loc"] for row in caught.value.errors()} == {
+        ("requirements", "r1", "essential_claim_indices"),
+        ("requirements", "r1", "missing_details"),
+    }
