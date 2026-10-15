@@ -43,6 +43,8 @@ class ExtractionTracing:
                                       "usage_unknown": data.get("usage") is None,
                                       "provider_model": data.get("provider_model"),
                                       "response_id": data.get("response_id"),
+                                      "quarantined_records": len(data.get("quarantine", [])),
+                                      "quarantine": data.get("quarantine", []),
                                       "safe_diagnostics": data.get("safe_diagnostics")})
             except Exception:
                 warnings.warn("KG trace could not be updated")

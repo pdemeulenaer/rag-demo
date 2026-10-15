@@ -10,9 +10,10 @@ class ChatMessage(BaseModel):
 
 class RAGRequest(BaseModel):
     query: str = Field(..., description="The query to be used in the RAG pipeline")
-    mode: Literal["vanilla", "hybrid", "hybrid_rerank", "agentic"] | None = None
+    mode: Literal["vanilla", "hybrid", "hybrid_rerank", "agentic", "kg"] | None = None
     corpus: Literal["all", "uploads", "arxiv"] = "uploads"
     corpus_snapshot: str | None = None
+    kg_publication_id: str | None = None
     generation_model: Optional[str] = Field(
         None,
         description="Optional override for the generation model (e.g. gpt-4-nano, gpt-4-mini, gpt-5-nano)"
@@ -54,3 +55,4 @@ class RAGResponse(BaseModel):
     claims: List[Dict[str, Any]] = Field(default_factory=list)
     execution: AgentExecutionMetadata | None = None
     generation_diagnostics: Dict[str, Any] | None = None
+    kg_retrieval: Dict[str, Any] | None = None

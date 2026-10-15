@@ -296,8 +296,25 @@ async def rag(
             )
         # Keep conversation memories separate by mode, corpus, model and active versions.
         memory_id = f"{session_id}:{payload.corpus}:{mode}:{gen_model}:{snapshot or 'live'}"
-        result = await run_in_threadpool(rag_pipeline_wrapper, payload.query, memory_id,
-            generation_model=gen_model, mode=mode, collection=collection, scope=scope)
+        kg_options = {}
+        if mode == "kg":
+            from src.api.kg.retrieval import KGUnavailable, open_publication
+            try:
+                publication = await run_in_threadpool(open_publication, payload.kg_publication_id)
+            except KGUnavailable as error:
+                raise HTTPException(409 if str(error) == "kg_publication_changed" else 503,
+                    f"KG unavailable ({error}). Check Neo4j and the active publication; start a new conversation if it changed.") from error
+            kg_options["kg_publication_id"] = publication["publication_id"]
+            memory_id += f":{publication['publication_id']}"
+        try:
+            result = await run_in_threadpool(rag_pipeline_wrapper, payload.query, memory_id,
+                generation_model=gen_model, mode=mode, collection=collection, scope=scope, **kg_options)
+        except ValueError as error:
+            from src.api.kg.retrieval import KGUnavailable
+            if not isinstance(error, KGUnavailable):
+                raise
+            raise HTTPException(409 if str(error) == "kg_publication_changed" else 503,
+                f"KG unavailable ({error}). Check the active graph and current source builds.") from error
         await run_in_threadpool(add_message, memory_id, "user", payload.query)
         await run_in_threadpool(add_message, memory_id, "assistant", result["answer"])
         memory = await run_in_threadpool(get_memory, memory_id)
@@ -307,7 +324,8 @@ async def rag(
             images=_process_images(result.get("images", []), request), mode=mode,
             corpus_snapshot=snapshot, execution=result.get("execution"),
             claims=result.get("claims", []),
-            generation_diagnostics=result.get("generation_diagnostics"))
+            generation_diagnostics=result.get("generation_diagnostics"),
+            kg_retrieval=result.get("kg_retrieval"))
         trace_output = {"answer": result["answer"],
                         "source_count": len(result.get("sources", []))}
         if result.get("execution") is not None:

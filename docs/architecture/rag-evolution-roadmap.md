@@ -12,6 +12,7 @@ Current modes:
 - **Hybrid:** dense and BM25 sparse retrieval, reciprocal-rank fusion, then generation.
 - **Hybrid + Rerank:** Hybrid retrieval, Cohere reranking, then generation.
 - **Agentic:** a bounded LangGraph agent selects dense, sparse, hybrid and expansion tools.
+- **KG:** Hybrid seeds + bounded reviewed Neo4j traversal + shared generation (partial pilot).
 
 The first reviewed benchmark found Hybrid stronger on retrieval coverage, correctness,
 groundedness and relevance, while gold-citation recall remained approximately 0.43 in both
@@ -19,8 +20,8 @@ modes. That run predates the current BM25 index and mode split; see
 [Evaluation results](../operations/evaluation-results.md). The next milestone is a new
 four-mode benchmark on the dense+sparse corpus. Development runs have since exercised all
 four modes; the next architecture milestone is knowledge-graph retrieval as an additional
-evidence tool for the same orchestration layer. Its foundation is now implemented; graph
-extraction and query modes are not yet available.
+evidence tool for the same orchestration layer. Offline extraction/publication and deterministic
+KG querying are implemented; KG-Agentic composition and global entity resolution remain pending.
 
 ## Design rules
 
@@ -280,7 +281,11 @@ seven-paper pilot, snapshot preview, typed source-backed extraction, verified fu
 preparation and bounded paid extraction with local checkpoints/optional Langfuse.
 See [Knowledge-graph RAG](knowledge-graph.md) for the chosen responsibilities, paper list,
 commands, validation limits and remaining slices. Paid extraction is explicitly invoked,
-never enabled automatically; graph writing, activation and query modes are still pending.
+never enabled automatically. Reviewed-only graph writing, verification and explicit
+activation are now implemented with immutable snapshots and current PostgreSQL scope
+checks. Deterministic `kg` retrieval, UI/API and frozen-run evaluation are implemented.
+KG-Agentic and conservative cross-paper entity resolution remain pending; do not infer
+corpus-wide graph coverage from the pilot.
 
 ### Graph construction
 

@@ -63,13 +63,17 @@ def prepare(directory, selection, catalogue, reader, settings, *, paper_limit=No
                 model_calls=0, graph_ready=False)
 
 
-def read_plan(directory, settings=None):
-    from .extraction import REVISION, LIBRARY_VERSION
+def read_plan(directory, settings=None, *, require_current_revision=True):
+    from .extraction import REVISION, LEGACY_REVISIONS, LIBRARY_VERSION
     plan = json.loads((directory / "plan.json").read_text(encoding="utf-8"))
     content = {key: value for key, value in plan.items() if key != "plan_id"}
     if (sha256(canonical(content).encode()).hexdigest() != plan["plan_id"]
-            or plan["extraction_revision"] != REVISION or plan["library_version"] != LIBRARY_VERSION):
+            or plan["extraction_revision"] not in {REVISION, *LEGACY_REVISIONS}
+            or plan["library_version"] != LIBRARY_VERSION):
         raise ValueError("KG plan integrity/revision mismatch; prepare a new KG_DIR")
+    if require_current_revision and plan["extraction_revision"] != REVISION:
+        raise ValueError("This plan uses a legacy extraction schema/revision; prepare scientific-kg-v3 in a new KG_DIR. "
+                         "Existing results remain readable with kg-validate")
     chunks = [SourceChunk.model_validate(chunk) for chunk in plan["chunks"]]
     identities = {(str(p["paper_id"]), str(p["build_id"]), p["collection"], p["source"])
                   for p in plan["papers"]}
@@ -189,6 +193,9 @@ def extract(directory, settings, *, max_calls=None, retry_failed=False, failed_o
                                          (status, canonical(data), error, elapsed, str(chunk.point_id), str(chunk.point_id)))
                         database.commit()
                         detail = f" ({error})" if error else ""
+                        held = data.get("quarantine", [])
+                        if held:
+                            detail += f" (quarantined {len(held)} records)"
                         issues = data.get("safe_diagnostics", {}).get("rejection_issues", [])
                         if issues:
                             detail += ": " + "; ".join(f"{issue['code']} at {issue['path']}" for issue in issues[:3])
@@ -240,38 +247,67 @@ def export(directory, plan, rows):
     return dict(output=str(directory), states=states, graph_ready=False,
                 candidates=str(directory / "candidates.json"),
                 failures=str(directory / "failures.json"),
+                quarantined_records=sum(len(json.loads(row["result"]).get("quarantine", []))
+                                        for row in rows if row["status"] == "complete"),
                 total_attempts_reserved=sum(row["attempts"] for row in rows))
 
 
 def validate(directory):
     """Read-only checkpoint validation; never promote review status or graph readiness."""
     with directory_lock(directory):
-        plan, chunks = read_plan(directory)
-        lookup = {str(chunk.point_id): chunk for chunk in chunks}
-        database = sqlite3.connect(f"file:{directory.resolve() / 'checkpoints.sqlite'}?mode=ro", uri=True)
-        try:
-            identity = [row[0] for row in database.execute("SELECT plan_id FROM identity")]
-            if identity != [plan["plan_id"]]:
-                raise ValueError("Checkpoint identity does not match the plan")
-            rows = list(database.execute("SELECT id,status,result FROM jobs"))
-            if {row[0] for row in rows} != set(lookup):
-                raise ValueError("Checkpoint chunk identities do not match the plan")
-            count = 0
-            for point_id, status, result in rows:
-                if status == "complete":
-                    batch = ExtractionBatch.model_validate(json.loads(result)["batch"])
-                    if batch.paper_id != lookup[point_id].paper_id or batch.build_id != lookup[point_id].build_id:
-                        raise ValueError("Checkpoint batch identity mismatch")
-                    if batch.extraction_revision != plan["extraction_revision"] or batch.extraction_model != plan["model"]:
-                        raise ValueError("Checkpoint model/revision mismatch")
-                    batch.validate_sources([lookup[point_id]])
-                    from .extraction import ScientificResult, staging_graph
-                    saved = ScientificResult.model_validate(json.loads(result))
-                    if saved.graph != staging_graph(batch):
-                        raise ValueError("Checkpoint graph differs from its validated scientific records")
-                    count += 1
-            return dict(valid=True, validated_chunks=count, total_chunks=len(chunks),
-                        complete=count == len(chunks), model_calls=0, graph_ready=False,
-                        needs_scientific_review=True)
-        finally:
-            database.close()
+        return validated_snapshot(directory)[0]
+
+
+def validated_snapshot(directory):
+    """Caller holds directory_lock. Review and validation share authoritative checks."""
+    plan, chunks = read_plan(directory, require_current_revision=False)
+    lookup = {str(chunk.point_id): chunk for chunk in chunks}
+    database = sqlite3.connect(f"file:{directory.resolve() / 'checkpoints.sqlite'}?mode=ro", uri=True)
+    try:
+        identity = [row[0] for row in database.execute("SELECT plan_id FROM identity")]
+        if identity != [plan["plan_id"]]:
+            raise ValueError("Checkpoint identity does not match the plan")
+        rows = list(database.execute("SELECT id,status,result FROM jobs ORDER BY id"))
+        if {row[0] for row in rows} != set(lookup):
+            raise ValueError("Checkpoint chunk identities do not match the plan")
+        legacy, quarantined, accepted = 0, 0, []
+        for point_id, status, result in rows:
+            if status == "complete":
+                from .scientific_schema import parse_batch
+                batch = parse_batch(json.loads(result)["batch"])
+                legacy += batch.schema_version == "scientific-kg-v1"
+                if batch.paper_id != lookup[point_id].paper_id or batch.build_id != lookup[point_id].build_id:
+                    raise ValueError("Checkpoint batch identity mismatch")
+                if batch.extraction_revision != plan["extraction_revision"] or batch.extraction_model != plan["model"]:
+                    raise ValueError("Checkpoint model/revision mismatch")
+                batch.validate_sources([lookup[point_id]])
+                from .extraction import RECORD_REVISIONS, SCIENTIFIC_REVISIONS, SPAN_REVISIONS, ScientificResult, staging_graph, quarantine_report
+                expected_schema = ("scientific-kg-v3" if batch.extraction_revision in RECORD_REVISIONS
+                                   else "scientific-kg-v2" if batch.extraction_revision in SCIENTIFIC_REVISIONS
+                                   else "scientific-kg-v1")
+                if batch.schema_version != expected_schema:
+                    raise ValueError("Checkpoint scientific schema/revision mismatch")
+                saved = ScientificResult.model_validate(json.loads(result))
+                if batch.extraction_revision in SPAN_REVISIONS:
+                    from .spans import source_spans
+                    expected_spans = source_spans(lookup[point_id].text)
+                    if saved.source_spans != expected_spans:
+                        raise ValueError("Checkpoint source spans differ from the original chunk")
+                    if any(e.quote not in {s.text for s in expected_spans}
+                           for record in [*batch.entities, *batch.observations, *batch.relationships]
+                           for e in record.evidence):
+                        raise ValueError("Checkpoint evidence differs from its source spans")
+                if saved.graph != staging_graph(batch):
+                    raise ValueError("Checkpoint graph differs from its validated scientific records")
+                if saved.quarantine != quarantine_report(batch):
+                    raise ValueError("Checkpoint quarantine differs from its scientific records")
+                quarantined += len(saved.quarantine)
+                accepted.append((point_id, saved))
+        count = len(accepted)
+        report = dict(valid=True, validated_chunks=count, total_chunks=len(chunks),
+                      complete=count == len(chunks), model_calls=0, graph_ready=False,
+                      legacy_chunks=legacy, semantic_schema_checked_chunks=count-legacy,
+                      quarantined_records=quarantined, needs_scientific_review=True)
+        return report, plan, accepted
+    finally:
+        database.close()

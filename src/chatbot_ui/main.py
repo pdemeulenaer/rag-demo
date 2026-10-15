@@ -17,6 +17,7 @@ RAG_MODE_LABELS = {
     "hybrid": "Hybrid — dense + BM25 fusion",
     "hybrid_rerank": "Hybrid + Rerank — dense + BM25 + Cohere",
     "agentic": "Agentic — bounded multi-step retrieval",
+    "kg": "KG — Hybrid + reviewed graph expansion",
 }
 
 STOP_REASON_LABELS = {
@@ -157,6 +158,8 @@ def ask_question_to_backend(question):
             "corpus": st.session_state.corpus,
             "corpus_snapshot": st.session_state.get("corpus_snapshot"),
         }
+        if st.session_state.rag_mode == "kg":
+            payload["kg_publication_id"] = st.session_state.get("kg_publication_id")
 
         response = requests.post(f"{API_URL}/rag2", json=payload, headers=headers, timeout=180)
         if response.status_code in (409, 503):
@@ -172,6 +175,8 @@ def ask_question_to_backend(question):
         result = response.json()
         if result.get("corpus_snapshot"):
             st.session_state.corpus_snapshot = result["corpus_snapshot"]
+        if result.get("kg_retrieval"):
+            st.session_state.kg_publication_id = result["kg_retrieval"]["publication_id"]
         return result
     except Exception as e:
         st.error(f"❌ Failed to get response: {e}")
@@ -209,12 +214,15 @@ def main():
                  format_func=RAG_MODE_LABELS.get)
         if st.session_state.rag_mode == "agentic":
             st.caption("Agentic uses a bounded read-only tool loop (maximum three retrieval rounds). It does not use a knowledge graph.")
+        elif st.session_state.rag_mode == "kg":
+            st.caption("KG combines Hybrid search with reviewed graph evidence. Pilot graph coverage is partial; no agent loop or automatic entity merging.")
         else:
             st.caption("Vanilla, Hybrid and Hybrid + Rerank are one-shot retrieval baselines. They do not use the intent router or a knowledge graph.")
         if st.session_state.corpus == "arxiv":
             st.caption("Default scope: astro-ph.GA + star-cluster terms. Change scope in backend configuration.")
         if st.button("Start new conversation", help="Clears chat history. Your next question uses the latest ready documents from the selected source."):
             st.session_state.pop("corpus_snapshot", None)
+            st.session_state.pop("kg_publication_id", None)
             st.session_state.session_id = ""
             st.session_state.full_conversation = []
             st.session_state.backend_memory = []
@@ -381,6 +389,7 @@ def main():
         previous = st.session_state.get("comparison_key")
         if previous is None or previous[0] != comparison_key[0]:
             st.session_state.pop("corpus_snapshot", None)
+            st.session_state.pop("kg_publication_id", None)
         st.session_state.full_conversation = []
         st.session_state.backend_memory = []
         st.session_state.session_id = ""
@@ -406,6 +415,7 @@ def main():
                 "sources": result.get("sources", []),
                 "images": result.get("images", []),
                 "execution": result.get("execution"),
+                "kg_retrieval": result.get("kg_retrieval"),
             })            
 
             # Store backend's truncated/summarized memory separately
@@ -429,6 +439,13 @@ def main():
                 if msg["role"] == "user":
                     st.write(user_template.replace("{{MSG}}", msg["content"]), unsafe_allow_html=True)
                 elif msg["role"] == "assistant":
+                    if graph := msg.get("kg_retrieval"):
+                        with st.expander("KG retrieval details"):
+                            st.write(f"Outcome: {graph.get('retrieval_status')}")
+                            st.caption(f"Publication: {graph.get('publication_id')}")
+                            st.write(f"Eligible graph papers: {graph.get('eligible_graph_paper_count', 0)} / {graph.get('graph_paper_count', 0)} · "
+                                     f"Graph-supported selected chunks: {graph.get('selected_graph_chunk_count', 0)}")
+                            st.caption("Hybrid searches the full selected corpus. Graph coverage is limited to reviewed, source-eligible records.")
 
                     # 1. Logic for text/source processing
                     # Combine the answer and sources into a single markdown string

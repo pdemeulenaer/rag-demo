@@ -121,6 +121,7 @@ def test_agentic_mode_is_submitted_and_execution_summary_is_retained(monkeypatch
         "Hybrid — dense + BM25 fusion",
         "Hybrid + Rerank — dense + BM25 + Cohere",
         "Agentic — bounded multi-step retrieval",
+        "KG — Hybrid + reviewed graph expansion",
     ]
 
     app.session_state.full_conversation = [{"role": "user", "content": "Old mode"}]

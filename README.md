@@ -214,10 +214,16 @@ Hybrid and Hybrid + Rerank baselines. Four-mode evaluation on the dense+sparse i
 remains the comparison baseline. The KG foundation now adds an optional Neo4j container and
 seven-paper offline preview (`make kg-preview`, `make kg-up`), verified full-artifact
 preparation (`make kg-prepare`), bounded **paid** extraction (`make kg-extract`) and local
-candidate validation (`make kg-validate`). Graph publishing and KG query modes are not
-implemented yet. See [KG design and commands](docs/architecture/knowledge-graph.md).
-Deterministic KG-RAG and KG-Agentic RAG remain subsequent
-milestones defined in [RAG modes](docs/architecture/rag-modes.md) and sequenced in the
+candidate validation (`make kg-validate`) and attributed review (`make kg-review-prepare`).
+Approved records can be staged in Neo4j (`make kg-publish`), verified and explicitly
+activated (`make kg-activate`), with current PostgreSQL source checks and immutable
+replacement history. **KG** is selectable in Streamlit/API and with `EVAL_MODES=kg`:
+Hybrid seeds + bounded reviewed graph expansion + shared cited generation. Graph coverage
+is currently a partial seven-paper pilot; the UI distinguishes graph use from Hybrid-only
+results. Rebuild the API/UI after this update; no re-indexing or question regeneration.
+See [KG design and commands](docs/architecture/knowledge-graph.md).
+KG-Agentic remains a subsequent
+milestone defined in [RAG modes](docs/architecture/rag-modes.md) and sequenced in the
 [RAG evolution roadmap](docs/architecture/rag-evolution-roadmap.md).
 
 ## 🌐 Deployment to Azure (Multi-Container)

@@ -344,6 +344,24 @@ more direct error of tuning and reporting on questions connected to the same pap
 
 ## Run the reviewed benchmark
 
+The optional fifth mode `kg` uses the active reviewed Neo4j publication in addition to
+Hybrid seeds. After activating a graph, use the **same** reviewed dataset/split:
+
+```bash
+make eval-run \
+  EVAL_REVIEWED=data/evaluation/markdown-mini-v4/questions.split.json \
+  EVAL_SPLIT=development EVAL_MODES=kg EVAL_LIMIT=2 EVAL_JUDGE=true
+```
+
+This performs paid generation/judging. No graph extraction or re-indexing occurs.
+The runner freezes the active graph ID/manifest and query policy in `kg_configuration`
+and checks that ID on every KG item; `EVAL_KG_PUBLICATION_ID=publication:...` can assert an
+explicit expected ID. `results.json` retains graph diagnostics, and `summary.json` includes
+`kg_retrieval.graph_used_runs` / `hybrid_only_runs`. Only a reviewed seven-paper subset
+is currently covered, not the full frozen corpus. See [KG query policies and limits](../architecture/knowledge-graph.md#query-the-active-graph).
+Use `EVAL_MODES="vanilla hybrid hybrid_rerank agentic kg"` for all five. Defaults remain
+the original four to avoid requiring Neo4j for existing workflows; KG-Agentic is not available.
+
 Start with a two-question smoke run. This makes embedding and answer-generation calls;
 the optional judge adds two isolated model calls per answer, each with one bounded retry.
 

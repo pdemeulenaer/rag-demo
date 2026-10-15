@@ -137,7 +137,16 @@ KG_MAX_CALLS ?=
 KG_RETRY_FAILED ?= false
 KG_FAILED_ONLY ?= false
 KG_CHUNKS_PER_PAPER ?=
-.PHONY: kg-up kg-stop kg-status kg-logs kg-preview kg-schema kg-prepare kg-extract kg-validate kg-test kg-help
+KG_REVIEW ?= review.json
+KG_RECORD_ID ?=
+KG_DECISION ?=
+KG_REVIEWER ?=
+KG_REASON ?=
+KG_NOTES ?=
+KG_GRAPH ?=
+KG_EXPECT_ACTIVE ?= none
+.PHONY: kg-publish-preview kg-publish kg-publication-verify kg-activate kg-publication-status kg-test-neo4j
+.PHONY: kg-up kg-stop kg-status kg-logs kg-preview kg-schema kg-prepare kg-extract kg-validate kg-test kg-help kg-review-prepare kg-review-set kg-review-validate kg-review-export
 
 kg-up:
 	set -e
@@ -168,8 +177,38 @@ kg-extract:
 kg-validate:
 	uv run --group kg python -m src.api.kg validate --output "$(KG_DIR)"
 
+kg-review-prepare:
+	uv run --group kg python -m src.api.kg review-prepare --output "$(KG_DIR)" --review "$(KG_REVIEW)"
+
+kg-review-set:
+	uv run --group kg python -m src.api.kg review-set --output "$(KG_DIR)" --review "$(KG_REVIEW)" --record-id "$(KG_RECORD_ID)" --decision "$(KG_DECISION)" --reviewer "$(KG_REVIEWER)" $(if $(KG_REASON),--reason "$(KG_REASON)",) $(if $(KG_NOTES),--notes "$(KG_NOTES)",)
+
+kg-review-validate:
+	uv run --group kg python -m src.api.kg review-validate --output "$(KG_DIR)" --review "$(KG_REVIEW)"
+
+kg-review-export:
+	uv run --group kg python -m src.api.kg review-export --output "$(KG_DIR)" --review "$(KG_REVIEW)"
+
+kg-publish-preview:
+	uv run --group kg python -m src.api.kg publish-preview --output "$(KG_DIR)" --review "$(KG_REVIEW)" $(if $(KG_GRAPH),--graph-name "$(KG_GRAPH)",)
+
+kg-publish:
+	uv run --group kg python -m src.api.kg publish --output "$(KG_DIR)" --review "$(KG_REVIEW)" $(if $(KG_GRAPH),--graph-name "$(KG_GRAPH)",)
+
+kg-publication-verify:
+	uv run --group kg python -m src.api.kg publication-verify --output "$(KG_DIR)" --review "$(KG_REVIEW)" $(if $(KG_GRAPH),--graph-name "$(KG_GRAPH)",)
+
+kg-activate:
+	uv run --group kg python -m src.api.kg activate --output "$(KG_DIR)" --review "$(KG_REVIEW)" --expect-active "$(KG_EXPECT_ACTIVE)" $(if $(KG_GRAPH),--graph-name "$(KG_GRAPH)",)
+
+kg-publication-status:
+	uv run --group kg python -m src.api.kg publication-status $(if $(KG_GRAPH),--graph-name "$(KG_GRAPH)",)
+
 kg-test:
-	uv run --group kg python -m pytest tests/unit/test_kg_foundation.py tests/unit/test_kg_extraction.py tests/unit/test_kg_selection.py -q
+	LANGFUSE_ENABLED=false uv run --group kg python -m pytest tests/unit/test_kg_foundation.py tests/unit/test_kg_extraction.py tests/unit/test_kg_selection.py tests/unit/test_kg_spans.py tests/unit/test_kg_scientific_schema.py tests/unit/test_kg_review.py tests/unit/test_kg_publication.py tests/unit/test_kg_retrieval.py tests/unit/test_kg_runtime.py -q
+
+kg-test-neo4j:
+	KG_RUN_NEO4J_INTEGRATION=1 LANGFUSE_ENABLED=false uv run --group kg python -m pytest tests/integration/test_kg_neo4j_publication.py -q
 
 kg-help:
 	@printf '%s\n' \
@@ -182,7 +221,17 @@ kg-help:
 	  '  make kg-extract KG_CHUNKS_PER_PAPER=3 KG_MAX_CALLS=21  PAID: distributed paper sample' \
 	  '  make kg-extract KG_FAILED_ONLY=true KG_MAX_CALLS=4    PAID: retry only failed/interrupted chunks' \
 	  '  make kg-validate                 Validate checkpoints; scientific review still needed' \
+	  '  make kg-review-prepare           Create a separate review.json; no approvals inferred' \
+	  '  make kg-review-set KG_RECORD_ID=... KG_DECISION=excluded KG_REASON=presentation_only KG_REVIEWER=... ' \
+	  '  make kg-review-validate          Check attributed decisions and dependency eligibility' \
+	  '  make kg-review-export            Export approved-only local projection; no Neo4j writes' \
+	  '  make kg-publish-preview          Check approved subset and active SQL/artifact scope; no graph writes' \
+	  '  make kg-publish                  Stage an immutable approved-only Neo4j publication' \
+	  '  make kg-publication-verify       Audit exact graph content/provenance and current SQL scope' \
+	  '  make kg-activate                 Explicit first activation; replacement needs KG_EXPECT_ACTIVE=...' \
+	  '  make kg-publication-status       Inspect Neo4j pointer/history; not a PostgreSQL eligibility check' \
 	  '  make kg-test                     Offline tests, with mocked provider responses' \
+	  '  make kg-test-neo4j               Native tests in a disposable Neo4j container; no .env/Compose' \
 	  '  make kg-up                       Start optional Neo4j; UI: http://localhost:7474' \
 	  '  make kg-status / kg-logs          Inspect the graph database service' \
 	  '  make kg-stop                     Stop Neo4j; preserve its data volumes' \
@@ -317,6 +366,7 @@ EVAL_SEED ?= 42
 EVAL_REVIEWED ?= $(EVAL_DIR)/questions.reviewed.json
 EVAL_RUNS_DIR ?= data/evaluation/runs
 EVAL_MODES ?= vanilla hybrid hybrid_rerank agentic
+EVAL_KG_PUBLICATION_ID ?=
 EVAL_TOP_K ?= 5
 EVAL_LIMIT ?=
 EVAL_QUESTION_ID ?=
@@ -362,7 +412,7 @@ eval-split:
 # Run the reviewed benchmark against one or more explicit retrieval modes.
 # This performs paid embedding/generation calls; EVAL_JUDGE=true adds a paid judge call.
 eval-run:
-	$(if $(EVAL_DRAFT_REASONING_EFFORT),AGENT_DRAFT_REASONING_EFFORT="$(EVAL_DRAFT_REASONING_EFFORT)" )uv run python -m evals.run_benchmark --dataset "$(EVAL_REVIEWED)" --output-root "$(EVAL_RUNS_DIR)" --modes $(EVAL_MODES) --split "$(EVAL_SPLIT)" --top-k "$(EVAL_TOP_K)" $(if $(EVAL_GENERATION_MODEL),--generation-model "$(EVAL_GENERATION_MODEL)") $(if $(filter true 1 yes,$(EVAL_JUDGE)),--judge,--no-judge) --judge-model "$(EVAL_JUDGE_MODEL)" --judge-reasoning-effort "$(EVAL_JUDGE_REASONING_EFFORT)" --concurrency "$(EVAL_CONCURRENCY)" $(if $(EVAL_PROFILES),--profiles $(EVAL_PROFILES)) $(if $(EVAL_QUESTION_ID),--question-id "$(EVAL_QUESTION_ID)") $(if $(EVAL_LIMIT),--limit "$(EVAL_LIMIT)")
+	$(if $(EVAL_DRAFT_REASONING_EFFORT),AGENT_DRAFT_REASONING_EFFORT="$(EVAL_DRAFT_REASONING_EFFORT)" )uv run python -m evals.run_benchmark --dataset "$(EVAL_REVIEWED)" --output-root "$(EVAL_RUNS_DIR)" --modes $(EVAL_MODES) --split "$(EVAL_SPLIT)" --top-k "$(EVAL_TOP_K)" $(if $(EVAL_GENERATION_MODEL),--generation-model "$(EVAL_GENERATION_MODEL)") $(if $(filter true 1 yes,$(EVAL_JUDGE)),--judge,--no-judge) --judge-model "$(EVAL_JUDGE_MODEL)" --judge-reasoning-effort "$(EVAL_JUDGE_REASONING_EFFORT)" --concurrency "$(EVAL_CONCURRENCY)" $(if $(EVAL_PROFILES),--profiles $(EVAL_PROFILES)) $(if $(EVAL_QUESTION_ID),--question-id "$(EVAL_QUESTION_ID)") $(if $(EVAL_LIMIT),--limit "$(EVAL_LIMIT)") $(if $(EVAL_KG_PUBLICATION_ID),--kg-publication-id "$(EVAL_KG_PUBLICATION_ID)")
 
 .PHONY: build run docs docs-build docs-deploy
 

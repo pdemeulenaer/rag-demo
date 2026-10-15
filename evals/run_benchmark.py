@@ -1001,7 +1001,7 @@ def _retrieval_diagnostics_payload(question: dict, value) -> dict | None:
 def evaluate_item(question: dict, mode: str, *, qdrant: QdrantClient, collection: str,
                   scope: RetrievalScope, top_k: int, generation_model: str, judge_enabled: bool,
                   judge_model: str, judge_reasoning_effort: str, run_id: str,
-                  catalogue=None) -> dict:
+                  catalogue=None, kg_publication_id=None) -> dict:
     from src.api.rag.retrieval import rag_pipeline
 
     started = monotonic()
@@ -1017,7 +1017,8 @@ def evaluate_item(question: dict, mode: str, *, qdrant: QdrantClient, collection
                     result = rag_pipeline(question["question"], qdrant,
                         f"eval:{run_id}:{mode}:{question['id']}", generation_model=generation_model,
                         top_k=top_k, mode=mode, collection=collection, scope=scope,
-                        catalogue=catalogue, stage_timings=stage_timings)
+                        catalogue=catalogue, stage_timings=stage_timings,
+                        **({"kg_publication_id": kg_publication_id} if mode == "kg" else {}))
                 finally:
                     stage_timings["pipeline_seconds"] = round(monotonic() - pipeline_started, 3)
                 chunks = result.get("retrieved_chunks", [])
@@ -1326,6 +1327,16 @@ def _summarize_rows(rows: list[dict]) -> dict:
     retrieval_diagnostics = _summarize_retrieval_diagnostics(rows)
     if retrieval_diagnostics is not None:
         result["retrieval_diagnostics"] = retrieval_diagnostics
+    graph_rows = [r["retrieval_diagnostics"] for r in rows
+                  if (r.get("retrieval_diagnostics") or {}).get("policy") == "hybrid-reviewed-graph-v1"]
+    if graph_rows:
+        result["kg_retrieval"] = {
+            "runs": len(graph_rows),
+            "publication_ids": sorted({r["publication_id"] for r in graph_rows}),
+            "graph_used_runs": sum(bool(r["graph_used"]) for r in graph_rows),
+            "hybrid_only_runs": sum(not r["graph_used"] for r in graph_rows),
+            "mean_selected_graph_chunks": round(fmean(r["selected_graph_chunk_count"] for r in graph_rows), 3),
+        }
     generation_diagnostics = _summarize_generation_diagnostics(rows)
     if generation_diagnostics is not None:
         result["generation_diagnostics"] = generation_diagnostics
@@ -1375,6 +1386,11 @@ def report_markdown(manifest: dict, summary: dict) -> str:
         lines.append(f"| {mode} | {row['questions']} | {row['errors']} | {row.get('judge_errors', 0)} | {row['mean_latency_seconds']} | "
                      f"{show('retrieval_recall')} | {show('answer_correctness')} | "
                      f"{coverage} | {show('groundedness')} | {grounding_coverage} | {show('answer_relevance')} |")
+    if graph := summary.get("kg", {}).get("kg_retrieval"):
+        lines.extend(["", "## KG coverage", "",
+            f"Pinned publication(s): {', '.join(graph['publication_ids'])}.",
+            f"Graph-supported runs: {graph['graph_used_runs']}; Hybrid-only runs: {graph['hybrid_only_runs']}.",
+            "The reviewed pilot graph covers only part of the corpus; do not attribute Hybrid-only answers to graph retrieval."])
     if any(summary[mode].get("judge_errors") or summary[mode].get("grounding_consistency")
            for mode in manifest["modes"]):
         lines.extend(["", "## Judge failures and grounding annotations", "",
@@ -1539,9 +1555,19 @@ def run(args) -> Path:
         questions = questions[:args.limit]
     evaluation_set_hash = canonical_hash([row["id"] for row in questions])
     modes = list(dict.fromkeys(args.modes))
-    valid_modes = {"vanilla", "hybrid", "hybrid_rerank", "agentic"}
+    valid_modes = {"vanilla", "hybrid", "hybrid_rerank", "agentic", "kg"}
     if any(mode not in valid_modes for mode in modes):
         raise BenchmarkError(f"Modes must be selected from {sorted(valid_modes)}")
+    kg_configuration = None
+    if "kg" in modes:
+        from src.api.kg.retrieval import open_publication
+        from src.api.kg.settings import KGSettings
+        pinned = open_publication(getattr(args, "kg_publication_id", None))
+        settings = KGSettings()
+        kg_configuration = pinned | dict(max_records=settings.KG_QUERY_MAX_RECORDS,
+            max_chunks=settings.KG_QUERY_MAX_CHUNKS, max_text_bytes=settings.KG_QUERY_MAX_TEXT_BYTES,
+            max_source_links=settings.KG_QUERY_MAX_SOURCE_LINKS,
+            scope_policy="snapshot_ready_undeleted_builds_with_matching_manifest")
     run_id = args.run_id or f"{datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ')}-{uuid4().hex[:8]}"
     run_dir = args.output_root / run_id
     if run_dir.exists():
@@ -1562,6 +1588,7 @@ def run(args) -> Path:
         "corpus_fingerprint": snapshot.get("corpus_fingerprint"),
         "frozen_build_ids": snapshot["active_build_ids"], "modes": modes,
         "question_count": len(questions), "top_k": args.top_k,
+        "kg_configuration": kg_configuration,
         "generation_model": args.generation_model, "judge_enabled": args.judge,
         "generation_max_completion_tokens": config.GENERATION_MODEL_MAX_TOKENS,
         "judge_policy": JUDGE_POLICY if args.judge else None,
@@ -1602,7 +1629,8 @@ def run(args) -> Path:
         record = evaluate_item(question, mode, qdrant=qdrant, collection=collection, scope=scope,
             top_k=args.top_k, generation_model=args.generation_model, judge_enabled=args.judge,
             judge_model=args.judge_model, judge_reasoning_effort=args.judge_reasoning_effort,
-            run_id=run_id, catalogue=catalogue)
+            run_id=run_id, catalogue=catalogue,
+            **({"kg_publication_id": kg_configuration["publication_id"]} if mode == "kg" else {}))
         with state_lock:
             state["results"].append(record)
             write_json(run_dir / "results.json", state)
@@ -1641,6 +1669,7 @@ def run(args) -> Path:
                     metadata={"run_id": run_id, "mode": mode, "dataset_hash": dataset_hash,
                               "split": args.split, "evaluation_set_hash": evaluation_set_hash,
                               "generation_model": args.generation_model,
+                              "kg_configuration": kg_configuration if mode == "kg" else None,
                               "agentic_configuration": manifest["agentic_configuration"]
                               if mode == "agentic" else None,
                               "corpus_fingerprint": snapshot.get("corpus_fingerprint")})
@@ -1689,6 +1718,7 @@ def main() -> None:
     )
     parser.add_argument("--limit", type=int)
     parser.add_argument("--question-id", help="Run one approved question from the selected split")
+    parser.add_argument("--kg-publication-id", help="Require this active publication for KG; otherwise pin the active ID at run start")
     parser.add_argument("--profiles", nargs="+",
                         help="Run only these approved question profiles")
     parser.add_argument("--split", choices=["all", "development", "test"], default="all")

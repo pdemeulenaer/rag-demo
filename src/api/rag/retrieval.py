@@ -765,7 +765,8 @@ def _render_claims(response: RAGGenerationResponse, contexts: list[dict]) -> tup
 @observe(name="rag_pipeline", capture_input=False, capture_output=False)
 def rag_pipeline(question, qdrant_client, session_id, generation_model=None, top_k=5,
                  mode=None, collection=None, scope=None, catalogue=None, agent_model=None,
-                 agent_budget=None, stage_timings: dict[str, float] | None = None):
+                 agent_budget=None, stage_timings: dict[str, float] | None = None,
+                 kg_publication_id=None):
     update_span(input={"question": question}, metadata={"mode": mode or "legacy",
         "collection": collection or config.QDRANT_COLLECTION_NAME,
         "generation_model": generation_model or config.GENERATION_MODEL, "top_k": top_k})
@@ -842,6 +843,16 @@ def rag_pipeline(question, qdrant_client, session_id, generation_model=None, top
                                 "stop_reason": stop_reason})
             return result
     # If in evaluation mode, return a fresh memory each time
+    elif mode == "kg":
+        from src.api.rag.modes.kg import retrieve
+        retrieved_context = retrieve(question, qdrant_client, top_k=top_k, collection=collection,
+            scope=scope, catalogue=catalogue, retrieve_context=retrieve_context,
+            publication_id=kg_publication_id)
+        retrieval_diagnostics = retrieved_context.diagnostics
+        if stage_timings is not None:
+            stage_timings["kg_hybrid_seconds"] = retrieval_diagnostics["hybrid_seconds"]
+            stage_timings["kg_graph_seconds"] = retrieval_diagnostics["graph_seconds"]
+        required_papers = _resolve_required_papers(catalogue, scope, question)
     elif mode is not None:
         from src.api.rag.dispatcher import retrieve_for_mode
         retrieved_context = retrieve_for_mode(
@@ -1094,7 +1105,7 @@ def rag_pipeline(question, qdrant_client, session_id, generation_model=None, top
 
 
 def rag_pipeline_wrapper(question, session_id, generation_model=None, top_k=5,
-                         mode=None, collection=None, scope=None):
+                         mode=None, collection=None, scope=None, kg_publication_id=None):
     
     qdrant_client = QdrantClient(
         url=config.QDRANT_URL, # QDRANT_URL=http://qdrant:6333 when local, or web URL for Qdrant Cloud
@@ -1104,7 +1115,7 @@ def rag_pipeline_wrapper(question, session_id, generation_model=None, top_k=5,
         
     catalogue = None
     try:
-        if mode in {"vanilla", "hybrid", "hybrid_rerank", "agentic"}:
+        if mode in {"vanilla", "hybrid", "hybrid_rerank", "agentic", "kg"}:
             from src.api.papers.catalogue import Catalogue
             from src.api.papers.settings import PaperSettings
 
@@ -1115,7 +1126,7 @@ def rag_pipeline_wrapper(question, session_id, generation_model=None, top_k=5,
                 metadata={"mode": mode or "legacy", "collection": collection or config.QDRANT_COLLECTION_NAME}):
             result = rag_pipeline(question, qdrant_client, session_id, generation_model, top_k,
                                   mode=mode, collection=collection, scope=scope,
-                                  catalogue=catalogue)
+                                  catalogue=catalogue, kg_publication_id=kg_publication_id)
     finally:
         if catalogue is not None:
             catalogue.close()
@@ -1128,4 +1139,5 @@ def rag_pipeline_wrapper(question, session_id, generation_model=None, top_k=5,
         "execution": result.get("execution"),
         "claims": result.get("claims", []),
         "generation_diagnostics": result.get("generation_diagnostics"),
+        "kg_retrieval": result.get("retrieval_diagnostics") if mode == "kg" else None,
     }

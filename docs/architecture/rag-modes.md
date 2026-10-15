@@ -2,8 +2,8 @@
 
 This project treats each RAG architecture as an explicit comparison mode over the same
 scientific-paper corpus. A mode describes **how evidence is selected before answer
-generation**. Vanilla, Hybrid, Hybrid + Rerank and Agentic are available in the API and Streamlit;
-knowledge-graph modes remain planned and are deliberately labelled as such.
+generation**. Vanilla, Hybrid, Hybrid + Rerank, Agentic and deterministic KG are available
+in the API and Streamlit. KG-Agentic remains planned.
 
 ## At a glance
 
@@ -13,7 +13,7 @@ knowledge-graph modes remain planned and are deliberately labelled as such.
 | **Hybrid** | Available | Dense + BM25 sparse retrieval, fused with RRF | 1 | No |
 | **Hybrid + Rerank** (`hybrid_rerank`) | Available | Hybrid candidates, then Cohere reranking | 1 | No |
 | **Agentic** | Available | A bounded LangGraph agent selects dense, sparse, hybrid and expansion tools | Up to 3 | No |
-| **KG** | Placeholder | Deterministic graph search/traversal | 1 | Yes |
+| **KG** (`kg`) | Available, partial reviewed pilot | Hybrid seeds + bounded reviewed graph traversal + RRF | 1 | Yes, when matched |
 | **KG-Agentic** | Placeholder | The bounded agent combines vector, metadata and graph tools | Up to 3 | Yes |
 
 All modes share the corpus scope, evidence provenance and atomic-claim output schema.
@@ -29,7 +29,7 @@ flowchart TB
     M --> H[Hybrid<br/>dense + BM25 → RRF]
     M --> HR[Hybrid + Rerank<br/>dense + BM25 → RRF → Cohere]
     M --> A[Agentic<br/>plan + bounded tool loop]
-    M -. later .-> K[KG<br/>graph traversal]
+    M --> K[KG<br/>Hybrid + reviewed graph traversal]
     M -. later .-> KA[KG-Agentic<br/>agent + graph tool]
     V --> G[Grounded answer generation]
     H --> G
@@ -515,19 +515,26 @@ that router.
 
 ## Knowledge-graph RAG
 
-KG-RAG is a future placeholder, not an implemented feature. The intended graph will model
+Deterministic KG-RAG is implemented as a partial reviewed pilot. Its graph models
 scientific entities and claims—such as papers, authors, astronomical objects, instruments,
 methods and measurements—with every node/edge linked back to its source build, chunk and
 page. Neo4j Community is selected as the additional derived graph store; a typed
 scientific schema, explicit paper pilot and optional container are implemented.
 Offline full-artifact extraction with bounded paid calls and local review checkpoints is
-implemented; graph persistence, retrieval and query modes are not implemented yet. See the
+implemented. Reviewed-only graph publication, verification, activation and deterministic
+`kg` retrieval are implemented. See the
 [KG design and commands](knowledge-graph.md) for the foundation and remaining slices.
 
-Two modes are intentionally planned:
+The modes are deliberately separate:
 
-- **KG:** deterministic graph retrieval followed by the shared answer generator;
-- **KG-Agentic:** the bounded agent may use graph traversal alongside metadata and vector
+- **KG (available):** Hybrid searches the selected full corpus; exact normalized reviewed
+  entity/alias mentions and matching source points seed Neo4j traversal. Up to two structural
+  links connect entities, observations and first-class relationship assertions. Merge the
+  original supporting chunks with Hybrid using RRF (constant 60), reserve one graph-backed
+  slot when available, then keep the same final `top_k`. It uses baseline generation/citation
+  validation, not Agentic's planner or semantic review, and does not use Cohere. Graph-only
+  candidate chunks default to 20; validation bounds are explicit in the KG guide.
+- **KG-Agentic (planned):** the bounded agent may use graph traversal alongside metadata and vector
   tools.
 
 Keeping these separate lets evaluation distinguish gains from graph structure from gains
@@ -536,11 +543,19 @@ knowledge graph.
 
 ## Availability and selection
 
+KG uses only approved records in the active named publication and SQL-eligible builds.
+No fuzzy alias matching, inferred synonyms, entity merging or query-time extraction occurs.
+The current graph covers only a reviewed subset of seven papers. A query can therefore
+return `hybrid_only_no_graph_match`; this is visible in the UI/evaluation diagnostics and
+must not be reported as evidence of a graph improvement. An unavailable graph is an explicit
+error, never an invisible fallback. See [query commands and limits](knowledge-graph.md#query-the-active-graph).
+
 Currently:
 
-- Streamlit and `POST /rag2` expose `vanilla`, `hybrid`, `hybrid_rerank` and `agentic`.
-- The evaluation runner accepts all four implemented modes.
-- `kg` and `kg_agentic` are reserved names in the roadmap, not accepted runtime modes.
+- Streamlit and `POST /rag2` expose `vanilla`, `hybrid`, `hybrid_rerank`, `agentic` and `kg`.
+- The evaluation runner accepts all five; its default remains the original four so Neo4j
+  stays opt-in. Use `EVAL_MODES="vanilla hybrid hybrid_rerank agentic kg"`.
+- `kg_agentic` is reserved in the roadmap, not an accepted runtime mode.
 - Omitting an explicit mode preserves the legacy intent-routed API behaviour; it should not
   be reported as another comparison architecture.
 

@@ -513,20 +513,169 @@ Old generic failures cannot be reconstructed; explicit new attempts are needed f
 `KG_CHUNKS_PER_PAPER=N` selects a deterministic, body-preferred, distributed sample across
 papers, interleaved fairly under `KG_MAX_CALLS`. N caps distinct attempted chunks per paper
 over the output directory's lifetime (successes AND failures/interrupted count). Existing
-plans/checkpoints remain compatible; no schema/prompt/model revision changed. Sampling
+plans/checkpoints remained compatible for that sampling/diagnostics-only change. Sampling
 only selects pending chunks and cannot be combined with retry flags. `KG_FAILED_ONLY=true`
 explicitly retries only failed/interrupted chunks; legacy `KG_RETRY_FAILED=true` still
 includes pending work. No paid extraction/retries are authorized merely by implementing
 or testing these features. `tests/unit/test_kg_selection.py` runs without optional libraries.
 
-Next: review a bounded paid pilot, then staged graph persistence/activation. The experimental
+Source-span extraction is now implemented: `spans.py` builds exact citation windows inside
+existing chunks, with local IDs and Unicode start/end offsets. The native SDK/Pydantic
+provider schema restricts evidence to IDs supplied for that one chunk; `bind_sources`
+copies the corresponding original substring. No manual schema rewriting, model-written
+quotes, fuzzy matching, new embeddings or replacement chunk IDs. Span mappings are saved
+and validated against frozen source text. Structure/provenance is not scientific entailment;
+value/uncertainty/relationship quality still requires review. The extraction prompt/schema
+revision changed: use a NEW `KG_DIR` (e.g. `data/knowledge_graph/pilot-spans-v2`) and do not
+silently migrate/mix old outputs. The known quote-based revision remains supported for
+read-only `kg-validate` of existing results, not new paid extraction. Model defaults remain
+unchanged. No paid trial was started by this upgrade. `test_kg_spans.py` covers citation
+fidelity independently of optional libraries. The KG guide's “How papers reach Neo4j”
+section separates implemented local extraction/review from PLANNED publication/activation
+and KG retrieval. `kg-extract` never connects to Neo4j; `kg-up` starts a service only.
+
+Scientific schema cleanup is now implemented in `scientific_schema.py` (`scientific-kg-v2`).
+Keep v1 `contracts.py` intact for known old quote/span revision validation only. Native
+provider records use v2 entity/observation types: study/analysis/model/process/population
+are separate; numeric results, selection criteria, adopted values/settings, assumptions,
+planned analyses and qualitative/theoretical findings are distinct. `ROLE_RULES` enforces
+predicate source/target types; rejection diagnostics record invalid_relationship_role.
+Origin and chemical enrichment are separate hypothesis relations. Entity/alias classification
+and complete span support remain fallible prompt guidance, not scientific certification.
+Observation quality_flags add conservative numeric quarantine (missing quantity/value,
+ambiguous bracket fragments, controls and declared inverse-time versus bare-time units).
+Preserve raw strings; never repair numbers/units automatically. Flagged observations and
+dependent relationships stay in the source batch/quarantine report, but staging_graph
+excludes them. Validation recomputes that projection and checks schema/revision pairing;
+valid/complete never means approved/query-ready. No PDF/vector/evaluation changes.
+Use a NEW KG_DIR, e.g. `data/knowledge_graph/pilot-schema-v3`. Both existing pilots remain
+readable, reported as legacy_chunks, not silently migrated or subjected to new paid calls.
+`test_kg_scientific_schema.py` adds independent role/quality tests; `kg-test` also tests
+native parsing, quarantine and tampering offline with tracing disabled.
+
+Extraction guidance now adds generic contrasting examples and a final same-response
+consistency checklist in extraction.py: numeric observations versus qualitative findings,
+simulation input versus output, sample cuts versus bounds, borrowed values, assumptions/
+planned work, caption findings versus presentation-only ticks/legends. Explicitly require
+declared entity subjects and supported relation direction; omit incompatible edges instead
+of inventing dummy nodes. Examples are not source evidence. No q/paper-specific rules,
+semantic keyword classifier, automatic retyping/repair, extra reviewer call or retry.
+Schema v2, models, validation/quarantine and budgets remain unchanged; only the prompt
+revision changes. Use a NEW KG_DIR, e.g. data/knowledge_graph/pilot-guidance-v4; do not
+retry pilot-schema-v3 expecting new guidance. Its previous v2 revision remains read-only
+supported in SCIENTIFIC_REVISIONS for schema/role/quarantine/span validation, counted as
+semantic_schema_checked_chunks, not legacy_chunks. Earlier v1 pilots stay readable too.
+Mocked tests prove parsing/guard compatibility, not live model classification improvement.
+
+Record quarantine/review is implemented. record_schema.py stores scientific-kg-v3 with
+unchanged v2 record/provider types and unchanged prompt. quarantine.py holds wrong-role/
+missing-endpoint relationships, orphan observations and dependent edges; preserve raw
+records/IDs/quotes, never infer/rewrite links. Clean siblings survive. Duplicate IDs,
+malformed output and source span/provenance/identity failures remain chunk-wide. Earlier
+contracts/revisions keep their exact checks. Future paid trials need a new directory,
+e.g. data/knowledge_graph/pilot-records-v5. Old failed requests saved no rejected record
+bodies, so this upgrade cannot salvage their siblings without explicit paid extraction.
+
+review.py and kg-review-prepare/set/validate/export provide FREE local review sidecars for
+existing successes, including pilot-guidance-v4. validated_snapshot shares authoritative
+checks under one directory lock. Prepare review.json with all entries needs_review;
+repetition preserves decisions. Approved/excluded require reviewer attribution; exclusion
+reason is presentation_only/unsupported/incorrect_type/duplicate/other. No automatic
+semantic classifier, approval, record rewrite or flag clearing. Quarantined records cannot
+be approved. Source records, scoped IDs and quarantine metadata are immutable. Fingerprints
+prevent stale review reuse after extraction changes; use a new KG_REVIEW filename then.
+Export reviewed.json with approved-only local graphs; observation subjects and relationship
+endpoints must also be approved/eligible, else report approved_but_dependency_held. Partial
+reviews are allowed, unreviewed records excluded. No settings/.env/model/service access;
+no Neo4j publication/activation. tests/unit/test_kg_review.py covers fail-closed provenance,
+holding, presentation exclusions, attribution, tampering and stale-review protection.
+
+AI-assisted source review of all 159 v4 records is recorded locally: 86 approved (41
+entities/41 observations/4 relationships), 23 excluded, 50 unresolved, with individual
+notes and review-report.md. No raw inputs/flags were changed. Validation/export passed;
+these are source-support decisions, not specialist peer review or corpus completeness.
+
+Approved-only Neo4j publication is implemented in publication.py + neo4j_store.py.
+Commands: kg-publish-preview, kg-publish (stage only), kg-publication-verify, kg-activate,
+kg-publication-status. Rebuild from authoritative checkpoints/review, never reviewed.json.
+Reject v1 publication, empty eligible sets, stale review, inactive/deleted/wrong-version/
+collection/source builds, changed SQL manifest hashes or full artifacts. Hold directory
+and existing catalogue writer_lock; read-only SQL/no new migration, embeddings or models.
+Recheck active source eligibility inside Neo4j transaction before commit.
+
+Writer v1 uses content-derived publication IDs, immutable KGPaper/KGSourceBuild/KGChunk
+references and publication-local KGRecord:KGEntity/KGObservation/KGRelationship nodes.
+Preserve exact evidence/model/revision/reviewer, first-class relationship assertions,
+SUPPORTED_BY quotes and typed scientific edges linked by assertion_id. No fuzzy/exact
+alias merge or globally canonical scientific entities yet. Static label/type allowlists,
+parameter values, uniqueness constraints and explicit official-driver transactions;
+no implicit transaction retries or generic generated Cypher. Repeated stage audits exact
+stored node/edge content and cannot demote/rewrite active data or repair drift silently.
+Constraint DDL is separate/idempotent; data stage is atomic and bounded by exposed
+KG_PUBLISH_MAX_RECORDS/BYTES + KG_NEO4J_TIMEOUT_SECONDS. KGSettings adds explicit Neo4j
+host URI/user/secret/database and KG_GRAPH_NAME; .env.sample/docs list defaults/ranges.
+
+KGCorpus owns the named active pointer; activation takes a Neo4j write lock and CAS
+checks KG_EXPECT_ACTIVE (default none, explicit old publication ID for replacement).
+Audit exact content and fresh PG scope before atomic pointer/status switch; retain old
+records as retired. No cross-database distributed-transaction claim: normal catalogue
+writers obey the advisory lock, not arbitrary admin SQL. Every future KG query MUST
+recheck PG source eligibility and restrict publications/edges/record/build scope. Status
+alone is not a SQL/content audit (catalogue_checked false, at most 50 history rows with
+explicit truncation flag). Publication-only graph_ready stays conservative/false and
+query_readiness is not_checked; runtime querying is a separate check, even when publication
+status is active. Activation isn't automatic from publish/review/ingestion.
+
+Unit tests use transactional doubles for source policy, holding, idempotence, drift,
+rollback and CAS. make kg-test-neo4j is opt-in real-driver/Cypher testing in a randomly
+named disposable container from the already-local pinned image; no .env/Compose/user DB
+or paid calls. Three native tests passed during implementation; test container removed.
+Do not treat those tests as publication of the user's actual 86 records.
+
+The user has activated the reviewed subset. The experimental
 builder must not replace extraction/chunking/embeddings. Its built-in Hybrid retriever is
 Neo4j vector+full-text, not this repo's Qdrant Hybrid; preserve our search and add scoped
-graph expansion. Graph activation, deterministic `kg`, `kg_agentic`, UI/evaluation support
-and daily graph automation remain unimplemented. Do not claim graph queryability from
+graph expansion. Deterministic `kg` and UI/evaluation support are implemented below;
+`kg_agentic` and daily graph automation remain unimplemented. Do not claim graph queryability from
 `kg-up` or `kg-preview`, or start paid extraction as an implementation test.
 No reindex/evaluation regeneration is inherently necessary. For initial comparisons use
 the same paper scope and subsequently pin graph extraction identity with frozen builds.
+
+### KG runtime milestone
+
+The user staged/verified/activated publication
+`publication:e1a26713b02bf59482d9cebbd3cd514eb236579769e9751f3bc545e7dfad896a`
+for `star-clusters-pilot`. Deterministic `kg` is now implemented separately in
+`rag/modes/kg.py` and `kg/retrieval.py`, selectable in API/Streamlit/evaluation.
+It runs existing full-scope Hybrid seeds plus exact normalized reviewed name/alias lookup,
+native read-only Neo4j traversal (two structural HAS_OBSERVATION/SUBJECT/OBJECT links),
+and RRF merge with one graph-backed slot reserved when possible; final top_k remains fixed.
+No Cohere, agent loop, generated Cypher, entity merging, query-time extraction or new model
+call beyond baseline embedding/generation. Keep all four previous controls unchanged.
+Use original source chunks/citation IDs, not generated graph claims as answer evidence.
+
+Check active named publication, approved record attribution/IDs/dependencies/roles,
+literal quotes/chunk SHA and PG paper/build/source/version/collection/manifest SHA.
+Exclude deleted/nonready/stale builds; active runtime needs current active builds, frozen
+benchmarks may use only explicitly frozen retained ready undeleted builds. Every traversed
+node/edge is publication/scoped and structural links agree with approved record endpoints.
+Recheck source eligibility and graph pointer; no distributed transaction claim or graph writes.
+API graph ID pins conversation memory (changed IDs ->409); unavailable graph ->503, no
+silent fallback. Hybrid-only no-match results ARE allowed and labelled, not graph successes.
+Publication-only graph_ready:false remains conservative with query_readiness:not_checked.
+
+The active reviewed graph covers 7 papers / 16 chunks / 86 records (only 4 scientific relationships);
+no universal quality improvement is established. Scope/candidate/traversal/selected graph
+diagnostics go to public kg_retrieval, results.json and Langfuse. Evaluation pins ID before
+paid work, freezes kg_configuration/manifest/query bounds, checks per item and reports
+graph-used/Hybrid-only counts. EVAL_MODES defaults remain four; opt in with kg or all five.
+No evaluation regeneration/reindex needed. KG-Agentic, entity resolution and automation
+remain pending. Official neo4j driver is a base dependency; neo4j-graphrag stays offline-only.
+Compose API NEO4J_URI uses NEO4J_URI_CONTAINER default bolt://neo4j:7687; host stays localhost.
+KG_QUERY_MAX_RECORDS/CHUNKS/SOURCE_LINKS/TEXT_BYTES and optional QUERY_PUBLICATION_ID are
+explicit in KGSettings/.env.sample/docs. Keep caps visible and errors explicit.
+Tests: test_kg_retrieval.py/test_kg_runtime.py plus disposable native traversal coverage in
+test_kg_neo4j_publication.py. No paid test, .env read, or write to the user's graph is needed.
 
 The user selected **star-cluster papers within `astro-ph.GA`**, not the whole category
 and not an automatic expansion to `astro-ph.SR`. arXiv has no dedicated star-cluster

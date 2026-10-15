@@ -49,6 +49,8 @@ services:
       - REDIS_PORT=6379     
       - PAPERS_DATABASE_URL=postgresql+psycopg://rag:${PAPERS_DB_PASSWORD:-rag}@postgres:5432/papers
       - PAPERS_ARTIFACT_DIR=/app/paper_artifacts
+      # Optional KG service shares this Compose network; host CLI still uses localhost.
+      - NEO4J_URI=${NEO4J_URI_CONTAINER:-bolt://neo4j:7687}
       # Host commands use localhost; containers use the Langfuse service name.
       - LANGFUSE_BASE_URL=${LANGFUSE_BASE_URL_CONTAINER:-http://langfuse-web:3000}
       # - QDRANT_URL=http://qdrant:6333   

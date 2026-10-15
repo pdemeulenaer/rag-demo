@@ -1,0 +1,1719 @@
+{
+  "schema_version": 1,
+  "run_id": "20261015T133056Z-c7698b7b",
+  "results": [
+    {
+      "question_id": "q0002",
+      "kind": "single_paper",
+      "profile": "single_fact",
+      "mode": "hybrid",
+      "question": "In \"Constraints on the fuzzy dark matter mass using globular clusters in dwarf galaxies from Euclid ERO data\", what quantitative upper limits on the fuzzy dark matter mass parameter m_22 does the paper report for (a) the Fornax galaxy cluster, (b) the Perseus galaxy cluster, and (c) the Fornax dwarf spheroidal galaxy?",
+      "reference_answer": "The paper reports the following upper limits on m_22: (a) Fornax galaxy cluster: m_22 ≤ 1.46 (+0.00 −0.51); (b) Perseus galaxy cluster: m_22 ≤ 1.09 (+0.00 −0.14); (c) Fornax dSph: m_22 ≤ 1.38 (+0.00 −0.48). (Evidence: ddf71676ff9029e4c5534bca; 88d3700173b37b816de96731; c3d05f2f045b4bdbcb084059)",
+      "answer": "In Besnard et al. (arXiv:2609.11328) the paper reports that globular clusters no longer experience orbital decay toward the centers of their host galaxies for m_22 ≤ 1.46 in the Fornax cluster. [1]\n\nIn Besnard et al. (arXiv:2609.11328) the paper reports that globular clusters no longer experience orbital decay toward the centers of their host galaxies for m_22 ≤ 1.09 in the Perseus cluster. [1]\n\nThe paper computes the value of m_22 for the Fornax dwarf spheroidal galaxy and represents this value (computed using the corrected radius R_3D and eccentricity e = 0.5) in Figure 5. [2]\n\nFor three globular clusters in dwarf galaxies in the Perseus galaxy cluster, integrated using the maximum m_22 for which none falls below 0.2 kpc within 10 Gyr, the paper reports a higher particle mass needed to prevent their fall of m_22 ≤ 2.24 for the realistic configuration (R_3D and e = 0.5). [2]\n\nFor the same three Perseus globular clusters, using R_2D and e = 0, the paper reports m_22 ≤ 1.33. [2]",
+      "retrieved_chunks": [
+        {
+          "id": "01792ee2-fadb-52f1-ad8a-927618b8b15c",
+          "text": "## **ABSTRACT** \n\nWe constrain the particle mass of the fuzzy dark matter model using globular cluster candidates in dwarf galaxies, from the Euclid Early Release Observations, within the Fornax and Perseus galaxy clusters. We model the orbital evolution of globular clusters by combining fuzzy dark matter density profiles with the corresponding dynamical friction formalism, and integrate their orbits using `galpy` . In the fuzzy dark matter framework, both the halo density profile and the dynamical friction force are modified by the wave-like nature of the ultra-light dark matter particle, whose mass is parameterized as _m_ 22 = _m_ χ/10[−][22] , eV and explored over the range 0.1 ≤ _m_ 22 ≤ 100. This framework naturally alleviates the long-standing globular cluster timing problem originally identified in the Fornax dSph. We find that globular clusters no longer experience orbital decay toward the centers of their host galaxies for _m_ 22 ≤ 1.46[+] −[0] 0[.] .[51] 32[in the Fornax cluster and] _[ m]_[22][≤][1][.][09][+] −[0] 0[.] .[14] 21[in the Perseus cluster. Future Euclid data releases, providing substantially] larger samples of globular cluster candidates, will enable significantly tighter constraints on the dark matter particle mass within the fuzzy dark matter scenario. \n\n**Key words.** Dark matter - Galaxy dynamics - Globular clusters - Euclid - Methods: Orbital integrations",
+          "collection": "arxiv_papers_v2",
+          "build_id": "affc8bf5-8948-59f3-814f-737d0341b67d",
+          "paper_id": "d8b1a37d-8307-5790-bbeb-6246d2343374",
+          "title": "Constraints on the fuzzy dark matter mass using globular clusters in dwarf galaxies from Euclid ERO data",
+          "arxiv_id": "2609.11328",
+          "paper_version": 1,
+          "source_url": "https://arxiv.org/abs/2609.11328v1",
+          "authors": [
+            "Lisa Besnard",
+            "Pierre Boldrini",
+            "Paola Di Matteo",
+            "Chervin Laporte",
+            "Teymoor Saifollahi"
+          ],
+          "year": 2026,
+          "page": 1,
+          "section_header": "**Constraints on the fuzzy dark matter mass using globular clusters in dwarf galaxies from Euclid ERO data** > **ABSTRACT**",
+          "content_kind": "text",
+          "chunk_index": 3,
+          "score": 1.0,
+          "rerank_score": null,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        },
+        {
+          "id": "b3ed85d5-50b6-5023-9e76-a3d701c635fb",
+          "text": "Besnard et al.: Constraints on the fuzzy dark matter mass using globular clusters in dwarf galaxies from Euclid ERO data",
+          "collection": "arxiv_papers_v2",
+          "build_id": "affc8bf5-8948-59f3-814f-737d0341b67d",
+          "paper_id": "d8b1a37d-8307-5790-bbeb-6246d2343374",
+          "title": "Constraints on the fuzzy dark matter mass using globular clusters in dwarf galaxies from Euclid ERO data",
+          "arxiv_id": "2609.11328",
+          "paper_version": 1,
+          "source_url": "https://arxiv.org/abs/2609.11328v1",
+          "authors": [
+            "Lisa Besnard",
+            "Pierre Boldrini",
+            "Paola Di Matteo",
+            "Chervin Laporte",
+            "Teymoor Saifollahi"
+          ],
+          "year": 2026,
+          "page": 7,
+          "section_header": "**Constraints on the fuzzy dark matter mass using globular clusters in dwarf galaxies from Euclid ERO data** > **5. Data Availability**",
+          "content_kind": "text",
+          "chunk_index": 33,
+          "score": 0.5833334,
+          "rerank_score": null,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        },
+        {
+          "id": "ec2c974f-ab7f-59e7-9829-b039788649ff",
+          "text": "Besnard et al.: Constraints on the fuzzy dark matter mass using globular clusters in dwarf galaxies from Euclid ERO data \n\n**==> picture [256 x 186] intentionally omitted <==**\n\nFig. 4: Orbital radius as a function of time for three GCs in dwarf galaxies in the Perseus galaxy cluster, integrated using the maximum _m_ 22 for which none of them falls below 0.2 kpc within 10 Gyr. We use eccentricity _e_ = 0.5 and the corrected radius _R_ 3D. A GC with eccentricity _e_ = 0.5 is considered to have reached the center of its host galaxy when its last apocenter (in a timescale of 10 Gyr) is below 0.2 kpc \n\nsummary, a realistic configuration of the orbits ( _R_ 3D and _e_ = 0.5) increases the infall time of the GCs, leading to a higher particle mass needed to prevent their fall ( _m_ 22 ≤ 2.24) compared to _R_ 2D and _e_ = 0 ( _m_ 22 ≤ 1.33).",
+          "collection": "arxiv_papers_v2",
+          "build_id": "affc8bf5-8948-59f3-814f-737d0341b67d",
+          "paper_id": "d8b1a37d-8307-5790-bbeb-6246d2343374",
+          "title": "Constraints on the fuzzy dark matter mass using globular clusters in dwarf galaxies from Euclid ERO data",
+          "arxiv_id": "2609.11328",
+          "paper_version": 1,
+          "source_url": "https://arxiv.org/abs/2609.11328v1",
+          "authors": [
+            "Lisa Besnard",
+            "Pierre Boldrini",
+            "Paola Di Matteo",
+            "Chervin Laporte",
+            "Teymoor Saifollahi"
+          ],
+          "year": 2026,
+          "page": 5,
+          "section_header": "**Constraints on the fuzzy dark matter mass using globular clusters in dwarf galaxies from Euclid ERO data** > _3.1. Fornax dwarf galaxy globular clusters_",
+          "content_kind": "text",
+          "chunk_index": 22,
+          "score": 0.4166667,
+          "rerank_score": null,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        },
+        {
+          "id": "1a389b70-6535-598c-ada3-697ec056ff24",
+          "text": "We then determine, for each galaxy of the Fornax and Perseus galaxy clusters, the maximum value of _m_ 22 (between 0.1 and 100) for which FDM effects are sufficient to ensure that none of the galaxy’s GCs fall into the central region. This value corresponds to the most constraining GC in each galaxy, which has the minimum _m_ 22. This results in a distribution of _m_ 22 values, with each value corresponding to one dwarf galaxy. The value of _m_ 22 computed for the Fornax dSph and the distributions of _m_ 22 obtained for the Fornax and Perseus galaxy clusters are represented in Figure 5. The values of _m_ 22 are computed using only the corrected radius _R_ 3D and the eccentricity _e_ = 0.5. ",
+          "collection": "arxiv_papers_v2",
+          "build_id": "affc8bf5-8948-59f3-814f-737d0341b67d",
+          "paper_id": "d8b1a37d-8307-5790-bbeb-6246d2343374",
+          "title": "Constraints on the fuzzy dark matter mass using globular clusters in dwarf galaxies from Euclid ERO data",
+          "arxiv_id": "2609.11328",
+          "paper_version": 1,
+          "source_url": "https://arxiv.org/abs/2609.11328v1",
+          "authors": [
+            "Lisa Besnard",
+            "Pierre Boldrini",
+            "Paola Di Matteo",
+            "Chervin Laporte",
+            "Teymoor Saifollahi"
+          ],
+          "year": 2026,
+          "page": 5,
+          "section_header": "**Constraints on the fuzzy dark matter mass using globular clusters in dwarf galaxies from Euclid ERO data** > _3.2. Euclid globular clusters of dwarf galaxies in the Fornax and Perseus galaxy clusters_",
+          "content_kind": "text",
+          "chunk_index": 25,
+          "score": 0.33333334,
+          "rerank_score": null,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        },
+        {
+          "id": "024a6433-4345-5022-8ac7-966b500fd303",
+          "text": "_A&A proofs:_ manuscript no. main \n\nat higher masses (30 ≲ _m_ 22 ≲ 100), the model approaches the CDM behavior (Hu et al. 2000). Since the emergence of the timing problem, studies have focused on the Fornax dSph, and thus were limited by the small amount of observational data on dwarf galaxies hosting GCs. However, the Euclid mission has provided a large amount of observational data : almost 7000 GCs distributed among more than 800 dwarf galaxies in the local Universe (Saifollahi et al. 2025a,b). This includes the Fornax and Perseus galaxy clusters. \n\nA recent analysis based on Euclid Early Release Observations (ERO) (Cuillandre et al. 2025) investigated the GC timing problem within the standard CDM framework (Boldrini et al. (2026), in preparation). In this work, we extend this analysis to the FDM scenario in order to constrain the value of the FDM parameter _m_ 22. The paper is structured as follows: Section 2 presents the theoretical framework and numerical methodology. We describe how the ultra-light nature of the FDM particle modifies both the DM density profile in dwarf galaxies and DF, and how we simulate the orbital evolution of the Euclid GC candidates using `galpy` . In Section 3, we first take the example of the Fornax dSph to illustrate FDM effects on GC dynamics. Then we use Euclid ERO data to compute the mass parameter _m_ 22 for each dwarf galaxy in the Perseus and Fornax galaxy clusters by simulating the orbital evolution of their GCs, allowing us to provide an upper constraint on the FDM parameter _m_ 22 above which FDM effects are no longer sufficient to prevent the GCs from falling into the center of their host galaxy. Finally, Section 4 summarizes our main results, discusses them in the context of previous studies, and presents perspectives for future work.",
+          "collection": "arxiv_papers_v2",
+          "build_id": "affc8bf5-8948-59f3-814f-737d0341b67d",
+          "paper_id": "d8b1a37d-8307-5790-bbeb-6246d2343374",
+          "title": "Constraints on the fuzzy dark matter mass using globular clusters in dwarf galaxies from Euclid ERO data",
+          "arxiv_id": "2609.11328",
+          "paper_version": 1,
+          "source_url": "https://arxiv.org/abs/2609.11328v1",
+          "authors": [
+            "Lisa Besnard",
+            "Pierre Boldrini",
+            "Paola Di Matteo",
+            "Chervin Laporte",
+            "Teymoor Saifollahi"
+          ],
+          "year": 2026,
+          "page": 2,
+          "section_header": "**Constraints on the fuzzy dark matter mass using globular clusters in dwarf galaxies from Euclid ERO data** > **1. Introduction**",
+          "content_kind": "text",
+          "chunk_index": 7,
+          "score": 0.325,
+          "rerank_score": null,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        }
+      ],
+      "claims": [
+        {
+          "text": "In Besnard et al. (arXiv:2609.11328) the paper reports that globular clusters no longer experience orbital decay toward the centers of their host galaxies for m_22 ≤ 1.46 in the Fornax cluster.",
+          "cited_context_ids": [
+            "01792ee2-fadb-52f1-ad8a-927618b8b15c"
+          ],
+          "need_ids": []
+        },
+        {
+          "text": "In Besnard et al. (arXiv:2609.11328) the paper reports that globular clusters no longer experience orbital decay toward the centers of their host galaxies for m_22 ≤ 1.09 in the Perseus cluster.",
+          "cited_context_ids": [
+            "01792ee2-fadb-52f1-ad8a-927618b8b15c"
+          ],
+          "need_ids": []
+        },
+        {
+          "text": "The paper computes the value of m_22 for the Fornax dwarf spheroidal galaxy and represents this value (computed using the corrected radius R_3D and eccentricity e = 0.5) in Figure 5.",
+          "cited_context_ids": [
+            "1a389b70-6535-598c-ada3-697ec056ff24"
+          ],
+          "need_ids": []
+        },
+        {
+          "text": "For three globular clusters in dwarf galaxies in the Perseus galaxy cluster, integrated using the maximum m_22 for which none falls below 0.2 kpc within 10 Gyr, the paper reports a higher particle mass needed to prevent their fall of m_22 ≤ 2.24 for the realistic configuration (R_3D and e = 0.5).",
+          "cited_context_ids": [
+            "ec2c974f-ab7f-59e7-9829-b039788649ff"
+          ],
+          "need_ids": []
+        },
+        {
+          "text": "For the same three Perseus globular clusters, using R_2D and e = 0, the paper reports m_22 ≤ 1.33.",
+          "cited_context_ids": [
+            "ec2c974f-ab7f-59e7-9829-b039788649ff"
+          ],
+          "need_ids": []
+        }
+      ],
+      "cited_context_ids": [
+        "01792ee2-fadb-52f1-ad8a-927618b8b15c",
+        "1a389b70-6535-598c-ada3-697ec056ff24",
+        "ec2c974f-ab7f-59e7-9829-b039788649ff"
+      ],
+      "metrics": {
+        "retrieval_hit": 0.0,
+        "retrieval_recall": 0.0,
+        "gold_citation_recall": 0.0,
+        "citation_from_retrieval": 1.0,
+        "retrieved_count": 5,
+        "cited_count": 3,
+        "required_paper_count": 1,
+        "retrieved_required_paper_count": 1,
+        "cited_required_paper_count": 1,
+        "required_paper_retrieval_recall": 1.0,
+        "required_paper_citation_recall": 1.0,
+        "all_required_papers_retrieved": 1.0,
+        "answer_correctness": 0.5,
+        "groundedness": 1.0,
+        "answer_relevance": 1.0,
+        "correct_abstention": null
+      },
+      "judge": {
+        "correctness": 0.5,
+        "answer_relevance": 1.0,
+        "abstention": "not_applicable",
+        "reason": "Reference assessment: The actual answer correctly gives the Fornax (1.46) and Perseus (1.09) upper limits with matching anchors, but fails to state the Fornax dSph numeric upper limit (1.38 ± asymmetric errors). It instead only says the value is shown in a figure without quoting it and adds extra Perseus variants not asked for. Thus partial correctness. Grounding assessment: Each atomic claim precisely matches wording and numeric values present in the paper excerpts provided; cited evidence quotes explicitly state the same m_22 values and the text describing Figure 5 and the Fornax dSph computation.",
+        "answer_checks": [
+          {
+            "question_part_id": "q_a",
+            "requested_fact": "Upper limit m_22 for the Fornax galaxy cluster",
+            "status": "answered",
+            "required_numeric_values": [
+              "1.46"
+            ],
+            "missing_or_incorrect_detail": "",
+            "deficit_basis": "none",
+            "claimed_missing_answer_fragments": [],
+            "answer_claim_ids": [
+              "a0001"
+            ],
+            "answer_quotes": [
+              "In Besnard et al. (arXiv:2609.11328) the paper reports that globular clusters no longer experience orbital decay toward the centers of their host galaxies for m_22 ≤ 1.46 in the Fornax cluster."
+            ]
+          },
+          {
+            "question_part_id": "q_b",
+            "requested_fact": "Upper limit m_22 for the Perseus galaxy cluster",
+            "status": "answered",
+            "required_numeric_values": [
+              "1.09"
+            ],
+            "missing_or_incorrect_detail": "",
+            "deficit_basis": "none",
+            "claimed_missing_answer_fragments": [],
+            "answer_claim_ids": [
+              "a0003"
+            ],
+            "answer_quotes": [
+              "In Besnard et al. (arXiv:2609.11328) the paper reports that globular clusters no longer experience orbital decay toward the centers of their host galaxies for m_22 ≤ 1.09 in the Perseus cluster."
+            ]
+          },
+          {
+            "question_part_id": "q_c",
+            "requested_fact": "Upper limit m_22 for the Fornax dwarf spheroidal galaxy",
+            "status": "missing",
+            "required_numeric_values": [
+              "1.38"
+            ],
+            "missing_or_incorrect_detail": "Answer did not provide the numeric value 1.38 (+0.00 −0.48); it only stated the value is shown in Figure 5 using R_3D and e=0.5.",
+            "deficit_basis": "missing_content",
+            "claimed_missing_answer_fragments": [
+              "1.38"
+            ],
+            "answer_claim_ids": [
+              "a0004"
+            ],
+            "answer_quotes": [
+              "The paper computes the value of m_22 for the Fornax dwarf spheroidal galaxy and represents this value (computed using the corrected radius R_3D and eccentricity e = 0.5) in Figure 5."
+            ]
+          }
+        ],
+        "answer_anchors": [
+          {
+            "id": "a0001",
+            "text": "In Besnard et al. (arXiv:2609.11328) the paper reports that globular clusters no longer experience orbital decay toward the centers of their host galaxies for m_22 ≤ 1.46 in the Fornax cluster.",
+            "source": "claim",
+            "claim_index": 0
+          },
+          {
+            "id": "a0002",
+            "text": " [1]",
+            "source": "answer_span",
+            "claim_index": null
+          },
+          {
+            "id": "a0003",
+            "text": "In Besnard et al. (arXiv:2609.11328) the paper reports that globular clusters no longer experience orbital decay toward the centers of their host galaxies for m_22 ≤ 1.09 in the Perseus cluster.",
+            "source": "claim",
+            "claim_index": 1
+          },
+          {
+            "id": "a0004",
+            "text": "The paper computes the value of m_22 for the Fornax dwarf spheroidal galaxy and represents this value (computed using the corrected radius R_3D and eccentricity e = 0.5) in Figure 5.",
+            "source": "claim",
+            "claim_index": 2
+          },
+          {
+            "id": "a0005",
+            "text": " [2]",
+            "source": "answer_span",
+            "claim_index": null
+          },
+          {
+            "id": "a0006",
+            "text": "For three globular clusters in dwarf galaxies in the Perseus galaxy cluster, integrated using the maximum m_22 for which none falls below 0.2 kpc within 10 Gyr, the paper reports a higher particle mass needed to prevent their fall of m_22 ≤ 2.24 for the realistic configuration (R_3D and e = 0.5).",
+            "source": "claim",
+            "claim_index": 3
+          },
+          {
+            "id": "a0007",
+            "text": "For the same three Perseus globular clusters, using R_2D and e = 0, the paper reports m_22 ≤ 1.33.",
+            "source": "claim",
+            "claim_index": 4
+          }
+        ],
+        "reference_score_status": "scored",
+        "groundedness": 1.0
+      },
+      "judge_request": {
+        "reference": {
+          "response_id": "resp_0485114e49752875016ad0d5adfb9887d18fe92faffa538c33",
+          "response_ids": [
+            "resp_0485114e49752875016ad0d5adfb9887d18fe92faffa538c33"
+          ],
+          "attempts": 1,
+          "quote_validation_failures": [],
+          "schema_validation_failures": [],
+          "consistency_validation_failures": [],
+          "consistency_status": "no_detected_conflict",
+          "raw_correctness": 0.5,
+          "score_status": "scored",
+          "answer_anchor_mode": "claim_ids",
+          "request_id": "req_0a10e03df207405bb3a39b537efed69f",
+          "model": "gpt-5-mini-2025-08-07",
+          "max_output_tokens": 16384,
+          "usage": {
+            "input_tokens": 4179,
+            "output_tokens": 486,
+            "total_tokens": 4665
+          }
+        },
+        "grounding": {
+          "response_id": "resp_02a42a49f5597150016ad0d5b2e06887d1af5cb0eecd8a31f8",
+          "response_ids": [
+            "resp_02a42a49f5597150016ad0d5b2e06887d1af5cb0eecd8a31f8"
+          ],
+          "attempts": 1,
+          "quote_validation_failures": [],
+          "schema_validation_failures": [],
+          "consistency_validation_failures": [],
+          "consistency_status": "no_detected_conflict",
+          "raw_correctness": null,
+          "score_status": "scored",
+          "answer_anchor_mode": "claim_ids",
+          "request_id": "req_868ccfebb25343baae28c7d015079549",
+          "model": "gpt-5-mini-2025-08-07",
+          "max_output_tokens": 16384,
+          "usage": {
+            "input_tokens": 4002,
+            "output_tokens": 224,
+            "total_tokens": 4226
+          },
+          "method_attributions": [
+            {
+              "applicability": "not_applicable",
+              "answer_claim_id": "a0001",
+              "claim_index": 0
+            },
+            {
+              "applicability": "not_applicable",
+              "answer_claim_id": "a0002",
+              "claim_index": 1
+            },
+            {
+              "applicability": "not_applicable",
+              "answer_claim_id": "a0003",
+              "claim_index": 2
+            },
+            {
+              "applicability": "not_applicable",
+              "answer_claim_id": "a0004",
+              "claim_index": 3
+            },
+            {
+              "applicability": "not_applicable",
+              "answer_claim_id": "a0005",
+              "claim_index": 4
+            }
+          ],
+          "claim_anchors": [
+            {
+              "id": "a0001",
+              "claim_index": 0
+            },
+            {
+              "id": "a0002",
+              "claim_index": 1
+            },
+            {
+              "id": "a0003",
+              "claim_index": 2
+            },
+            {
+              "id": "a0004",
+              "claim_index": 3
+            },
+            {
+              "id": "a0005",
+              "claim_index": 4
+            }
+          ],
+          "annotation_validation_failures": [],
+          "method_validation_failures": [],
+          "method_scope_issues": [],
+          "raw_groundedness": 1.0
+        }
+      },
+      "judge_error": null,
+      "judge_safeguards": [
+        {
+          "metric": "correctness",
+          "from": 0.5,
+          "to": 0.5,
+          "reason": "reference_assessment_not_answer_anchored",
+          "checks": [
+            {
+              "check_index": 2,
+              "status": "missing",
+              "invalid_quote_count": 0,
+              "missing_numeric_values": [
+                "1.38"
+              ]
+            }
+          ]
+        }
+      ],
+      "agent_execution": null,
+      "retrieval_diagnostics": null,
+      "generation_diagnostics": null,
+      "stage_timings": {
+        "retrieval_seconds": 2.297,
+        "generation_seconds": 24.903,
+        "pipeline_seconds": 27.207,
+        "judge_reference_seconds": 5.696,
+        "judge_grounding_seconds": 2.715,
+        "judge_seconds": 8.412
+      },
+      "elapsed_seconds": 35.623,
+      "error": null
+    },
+    {
+      "question_id": "q0003",
+      "kind": "single_paper",
+      "profile": "single_fact",
+      "mode": "hybrid",
+      "question": "In \"H II region filling factors in NGC 628: Luminosity-size relation and connection with polycyclic aromatic hydrocarbon emission\", what was the sample size of H II regions used to compare SIGNALS and PHANGS-MUSE FF values, and did the two surveys produce consistent FF measurements after homogenization?",
+      "reference_answer": "The study selected a total of 622 H II regions from the SIGNALS and PHANGS-MUSE surveys, and after applying a consistent homogenization of physical parameters and density measurements the derived filling factor values showed very good agreement between the two surveys (i.e., they were statistically consistent). (evidence: 03f11027f87d37771b2883f0)",
+      "answer": "The study selected a total of 622 H II regions from the SIGNALS and PHANGS-MUSE surveys, comprising 475 regions from SIGNALS and 147 regions from PHANGS-MUSE. [1] [2] [3]\n\nAfter applying a consistent homogenization of the physical parameters and density measurements in the two surveys, the derived filling factor (FF) values showed very good agreement, and the statistical consistency between the distributions confirms the equivalence of the SIGNALS and PHANGS-MUSE datasets for this analysis. [3]",
+      "retrieved_chunks": [
+        {
+          "id": "dd052d35-b134-5ca4-ab13-90796c031b46",
+          "text": "_A&A proofs:_ manuscript no. aa57698-25corr \n\nThe typical spatial resolutions of the SIGNALS and the PHANGS-MUSE surveys in NGC 628 do not allow us to resolve substructures such as rings, shells, or cavities within the analyzed H II regions. We selected a total of 622 H II regions from the SIGNALS and the PHANGS-MUSE H II regions survey. After applying a consistent homogenization of the physical parameters and density measurements in the two surveys, we found that the derived FF values showed very good agreement. The statistical consistency between the distributions confirms the equivalence of the SIGNALS and PHANGS-MUSE datasets for this analysis and provides a robust basis for our subsequent results. We also compared our results with published H II region catalogs of the same galaxy based on PHANGS-MUSE and PHANGS-MUSE HST data. These catalogs use different segmentation pipelines and boundary definitions. We demonstrated that the apparent slope of the observed Hα luminosity–R relation is not universal, but rather a methodological effect reflecting the position of the radius definition threshold relative to the intrinsic profile scale of each region (Sect. 4). The cross-catalog analysis demonstrated in Fig. 1 confirms that this scatter is not an effect of the boundary definition but reflects physical variation in _n_[2] _e_[in] the population. \n\nLuminous giant and supergiant H II regions show the expected decrease in FF with increasing volume (Gutiérrez & Beckman 2010; Cedrés et al. 2013), consistent with the definitional scaling. This behavior indicates that larger regions are characterized by more widely spaced clumps and, consequently, by a larger fraction of low-density gas occupying the available volume (Hunt & Hirashita 2009). However, the variance explained by volume alone is low ( _R_[2] _fit_[∼] 0.16-0.21), indicating that volume alone cannot explain the intrinsic scatter of FF within this group of regions. ",
+          "collection": "arxiv_papers_v2",
+          "build_id": "bba07e0b-37a5-53d7-a865-0d6d815f5c40",
+          "paper_id": "03b48dee-359c-58ab-ab8d-32911ac70051",
+          "title": "H II region filling factors in NGC 628: Luminosity-size relation and connection with polycyclic aromatic hydrocarbon emission",
+          "arxiv_id": "2609.00902",
+          "paper_version": 1,
+          "source_url": "https://arxiv.org/abs/2609.00902v1",
+          "authors": [
+            "Lorena Aragüete Riesco",
+            "José M. Vílchez",
+            "Salvador Duarte Puertas",
+            "Laurie Rousseau-Nepton",
+            "Carmelle Robert",
+            "René Pierre Martin",
+            "Philippe Amram",
+            "Robert Kennicutt",
+            "Christophe Morisset",
+            "Ray Garner"
+          ],
+          "year": 2026,
+          "page": 20,
+          "section_header": "**7. Discussion**",
+          "content_kind": "text",
+          "chunk_index": 97,
+          "score": 0.8333334,
+          "rerank_score": null,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        },
+        {
+          "id": "6ec95f0c-d7a1-51d1-b8b2-e01761a62981",
+          "text": "## **ABSTRACT** \n\n_Aims._ Understanding the internal structure of H II regions is fundamental for constraining star formation processes in galaxies. We investigated how the filling factor (FF) relates to luminosity, size, electron density, and Hα equivalent width (EW(Hα)) in H II regions. We also explored the association between star-forming regions and the polycyclic aromatic hydrocarbon (PAH)-to-dust emission, to assess their possible connection to the evolutionary stages of H II regions. \n\n_Methods._ We investigated the FF in 622 H II regions in NGC 628 by combining 475 regions from SIGNALS and 147 from PHANGSMUSE using a dedicated analysis pipeline. We derived the luminosity, emission line fluxes, radii, electron densities, and FF. We used PHANGS-JWST survey images to study the spatial relation between the FF and PAH-to-dust emission, quantified by the PAH-to-dust ratio _RPAH_ using James Webb Space Telescope/Mid-Infrared Instrument (JWST/MIRI) emission bands at 7.7, 11.3, and 21 µm. _Results._ Higher Log(FF) and high EW(Hα) values are found in luminous regions, whereas more extended regions with lower EW(Hα) display lower Log(FF) values. We show that the H II radius definition significantly affects the LHα − R relation. Low-luminosity compact H II regions appear to reflect a transition from cluster-powered regions to nebulae that are ionized by single massive stars, with the transition occurring around log(LHα) ∼ 37 erg s[−][1] . The PAH-to-dust ratio RPAH correlates with the volumetric Hα luminosity density, LHα/R[3] , with a transitional range centered around log(LHα/R[3] ) ∼ 32 erg s[−][1] , corresponding to log(FF) ≈−4.4. Regions with lower Log(FF) values exhibit higher RPAH values, suggesting less efficient PAH processing in more porous structures. ",
+          "collection": "arxiv_papers_v2",
+          "build_id": "bba07e0b-37a5-53d7-a865-0d6d815f5c40",
+          "paper_id": "03b48dee-359c-58ab-ab8d-32911ac70051",
+          "title": "H II region filling factors in NGC 628: Luminosity-size relation and connection with polycyclic aromatic hydrocarbon emission",
+          "arxiv_id": "2609.00902",
+          "paper_version": 1,
+          "source_url": "https://arxiv.org/abs/2609.00902v1",
+          "authors": [
+            "Lorena Aragüete Riesco",
+            "José M. Vílchez",
+            "Salvador Duarte Puertas",
+            "Laurie Rousseau-Nepton",
+            "Carmelle Robert",
+            "René Pierre Martin",
+            "Philippe Amram",
+            "Robert Kennicutt",
+            "Christophe Morisset",
+            "Ray Garner"
+          ],
+          "year": 2026,
+          "page": 1,
+          "section_header": "**ABSTRACT**",
+          "content_kind": "text",
+          "chunk_index": 3,
+          "score": 0.5909091,
+          "rerank_score": null,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        },
+        {
+          "id": "17c27aaa-37ec-5083-abcc-62509fbb9e8a",
+          "text": "## **8. Conclusions** \n\nWe presented a detailed census of extragalactic H II regions in NGC 628, providing homogeneous measurements of luminosity, emission line fluxes, and radii by combining 475 H II regions from the SIGNALS survey and 147 regions from PHANGSMUSE in NGC 628. We provided measurements of the Hα luminosity, emission line fluxes, electron densities, radii, and FF in the two surveys and extended the comparison to three published H II region catalogs based on different segmentation methods. Our analysis confirmed a close connection between the FF and several fundamental properties of H II regions, highlighting its diagnostic value for probing their internal structure. We also investigated the connection between H II regions and the PAH-todust ratio, offering new insights into the interplay among star \n\nArticle number, page 21",
+          "collection": "arxiv_papers_v2",
+          "build_id": "bba07e0b-37a5-53d7-a865-0d6d815f5c40",
+          "paper_id": "03b48dee-359c-58ab-ab8d-32911ac70051",
+          "title": "H II region filling factors in NGC 628: Luminosity-size relation and connection with polycyclic aromatic hydrocarbon emission",
+          "arxiv_id": "2609.00902",
+          "paper_version": 1,
+          "source_url": "https://arxiv.org/abs/2609.00902v1",
+          "authors": [
+            "Lorena Aragüete Riesco",
+            "José M. Vílchez",
+            "Salvador Duarte Puertas",
+            "Laurie Rousseau-Nepton",
+            "Carmelle Robert",
+            "René Pierre Martin",
+            "Philippe Amram",
+            "Robert Kennicutt",
+            "Christophe Morisset",
+            "Ray Garner"
+          ],
+          "year": 2026,
+          "page": 21,
+          "section_header": "**8. Conclusions**",
+          "content_kind": "text",
+          "chunk_index": 106,
+          "score": 0.4,
+          "rerank_score": null,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        },
+        {
+          "id": "b92b92cd-9676-53e0-80a8-b36ba20e1948",
+          "text": "## _5.3. Final H II region samples_ \n\nWe defined the final H II region samples of SIGNALS and PHANGS by applying a set of quality and physical criteria. We adopted a conservative lower limit of _ne_ ∼ 80 cm[−][3] to ensure reliable electron density estimates. In addition, we required a minimum signal-to-noise ratio in the emission lines used for the derivation of physical parameters, as summarized in Table F.1. \n\nFor the FF calculation, the characteristic radius _R_ is defined according to the catalog method. In SIGNALS, _R_ corresponds to the profile-truncated radius derived from the pseudo-Voigt fit, while in PHANGS it is defined as the geometric mean of the semi-major and semi-minor axes of the minimum bounding ellipse, yielding an area-equivalent circular radius. The filling factor is then computed following Eq. 6. We further excluded regions with log(FF) < −7, which are likely dominated by observational uncertainties. The resulting samples consist of 475 H II regions in SIGNALS-H II and 147 in PHANGS-H II. ",
+          "collection": "arxiv_papers_v2",
+          "build_id": "bba07e0b-37a5-53d7-a865-0d6d815f5c40",
+          "paper_id": "03b48dee-359c-58ab-ab8d-32911ac70051",
+          "title": "H II region filling factors in NGC 628: Luminosity-size relation and connection with polycyclic aromatic hydrocarbon emission",
+          "arxiv_id": "2609.00902",
+          "paper_version": 1,
+          "source_url": "https://arxiv.org/abs/2609.00902v1",
+          "authors": [
+            "Lorena Aragüete Riesco",
+            "José M. Vílchez",
+            "Salvador Duarte Puertas",
+            "Laurie Rousseau-Nepton",
+            "Carmelle Robert",
+            "René Pierre Martin",
+            "Philippe Amram",
+            "Robert Kennicutt",
+            "Christophe Morisset",
+            "Ray Garner"
+          ],
+          "year": 2026,
+          "page": 10,
+          "section_header": "_5.3. Final H II region samples_",
+          "content_kind": "text",
+          "chunk_index": 54,
+          "score": 0.33333334,
+          "rerank_score": null,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        },
+        {
+          "id": "fe1c0853-0637-54d8-b587-4b52c6b9ab46",
+          "text": "To assess the consistency between electron density measurements in the two surveys, we constructed a new subsample (hereafter SIGNALS-MUSE) containing 227 regions from SIGNALS-H II sample. We created this subsample by limiting it to regions fully enclosed within the PHANGS-MUSE FoV, maintaining a minimum distance of 1 PSF from the mosaicked boundaries. Inspection of the right histogram in Figure G.2 (see Appendix) shows that both subsamples show a concentration of values near the adopted lower density limit 80 cm[−][3] . Fig. 2 shows the Hα image of NGC 628 with the final selection of H II regions from SIGNALS-MUSE and PHANGS-H II. To enable a direct comparison of the electron densities in the catalogs, we derived _ne_ for the samples of Groves et al. (2023), Congiu et al. (2023), and Barnes et al. (2026), as described in Subsubsect. 5.4.1. We applied a common set of quality criteria following the same procedure used for the SIGNALS-H II and PHANGS-H II catalogs (i) classification as H II according to BPT-type diagnostics; (ii) positive fluxes in the two [S II] λλ6716, 6731 lines; (iii) no edge or stellar-contamination flags when available; (iv) signal-to-noise ratios greater than four in [S II] λ6716, [S II] λ6730, [N II] λ6583, [O III] λ5007, Hα, and Hβ; and (v) H II region radii larger than the PSF FWHM. Furthermore, for the catalogs of Congiu et al. (2023), Groves et al. (2023), and Barnes et al. (2026), the FF calculation assumes that \n\n_R_ corresponds to the circularized radius derived from the segmented area. \n\n**==> picture [127 x 123] intentionally omitted <==**\n\n**==> picture [127 x 123] intentionally omitted <==**",
+          "collection": "arxiv_papers_v2",
+          "build_id": "bba07e0b-37a5-53d7-a865-0d6d815f5c40",
+          "paper_id": "03b48dee-359c-58ab-ab8d-32911ac70051",
+          "title": "H II region filling factors in NGC 628: Luminosity-size relation and connection with polycyclic aromatic hydrocarbon emission",
+          "arxiv_id": "2609.00902",
+          "paper_version": 1,
+          "source_url": "https://arxiv.org/abs/2609.00902v1",
+          "authors": [
+            "Lorena Aragüete Riesco",
+            "José M. Vílchez",
+            "Salvador Duarte Puertas",
+            "Laurie Rousseau-Nepton",
+            "Carmelle Robert",
+            "René Pierre Martin",
+            "Philippe Amram",
+            "Robert Kennicutt",
+            "Christophe Morisset",
+            "Ray Garner"
+          ],
+          "year": 2026,
+          "page": 10,
+          "section_header": "_5.3. Final H II region samples_",
+          "content_kind": "text",
+          "chunk_index": 55,
+          "score": 0.3125,
+          "rerank_score": null,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        }
+      ],
+      "claims": [
+        {
+          "text": "The study selected a total of 622 H II regions from the SIGNALS and PHANGS-MUSE surveys, comprising 475 regions from SIGNALS and 147 regions from PHANGS-MUSE.",
+          "cited_context_ids": [
+            "6ec95f0c-d7a1-51d1-b8b2-e01761a62981",
+            "b92b92cd-9676-53e0-80a8-b36ba20e1948",
+            "dd052d35-b134-5ca4-ab13-90796c031b46"
+          ],
+          "need_ids": []
+        },
+        {
+          "text": "After applying a consistent homogenization of the physical parameters and density measurements in the two surveys, the derived filling factor (FF) values showed very good agreement, and the statistical consistency between the distributions confirms the equivalence of the SIGNALS and PHANGS-MUSE datasets for this analysis.",
+          "cited_context_ids": [
+            "dd052d35-b134-5ca4-ab13-90796c031b46"
+          ],
+          "need_ids": []
+        }
+      ],
+      "cited_context_ids": [
+        "6ec95f0c-d7a1-51d1-b8b2-e01761a62981",
+        "b92b92cd-9676-53e0-80a8-b36ba20e1948",
+        "dd052d35-b134-5ca4-ab13-90796c031b46"
+      ],
+      "metrics": {
+        "retrieval_hit": 1.0,
+        "retrieval_recall": 1.0,
+        "gold_citation_recall": 1.0,
+        "citation_from_retrieval": 1.0,
+        "retrieved_count": 5,
+        "cited_count": 3,
+        "required_paper_count": 1,
+        "retrieved_required_paper_count": 1,
+        "cited_required_paper_count": 1,
+        "required_paper_retrieval_recall": 1.0,
+        "required_paper_citation_recall": 1.0,
+        "all_required_papers_retrieved": 1.0,
+        "answer_correctness": 1.0,
+        "groundedness": 1.0,
+        "answer_relevance": 1.0,
+        "correct_abstention": null
+      },
+      "judge": {
+        "correctness": 1.0,
+        "answer_relevance": 1.0,
+        "abstention": "not_applicable",
+        "reason": "Reference assessment: The actual answer states the same total sample size (622) and reports that after homogenization the FF values showed very good agreement and were statistically consistent, matching the reference evidence. Grounding assessment: Both claims are directly and exactly supported by the provided cited evidence excerpts from the paper: the abstract and section 5.3 state the sample sizes (475 SIGNALS + 147 PHANGS = 622) and the quoted text on page 20 explicitly reports that after homogenization the FF values showed very good agreement and statistical consistency between distributions.",
+        "answer_checks": [
+          {
+            "question_part_id": "q_original",
+            "requested_fact": "Total sample size of H II regions used to compare SIGNALS and PHANGS-MUSE FF values",
+            "status": "answered",
+            "required_numeric_values": [],
+            "missing_or_incorrect_detail": "",
+            "deficit_basis": "none",
+            "claimed_missing_answer_fragments": [],
+            "answer_claim_ids": [
+              "a0001"
+            ],
+            "answer_quotes": [
+              "The study selected a total of 622 H II regions from the SIGNALS and PHANGS-MUSE surveys, comprising 475 regions from SIGNALS and 147 regions from PHANGS-MUSE."
+            ]
+          },
+          {
+            "question_part_id": "q_original",
+            "requested_fact": "Whether the two surveys produced consistent FF measurements after homogenization",
+            "status": "answered",
+            "required_numeric_values": [],
+            "missing_or_incorrect_detail": "",
+            "deficit_basis": "none",
+            "claimed_missing_answer_fragments": [],
+            "answer_claim_ids": [
+              "a0003"
+            ],
+            "answer_quotes": [
+              "After applying a consistent homogenization of the physical parameters and density measurements in the two surveys, the derived filling factor (FF) values showed very good agreement, and the statistical consistency between the distributions confirms the equivalence of the SIGNALS and PHANGS-MUSE datasets for this analysis."
+            ]
+          }
+        ],
+        "answer_anchors": [
+          {
+            "id": "a0001",
+            "text": "The study selected a total of 622 H II regions from the SIGNALS and PHANGS-MUSE surveys, comprising 475 regions from SIGNALS and 147 regions from PHANGS-MUSE.",
+            "source": "claim",
+            "claim_index": 0
+          },
+          {
+            "id": "a0002",
+            "text": " [1] [2] [3]",
+            "source": "answer_span",
+            "claim_index": null
+          },
+          {
+            "id": "a0003",
+            "text": "After applying a consistent homogenization of the physical parameters and density measurements in the two surveys, the derived filling factor (FF) values showed very good agreement, and the statistical consistency between the distributions confirms the equivalence of the SIGNALS and PHANGS-MUSE datasets for this analysis.",
+            "source": "claim",
+            "claim_index": 1
+          },
+          {
+            "id": "a0004",
+            "text": " [3]",
+            "source": "answer_span",
+            "claim_index": null
+          }
+        ],
+        "reference_score_status": "scored",
+        "groundedness": 1.0
+      },
+      "judge_request": {
+        "reference": {
+          "response_id": "resp_01e8624eda76e167016ad0d5c1450c87d1a10e67c44fd2d4aa",
+          "response_ids": [
+            "resp_01e8624eda76e167016ad0d5c1450c87d1a10e67c44fd2d4aa"
+          ],
+          "attempts": 1,
+          "quote_validation_failures": [],
+          "schema_validation_failures": [],
+          "consistency_validation_failures": [],
+          "consistency_status": "no_detected_conflict",
+          "raw_correctness": 1.0,
+          "score_status": "scored",
+          "answer_anchor_mode": "claim_ids",
+          "request_id": "req_23baf9d16ced40a192afcbbf5da0963a",
+          "model": "gpt-5-mini-2025-08-07",
+          "max_output_tokens": 16384,
+          "usage": {
+            "input_tokens": 2772,
+            "output_tokens": 275,
+            "total_tokens": 3047
+          }
+        },
+        "grounding": {
+          "response_id": "resp_07db0f814bd1b188016ad0d5c49c3087d1bd460a8a26beb110",
+          "response_ids": [
+            "resp_07db0f814bd1b188016ad0d5c49c3087d1bd460a8a26beb110"
+          ],
+          "attempts": 1,
+          "quote_validation_failures": [],
+          "schema_validation_failures": [],
+          "consistency_validation_failures": [],
+          "consistency_status": "no_detected_conflict",
+          "raw_correctness": null,
+          "score_status": "scored",
+          "answer_anchor_mode": "claim_ids",
+          "request_id": "req_f0b4753b86ba457896cfe60443e50551",
+          "model": "gpt-5-mini-2025-08-07",
+          "max_output_tokens": 16384,
+          "usage": {
+            "input_tokens": 3657,
+            "output_tokens": 114,
+            "total_tokens": 3771
+          },
+          "method_attributions": [],
+          "claim_anchors": [
+            {
+              "id": "a0001",
+              "claim_index": 0
+            },
+            {
+              "id": "a0002",
+              "claim_index": 1
+            }
+          ],
+          "annotation_validation_failures": [],
+          "method_validation_failures": [],
+          "method_scope_issues": [],
+          "raw_groundedness": 1.0
+        }
+      },
+      "judge_error": null,
+      "judge_safeguards": [],
+      "agent_execution": null,
+      "retrieval_diagnostics": null,
+      "generation_diagnostics": null,
+      "stage_timings": {
+        "retrieval_seconds": 0.457,
+        "generation_seconds": 11.166,
+        "pipeline_seconds": 11.629,
+        "judge_reference_seconds": 3.373,
+        "judge_grounding_seconds": 1.619,
+        "judge_seconds": 4.992
+      },
+      "elapsed_seconds": 16.622,
+      "error": null
+    },
+    {
+      "question_id": "q0002",
+      "kind": "single_paper",
+      "profile": "single_fact",
+      "mode": "kg",
+      "question": "In \"Constraints on the fuzzy dark matter mass using globular clusters in dwarf galaxies from Euclid ERO data\", what quantitative upper limits on the fuzzy dark matter mass parameter m_22 does the paper report for (a) the Fornax galaxy cluster, (b) the Perseus galaxy cluster, and (c) the Fornax dwarf spheroidal galaxy?",
+      "reference_answer": "The paper reports the following upper limits on m_22: (a) Fornax galaxy cluster: m_22 ≤ 1.46 (+0.00 −0.51); (b) Perseus galaxy cluster: m_22 ≤ 1.09 (+0.00 −0.14); (c) Fornax dSph: m_22 ≤ 1.38 (+0.00 −0.48). (Evidence: ddf71676ff9029e4c5534bca; 88d3700173b37b816de96731; c3d05f2f045b4bdbcb084059)",
+      "answer": "The paper reports that globular clusters no longer experience orbital decay toward the centers of their host galaxies for m_22 ≤ 1.46[+] −[0] 0[.] .[51] 32 in the Fornax cluster. [1]\n\nThe paper reports that globular clusters no longer experience orbital decay toward the centers of their host galaxies for m_22 ≤ 1.09[+] −[0] 0[.] .[14] 21 in the Perseus cluster. [1]\n\nThe paper states that the value of m_22 computed for the Fornax dwarf spheroidal galaxy is represented in Figure 5 (the values of m_22 are computed using the corrected radius R_3D and eccentricity e = 0.5). [2]",
+      "retrieved_chunks": [
+        {
+          "id": "01792ee2-fadb-52f1-ad8a-927618b8b15c",
+          "text": "## **ABSTRACT** \n\nWe constrain the particle mass of the fuzzy dark matter model using globular cluster candidates in dwarf galaxies, from the Euclid Early Release Observations, within the Fornax and Perseus galaxy clusters. We model the orbital evolution of globular clusters by combining fuzzy dark matter density profiles with the corresponding dynamical friction formalism, and integrate their orbits using `galpy` . In the fuzzy dark matter framework, both the halo density profile and the dynamical friction force are modified by the wave-like nature of the ultra-light dark matter particle, whose mass is parameterized as _m_ 22 = _m_ χ/10[−][22] , eV and explored over the range 0.1 ≤ _m_ 22 ≤ 100. This framework naturally alleviates the long-standing globular cluster timing problem originally identified in the Fornax dSph. We find that globular clusters no longer experience orbital decay toward the centers of their host galaxies for _m_ 22 ≤ 1.46[+] −[0] 0[.] .[51] 32[in the Fornax cluster and] _[ m]_[22][≤][1][.][09][+] −[0] 0[.] .[14] 21[in the Perseus cluster. Future Euclid data releases, providing substantially] larger samples of globular cluster candidates, will enable significantly tighter constraints on the dark matter particle mass within the fuzzy dark matter scenario. \n\n**Key words.** Dark matter - Galaxy dynamics - Globular clusters - Euclid - Methods: Orbital integrations",
+          "collection": "arxiv_papers_v2",
+          "build_id": "affc8bf5-8948-59f3-814f-737d0341b67d",
+          "paper_id": "d8b1a37d-8307-5790-bbeb-6246d2343374",
+          "title": "Constraints on the fuzzy dark matter mass using globular clusters in dwarf galaxies from Euclid ERO data",
+          "arxiv_id": "2609.11328",
+          "paper_version": 1,
+          "source_url": "https://arxiv.org/abs/2609.11328v1",
+          "authors": [
+            "Lisa Besnard",
+            "Pierre Boldrini",
+            "Paola Di Matteo",
+            "Chervin Laporte",
+            "Teymoor Saifollahi"
+          ],
+          "year": 2026,
+          "page": 1,
+          "section_header": "**Constraints on the fuzzy dark matter mass using globular clusters in dwarf galaxies from Euclid ERO data** > **ABSTRACT**",
+          "content_kind": "text",
+          "chunk_index": 3,
+          "score": 0.01639344262295082,
+          "rerank_score": null,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        },
+        {
+          "id": "b3ed85d5-50b6-5023-9e76-a3d701c635fb",
+          "text": "Besnard et al.: Constraints on the fuzzy dark matter mass using globular clusters in dwarf galaxies from Euclid ERO data",
+          "collection": "arxiv_papers_v2",
+          "build_id": "affc8bf5-8948-59f3-814f-737d0341b67d",
+          "paper_id": "d8b1a37d-8307-5790-bbeb-6246d2343374",
+          "title": "Constraints on the fuzzy dark matter mass using globular clusters in dwarf galaxies from Euclid ERO data",
+          "arxiv_id": "2609.11328",
+          "paper_version": 1,
+          "source_url": "https://arxiv.org/abs/2609.11328v1",
+          "authors": [
+            "Lisa Besnard",
+            "Pierre Boldrini",
+            "Paola Di Matteo",
+            "Chervin Laporte",
+            "Teymoor Saifollahi"
+          ],
+          "year": 2026,
+          "page": 7,
+          "section_header": "**Constraints on the fuzzy dark matter mass using globular clusters in dwarf galaxies from Euclid ERO data** > **5. Data Availability**",
+          "content_kind": "text",
+          "chunk_index": 33,
+          "score": 0.016129032258064516,
+          "rerank_score": null,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        },
+        {
+          "id": "ec2c974f-ab7f-59e7-9829-b039788649ff",
+          "text": "Besnard et al.: Constraints on the fuzzy dark matter mass using globular clusters in dwarf galaxies from Euclid ERO data \n\n**==> picture [256 x 186] intentionally omitted <==**\n\nFig. 4: Orbital radius as a function of time for three GCs in dwarf galaxies in the Perseus galaxy cluster, integrated using the maximum _m_ 22 for which none of them falls below 0.2 kpc within 10 Gyr. We use eccentricity _e_ = 0.5 and the corrected radius _R_ 3D. A GC with eccentricity _e_ = 0.5 is considered to have reached the center of its host galaxy when its last apocenter (in a timescale of 10 Gyr) is below 0.2 kpc \n\nsummary, a realistic configuration of the orbits ( _R_ 3D and _e_ = 0.5) increases the infall time of the GCs, leading to a higher particle mass needed to prevent their fall ( _m_ 22 ≤ 2.24) compared to _R_ 2D and _e_ = 0 ( _m_ 22 ≤ 1.33).",
+          "collection": "arxiv_papers_v2",
+          "build_id": "affc8bf5-8948-59f3-814f-737d0341b67d",
+          "paper_id": "d8b1a37d-8307-5790-bbeb-6246d2343374",
+          "title": "Constraints on the fuzzy dark matter mass using globular clusters in dwarf galaxies from Euclid ERO data",
+          "arxiv_id": "2609.11328",
+          "paper_version": 1,
+          "source_url": "https://arxiv.org/abs/2609.11328v1",
+          "authors": [
+            "Lisa Besnard",
+            "Pierre Boldrini",
+            "Paola Di Matteo",
+            "Chervin Laporte",
+            "Teymoor Saifollahi"
+          ],
+          "year": 2026,
+          "page": 5,
+          "section_header": "**Constraints on the fuzzy dark matter mass using globular clusters in dwarf galaxies from Euclid ERO data** > _3.1. Fornax dwarf galaxy globular clusters_",
+          "content_kind": "text",
+          "chunk_index": 22,
+          "score": 0.015873015873015872,
+          "rerank_score": null,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        },
+        {
+          "id": "1a389b70-6535-598c-ada3-697ec056ff24",
+          "text": "We then determine, for each galaxy of the Fornax and Perseus galaxy clusters, the maximum value of _m_ 22 (between 0.1 and 100) for which FDM effects are sufficient to ensure that none of the galaxy’s GCs fall into the central region. This value corresponds to the most constraining GC in each galaxy, which has the minimum _m_ 22. This results in a distribution of _m_ 22 values, with each value corresponding to one dwarf galaxy. The value of _m_ 22 computed for the Fornax dSph and the distributions of _m_ 22 obtained for the Fornax and Perseus galaxy clusters are represented in Figure 5. The values of _m_ 22 are computed using only the corrected radius _R_ 3D and the eccentricity _e_ = 0.5. ",
+          "collection": "arxiv_papers_v2",
+          "build_id": "affc8bf5-8948-59f3-814f-737d0341b67d",
+          "paper_id": "d8b1a37d-8307-5790-bbeb-6246d2343374",
+          "title": "Constraints on the fuzzy dark matter mass using globular clusters in dwarf galaxies from Euclid ERO data",
+          "arxiv_id": "2609.11328",
+          "paper_version": 1,
+          "source_url": "https://arxiv.org/abs/2609.11328v1",
+          "authors": [
+            "Lisa Besnard",
+            "Pierre Boldrini",
+            "Paola Di Matteo",
+            "Chervin Laporte",
+            "Teymoor Saifollahi"
+          ],
+          "year": 2026,
+          "page": 5,
+          "section_header": "**Constraints on the fuzzy dark matter mass using globular clusters in dwarf galaxies from Euclid ERO data** > _3.2. Euclid globular clusters of dwarf galaxies in the Fornax and Perseus galaxy clusters_",
+          "content_kind": "text",
+          "chunk_index": 25,
+          "score": 0.015625,
+          "rerank_score": null,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        },
+        {
+          "id": "024a6433-4345-5022-8ac7-966b500fd303",
+          "text": "_A&A proofs:_ manuscript no. main \n\nat higher masses (30 ≲ _m_ 22 ≲ 100), the model approaches the CDM behavior (Hu et al. 2000). Since the emergence of the timing problem, studies have focused on the Fornax dSph, and thus were limited by the small amount of observational data on dwarf galaxies hosting GCs. However, the Euclid mission has provided a large amount of observational data : almost 7000 GCs distributed among more than 800 dwarf galaxies in the local Universe (Saifollahi et al. 2025a,b). This includes the Fornax and Perseus galaxy clusters. \n\nA recent analysis based on Euclid Early Release Observations (ERO) (Cuillandre et al. 2025) investigated the GC timing problem within the standard CDM framework (Boldrini et al. (2026), in preparation). In this work, we extend this analysis to the FDM scenario in order to constrain the value of the FDM parameter _m_ 22. The paper is structured as follows: Section 2 presents the theoretical framework and numerical methodology. We describe how the ultra-light nature of the FDM particle modifies both the DM density profile in dwarf galaxies and DF, and how we simulate the orbital evolution of the Euclid GC candidates using `galpy` . In Section 3, we first take the example of the Fornax dSph to illustrate FDM effects on GC dynamics. Then we use Euclid ERO data to compute the mass parameter _m_ 22 for each dwarf galaxy in the Perseus and Fornax galaxy clusters by simulating the orbital evolution of their GCs, allowing us to provide an upper constraint on the FDM parameter _m_ 22 above which FDM effects are no longer sufficient to prevent the GCs from falling into the center of their host galaxy. Finally, Section 4 summarizes our main results, discusses them in the context of previous studies, and presents perspectives for future work.",
+          "collection": "arxiv_papers_v2",
+          "build_id": "affc8bf5-8948-59f3-814f-737d0341b67d",
+          "paper_id": "d8b1a37d-8307-5790-bbeb-6246d2343374",
+          "title": "Constraints on the fuzzy dark matter mass using globular clusters in dwarf galaxies from Euclid ERO data",
+          "arxiv_id": "2609.11328",
+          "paper_version": 1,
+          "source_url": "https://arxiv.org/abs/2609.11328v1",
+          "authors": [
+            "Lisa Besnard",
+            "Pierre Boldrini",
+            "Paola Di Matteo",
+            "Chervin Laporte",
+            "Teymoor Saifollahi"
+          ],
+          "year": 2026,
+          "page": 2,
+          "section_header": "**Constraints on the fuzzy dark matter mass using globular clusters in dwarf galaxies from Euclid ERO data** > **1. Introduction**",
+          "content_kind": "text",
+          "chunk_index": 7,
+          "score": 0.015384615384615385,
+          "rerank_score": null,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        }
+      ],
+      "claims": [
+        {
+          "text": "The paper reports that globular clusters no longer experience orbital decay toward the centers of their host galaxies for m_22 ≤ 1.46[+] −[0] 0[.] .[51] 32 in the Fornax cluster.",
+          "cited_context_ids": [
+            "01792ee2-fadb-52f1-ad8a-927618b8b15c"
+          ],
+          "need_ids": []
+        },
+        {
+          "text": "The paper reports that globular clusters no longer experience orbital decay toward the centers of their host galaxies for m_22 ≤ 1.09[+] −[0] 0[.] .[14] 21 in the Perseus cluster.",
+          "cited_context_ids": [
+            "01792ee2-fadb-52f1-ad8a-927618b8b15c"
+          ],
+          "need_ids": []
+        },
+        {
+          "text": "The paper states that the value of m_22 computed for the Fornax dwarf spheroidal galaxy is represented in Figure 5 (the values of m_22 are computed using the corrected radius R_3D and eccentricity e = 0.5).",
+          "cited_context_ids": [
+            "1a389b70-6535-598c-ada3-697ec056ff24"
+          ],
+          "need_ids": []
+        }
+      ],
+      "cited_context_ids": [
+        "01792ee2-fadb-52f1-ad8a-927618b8b15c",
+        "1a389b70-6535-598c-ada3-697ec056ff24"
+      ],
+      "metrics": {
+        "retrieval_hit": 0.0,
+        "retrieval_recall": 0.0,
+        "gold_citation_recall": 0.0,
+        "citation_from_retrieval": 1.0,
+        "retrieved_count": 5,
+        "cited_count": 2,
+        "required_paper_count": 1,
+        "retrieved_required_paper_count": 1,
+        "cited_required_paper_count": 1,
+        "required_paper_retrieval_recall": 1.0,
+        "required_paper_citation_recall": 1.0,
+        "all_required_papers_retrieved": 1.0,
+        "answer_correctness": 0.5,
+        "groundedness": 1.0,
+        "answer_relevance": 1.0,
+        "correct_abstention": null
+      },
+      "judge": {
+        "correctness": 0.5,
+        "answer_relevance": 1.0,
+        "abstention": "not_applicable",
+        "reason": "Reference assessment: The actual answer correctly gives the numeric upper limits for Fornax and Perseus with matching central values (1.46 and 1.09) but mangles the uncertainty notation and formatting; Fornax and Perseus uncertainties are present in reference but the answer's strings are corrupted. For the Fornax dSph the actual answer fails to provide the numeric upper limit (1.38) and only refers to Figure 5, so that item is missing. Grounding assessment: Each claim is directly supported by the provided quoted excerpts from the paper: (a) and (b) are verbatim sentences in the abstract giving the numeric m_22 upper limits for Fornax and Perseus; (c) is explicitly stated on page 5 that the Fornax dSph m_22 value is shown in Figure 5 and computed using R_3D and e = 0.5.",
+        "answer_checks": [
+          {
+            "question_part_id": "q_a",
+            "requested_fact": "Fornax galaxy cluster m_22 upper limit (value and uncertainty)",
+            "status": "partial",
+            "required_numeric_values": [
+              "1.46",
+              "0.00",
+              "0.51"
+            ],
+            "missing_or_incorrect_detail": "Uncertainty formatting in the answer is corrupted; the central value 1.46 appears but the plus/minus bounds are not clearly and correctly reported as +0.00 −0.51.",
+            "deficit_basis": "missing_content",
+            "claimed_missing_answer_fragments": [
+              "+0.00",
+              "−0.51"
+            ],
+            "answer_claim_ids": [
+              "a0001"
+            ],
+            "answer_quotes": [
+              "The paper reports that globular clusters no longer experience orbital decay toward the centers of their host galaxies for m_22 ≤ 1.46[+] −[0] 0[.] .[51] 32 in the Fornax cluster."
+            ]
+          },
+          {
+            "question_part_id": "q_b",
+            "requested_fact": "Perseus galaxy cluster m_22 upper limit (value and uncertainty)",
+            "status": "partial",
+            "required_numeric_values": [
+              "1.09",
+              "0.00",
+              "0.14"
+            ],
+            "missing_or_incorrect_detail": "Central value 1.09 appears but the uncertainty is corrupted in the answer text and not clearly given as +0.00 −0.14.",
+            "deficit_basis": "missing_content",
+            "claimed_missing_answer_fragments": [
+              "+0.00",
+              "−0.14"
+            ],
+            "answer_claim_ids": [
+              "a0003"
+            ],
+            "answer_quotes": [
+              "The paper reports that globular clusters no longer experience orbital decay toward the centers of their host galaxies for m_22 ≤ 1.09[+] −[0] 0[.] .[14] 21 in the Perseus cluster."
+            ]
+          },
+          {
+            "question_part_id": "q_c",
+            "requested_fact": "Fornax dwarf spheroidal m_22 upper limit (value and uncertainty)",
+            "status": "missing",
+            "required_numeric_values": [
+              "1.38",
+              "0.00",
+              "0.48"
+            ],
+            "missing_or_incorrect_detail": "Answer gives no numeric upper limit for Fornax dSph; it only refers to Figure 5 and states m_22 is computed there, omitting the reported value 1.38 (+0.00 −0.48).",
+            "deficit_basis": "missing_content",
+            "claimed_missing_answer_fragments": [
+              "1.38",
+              "+0.00",
+              "−0.48"
+            ],
+            "answer_claim_ids": [
+              "a0004"
+            ],
+            "answer_quotes": [
+              "The paper states that the value of m_22 computed for the Fornax dwarf spheroidal galaxy is represented in Figure 5 (the values of m_22 are computed using the corrected radius R_3D and eccentricity e = 0.5)."
+            ]
+          }
+        ],
+        "answer_anchors": [
+          {
+            "id": "a0001",
+            "text": "The paper reports that globular clusters no longer experience orbital decay toward the centers of their host galaxies for m_22 ≤ 1.46[+] −[0] 0[.] .[51] 32 in the Fornax cluster.",
+            "source": "claim",
+            "claim_index": 0
+          },
+          {
+            "id": "a0002",
+            "text": " [1]",
+            "source": "answer_span",
+            "claim_index": null
+          },
+          {
+            "id": "a0003",
+            "text": "The paper reports that globular clusters no longer experience orbital decay toward the centers of their host galaxies for m_22 ≤ 1.09[+] −[0] 0[.] .[14] 21 in the Perseus cluster.",
+            "source": "claim",
+            "claim_index": 1
+          },
+          {
+            "id": "a0004",
+            "text": "The paper states that the value of m_22 computed for the Fornax dwarf spheroidal galaxy is represented in Figure 5 (the values of m_22 are computed using the corrected radius R_3D and eccentricity e = 0.5).",
+            "source": "claim",
+            "claim_index": 2
+          },
+          {
+            "id": "a0005",
+            "text": " [2]",
+            "source": "answer_span",
+            "claim_index": null
+          }
+        ],
+        "reference_score_status": "scored",
+        "groundedness": 1.0
+      },
+      "judge_request": {
+        "reference": {
+          "response_id": "resp_0077aa7ef4a6f106016ad0d5de158487d1a32444576eceaf8a",
+          "response_ids": [
+            "resp_0077aa7ef4a6f106016ad0d5de158487d1a32444576eceaf8a"
+          ],
+          "attempts": 1,
+          "quote_validation_failures": [],
+          "schema_validation_failures": [],
+          "consistency_validation_failures": [],
+          "consistency_status": "no_detected_conflict",
+          "raw_correctness": 0.5,
+          "score_status": "scored",
+          "answer_anchor_mode": "claim_ids",
+          "request_id": "req_9a994a1ccb42471086e16b508f7780a5",
+          "model": "gpt-5-mini-2025-08-07",
+          "max_output_tokens": 16384,
+          "usage": {
+            "input_tokens": 3899,
+            "output_tokens": 665,
+            "total_tokens": 4564
+          }
+        },
+        "grounding": {
+          "response_id": "resp_00e76b84a74316c4016ad0d5e4fd2487d1afb29dffbe3d2396",
+          "response_ids": [
+            "resp_00e76b84a74316c4016ad0d5e4fd2487d1afb29dffbe3d2396"
+          ],
+          "attempts": 1,
+          "quote_validation_failures": [],
+          "schema_validation_failures": [],
+          "consistency_validation_failures": [],
+          "consistency_status": "no_detected_conflict",
+          "raw_correctness": null,
+          "score_status": "scored",
+          "answer_anchor_mode": "claim_ids",
+          "request_id": "req_941dca1adc7c42eeaeb7ba878a5f8b94",
+          "model": "gpt-5-mini-2025-08-07",
+          "max_output_tokens": 16384,
+          "usage": {
+            "input_tokens": 2889,
+            "output_tokens": 190,
+            "total_tokens": 3079
+          },
+          "method_attributions": [
+            {
+              "applicability": "not_applicable",
+              "answer_claim_id": "a0001",
+              "claim_index": 0
+            },
+            {
+              "applicability": "not_applicable",
+              "answer_claim_id": "a0002",
+              "claim_index": 1
+            },
+            {
+              "applicability": "not_applicable",
+              "answer_claim_id": "a0003",
+              "claim_index": 2
+            }
+          ],
+          "claim_anchors": [
+            {
+              "id": "a0001",
+              "claim_index": 0
+            },
+            {
+              "id": "a0002",
+              "claim_index": 1
+            },
+            {
+              "id": "a0003",
+              "claim_index": 2
+            }
+          ],
+          "annotation_validation_failures": [],
+          "method_validation_failures": [],
+          "method_scope_issues": [],
+          "raw_groundedness": 1.0
+        }
+      },
+      "judge_error": null,
+      "judge_safeguards": [
+        {
+          "metric": "correctness",
+          "from": 0.5,
+          "to": 0.5,
+          "reason": "reference_assessment_not_answer_anchored",
+          "checks": [
+            {
+              "check_index": 0,
+              "status": "partial",
+              "invalid_quote_count": 0,
+              "missing_numeric_values": [
+                "0.51"
+              ]
+            },
+            {
+              "check_index": 1,
+              "status": "partial",
+              "invalid_quote_count": 0,
+              "missing_numeric_values": [
+                "0.14"
+              ]
+            },
+            {
+              "check_index": 2,
+              "status": "missing",
+              "invalid_quote_count": 0,
+              "missing_numeric_values": [
+                "1.38",
+                "0.00",
+                "0.48"
+              ]
+            }
+          ]
+        }
+      ],
+      "agent_execution": null,
+      "retrieval_diagnostics": {
+        "policy": "hybrid-reviewed-graph-v1",
+        "publication_id": "publication:e1a26713b02bf59482d9cebbd3cd514eb236579769e9751f3bc545e7dfad896a",
+        "graph_name": "star-clusters-pilot",
+        "extraction_revision": "85c8277bd45e9f37ec74d2dd00199020f3ec0f405e1a587b16ef67828b6983f4",
+        "plan_id": "4478d08032fead1a7180f726a8b748a0ac6eefd31cdeb5981b1ab52d32d07293",
+        "graph_paper_count": 7,
+        "eligible_graph_paper_count": 7,
+        "graph_build_ids": [
+          "34eb5f35-38cc-52c0-b968-919813e40de3",
+          "3ee890b7-f475-51fc-93bd-8e222f1812de",
+          "7e872b04-edf9-580e-bb62-3fdcde30a06a",
+          "90456f74-656c-5dc3-bac6-5739e80edeee",
+          "bee7f645-7b83-52b8-b1f5-03410d99d146",
+          "c35fa35e-89c3-5a4c-bbd0-3b8745801521",
+          "f68cb9e4-8b5a-5b1f-9080-d174a829e777"
+        ],
+        "excluded_graph_paper_count": 0,
+        "matched_entity_ids": [],
+        "seed_record_count": 0,
+        "validated_record_count": 86,
+        "traversed_record_ids": [],
+        "graph_candidate_count": 0,
+        "graph_candidates_truncated": false,
+        "graph_chunk_ids": [],
+        "scope_kind": "frozen",
+        "traversal_max_links": 2,
+        "database_writes": 0,
+        "hybrid_seed_count": 5,
+        "selected_graph_chunk_count": 0,
+        "selected_chunk_count": 5,
+        "graph_used": false,
+        "hybrid_seconds": 0.484,
+        "graph_seconds": 0.085,
+        "retrieval_status": "hybrid_only_no_graph_match",
+        "candidate_count": 5,
+        "candidate_paper_ids": [
+          "d8b1a37d-8307-5790-bbeb-6246d2343374"
+        ],
+        "candidate_paper_count": 1,
+        "selected_paper_ids": [
+          "d8b1a37d-8307-5790-bbeb-6246d2343374"
+        ],
+        "selected_paper_count": 1,
+        "required_paper_count": 1,
+        "required_paper_candidate_recall": 1.0,
+        "required_paper_selected_recall": 1.0,
+        "all_required_papers_in_candidates": 1.0,
+        "all_required_papers_selected": 1.0
+      },
+      "generation_diagnostics": null,
+      "stage_timings": {
+        "kg_hybrid_seconds": 0.484,
+        "kg_graph_seconds": 0.085,
+        "retrieval_seconds": 0.595,
+        "generation_seconds": 22.123,
+        "pipeline_seconds": 22.726,
+        "judge_reference_seconds": 6.883,
+        "judge_grounding_seconds": 2.465,
+        "judge_seconds": 9.348
+      },
+      "elapsed_seconds": 32.075,
+      "error": null
+    },
+    {
+      "question_id": "q0003",
+      "kind": "single_paper",
+      "profile": "single_fact",
+      "mode": "kg",
+      "question": "In \"H II region filling factors in NGC 628: Luminosity-size relation and connection with polycyclic aromatic hydrocarbon emission\", what was the sample size of H II regions used to compare SIGNALS and PHANGS-MUSE FF values, and did the two surveys produce consistent FF measurements after homogenization?",
+      "reference_answer": "The study selected a total of 622 H II regions from the SIGNALS and PHANGS-MUSE surveys, and after applying a consistent homogenization of physical parameters and density measurements the derived filling factor values showed very good agreement between the two surveys (i.e., they were statistically consistent). (evidence: 03f11027f87d37771b2883f0)",
+      "answer": "The study used a sample of 622 H II regions for the filling factor (FF) analysis, combining 475 regions from SIGNALS and 147 regions from PHANGS-MUSE. [1]\n\nAfter applying a consistent homogenization of the physical parameters and density measurements, the derived FF values from the SIGNALS and PHANGS-MUSE surveys showed very good agreement and were statistically consistent, confirming the equivalence of the two datasets for this analysis. [2]",
+      "retrieved_chunks": [
+        {
+          "id": "dd052d35-b134-5ca4-ab13-90796c031b46",
+          "text": "_A&A proofs:_ manuscript no. aa57698-25corr \n\nThe typical spatial resolutions of the SIGNALS and the PHANGS-MUSE surveys in NGC 628 do not allow us to resolve substructures such as rings, shells, or cavities within the analyzed H II regions. We selected a total of 622 H II regions from the SIGNALS and the PHANGS-MUSE H II regions survey. After applying a consistent homogenization of the physical parameters and density measurements in the two surveys, we found that the derived FF values showed very good agreement. The statistical consistency between the distributions confirms the equivalence of the SIGNALS and PHANGS-MUSE datasets for this analysis and provides a robust basis for our subsequent results. We also compared our results with published H II region catalogs of the same galaxy based on PHANGS-MUSE and PHANGS-MUSE HST data. These catalogs use different segmentation pipelines and boundary definitions. We demonstrated that the apparent slope of the observed Hα luminosity–R relation is not universal, but rather a methodological effect reflecting the position of the radius definition threshold relative to the intrinsic profile scale of each region (Sect. 4). The cross-catalog analysis demonstrated in Fig. 1 confirms that this scatter is not an effect of the boundary definition but reflects physical variation in _n_[2] _e_[in] the population. \n\nLuminous giant and supergiant H II regions show the expected decrease in FF with increasing volume (Gutiérrez & Beckman 2010; Cedrés et al. 2013), consistent with the definitional scaling. This behavior indicates that larger regions are characterized by more widely spaced clumps and, consequently, by a larger fraction of low-density gas occupying the available volume (Hunt & Hirashita 2009). However, the variance explained by volume alone is low ( _R_[2] _fit_[∼] 0.16-0.21), indicating that volume alone cannot explain the intrinsic scatter of FF within this group of regions. ",
+          "collection": "arxiv_papers_v2",
+          "build_id": "bba07e0b-37a5-53d7-a865-0d6d815f5c40",
+          "paper_id": "03b48dee-359c-58ab-ab8d-32911ac70051",
+          "title": "H II region filling factors in NGC 628: Luminosity-size relation and connection with polycyclic aromatic hydrocarbon emission",
+          "arxiv_id": "2609.00902",
+          "paper_version": 1,
+          "source_url": "https://arxiv.org/abs/2609.00902v1",
+          "authors": [
+            "Lorena Aragüete Riesco",
+            "José M. Vílchez",
+            "Salvador Duarte Puertas",
+            "Laurie Rousseau-Nepton",
+            "Carmelle Robert",
+            "René Pierre Martin",
+            "Philippe Amram",
+            "Robert Kennicutt",
+            "Christophe Morisset",
+            "Ray Garner"
+          ],
+          "year": 2026,
+          "page": 20,
+          "section_header": "**7. Discussion**",
+          "content_kind": "text",
+          "chunk_index": 97,
+          "score": 0.01639344262295082,
+          "rerank_score": null,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        },
+        {
+          "id": "6ec95f0c-d7a1-51d1-b8b2-e01761a62981",
+          "text": "## **ABSTRACT** \n\n_Aims._ Understanding the internal structure of H II regions is fundamental for constraining star formation processes in galaxies. We investigated how the filling factor (FF) relates to luminosity, size, electron density, and Hα equivalent width (EW(Hα)) in H II regions. We also explored the association between star-forming regions and the polycyclic aromatic hydrocarbon (PAH)-to-dust emission, to assess their possible connection to the evolutionary stages of H II regions. \n\n_Methods._ We investigated the FF in 622 H II regions in NGC 628 by combining 475 regions from SIGNALS and 147 from PHANGSMUSE using a dedicated analysis pipeline. We derived the luminosity, emission line fluxes, radii, electron densities, and FF. We used PHANGS-JWST survey images to study the spatial relation between the FF and PAH-to-dust emission, quantified by the PAH-to-dust ratio _RPAH_ using James Webb Space Telescope/Mid-Infrared Instrument (JWST/MIRI) emission bands at 7.7, 11.3, and 21 µm. _Results._ Higher Log(FF) and high EW(Hα) values are found in luminous regions, whereas more extended regions with lower EW(Hα) display lower Log(FF) values. We show that the H II radius definition significantly affects the LHα − R relation. Low-luminosity compact H II regions appear to reflect a transition from cluster-powered regions to nebulae that are ionized by single massive stars, with the transition occurring around log(LHα) ∼ 37 erg s[−][1] . The PAH-to-dust ratio RPAH correlates with the volumetric Hα luminosity density, LHα/R[3] , with a transitional range centered around log(LHα/R[3] ) ∼ 32 erg s[−][1] , corresponding to log(FF) ≈−4.4. Regions with lower Log(FF) values exhibit higher RPAH values, suggesting less efficient PAH processing in more porous structures. ",
+          "collection": "arxiv_papers_v2",
+          "build_id": "bba07e0b-37a5-53d7-a865-0d6d815f5c40",
+          "paper_id": "03b48dee-359c-58ab-ab8d-32911ac70051",
+          "title": "H II region filling factors in NGC 628: Luminosity-size relation and connection with polycyclic aromatic hydrocarbon emission",
+          "arxiv_id": "2609.00902",
+          "paper_version": 1,
+          "source_url": "https://arxiv.org/abs/2609.00902v1",
+          "authors": [
+            "Lorena Aragüete Riesco",
+            "José M. Vílchez",
+            "Salvador Duarte Puertas",
+            "Laurie Rousseau-Nepton",
+            "Carmelle Robert",
+            "René Pierre Martin",
+            "Philippe Amram",
+            "Robert Kennicutt",
+            "Christophe Morisset",
+            "Ray Garner"
+          ],
+          "year": 2026,
+          "page": 1,
+          "section_header": "**ABSTRACT**",
+          "content_kind": "text",
+          "chunk_index": 3,
+          "score": 0.016129032258064516,
+          "rerank_score": null,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        },
+        {
+          "id": "17c27aaa-37ec-5083-abcc-62509fbb9e8a",
+          "text": "## **8. Conclusions** \n\nWe presented a detailed census of extragalactic H II regions in NGC 628, providing homogeneous measurements of luminosity, emission line fluxes, and radii by combining 475 H II regions from the SIGNALS survey and 147 regions from PHANGSMUSE in NGC 628. We provided measurements of the Hα luminosity, emission line fluxes, electron densities, radii, and FF in the two surveys and extended the comparison to three published H II region catalogs based on different segmentation methods. Our analysis confirmed a close connection between the FF and several fundamental properties of H II regions, highlighting its diagnostic value for probing their internal structure. We also investigated the connection between H II regions and the PAH-todust ratio, offering new insights into the interplay among star \n\nArticle number, page 21",
+          "collection": "arxiv_papers_v2",
+          "build_id": "bba07e0b-37a5-53d7-a865-0d6d815f5c40",
+          "paper_id": "03b48dee-359c-58ab-ab8d-32911ac70051",
+          "title": "H II region filling factors in NGC 628: Luminosity-size relation and connection with polycyclic aromatic hydrocarbon emission",
+          "arxiv_id": "2609.00902",
+          "paper_version": 1,
+          "source_url": "https://arxiv.org/abs/2609.00902v1",
+          "authors": [
+            "Lorena Aragüete Riesco",
+            "José M. Vílchez",
+            "Salvador Duarte Puertas",
+            "Laurie Rousseau-Nepton",
+            "Carmelle Robert",
+            "René Pierre Martin",
+            "Philippe Amram",
+            "Robert Kennicutt",
+            "Christophe Morisset",
+            "Ray Garner"
+          ],
+          "year": 2026,
+          "page": 21,
+          "section_header": "**8. Conclusions**",
+          "content_kind": "text",
+          "chunk_index": 106,
+          "score": 0.015873015873015872,
+          "rerank_score": null,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        },
+        {
+          "id": "b92b92cd-9676-53e0-80a8-b36ba20e1948",
+          "text": "## _5.3. Final H II region samples_ \n\nWe defined the final H II region samples of SIGNALS and PHANGS by applying a set of quality and physical criteria. We adopted a conservative lower limit of _ne_ ∼ 80 cm[−][3] to ensure reliable electron density estimates. In addition, we required a minimum signal-to-noise ratio in the emission lines used for the derivation of physical parameters, as summarized in Table F.1. \n\nFor the FF calculation, the characteristic radius _R_ is defined according to the catalog method. In SIGNALS, _R_ corresponds to the profile-truncated radius derived from the pseudo-Voigt fit, while in PHANGS it is defined as the geometric mean of the semi-major and semi-minor axes of the minimum bounding ellipse, yielding an area-equivalent circular radius. The filling factor is then computed following Eq. 6. We further excluded regions with log(FF) < −7, which are likely dominated by observational uncertainties. The resulting samples consist of 475 H II regions in SIGNALS-H II and 147 in PHANGS-H II. ",
+          "collection": "arxiv_papers_v2",
+          "build_id": "bba07e0b-37a5-53d7-a865-0d6d815f5c40",
+          "paper_id": "03b48dee-359c-58ab-ab8d-32911ac70051",
+          "title": "H II region filling factors in NGC 628: Luminosity-size relation and connection with polycyclic aromatic hydrocarbon emission",
+          "arxiv_id": "2609.00902",
+          "paper_version": 1,
+          "source_url": "https://arxiv.org/abs/2609.00902v1",
+          "authors": [
+            "Lorena Aragüete Riesco",
+            "José M. Vílchez",
+            "Salvador Duarte Puertas",
+            "Laurie Rousseau-Nepton",
+            "Carmelle Robert",
+            "René Pierre Martin",
+            "Philippe Amram",
+            "Robert Kennicutt",
+            "Christophe Morisset",
+            "Ray Garner"
+          ],
+          "year": 2026,
+          "page": 10,
+          "section_header": "_5.3. Final H II region samples_",
+          "content_kind": "text",
+          "chunk_index": 54,
+          "score": 0.015625,
+          "rerank_score": null,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        },
+        {
+          "id": "fe1c0853-0637-54d8-b587-4b52c6b9ab46",
+          "text": "To assess the consistency between electron density measurements in the two surveys, we constructed a new subsample (hereafter SIGNALS-MUSE) containing 227 regions from SIGNALS-H II sample. We created this subsample by limiting it to regions fully enclosed within the PHANGS-MUSE FoV, maintaining a minimum distance of 1 PSF from the mosaicked boundaries. Inspection of the right histogram in Figure G.2 (see Appendix) shows that both subsamples show a concentration of values near the adopted lower density limit 80 cm[−][3] . Fig. 2 shows the Hα image of NGC 628 with the final selection of H II regions from SIGNALS-MUSE and PHANGS-H II. To enable a direct comparison of the electron densities in the catalogs, we derived _ne_ for the samples of Groves et al. (2023), Congiu et al. (2023), and Barnes et al. (2026), as described in Subsubsect. 5.4.1. We applied a common set of quality criteria following the same procedure used for the SIGNALS-H II and PHANGS-H II catalogs (i) classification as H II according to BPT-type diagnostics; (ii) positive fluxes in the two [S II] λλ6716, 6731 lines; (iii) no edge or stellar-contamination flags when available; (iv) signal-to-noise ratios greater than four in [S II] λ6716, [S II] λ6730, [N II] λ6583, [O III] λ5007, Hα, and Hβ; and (v) H II region radii larger than the PSF FWHM. Furthermore, for the catalogs of Congiu et al. (2023), Groves et al. (2023), and Barnes et al. (2026), the FF calculation assumes that \n\n_R_ corresponds to the circularized radius derived from the segmented area. \n\n**==> picture [127 x 123] intentionally omitted <==**\n\n**==> picture [127 x 123] intentionally omitted <==**",
+          "collection": "arxiv_papers_v2",
+          "build_id": "bba07e0b-37a5-53d7-a865-0d6d815f5c40",
+          "paper_id": "03b48dee-359c-58ab-ab8d-32911ac70051",
+          "title": "H II region filling factors in NGC 628: Luminosity-size relation and connection with polycyclic aromatic hydrocarbon emission",
+          "arxiv_id": "2609.00902",
+          "paper_version": 1,
+          "source_url": "https://arxiv.org/abs/2609.00902v1",
+          "authors": [
+            "Lorena Aragüete Riesco",
+            "José M. Vílchez",
+            "Salvador Duarte Puertas",
+            "Laurie Rousseau-Nepton",
+            "Carmelle Robert",
+            "René Pierre Martin",
+            "Philippe Amram",
+            "Robert Kennicutt",
+            "Christophe Morisset",
+            "Ray Garner"
+          ],
+          "year": 2026,
+          "page": 10,
+          "section_header": "_5.3. Final H II region samples_",
+          "content_kind": "text",
+          "chunk_index": 55,
+          "score": 0.015384615384615385,
+          "rerank_score": null,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        }
+      ],
+      "claims": [
+        {
+          "text": "The study used a sample of 622 H II regions for the filling factor (FF) analysis, combining 475 regions from SIGNALS and 147 regions from PHANGS-MUSE.",
+          "cited_context_ids": [
+            "6ec95f0c-d7a1-51d1-b8b2-e01761a62981"
+          ],
+          "need_ids": []
+        },
+        {
+          "text": "After applying a consistent homogenization of the physical parameters and density measurements, the derived FF values from the SIGNALS and PHANGS-MUSE surveys showed very good agreement and were statistically consistent, confirming the equivalence of the two datasets for this analysis.",
+          "cited_context_ids": [
+            "dd052d35-b134-5ca4-ab13-90796c031b46"
+          ],
+          "need_ids": []
+        }
+      ],
+      "cited_context_ids": [
+        "6ec95f0c-d7a1-51d1-b8b2-e01761a62981",
+        "dd052d35-b134-5ca4-ab13-90796c031b46"
+      ],
+      "metrics": {
+        "retrieval_hit": 1.0,
+        "retrieval_recall": 1.0,
+        "gold_citation_recall": 1.0,
+        "citation_from_retrieval": 1.0,
+        "retrieved_count": 5,
+        "cited_count": 2,
+        "required_paper_count": 1,
+        "retrieved_required_paper_count": 1,
+        "cited_required_paper_count": 1,
+        "required_paper_retrieval_recall": 1.0,
+        "required_paper_citation_recall": 1.0,
+        "all_required_papers_retrieved": 1.0,
+        "answer_correctness": 0.5,
+        "groundedness": 1.0,
+        "answer_relevance": 1.0,
+        "correct_abstention": null
+      },
+      "judge": {
+        "correctness": 0.5,
+        "answer_relevance": 1.0,
+        "abstention": "not_applicable",
+        "reason": "Reference assessment: Answer correctly states total sample size (622) and that FF values agreed after homogenization, matching the reference. However, the breakdown into 475 SIGNALS and 147 PHANGS-MUSE is not supported by the provided reference evidence (which only gives the total 622 and agreement), so partial correctness. Grounding assessment: Both claims are directly and precisely supported by the cited excerpts: the abstract states the sample composition and total of 622 regions (475 SIGNALS + 147 PHANGS-MUSE), and the paper text explicitly reports that, after homogenization, the derived FF values showed very good agreement and statistical consistency.",
+        "answer_checks": [
+          {
+            "question_part_id": "q_original",
+            "requested_fact": "Total sample size of H II regions selected from SIGNALS and PHANGS-MUSE",
+            "status": "answered",
+            "required_numeric_values": [],
+            "missing_or_incorrect_detail": "",
+            "deficit_basis": "none",
+            "claimed_missing_answer_fragments": [],
+            "answer_claim_ids": [
+              "a0001"
+            ],
+            "answer_quotes": [
+              "The study used a sample of 622 H II regions for the filling factor (FF) analysis, combining 475 regions from SIGNALS and 147 regions from PHANGS-MUSE."
+            ]
+          },
+          {
+            "question_part_id": "q_original",
+            "requested_fact": "Did the two surveys produce consistent FF measurements after homogenization?",
+            "status": "answered",
+            "required_numeric_values": [],
+            "missing_or_incorrect_detail": "",
+            "deficit_basis": "none",
+            "claimed_missing_answer_fragments": [],
+            "answer_claim_ids": [
+              "a0003"
+            ],
+            "answer_quotes": [
+              "After applying a consistent homogenization of the physical parameters and density measurements, the derived FF values from the SIGNALS and PHANGS-MUSE surveys showed very good agreement and were statistically consistent, confirming the equivalence of the two datasets for this analysis."
+            ]
+          }
+        ],
+        "answer_anchors": [
+          {
+            "id": "a0001",
+            "text": "The study used a sample of 622 H II regions for the filling factor (FF) analysis, combining 475 regions from SIGNALS and 147 regions from PHANGS-MUSE.",
+            "source": "claim",
+            "claim_index": 0
+          },
+          {
+            "id": "a0002",
+            "text": " [1]",
+            "source": "answer_span",
+            "claim_index": null
+          },
+          {
+            "id": "a0003",
+            "text": "After applying a consistent homogenization of the physical parameters and density measurements, the derived FF values from the SIGNALS and PHANGS-MUSE surveys showed very good agreement and were statistically consistent, confirming the equivalence of the two datasets for this analysis.",
+            "source": "claim",
+            "claim_index": 1
+          },
+          {
+            "id": "a0004",
+            "text": " [2]",
+            "source": "answer_span",
+            "claim_index": null
+          }
+        ],
+        "reference_score_status": "scored",
+        "groundedness": 1.0
+      },
+      "judge_request": {
+        "reference": {
+          "response_id": "resp_0eb97371c00687ea016ad0d5f0fb9c87d1ac2d42215870d4b2",
+          "response_ids": [
+            "resp_0eb97371c00687ea016ad0d5f0fb9c87d1ac2d42215870d4b2"
+          ],
+          "attempts": 1,
+          "quote_validation_failures": [],
+          "schema_validation_failures": [],
+          "consistency_validation_failures": [],
+          "consistency_status": "no_detected_conflict",
+          "raw_correctness": 0.5,
+          "score_status": "scored",
+          "answer_anchor_mode": "claim_ids",
+          "request_id": "req_52ea28bd63664554ad1f430760183f00",
+          "model": "gpt-5-mini-2025-08-07",
+          "max_output_tokens": 16384,
+          "usage": {
+            "input_tokens": 2740,
+            "output_tokens": 301,
+            "total_tokens": 3041
+          }
+        },
+        "grounding": {
+          "response_id": "resp_0d1040de4ea64855016ad0d5f4d48087d1b5b055210ac80b62",
+          "response_ids": [
+            "resp_0d1040de4ea64855016ad0d5f4d48087d1b5b055210ac80b62"
+          ],
+          "attempts": 1,
+          "quote_validation_failures": [],
+          "schema_validation_failures": [],
+          "consistency_validation_failures": [],
+          "consistency_status": "no_detected_conflict",
+          "raw_correctness": null,
+          "score_status": "scored",
+          "answer_anchor_mode": "claim_ids",
+          "request_id": "req_71780bff93064aa39e661ae89ebd8e64",
+          "model": "gpt-5-mini-2025-08-07",
+          "max_output_tokens": 16384,
+          "usage": {
+            "input_tokens": 2643,
+            "output_tokens": 144,
+            "total_tokens": 2787
+          },
+          "method_attributions": [
+            {
+              "applicability": "not_applicable",
+              "answer_claim_id": "a0001",
+              "claim_index": 0
+            },
+            {
+              "applicability": "not_applicable",
+              "answer_claim_id": "a0002",
+              "claim_index": 1
+            }
+          ],
+          "claim_anchors": [
+            {
+              "id": "a0001",
+              "claim_index": 0
+            },
+            {
+              "id": "a0002",
+              "claim_index": 1
+            }
+          ],
+          "annotation_validation_failures": [],
+          "method_validation_failures": [],
+          "method_scope_issues": [],
+          "raw_groundedness": 1.0
+        }
+      },
+      "judge_error": null,
+      "judge_safeguards": [],
+      "agent_execution": null,
+      "retrieval_diagnostics": {
+        "policy": "hybrid-reviewed-graph-v1",
+        "publication_id": "publication:e1a26713b02bf59482d9cebbd3cd514eb236579769e9751f3bc545e7dfad896a",
+        "graph_name": "star-clusters-pilot",
+        "extraction_revision": "85c8277bd45e9f37ec74d2dd00199020f3ec0f405e1a587b16ef67828b6983f4",
+        "plan_id": "4478d08032fead1a7180f726a8b748a0ac6eefd31cdeb5981b1ab52d32d07293",
+        "graph_paper_count": 7,
+        "eligible_graph_paper_count": 7,
+        "graph_build_ids": [
+          "34eb5f35-38cc-52c0-b968-919813e40de3",
+          "3ee890b7-f475-51fc-93bd-8e222f1812de",
+          "7e872b04-edf9-580e-bb62-3fdcde30a06a",
+          "90456f74-656c-5dc3-bac6-5739e80edeee",
+          "bee7f645-7b83-52b8-b1f5-03410d99d146",
+          "c35fa35e-89c3-5a4c-bbd0-3b8745801521",
+          "f68cb9e4-8b5a-5b1f-9080-d174a829e777"
+        ],
+        "excluded_graph_paper_count": 0,
+        "matched_entity_ids": [],
+        "seed_record_count": 0,
+        "validated_record_count": 86,
+        "traversed_record_ids": [],
+        "graph_candidate_count": 0,
+        "graph_candidates_truncated": false,
+        "graph_chunk_ids": [],
+        "scope_kind": "frozen",
+        "traversal_max_links": 2,
+        "database_writes": 0,
+        "hybrid_seed_count": 5,
+        "selected_graph_chunk_count": 0,
+        "selected_chunk_count": 5,
+        "graph_used": false,
+        "hybrid_seconds": 0.452,
+        "graph_seconds": 0.106,
+        "retrieval_status": "hybrid_only_no_graph_match",
+        "candidate_count": 5,
+        "candidate_paper_ids": [
+          "03b48dee-359c-58ab-ab8d-32911ac70051"
+        ],
+        "candidate_paper_count": 1,
+        "selected_paper_ids": [
+          "03b48dee-359c-58ab-ab8d-32911ac70051"
+        ],
+        "selected_paper_count": 1,
+        "required_paper_count": 1,
+        "required_paper_candidate_recall": 1.0,
+        "required_paper_selected_recall": 1.0,
+        "all_required_papers_in_candidates": 1.0,
+        "all_required_papers_selected": 1.0
+      },
+      "generation_diagnostics": null,
+      "stage_timings": {
+        "kg_hybrid_seconds": 0.452,
+        "kg_graph_seconds": 0.106,
+        "retrieval_seconds": 0.583,
+        "generation_seconds": 8.872,
+        "pipeline_seconds": 9.463,
+        "judge_reference_seconds": 3.913,
+        "judge_grounding_seconds": 1.76,
+        "judge_seconds": 5.673
+      },
+      "elapsed_seconds": 15.137,
+      "error": null
+    }
+  ]
+}

@@ -19,8 +19,10 @@ from src.api.kg.artifacts import VerifiedReader, load_paper
 from src.api.kg.contracts import SourceChunk
 from src.api.kg.extraction import CandidateRecords, ScientificExtractor, REVISION
 from src.api.kg.extraction import ScientificResult, bind_sources, staging_graph
+from src.api.kg.extraction import PROMPT, PREVIOUS_SCIENTIFIC_REVISION, quarantine_report
 from src.api.kg import jobs
 from src.api.kg.settings import KGSettings
+from src.api.kg.spans import source_spans
 
 
 PAPER = "00000000-0000-0000-0000-000000000001"
@@ -67,11 +69,11 @@ def corpus(tmp_path):
 
 
 def records(text="M22 has distance 3.27 ± 0.14 kpc."):
-    evidence = [dict(quote=text)]
+    evidence = [dict(span_id="s001")]
     return dict(entities=[dict(id="m22", kind="astronomical_object", name="M22", aliases=[], evidence=evidence)],
         observations=[dict(id="distance", subject_id="m22", kind="measurement", statement=text,
             quantity="distance", value_text="3.27", unit_text="kpc", uncertainty_text="± 0.14",
-            conditions=[], evidence=evidence)], relationships=[])
+            quantity_dimension="length", quality_flags=[], conditions=[], evidence=evidence)], relationships=[])
 
 
 def sdk_component(settings, responses):
@@ -196,24 +198,101 @@ def test_native_sdk_schema_component_and_resumption(corpus):
         schema = requests[0]["response_format"]["json_schema"]
         assert schema["strict"] is True
         assert schema["schema"]["additionalProperties"] is False
+        for definition in [schema["schema"], *schema["schema"]["$defs"].values()]:
+            if definition.get("type") == "object":
+                assert definition["additionalProperties"] is False
+                assert set(definition["required"]) == set(definition["properties"])
+        observation_schema = schema["schema"]["$defs"]["SpanObservation"]
+        assert "selection_criterion" in observation_schema["properties"]["kind"]["enum"]
+        assert "quality_flags" in observation_schema["required"]
         assert requests[0]["max_completion_tokens"] == 16384
+        assert requests[0]["messages"][0] == dict(role="system", content=PROMPT)
+        request_input = json.loads(requests[0]["messages"][1]["content"])
+        assert request_input["source_spans"] == [dict(span_id="s001", text="M22 has distance 3.27 ± 0.14 kpc.")]
+        assert "source_text" not in request_input
         saved = json.loads((corpus.directory / "candidates.json").read_text())
         batch = saved["chunks"][0]["batch"]
         assert batch["entities"][0]["id"].startswith(f"{BUILD}:{REVISION}:")
         assert batch["observations"][0]["uncertainty_text"] == "± 0.14"
+        assert saved["chunks"][0]["source_spans"][0]["id"] == "s001"
         assert saved["graph_ready"] is False and saved["review_status"] == "needs_review"
     finally:
         client.close()
 
 
-@pytest.mark.parametrize("bad", ["invented_quote", "missing_node", "refuse", "connection"])
+def test_invalid_relationship_roles_are_quarantined_by_native_pipeline(corpus):
+    prepare(corpus)
+    body = records()
+    body["entities"].append(dict(id="catalogue", kind="dataset", name="Catalogue",
+                                 aliases=[], evidence=[dict(span_id="s001")]))
+    body["relationships"] = [dict(id="edge", subject_id="m22", object_id="catalogue",
+        predicate="observed_with", epistemic_status="reported", evidence=[dict(span_id="s001")])]
+    component, requests, client = sdk_component(corpus.settings, [body])
+    try:
+        result = jobs.extract(corpus.directory, corpus.settings, max_calls=1, component=component)
+        assert result["states"]["complete"] == 1 and len(requests) == 1
+        saved = json.loads((corpus.directory / "candidates.json").read_text())["chunks"][0]
+        assert saved["quarantine"][0]["reasons"] == ["invalid_relationship_role"]
+        assert saved["batch"]["relationships"][0]["object_id"].endswith(":catalogue")
+        assert all(edge["type"] != "OBSERVED_WITH" for edge in saved["graph"]["relationships"])
+        assert len(saved["graph"]["nodes"]) == 3  # Valid entities/observation survive.
+        assert jobs.validate(corpus.directory)["quarantined_records"] == 1
+    finally:
+        client.close()
+
+
+@pytest.mark.parametrize("tamper", [None, "quarantine", "graph", "schema"])
+def test_numeric_quarantine_preserves_raw_values_and_excludes_dependent_edges(corpus, tamper):
+    prepare(corpus)
+    body = records()
+    ambiguous = deepcopy(body["observations"][0])
+    ambiguous.update(id="damaged", quantity="birth rate", value_text="6.91[+0].82",
+                     unit_text="Myr", uncertainty_text=None, quantity_dimension="inverse_time")
+    body["observations"].append(ambiguous)
+    body["relationships"] = [dict(id="edge", subject_id="distance", object_id="damaged",
+        predicate="compares_with", epistemic_status="reported", evidence=[dict(span_id="s001")])]
+    component, requests, client = sdk_component(corpus.settings, [body])
+    try:
+        result = jobs.extract(corpus.directory, corpus.settings, max_calls=1, component=component)
+        assert result["states"]["complete"] == 1 and result["quarantined_records"] == 2
+        saved = json.loads((corpus.directory / "candidates.json").read_text())["chunks"][0]
+        bad = saved["batch"]["observations"][1]
+        assert bad["value_text"] == "6.91[+0].82" and bad["unit_text"] == "Myr"
+        assert bad["quality_flags"] == ["numeric_format_ambiguous", "unit_dimension_conflict"]
+        assert bad["evidence"][0]["quote"] == "M22 has distance 3.27 ± 0.14 kpc."
+        assert len(saved["graph"]["nodes"]) == 2  # Entity and clean observation survive.
+        assert [edge["type"] for edge in saved["graph"]["relationships"]] == ["HAS_OBSERVATION"]
+        validated = jobs.validate(corpus.directory)
+        assert validated["quarantined_records"] == 2 and validated["semantic_schema_checked_chunks"] == 1
+        assert validated["graph_ready"] is False and len(requests) == 1
+        if tamper:
+            with sqlite3.connect(corpus.directory / "checkpoints.sqlite") as db:
+                point, raw = db.execute("SELECT id,result FROM jobs WHERE status='complete'").fetchone()
+                raw = json.loads(raw)
+                if tamper == "quarantine":
+                    raw["quarantine"] = []
+                elif tamper == "graph":
+                    raw["graph"]["nodes"].append(dict(id=bad["id"], label="Observation", properties={}))
+                else:
+                    raw["batch"]["schema_version"] = "scientific-kg-v1"
+                    for observation in raw["batch"]["observations"]:
+                        observation.pop("quantity_dimension")
+                        observation.pop("quality_flags")
+                db.execute("UPDATE jobs SET result=? WHERE id=?", (json.dumps(raw), point))
+            with pytest.raises(ValueError, match="differs|schema/revision"):
+                jobs.validate(corpus.directory)
+    finally:
+        client.close()
+
+
+@pytest.mark.parametrize("bad", ["unknown_span", "duplicate_id", "refuse", "connection"])
 def test_failures_checkpoint_not_silent_retry(corpus, bad):
     prepare(corpus)
     output = records()
-    if bad == "invented_quote":
-        output["observations"][0]["evidence"] = [dict(quote="not in the source")]
-    elif bad == "missing_node":
-        output["observations"][0]["subject_id"] = "undeclared"
+    if bad == "unknown_span":
+        output["observations"][0]["evidence"] = [dict(span_id="s999")]
+    elif bad == "duplicate_id":
+        output["observations"][0]["id"] = "m22"
     elif bad == "refuse":
         output = "refuse"
     else:
@@ -225,10 +304,12 @@ def test_failures_checkpoint_not_silent_retry(corpus, bad):
         with sqlite3.connect(corpus.directory / "checkpoints.sqlite") as db:
             failed = db.execute("SELECT id,result,error FROM jobs WHERE status='failed'").fetchone()
             diagnostics = json.loads(failed[1]).get("safe_diagnostics", {})
-            if bad in {"invented_quote", "missing_node"}:
-                expected = "quote_not_found" if bad == "invented_quote" else "undeclared_observation_subject"
-                assert diagnostics["rejection_issues"][0]["code"] == expected
+            if bad == "duplicate_id":
+                assert diagnostics["rejection_issues"][0]["code"] == "duplicate_record_id"
                 assert diagnostics["rejection_issues"][0]["path"].startswith("observations.0.")
+            if bad == "unknown_span":
+                assert diagnostics["validation_error_codes"] == ["literal_error"]
+                assert diagnostics["validation_error_locations"] == ["observations.0.evidence.0.span_id"]
             # Isolate resumption eligibility: mark the untested remaining jobs interrupted.
             db.execute("UPDATE jobs SET status='interrupted' WHERE status='pending'")
             assert "test secret" not in failed[2]
@@ -245,7 +326,7 @@ def test_failures_checkpoint_not_silent_retry(corpus, bad):
 def test_explicit_retry_preserves_attempt_history(corpus):
     prepare(corpus)
     bad = records()
-    bad["entities"][0]["evidence"] = [dict(quote="absent")]
+    bad["observations"][0]["id"] = "m22"
     component, requests, client = sdk_component(corpus.settings, [bad, records()])
     try:
         jobs.extract(corpus.directory, corpus.settings, max_calls=1, component=component)
@@ -264,12 +345,12 @@ def test_diagnostics_cover_all_rejected_records_without_raw_output(corpus):
     source = load_paper(corpus.paper, corpus.catalogue, corpus.reader)[0][0]
     bad = records()
     bad["observations"][0].update(id="m22", subject_id="secret-unavailable-subject")
-    bad["observations"][0]["evidence"] = [dict(quote="secret mismatched provider quote")]
+    bad["observations"][0]["evidence"] = [dict(span_id="secret unavailable source span")]
     bad["relationships"] = [dict(id="edge", subject_id="secret-missing-node", object_id="secret-other-node",
-        predicate="compares_with", epistemic_status="reported", evidence=[dict(quote=source.text)])]
+        predicate="compares_with", epistemic_status="reported", evidence=[dict(span_id="s001")])]
     details = rejection_diagnostics(CandidateRecords.model_validate(bad), source)
     assert [issue["code"] for issue in details["rejection_issues"]] == [
-        "duplicate_record_id", "undeclared_observation_subject", "quote_not_found",
+        "duplicate_record_id", "undeclared_observation_subject", "unknown_source_span",
         "undeclared_relationship_endpoint", "undeclared_relationship_endpoint"]
     assert "secret" not in json.dumps(details)
 
@@ -426,7 +507,7 @@ def test_parallel_independent_chunks_are_bounded(corpus):
             with lock:
                 active[0] -= 1
             return ScientificResult(batch=batch, graph=staging_graph(batch), usage=None,
-                                    provider_model="test", response_id="test")
+                                    provider_model="test", response_id="test", source_spans=source_spans(chunk.text))
     result = jobs.extract(corpus.directory, corpus.settings, max_calls=2, component=Component())
     assert result["states"]["complete"] == 2 and maximum[0] == 2
     assert result["attempts_with_unknown_usage"] == 2
@@ -443,6 +524,199 @@ def test_validate_detects_candidate_graph_tampering(corpus):
             value["graph"]["nodes"] = []
             db.execute("UPDATE jobs SET result=? WHERE id=?", (json.dumps(value), point))
         with pytest.raises(ValueError, match="graph differs"):
+            jobs.validate(corpus.directory)
+    finally:
+        client.close()
+
+
+def test_sdk_schema_limits_span_ids_to_this_chunk(corpus):
+    import asyncio
+    text = "# Results\n\nM22 has distance 3.27 ± 0.14 kpc.\n\n[Fe∕H] = −1.73 ± 0.17 dex."
+    chunk = SourceChunk(paper_id=PAPER, build_id=BUILD, point_id=str(uuid5(NAMESPACE_URL, "span-test")),
+                        collection="arxiv_papers_v2", source="arxiv", page_number=1,
+                        section_header="Results", text=text)
+    body = records()
+    for record in body["entities"] + body["observations"]:
+        record["evidence"] = [dict(span_id="s002"), dict(span_id="s003")]
+    component, requests, client = sdk_component(corpus.settings, [body])
+    try:
+        result = asyncio.run(component.run(chunk))
+        schema = requests[0]["response_format"]["json_schema"]["schema"]
+        assert schema["$defs"]["ChunkSpanReference"]["properties"]["span_id"]["enum"] == ["s001", "s002", "s003"]
+        assert "quote" not in schema["$defs"]["ChunkSpanReference"]["properties"]
+        assert [e.quote for e in result.batch.observations[0].evidence] == [
+            "M22 has distance 3.27 ± 0.14 kpc.", "[Fe∕H] = −1.73 ± 0.17 dex."]
+        result.batch.validate_sources([chunk])
+    finally:
+        client.close()
+
+
+def test_binding_rejects_unknown_span_without_fuzzy_repair(corpus):
+    source = load_paper(corpus.paper, corpus.catalogue, corpus.reader)[0][0]
+    body = records()
+    body["entities"][0]["evidence"] = [dict(span_id="s999")]
+    with pytest.raises(ValueError, match="unknown source span"):
+        bind_sources(CandidateRecords.model_validate(body), source, corpus.settings.KG_MODEL)
+
+
+@pytest.mark.parametrize("text,kind,quantity,value,unit", [
+    ("Cluster A has distance 4.2 ± 0.3 kpc.", "measurement", "distance", "4.2", "kpc"),
+    ("The populations have comparable rotation.", "qualitative_finding", None, None, None),
+    ("The populations have near-solar metallicity.", "qualitative_finding", None, None, None),
+    ("We simulate a mass grid from 1 to 5 solar masses.", "model_parameter", "mass", "1 to 5", "solar masses"),
+    ("The simulation yields a mass of 3 solar masses.", "simulation_result", "mass", "3", "solar masses"),
+    ("We select stars brighter than magnitude 18.", "selection_criterion", "magnitude", "18", None),
+    ("The measured flux upper limit is 2 mJy.", "upper_limit", "flux", "2", "mJy"),
+    ("We adopt radius 2 pc from an earlier study.", "adopted_value", "radius", "2", "pc"),
+    ("We assume spherical symmetry.", "assumption", None, None, None),
+    ("We will test spherical symmetry.", "planned_analysis", None, None, None),
+    ("The caption reports a detected velocity gradient.", "qualitative_finding", None, None, None),
+])
+def test_prompt_classification_examples_survive_native_parsing_without_retyping(corpus, text, kind, quantity, value, unit):
+    """Mocked contract regression, NOT a claim that a live model classifies correctly."""
+    import asyncio
+    body = records(text)
+    body["observations"][0].update(kind=kind, quantity=quantity, value_text=value,
+        unit_text=unit, uncertainty_text=None, quantity_dimension=None)
+    chunk = SourceChunk(paper_id=PAPER, build_id=BUILD, point_id=str(uuid5(NAMESPACE_URL, text)),
+        collection="arxiv_papers_v2", source="arxiv", page_number=1, text=text)
+    component, requests, client = sdk_component(corpus.settings, [body])
+    try:
+        result = asyncio.run(component.run(chunk))
+        observation = result.batch.observations[0]
+        assert observation.kind == kind and observation.value_text == value
+        assert not observation.quarantined and not result.quarantine
+        assert observation.evidence[0].quote == text
+        assert text.rstrip(".") in requests[0]["messages"][0]["content"]
+        assert len(requests) == 1  # Checklist is not a separate reviewer call.
+    finally:
+        client.close()
+
+
+def test_presentation_only_chunk_can_return_empty_without_injecting_prompt_examples(corpus):
+    import asyncio
+    text = "Black circles denote members; ticks are at 0, 1, 2."
+    chunk = SourceChunk(paper_id=PAPER, build_id=BUILD, point_id=str(uuid5(NAMESPACE_URL, text)),
+        collection="arxiv_papers_v2", source="arxiv", page_number=1, text=text)
+    component, requests, client = sdk_component(corpus.settings, [dict(entities=[], observations=[], relationships=[])])
+    try:
+        result = asyncio.run(component.run(chunk))
+        assert result.graph.nodes == [] and result.graph.relationships == []
+        source = json.loads(requests[0]["messages"][1]["content"])
+        assert source["source_spans"] == [dict(span_id="s001", text=text)]
+        assert "Cluster A" not in requests[0]["messages"][1]["content"]
+        assert len(requests) == 1
+    finally:
+        client.close()
+
+
+def test_prompt_checklist_keeps_guards_and_example_authority_explicit():
+    assert "Examples below illustrate classification, NEVER facts to extract" in PROMPT
+    assert "Final consistency checklist" in PROMPT
+    assert "Every observation.subject_id must name an entity declared in entities" in PROMPT
+    assert "Omit unsupported or incompatible relationships" in PROMPT
+    assert "Do not complete a dangling sentence" in PROMPT
+    assert "No numeric repairs" in PROMPT
+    assert "NOT analysis uses_dataset instrument" in PROMPT
+    assert "NOT study located_in object" in PROMPT
+    assert "Allowed relationship roles" in PROMPT
+    # Guidance changed; do not masquerade as the frozen pilot-schema-v3 revision.
+    assert REVISION != PREVIOUS_SCIENTIFIC_REVISION
+
+
+@pytest.mark.parametrize("tamper", [False, True])
+@pytest.mark.parametrize("previous_revision", [PREVIOUS_SCIENTIFIC_REVISION,
+    "85c8277bd45e9f37ec74d2dd00199020f3ec0f405e1a587b16ef67828b6983f4"])
+def test_previous_scientific_revision_preserves_v2_quarantine_and_span_validation(corpus, tamper, previous_revision):
+    from src.api.kg.scientific_schema import ExtractionBatch
+    prepare(corpus)
+    plan, chunks = jobs.read_plan(corpus.directory)
+    body = records()
+    body["observations"][0]["quality_flags"] = ["ambiguous_source_uncertainty"]
+    batch = bind_sources(CandidateRecords.model_validate(body), chunks[0], corpus.settings.KG_MODEL)
+    raw = batch.model_dump(mode="json")
+    raw["schema_version"] = "scientific-kg-v2"
+    raw["extraction_revision"] = previous_revision
+    for group in ("entities", "observations", "relationships"):
+        for record in raw[group]:
+            for key in ("id", "subject_id", "object_id"):
+                if key in record:
+                    record[key] = record[key].replace(REVISION, previous_revision)
+    previous = ExtractionBatch.model_validate(raw)
+    result = ScientificResult(batch=previous, graph=staging_graph(previous), usage=None,
+        provider_model="old-test", response_id="old-test", source_spans=source_spans(chunks[0].text),
+        quarantine=quarantine_report(previous))
+    plan["extraction_revision"] = previous_revision
+    plan["plan_id"] = sha256(jobs.canonical({k:v for k,v in plan.items() if k != "plan_id"}).encode()).hexdigest()
+    (corpus.directory / "plan.json").write_text(jobs.canonical(plan))
+    with jobs.open_checkpoints(corpus.directory, plan) as db:
+        saved = result.model_dump(mode="json")
+        if tamper:
+            saved["source_spans"][0]["start"] = 1
+        db.execute("UPDATE jobs SET status='complete',attempts=1,result=? WHERE id=?",
+                   (json.dumps(saved), str(chunks[0].point_id)))
+    if tamper:
+        with pytest.raises(ValueError, match="source spans differ"):
+            jobs.validate(corpus.directory)
+    else:
+        report = jobs.validate(corpus.directory)
+        assert report["validated_chunks"] == report["semantic_schema_checked_chunks"] == 1
+        assert report["legacy_chunks"] == 0 and report["quarantined_records"] == 1
+    # Historical results are readable only; current extraction cannot mix revisions.
+    with pytest.raises(ValueError, match="legacy extraction schema/revision"):
+        jobs.read_plan(corpus.directory)
+
+
+@pytest.mark.parametrize("previous", [
+    "31a420f578c730b5c441afb60c717bdce4b8c647318cad0a2e6c13ad24858bf0",
+    "6e228ba2ee5f121e5435aeb2a57a99cad12b4aefdcd6264653275e2dbcc277c8",
+])
+def test_legacy_quote_plan_readable_for_validation_but_not_extraction(corpus, previous):
+    from src.api.kg.extraction import LEGACY_REVISIONS
+    prepare(corpus)
+    plan, chunks = jobs.read_plan(corpus.directory)
+    # Build a representative legacy local checkpoint without API/database services.
+    batch = bind_sources(CandidateRecords.model_validate(records()), chunks[0], corpus.settings.KG_MODEL)
+    raw = batch.model_dump(mode="json")
+    assert previous in LEGACY_REVISIONS
+    raw["schema_version"] = "scientific-kg-v1"
+    raw["extraction_revision"] = previous
+    for record in raw["observations"]:
+        record.pop("quantity_dimension")
+        record.pop("quality_flags")
+    for group in ("entities", "observations", "relationships"):
+        for record in raw[group]:
+            for key in ("id", "subject_id", "object_id"):
+                if key in record:
+                    record[key] = record[key].replace(REVISION, previous)
+    from src.api.kg.contracts import ExtractionBatch
+    old_batch = ExtractionBatch.model_validate(raw)
+    result = ScientificResult(batch=old_batch, graph=staging_graph(old_batch), usage=None,
+                              provider_model="old-test", response_id="old-test",
+                              source_spans=source_spans(chunks[0].text))
+    plan["extraction_revision"] = previous
+    plan["plan_id"] = sha256(jobs.canonical({k:v for k,v in plan.items() if k != "plan_id"}).encode()).hexdigest()
+    (corpus.directory / "plan.json").write_text(jobs.canonical(plan))
+    with jobs.open_checkpoints(corpus.directory, plan) as db:
+        db.execute("UPDATE jobs SET status='complete',attempts=1,result=? WHERE id=?",
+                   (result.model_dump_json(), str(chunks[0].point_id)))
+    assert jobs.validate(corpus.directory)["validated_chunks"] == 1
+    with pytest.raises(ValueError, match="legacy extraction schema/revision"):
+        jobs.read_plan(corpus.directory)
+    assert jobs.read_plan(corpus.directory, require_current_revision=False)[0]["plan_id"] == plan["plan_id"]
+
+
+def test_validate_rejects_source_span_offset_tampering(corpus):
+    prepare(corpus)
+    component, _, client = sdk_component(corpus.settings, [records()])
+    try:
+        jobs.extract(corpus.directory, corpus.settings, max_calls=1, component=component)
+        with sqlite3.connect(corpus.directory / "checkpoints.sqlite") as db:
+            point, value = db.execute("SELECT id,result FROM jobs WHERE status='complete'").fetchone()
+            value = json.loads(value)
+            value["source_spans"][0]["start"] = 1
+            db.execute("UPDATE jobs SET result=? WHERE id=?", (json.dumps(value), point))
+        with pytest.raises(ValueError, match="source spans differ"):
             jobs.validate(corpus.directory)
     finally:
         client.close()

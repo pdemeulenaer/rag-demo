@@ -5,7 +5,7 @@ from pathlib import Path
 
 from pydantic import ValidationError
 
-from .contracts import ExtractionBatch
+from .record_schema import ExtractionBatch
 from .preview import DEFAULT_PILOT, preview
 
 
@@ -32,12 +32,68 @@ def main(argv=None):
                          help="Sample up to N distinct attempted chunks per paper across this directory; pending only")
     validate = commands.add_parser("validate", help="Check saved candidates/provenance; no model calls")
     validate.add_argument("--output", required=True, type=Path)
+    for name in ("review-prepare", "review-validate", "review-export", "review-set"):
+        command = commands.add_parser(name, help="Local scientific review; no model/database calls")
+        command.add_argument("--output", required=True, type=Path)
+        command.add_argument("--review", default="review.json", help="JSON sidecar filename within the KG directory")
+        if name == "review-set":
+            command.add_argument("--record-id", required=True)
+            command.add_argument("--decision", required=True, choices=("needs_review", "approved", "excluded"))
+            command.add_argument("--reviewer", required=True)
+            command.add_argument("--reason", choices=("presentation_only", "unsupported", "incorrect_type", "duplicate", "other"))
+            command.add_argument("--notes", default="")
+    for name in ("publish-preview", "publish", "publication-verify", "activate", "publication-status"):
+        command = commands.add_parser(name, help="Neo4j publication; no model calls (publish/activate write)")
+        if name != "publication-status":
+            command.add_argument("--output", required=True, type=Path)
+            command.add_argument("--review", default="review.json")
+        command.add_argument("--graph-name")
+        if name == "activate":
+            command.add_argument("--expect-active", default="none",
+                                 help="Expected current publication ID, or none for first activation")
     args = parser.parse_args(argv)
     try:
         if args.command == "schema":
             result = ExtractionBatch.model_json_schema()
         elif args.command == "preview":
             result = preview(args.snapshot, selection=args.selection, pilot_path=args.pilot)
+        elif args.command.startswith("review-"):
+            from . import review
+            if args.command == "review-prepare":
+                result = review.prepare(args.output, filename=args.review)
+            elif args.command == "review-set":
+                result = review.set_decision(args.output, args.record_id, args.decision,
+                    reviewer=args.reviewer, reason=args.reason, notes=args.notes, filename=args.review)
+            else:
+                result = review.validate(args.output, filename=args.review, export=args.command == "review-export")
+        elif args.command in {"publish-preview", "publish", "publication-verify", "activate", "publication-status"}:
+            from .settings import KGSettings
+            settings = KGSettings()
+            if args.graph_name:
+                settings = KGSettings.model_validate(settings.model_dump() | dict(KG_GRAPH_NAME=args.graph_name))
+            from .neo4j_store import Neo4jStore
+            store = None
+            try:
+                if args.command != "publish-preview":
+                    store = Neo4jStore.connect(settings)
+                if args.command == "publication-status":
+                    result = store.status(settings.KG_GRAPH_NAME)
+                else:
+                    from .publication import run
+                    from .artifacts import VerifiedReader
+                    from src.api.papers.catalogue import Catalogue
+                    catalogue = Catalogue(settings.PAPERS_DATABASE_URL)
+                    try:
+                        catalogue.require_schema()
+                        action = {"publish-preview": "preview", "publish": "stage", "publication-verify": "verify", "activate": "activate"}[args.command]
+                        result = run(args.output, settings, catalogue, VerifiedReader(settings), action=action,
+                                     filename=args.review, store=store,
+                                     expect_active=None if getattr(args, "expect_active", "none") == "none" else args.expect_active)
+                    finally:
+                        catalogue.close()
+            finally:
+                if store:
+                    store.close()
         else:
             from . import jobs
             if args.command == "validate":
