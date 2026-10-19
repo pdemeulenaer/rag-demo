@@ -63,21 +63,6 @@ PAPERS_PROCESS_ARGS = $(if $(LIMIT),--limit "$(LIMIT)")
 PAPERS_SCHEDULE_CLI := uv run python -m src.api.papers.schedule
 PAPERS_RUN_ARGS = $(if $(RUN_DATE),--run-date "$(RUN_DATE)") $(PAPERS_PROCESS_ARGS)
 
-BACKUP_DIR ?= $(HOME)/rag-demo-backups
-.PHONY: papers-backup papers-backups papers-backup-check
-# Export paths as values, never interpolate user paths into shell commands.
-papers-backup papers-backups papers-backup-check: export PAPERS_BACKUP_DIR := $(BACKUP_DIR)
-papers-backup-check: export PAPERS_BACKUP_FILE := $(FILE)
-
-papers-backup:
-	python3 scripts/papers_backup.py backup
-
-papers-backups:
-	python3 scripts/papers_backup.py list
-
-papers-backup-check:
-	python3 scripts/papers_backup.py check
-
 .PHONY: papers-scheduled papers-run-status airflow-up airflow-stop airflow-logs airflow-check airflow-password
 
 # Explicit paid run; fixes today's selection across retries, audits and reports.
@@ -133,6 +118,13 @@ KG_SELECTION ?= pilot
 KG_PILOT ?= src/api/kg/pilot.json
 KG_DIR ?= data/knowledge_graph/pilot-v1
 KG_PAPERS ?=
+KG_SOURCE ?= arxiv
+KG_TERM ?=
+KG_PAGE_SIZE ?= 20
+KG_AFTER ?=
+KG_PAPER_IDS ?=
+KG_INCLUDE_PILOT ?= true
+KG_SELECTION_FILE ?=
 KG_MAX_CALLS ?=
 KG_RETRY_FAILED ?= false
 KG_FAILED_ONLY ?= false
@@ -146,7 +138,7 @@ KG_NOTES ?=
 KG_GRAPH ?=
 KG_EXPECT_ACTIVE ?= none
 .PHONY: kg-publish-preview kg-publish kg-publication-verify kg-activate kg-publication-status kg-test-neo4j
-.PHONY: kg-up kg-stop kg-status kg-logs kg-preview kg-schema kg-prepare kg-extract kg-validate kg-test kg-help kg-review-prepare kg-review-set kg-review-validate kg-review-export
+.PHONY: kg-up kg-stop kg-status kg-logs kg-preview kg-schema kg-catalogue kg-select kg-prepare-preview kg-prepare kg-extract kg-validate kg-test kg-help kg-review-prepare kg-review-set kg-review-validate kg-review-export
 
 kg-up:
 	set -e
@@ -168,8 +160,18 @@ kg-preview:
 kg-schema:
 	uv run python -m src.api.kg schema
 
+kg-catalogue:
+	uv run python -m src.api.kg catalogue --source "$(KG_SOURCE)" --limit "$(KG_PAGE_SIZE)" $(if $(KG_TERM),--term "$(KG_TERM)",) $(if $(KG_AFTER),--after "$(KG_AFTER)",)
+
+kg-select:
+	uv run python -m src.api.kg select --output "$(KG_DIR)/selection.json" $(if $(filter true,$(KG_INCLUDE_PILOT)),--include-pilot "$(KG_PILOT)",) $(foreach id,$(KG_PAPER_IDS),--paper-id "$(id)")
+
+# The new preview defaults to the manifest in KG_DIR; no files/services are written.
+kg-prepare-preview:
+	uv run python -m src.api.kg prepare-preview --selection-file "$(if $(KG_SELECTION_FILE),$(KG_SELECTION_FILE),$(KG_DIR)/selection.json)" $(if $(KG_CHUNKS_PER_PAPER),--chunks-per-paper "$(KG_CHUNKS_PER_PAPER)",) $(if $(KG_MAX_CALLS),--max-calls "$(KG_MAX_CALLS)",)
+
 kg-prepare:
-	uv run --group kg python -m src.api.kg prepare --snapshot "$(KG_SNAPSHOT)" --selection "$(KG_SELECTION)" --pilot "$(KG_PILOT)" --output "$(KG_DIR)" $(if $(KG_PAPERS),--papers "$(KG_PAPERS)",)
+	uv run --group kg python -m src.api.kg prepare $(if $(KG_SELECTION_FILE),--selection-file "$(KG_SELECTION_FILE)",--snapshot "$(KG_SNAPSHOT)" --selection "$(KG_SELECTION)" --pilot "$(KG_PILOT)") --output "$(KG_DIR)" $(if $(KG_PAPERS),--papers "$(KG_PAPERS)",)
 
 kg-extract:
 	uv run --group kg python -m src.api.kg extract --output "$(KG_DIR)" $(if $(KG_MAX_CALLS),--max-calls "$(KG_MAX_CALLS)",) $(if $(filter true,$(KG_RETRY_FAILED)),--retry-failed,) $(if $(filter true,$(KG_FAILED_ONLY)),--failed-only,) $(if $(KG_CHUNKS_PER_PAPER),--chunks-per-paper "$(KG_CHUNKS_PER_PAPER)",)
@@ -205,14 +207,18 @@ kg-publication-status:
 	uv run --group kg python -m src.api.kg publication-status $(if $(KG_GRAPH),--graph-name "$(KG_GRAPH)",)
 
 kg-test:
-	LANGFUSE_ENABLED=false uv run --group kg python -m pytest tests/unit/test_kg_foundation.py tests/unit/test_kg_extraction.py tests/unit/test_kg_selection.py tests/unit/test_kg_spans.py tests/unit/test_kg_scientific_schema.py tests/unit/test_kg_review.py tests/unit/test_kg_publication.py tests/unit/test_kg_retrieval.py tests/unit/test_kg_runtime.py -q
+	LANGFUSE_ENABLED=false uv run --group kg python -m pytest tests/unit/test_kg_foundation.py tests/unit/test_kg_extraction.py tests/unit/test_kg_selection.py tests/unit/test_kg_spans.py tests/unit/test_kg_scientific_schema.py tests/unit/test_kg_review.py tests/unit/test_kg_publication.py tests/unit/test_kg_retrieval.py tests/unit/test_kg_runtime.py tests/unit/test_kg_catalogue.py -q
 
 kg-test-neo4j:
 	KG_RUN_NEO4J_INTEGRATION=1 LANGFUSE_ENABLED=false uv run --group kg python -m pytest tests/integration/test_kg_neo4j_publication.py -q
 
 kg-help:
 	@printf '%s\n' \
-	  'KG foundation (not yet a query mode):' \
+	  'KG workflow (KG query mode is available; KG-Agentic remains planned):' \
+	  '  make kg-catalogue KG_TERM=M22    Browse live ready metadata; paged, no model calls' \
+	  '  make kg-select KG_DIR=... KG_PAPER_IDS="id1 id2"  Freeze explicit IDs, including original pilot by default' \
+	  '  make kg-prepare-preview KG_DIR=... KG_CHUNKS_PER_PAPER=3  Verify artifacts and preview call counts; no writes' \
+	  '  make kg-prepare KG_DIR=... KG_SELECTION_FILE=.../selection.json  Prepare selected live builds, independent of evaluation' \
 	  '  make kg-preview                  Preview seven connected papers; no calls/writes' \
 	  '  make kg-preview KG_SELECTION=all Preview every paper in the saved snapshot' \
 	  '  make kg-schema                   Show the typed extraction schema' \
@@ -238,8 +244,14 @@ kg-help:
 	  'KG_SNAPSHOT and KG_PILOT accept alternate local files.' \
 	  'Guide: docs/architecture/knowledge-graph.md'
 
+# Paper catalogue, ingestion and backup commands.
+BACKUP_DIR ?= $(HOME)/rag-demo-backups
 .PHONY: papers-help papers-scope papers-preview papers-db-up papers-init-db \
-        papers-backfill papers-process papers-sync papers-daily papers-status papers-count papers-audit papers-import-uploads
+        papers-backfill papers-process papers-sync papers-daily papers-status papers-count papers-audit papers-import-uploads \
+        papers-backup papers-backups papers-backup-check
+# Export paths as values, never interpolate user paths into shell commands.
+papers-backup papers-backups papers-backup-check: export PAPERS_BACKUP_DIR := $(BACKUP_DIR)
+papers-backup-check: export PAPERS_BACKUP_FILE := $(FILE)
 
 papers-help:
 	@printf '%s\n' \
@@ -281,6 +293,15 @@ papers-preview:
 
 papers-db-up:
 	docker compose --profile papers up -d --wait postgres
+
+papers-backup:
+	python3 scripts/papers_backup.py backup
+
+papers-backups:
+	python3 scripts/papers_backup.py list
+
+papers-backup-check:
+	python3 scripts/papers_backup.py check
 
 papers-init-db:
 	$(PAPERS_CLI) init-db
@@ -417,46 +438,69 @@ eval-run:
 .PHONY: build run docs docs-build docs-deploy
 
 # Frontend
-build-ui:
+.PHONY: ui-update ui-build ui-run ui-tag ui-push update-ui streamlit-update build-ui run-ui tag-ui push-ui
+
+# Compatibility aliases; prefer the grouped ui-* names for new commands.
+update-ui streamlit-update: ui-update
+build-ui: ui-build
+run-ui: ui-run
+tag-ui: ui-tag
+push-ui: ui-push
+
+# Update only the Compose UI; the API must already be running (e.g. make compose).
+ui-update:
+	@set -e
+	docker compose up -d --build --no-deps --force-recreate --wait streamlit-app
+	echo "Streamlit updated: http://localhost:8501"
+
+ui-build:
 	@echo "Building image version: $(VERSION)"
 	@docker build -t $(FRONTEND_IMAGE_NAME):$(VERSION)  -f Dockerfile.streamlit .
 	@echo "Built image: $(FRONTEND_IMAGE_NAME):$(VERSION)"
 
-run-ui:
+ui-run:
 	@echo "Running image version: $(VERSION)"
 	@docker run -d -p 8501:8501 --env-file .env --name $(FRONTEND_IMAGE_NAME) $(FRONTEND_IMAGE_NAME):$(VERSION)
 	@echo "Running image: $(FRONTEND_IMAGE_NAME):$(VERSION)"
 	@echo "Access the app at http://localhost:8501"
 
-tag-ui:
+ui-tag:
 	@echo "Tag image version: $(VERSION)"
 	@docker tag $(FRONTEND_IMAGE_NAME):$(VERSION) $(DOCKER_FOLDER)/$(FRONTEND_IMAGE_NAME):$(VERSION)
 	@echo "Tagged image: $(DOCKER_FOLDER)/$(FRONTEND_IMAGE_NAME):$(VERSION)"
 
-push-ui:
+ui-push:
 	@echo "Pushing image version: $(VERSION)"
 	@docker push $(DOCKER_FOLDER)/$(FRONTEND_IMAGE_NAME):$(VERSION)
 	@echo "Pushed image: $(DOCKER_FOLDER)/$(FRONTEND_IMAGE_NAME):$(VERSION)"		
 
 
 # Backend
-build-fastapi:
+.PHONY: fastapi-build fastapi-run fastapi-tag fastapi-push build-fastapi run-fastapi tag-fastapi push-fastapi
+
+# Compatibility aliases; prefer the grouped fastapi-* names for new commands.
+build-fastapi: fastapi-build
+run-fastapi: fastapi-run
+tag-fastapi: fastapi-tag
+push-fastapi: fastapi-push
+
+fastapi-build:
 	@echo "Building image version: $(VERSION)"
 	@docker build -t $(BACKEND_IMAGE_NAME):$(VERSION) -f Dockerfile.fastapi .
 	@echo "Built image: $(BACKEND_IMAGE_NAME):$(VERSION)"
 
-run-fastapi:
+fastapi-run:
 	@echo "Running image version: $(VERSION)"
 	@docker run -d -p 8000:8000 --env-file .env --name $(BACKEND_IMAGE_NAME) $(BACKEND_IMAGE_NAME):$(VERSION)
 	@echo "Running image: $(BACKEND_IMAGE_NAME):$(VERSION)"
 	@echo "Access the app at http://localhost:8000"
 
-tag-fastapi:
+fastapi-tag:
 	@echo "Tag image version: $(VERSION)"
 	@docker tag $(BACKEND_IMAGE_NAME):$(VERSION) $(DOCKER_FOLDER)/$(BACKEND_IMAGE_NAME):$(VERSION)
 	@echo "Tagged image: $(DOCKER_FOLDER)/$(BACKEND_IMAGE_NAME):$(VERSION)"
 
-push-fastapi:
+fastapi-push:
 	@echo "Pushing image version: $(VERSION)"
 	@docker push $(DOCKER_FOLDER)/$(BACKEND_IMAGE_NAME):$(VERSION)
 	@echo "Pushed image: $(DOCKER_FOLDER)/$(BACKEND_IMAGE_NAME):$(VERSION)"		
