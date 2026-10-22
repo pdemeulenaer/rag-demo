@@ -138,7 +138,7 @@ KG_NOTES ?=
 KG_GRAPH ?=
 KG_EXPECT_ACTIVE ?= none
 .PHONY: kg-publish-preview kg-publish kg-publication-verify kg-activate kg-publication-status kg-test-neo4j
-.PHONY: kg-up kg-stop kg-status kg-logs kg-preview kg-schema kg-catalogue kg-select kg-prepare-preview kg-prepare kg-extract kg-validate kg-test kg-help kg-review-prepare kg-review-set kg-review-validate kg-review-export
+.PHONY: kg-up kg-stop kg-status kg-password kg-logs kg-preview kg-schema kg-catalogue kg-select kg-prepare-preview kg-prepare kg-extract kg-validate kg-test kg-help kg-review-prepare kg-review-set kg-review-validate kg-review-export
 
 kg-up:
 	set -e
@@ -150,6 +150,13 @@ kg-stop:
 
 kg-status:
 	$(KG_COMPOSE) ps neo4j
+
+# Local credential reminder only; does not reset or verify the persisted password.
+kg-password:
+	@set -e
+	$(KG_COMPOSE) exec -T neo4j sh -c 'auth="$${NEO4J_AUTH:?NEO4J_AUTH is not set}"; printf "Username: %s\nPassword: %s\n" "$${auth%%/*}" "$${auth#*/}"'
+	echo "Neo4j Browser: http://localhost:7474"
+	echo "Configured initial credentials only: changing .env does not reset an existing database password. Do not share this output."
 
 kg-logs:
 	$(KG_COMPOSE) logs --tail=100 -f neo4j
@@ -240,6 +247,7 @@ kg-help:
 	  '  make kg-test-neo4j               Native tests in a disposable Neo4j container; no .env/Compose' \
 	  '  make kg-up                       Start optional Neo4j; UI: http://localhost:7474' \
 	  '  make kg-status / kg-logs          Inspect the graph database service' \
+	  '  make kg-password                 Show local Neo4j login credentials and Browser URL (sensitive output)' \
 	  '  make kg-stop                     Stop Neo4j; preserve its data volumes' \
 	  'KG_SNAPSHOT and KG_PILOT accept alternate local files.' \
 	  'Guide: docs/architecture/knowledge-graph.md'

@@ -526,6 +526,52 @@ a missing stage means it was skipped or not measured. Older runs have no stage t
 so they cannot be retroactively decomposed. Timing instrumentation needs no re-index or
 new evaluation dataset.
 
+### Distinguish embedding latency from Qdrant latency
+
+New runs expose `embedding_seconds` and `qdrant_seconds` in per-question `stage_timings`,
+summary means/sample counts and the Markdown **Retrieval breakdown** table. This separates
+an embedding/network stall from a slow vector database call:
+
+- `embedding_seconds`: elapsed query-embedding client/request work, including any explicitly
+  configured SDK retries and their delays. Model/cap metadata is attached to the Langfuse
+  `query_embedding` span; the nested instrumented OpenAI call retains its normal usage trace.
+- `qdrant_seconds`: elapsed `query_points` calls only. It excludes embedding, local BM25
+  encoding, evidence validation, PostgreSQL metadata, graph traversal and reranking.
+- `kg_graph_seconds`: existing Neo4j graph/provenance stage. All three overlap their parent
+  retrieval timing and must not be added to it again.
+
+Failed calls retain their elapsed time. If embedding fails before Qdrant starts, only
+embedding time appears; Qdrant is absent, not zero. Agentic/federated calls accumulate their
+work within the request. Native parallel tools share a locked, request-local collector, so
+summed durations can exceed wall-clock retrieval. Means include measured failed calls and
+use each stage's own sample count. Do not infer a missing stage ran quickly or reinterpret
+old runs (including the 602-second combined Hybrid stage) as measured embedding time.
+
+Query embeddings now have explicit settings in `.env.sample` and `Config`:
+
+| Setting | Default | Allowed values | Meaning |
+| --- | --- | --- | --- |
+| `EMBEDDING_TIMEOUT_SECONDS` | `30` | `1–300` seconds | SDK timeout for HTTP phases (connect/read/write/pool), not a whole-operation deadline |
+| `EMBEDDING_MAX_RETRIES` | `0` | `0–2` | Automatic SDK retries **after** the first attempt; zero means one attempt |
+
+These are per-call SDK overrides; the shared client is not mutated or closed. They apply
+to query embeddings across Vanilla, Hybrid, Hybrid + Rerank, KG and Agentic, not PDF/paper
+ingestion, background question generation, answer generation, planning or judging. Higher
+retry values permit additional requests/delay and potentially duplicated billing after an
+unknown network outcome. Do not treat a per-phase timeout as a total wall-clock budget;
+see the [official OpenAI retry guidance](https://developers.openai.com/api/docs/guides/rate-limits).
+No additional application retry loop or automatic cap increase is added.
+
+`manifest.json` freezes `embedding_configuration` (model, timeout, retries and timeout
+semantics), also attached to Langfuse experiment metadata. Existing snapshots, graph
+publications and historical results are unchanged. The new defaults apply when omitted
+from an existing `.env`; no edit is required. Host `make eval-run` loads them immediately;
+rebuild/recreate the API for UI use. Re-run `kg0001` first with the same command, then inspect
+the new breakdown before the full comparison. Instrumentation/mock transport tests make
+no paid calls and do not establish live network health or a live speedup.
+
+### Agentic synthesis timings
+
 For Agentic synthesis, new runs additionally measure `agentic_draft_seconds`,
 `agentic_verify_seconds` (both reviews combined) and, when used, `agentic_repair_seconds`.
 They are included in `generation_seconds`, not additional latency to add to it.
@@ -709,7 +755,7 @@ deterministic metrics show a required paper was never retrieved, the runner over
 to `0` and records the change in `judge_safeguards`; an LLM judge cannot overrule that provenance
 fact.
 
-New runs use `judge_policy: claim-role-bound-v13` in the manifest. The reference judge must
+New runs use `judge_policy: claim-role-bound-v14` in the manifest. The reference judge must
 assess every original question part, enumerate its requested facts, and select existing
 `answer_claim_ids` from the **actual generated answer**, rather than retyping quotations.
 For numeric facts, checks also list the canonical
@@ -953,7 +999,18 @@ existing content-repair slot, while grounding shares its existing single annotat
 correction and remains unscored if unresolved. Genuine declared mismatches still cap
 grounding, and ordinary facts/proposals do not acquire an invented method gate. These cues
 are not exhaustive classification or semantic proof. Models, limits, indexes, historical
-results and reviewed datasets remain unchanged; use fresh comparable runs under v13.
+results and reviewed datasets remain unchanged.
+
+Version 14 fixes numeric answer anchoring for English-style comma-grouped thousands:
+`10,136` and `10136` compare equally, rather than interpreting the former as `10.136`.
+Complete groups of three digits after a nonzero one-to-three-digit leading group are
+recognized, including signs, fractional suffixes and scientific notation. Decimal commas
+such as `0,123` and `1,25` retain their decimal meaning; malformed grouping is not repaired.
+A correctly grouped `1,234` uses the English thousands convention, not both possible
+locale interpretations. This shared comparison helper also checks Agentic's cited numeric
+evidence. It does not change answer text, stored chunks, literal quotation requirements,
+semantic checks, citation scope or signed values. Historical scores stay untouched;
+fresh runs record v14, with no added model calls, retries, changed limits or re-indexing.
 
 All four explicit modes resolve quoted full paper titles against the bounded catalogue. If
 retrieval omits any resolved build, generation is skipped and `generation_diagnostics`
@@ -1020,6 +1077,17 @@ Schema-v1 datasets have no split metadata. Do not tune repeatedly on all of thei
 questions and then describe the same scores as held-out performance.
 
 ## Track runs in Langfuse
+
+For a small graph-covered comparison without replacing existing questions, see the
+[source-curated KG development set](../architecture/knowledge-graph.md#source-curated-kg-development-set).
+It uses the existing frozen corpus, eight AI-source-reviewed questions and an explicit
+`development-only-v1` policy, not a held-out test. New runtime retrieval receives no reference
+answers or graph record annotations from the dataset.
+KG retrieval failures expose allowlisted `error.kg_failure.code` / `.stage`; summary and
+Markdown report aggregate them separately from successful graph coverage. Do not interpret
+scores computed on one successful question as scores for an eight-question run with seven
+retrieval errors. Query policy v3 also changes named-title candidate selection in Hybrid/KG;
+compare fresh runs under the same policy and leave historical artifacts unchanged.
 
 Enable Langfuse as described in [Observability](observability.md). The same `make eval-run`
 then uploads the reviewed set to a content-addressed Langfuse Dataset and records every

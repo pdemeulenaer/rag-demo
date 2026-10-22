@@ -1,0 +1,498 @@
+{
+  "schema_version": 1,
+  "run_id": "20261020T063646Z-f2c1292e",
+  "results": [
+    {
+      "question_id": "q0002",
+      "kind": "single_paper",
+      "profile": "single_fact",
+      "mode": "kg",
+      "question": "In \"Constraints on the fuzzy dark matter mass using globular clusters in dwarf galaxies from Euclid ERO data\", what quantitative upper limits on the fuzzy dark matter mass parameter m_22 does the paper report for (a) the Fornax galaxy cluster, (b) the Perseus galaxy cluster, and (c) the Fornax dwarf spheroidal galaxy?",
+      "reference_answer": "The paper reports the following upper limits on m_22: (a) Fornax galaxy cluster: m_22 ≤ 1.46 (+0.00 −0.51); (b) Perseus galaxy cluster: m_22 ≤ 1.09 (+0.00 −0.14); (c) Fornax dSph: m_22 ≤ 1.38 (+0.00 −0.48). (Evidence: ddf71676ff9029e4c5534bca; 88d3700173b37b816de96731; c3d05f2f045b4bdbcb084059)",
+      "answer": "The paper reports that \"globular clusters no longer experience orbital decay toward the centers of their host galaxies for _m_22 ≤ 1.46[+] −[0] 0[.] .[51] 32\" in the Fornax cluster. [1]\n\nThe paper reports that \"globular clusters no longer experience orbital decay toward the centers of their host galaxies for _m_22 ≤ 1.09[+] −[0] 0[.] .[14] 21\" in the Perseus cluster. [1]\n\nThe paper states that the values of m_22 (including the value computed for the Fornax dSph) are computed using only the corrected radius R_3D and the eccentricity e = 0.5 and are represented in Figure 5. [2]",
+      "retrieved_chunks": [
+        {
+          "id": "01792ee2-fadb-52f1-ad8a-927618b8b15c",
+          "text": "## **ABSTRACT** \n\nWe constrain the particle mass of the fuzzy dark matter model using globular cluster candidates in dwarf galaxies, from the Euclid Early Release Observations, within the Fornax and Perseus galaxy clusters. We model the orbital evolution of globular clusters by combining fuzzy dark matter density profiles with the corresponding dynamical friction formalism, and integrate their orbits using `galpy` . In the fuzzy dark matter framework, both the halo density profile and the dynamical friction force are modified by the wave-like nature of the ultra-light dark matter particle, whose mass is parameterized as _m_ 22 = _m_ χ/10[−][22] , eV and explored over the range 0.1 ≤ _m_ 22 ≤ 100. This framework naturally alleviates the long-standing globular cluster timing problem originally identified in the Fornax dSph. We find that globular clusters no longer experience orbital decay toward the centers of their host galaxies for _m_ 22 ≤ 1.46[+] −[0] 0[.] .[51] 32[in the Fornax cluster and] _[ m]_[22][≤][1][.][09][+] −[0] 0[.] .[14] 21[in the Perseus cluster. Future Euclid data releases, providing substantially] larger samples of globular cluster candidates, will enable significantly tighter constraints on the dark matter particle mass within the fuzzy dark matter scenario. \n\n**Key words.** Dark matter - Galaxy dynamics - Globular clusters - Euclid - Methods: Orbital integrations",
+          "collection": "arxiv_papers_v2",
+          "build_id": "affc8bf5-8948-59f3-814f-737d0341b67d",
+          "paper_id": "d8b1a37d-8307-5790-bbeb-6246d2343374",
+          "title": "Constraints on the fuzzy dark matter mass using globular clusters in dwarf galaxies from Euclid ERO data",
+          "arxiv_id": "2609.11328",
+          "paper_version": 1,
+          "source_url": "https://arxiv.org/abs/2609.11328v1",
+          "authors": [
+            "Lisa Besnard",
+            "Pierre Boldrini",
+            "Paola Di Matteo",
+            "Chervin Laporte",
+            "Teymoor Saifollahi"
+          ],
+          "year": 2026,
+          "page": 1,
+          "section_header": "**Constraints on the fuzzy dark matter mass using globular clusters in dwarf galaxies from Euclid ERO data** > **ABSTRACT**",
+          "content_kind": "text",
+          "chunk_index": 3,
+          "score": 0.01639344262295082,
+          "rerank_score": null,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        },
+        {
+          "id": "b3ed85d5-50b6-5023-9e76-a3d701c635fb",
+          "text": "Besnard et al.: Constraints on the fuzzy dark matter mass using globular clusters in dwarf galaxies from Euclid ERO data",
+          "collection": "arxiv_papers_v2",
+          "build_id": "affc8bf5-8948-59f3-814f-737d0341b67d",
+          "paper_id": "d8b1a37d-8307-5790-bbeb-6246d2343374",
+          "title": "Constraints on the fuzzy dark matter mass using globular clusters in dwarf galaxies from Euclid ERO data",
+          "arxiv_id": "2609.11328",
+          "paper_version": 1,
+          "source_url": "https://arxiv.org/abs/2609.11328v1",
+          "authors": [
+            "Lisa Besnard",
+            "Pierre Boldrini",
+            "Paola Di Matteo",
+            "Chervin Laporte",
+            "Teymoor Saifollahi"
+          ],
+          "year": 2026,
+          "page": 7,
+          "section_header": "**Constraints on the fuzzy dark matter mass using globular clusters in dwarf galaxies from Euclid ERO data** > **5. Data Availability**",
+          "content_kind": "text",
+          "chunk_index": 33,
+          "score": 0.016129032258064516,
+          "rerank_score": null,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        },
+        {
+          "id": "ec2c974f-ab7f-59e7-9829-b039788649ff",
+          "text": "Besnard et al.: Constraints on the fuzzy dark matter mass using globular clusters in dwarf galaxies from Euclid ERO data \n\n**==> picture [256 x 186] intentionally omitted <==**\n\nFig. 4: Orbital radius as a function of time for three GCs in dwarf galaxies in the Perseus galaxy cluster, integrated using the maximum _m_ 22 for which none of them falls below 0.2 kpc within 10 Gyr. We use eccentricity _e_ = 0.5 and the corrected radius _R_ 3D. A GC with eccentricity _e_ = 0.5 is considered to have reached the center of its host galaxy when its last apocenter (in a timescale of 10 Gyr) is below 0.2 kpc \n\nsummary, a realistic configuration of the orbits ( _R_ 3D and _e_ = 0.5) increases the infall time of the GCs, leading to a higher particle mass needed to prevent their fall ( _m_ 22 ≤ 2.24) compared to _R_ 2D and _e_ = 0 ( _m_ 22 ≤ 1.33).",
+          "collection": "arxiv_papers_v2",
+          "build_id": "affc8bf5-8948-59f3-814f-737d0341b67d",
+          "paper_id": "d8b1a37d-8307-5790-bbeb-6246d2343374",
+          "title": "Constraints on the fuzzy dark matter mass using globular clusters in dwarf galaxies from Euclid ERO data",
+          "arxiv_id": "2609.11328",
+          "paper_version": 1,
+          "source_url": "https://arxiv.org/abs/2609.11328v1",
+          "authors": [
+            "Lisa Besnard",
+            "Pierre Boldrini",
+            "Paola Di Matteo",
+            "Chervin Laporte",
+            "Teymoor Saifollahi"
+          ],
+          "year": 2026,
+          "page": 5,
+          "section_header": "**Constraints on the fuzzy dark matter mass using globular clusters in dwarf galaxies from Euclid ERO data** > _3.1. Fornax dwarf galaxy globular clusters_",
+          "content_kind": "text",
+          "chunk_index": 22,
+          "score": 0.015873015873015872,
+          "rerank_score": null,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        },
+        {
+          "id": "1a389b70-6535-598c-ada3-697ec056ff24",
+          "text": "We then determine, for each galaxy of the Fornax and Perseus galaxy clusters, the maximum value of _m_ 22 (between 0.1 and 100) for which FDM effects are sufficient to ensure that none of the galaxy’s GCs fall into the central region. This value corresponds to the most constraining GC in each galaxy, which has the minimum _m_ 22. This results in a distribution of _m_ 22 values, with each value corresponding to one dwarf galaxy. The value of _m_ 22 computed for the Fornax dSph and the distributions of _m_ 22 obtained for the Fornax and Perseus galaxy clusters are represented in Figure 5. The values of _m_ 22 are computed using only the corrected radius _R_ 3D and the eccentricity _e_ = 0.5. ",
+          "collection": "arxiv_papers_v2",
+          "build_id": "affc8bf5-8948-59f3-814f-737d0341b67d",
+          "paper_id": "d8b1a37d-8307-5790-bbeb-6246d2343374",
+          "title": "Constraints on the fuzzy dark matter mass using globular clusters in dwarf galaxies from Euclid ERO data",
+          "arxiv_id": "2609.11328",
+          "paper_version": 1,
+          "source_url": "https://arxiv.org/abs/2609.11328v1",
+          "authors": [
+            "Lisa Besnard",
+            "Pierre Boldrini",
+            "Paola Di Matteo",
+            "Chervin Laporte",
+            "Teymoor Saifollahi"
+          ],
+          "year": 2026,
+          "page": 5,
+          "section_header": "**Constraints on the fuzzy dark matter mass using globular clusters in dwarf galaxies from Euclid ERO data** > _3.2. Euclid globular clusters of dwarf galaxies in the Fornax and Perseus galaxy clusters_",
+          "content_kind": "text",
+          "chunk_index": 25,
+          "score": 0.015625,
+          "rerank_score": null,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        },
+        {
+          "id": "024a6433-4345-5022-8ac7-966b500fd303",
+          "text": "_A&A proofs:_ manuscript no. main \n\nat higher masses (30 ≲ _m_ 22 ≲ 100), the model approaches the CDM behavior (Hu et al. 2000). Since the emergence of the timing problem, studies have focused on the Fornax dSph, and thus were limited by the small amount of observational data on dwarf galaxies hosting GCs. However, the Euclid mission has provided a large amount of observational data : almost 7000 GCs distributed among more than 800 dwarf galaxies in the local Universe (Saifollahi et al. 2025a,b). This includes the Fornax and Perseus galaxy clusters. \n\nA recent analysis based on Euclid Early Release Observations (ERO) (Cuillandre et al. 2025) investigated the GC timing problem within the standard CDM framework (Boldrini et al. (2026), in preparation). In this work, we extend this analysis to the FDM scenario in order to constrain the value of the FDM parameter _m_ 22. The paper is structured as follows: Section 2 presents the theoretical framework and numerical methodology. We describe how the ultra-light nature of the FDM particle modifies both the DM density profile in dwarf galaxies and DF, and how we simulate the orbital evolution of the Euclid GC candidates using `galpy` . In Section 3, we first take the example of the Fornax dSph to illustrate FDM effects on GC dynamics. Then we use Euclid ERO data to compute the mass parameter _m_ 22 for each dwarf galaxy in the Perseus and Fornax galaxy clusters by simulating the orbital evolution of their GCs, allowing us to provide an upper constraint on the FDM parameter _m_ 22 above which FDM effects are no longer sufficient to prevent the GCs from falling into the center of their host galaxy. Finally, Section 4 summarizes our main results, discusses them in the context of previous studies, and presents perspectives for future work.",
+          "collection": "arxiv_papers_v2",
+          "build_id": "affc8bf5-8948-59f3-814f-737d0341b67d",
+          "paper_id": "d8b1a37d-8307-5790-bbeb-6246d2343374",
+          "title": "Constraints on the fuzzy dark matter mass using globular clusters in dwarf galaxies from Euclid ERO data",
+          "arxiv_id": "2609.11328",
+          "paper_version": 1,
+          "source_url": "https://arxiv.org/abs/2609.11328v1",
+          "authors": [
+            "Lisa Besnard",
+            "Pierre Boldrini",
+            "Paola Di Matteo",
+            "Chervin Laporte",
+            "Teymoor Saifollahi"
+          ],
+          "year": 2026,
+          "page": 2,
+          "section_header": "**Constraints on the fuzzy dark matter mass using globular clusters in dwarf galaxies from Euclid ERO data** > **1. Introduction**",
+          "content_kind": "text",
+          "chunk_index": 7,
+          "score": 0.015384615384615385,
+          "rerank_score": null,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        }
+      ],
+      "claims": [
+        {
+          "text": "The paper reports that \"globular clusters no longer experience orbital decay toward the centers of their host galaxies for _m_22 ≤ 1.46[+] −[0] 0[.] .[51] 32\" in the Fornax cluster.",
+          "cited_context_ids": [
+            "01792ee2-fadb-52f1-ad8a-927618b8b15c"
+          ],
+          "need_ids": []
+        },
+        {
+          "text": "The paper reports that \"globular clusters no longer experience orbital decay toward the centers of their host galaxies for _m_22 ≤ 1.09[+] −[0] 0[.] .[14] 21\" in the Perseus cluster.",
+          "cited_context_ids": [
+            "01792ee2-fadb-52f1-ad8a-927618b8b15c"
+          ],
+          "need_ids": []
+        },
+        {
+          "text": "The paper states that the values of m_22 (including the value computed for the Fornax dSph) are computed using only the corrected radius R_3D and the eccentricity e = 0.5 and are represented in Figure 5.",
+          "cited_context_ids": [
+            "1a389b70-6535-598c-ada3-697ec056ff24"
+          ],
+          "need_ids": []
+        }
+      ],
+      "cited_context_ids": [
+        "01792ee2-fadb-52f1-ad8a-927618b8b15c",
+        "1a389b70-6535-598c-ada3-697ec056ff24"
+      ],
+      "metrics": {
+        "retrieval_hit": 0.0,
+        "retrieval_recall": 0.0,
+        "gold_citation_recall": 0.0,
+        "citation_from_retrieval": 1.0,
+        "retrieved_count": 5,
+        "cited_count": 2,
+        "required_paper_count": 1,
+        "retrieved_required_paper_count": 1,
+        "cited_required_paper_count": 1,
+        "required_paper_retrieval_recall": 1.0,
+        "required_paper_citation_recall": 1.0,
+        "all_required_papers_retrieved": 1.0,
+        "answer_correctness": 0.5,
+        "groundedness": 1.0,
+        "answer_relevance": 1.0,
+        "correct_abstention": null
+      },
+      "judge": {
+        "correctness": 0.5,
+        "answer_relevance": 1.0,
+        "abstention": "not_applicable",
+        "reason": "Reference assessment: Answer provided correct numeric values for Fornax and Perseus (though formatting in the answer text is garbled) but failed to provide the Fornax dSph numeric upper limit (m_22 ≤ 1.38 (+0.00 −0.48)) and instead only described how it was computed and shown in a figure. Hence partial overall correctness. Grounding assessment: Each claim is directly supported by the paper excerpts cited: the abstract contains the quoted numerical limits for Fornax and Perseus (claims a0001 and a0002), and page 5 explicitly states that m_22 values (including Fornax dSph) are computed using corrected radius R_3D and eccentricity e = 0.5 and shown in Figure 5 (claim a0003). Method attributions: none are named in the claims, so non-applicable entries are used.",
+        "answer_checks": [
+          {
+            "question_part_id": "q_a",
+            "requested_fact": "Fornax galaxy cluster upper limit m_22",
+            "status": "answered",
+            "required_numeric_values": [
+              "1.46",
+              "0.00",
+              "0.51"
+            ],
+            "missing_or_incorrect_detail": "",
+            "deficit_basis": "none",
+            "claimed_missing_answer_fragments": [],
+            "answer_claim_ids": [
+              "a0001"
+            ],
+            "answer_quotes": [
+              "The paper reports that \"globular clusters no longer experience orbital decay toward the centers of their host galaxies for _m_22 ≤ 1.46[+] −[0] 0[.] .[51] 32\" in the Fornax cluster."
+            ]
+          },
+          {
+            "question_part_id": "q_b",
+            "requested_fact": "Perseus galaxy cluster upper limit m_22",
+            "status": "answered",
+            "required_numeric_values": [
+              "1.09",
+              "0.00",
+              "0.14"
+            ],
+            "missing_or_incorrect_detail": "",
+            "deficit_basis": "none",
+            "claimed_missing_answer_fragments": [],
+            "answer_claim_ids": [
+              "a0003"
+            ],
+            "answer_quotes": [
+              "The paper reports that \"globular clusters no longer experience orbital decay toward the centers of their host galaxies for _m_22 ≤ 1.09[+] −[0] 0[.] .[14] 21\" in the Perseus cluster."
+            ]
+          },
+          {
+            "question_part_id": "q_c",
+            "requested_fact": "Fornax dwarf spheroidal galaxy upper limit m_22",
+            "status": "missing",
+            "required_numeric_values": [
+              "1.38",
+              "0.00",
+              "0.48"
+            ],
+            "missing_or_incorrect_detail": "Missing numeric upper limit m_22 ≤ 1.38 (+0.00 −0.48); answer only states that the value is computed using R_3D and e=0.5 and shown in Figure 5.",
+            "deficit_basis": "missing_content",
+            "claimed_missing_answer_fragments": [
+              "m_22 ≤ 1.38",
+              "+0.00",
+              "−0.48"
+            ],
+            "answer_claim_ids": [
+              "a0004"
+            ],
+            "answer_quotes": [
+              "The paper states that the values of m_22 (including the value computed for the Fornax dSph) are computed using only the corrected radius R_3D and the eccentricity e = 0.5 and are represented in Figure 5."
+            ]
+          }
+        ],
+        "answer_anchors": [
+          {
+            "id": "a0001",
+            "text": "The paper reports that \"globular clusters no longer experience orbital decay toward the centers of their host galaxies for _m_22 ≤ 1.46[+] −[0] 0[.] .[51] 32\" in the Fornax cluster.",
+            "source": "claim",
+            "claim_index": 0
+          },
+          {
+            "id": "a0002",
+            "text": " [1]",
+            "source": "answer_span",
+            "claim_index": null
+          },
+          {
+            "id": "a0003",
+            "text": "The paper reports that \"globular clusters no longer experience orbital decay toward the centers of their host galaxies for _m_22 ≤ 1.09[+] −[0] 0[.] .[14] 21\" in the Perseus cluster.",
+            "source": "claim",
+            "claim_index": 1
+          },
+          {
+            "id": "a0004",
+            "text": "The paper states that the values of m_22 (including the value computed for the Fornax dSph) are computed using only the corrected radius R_3D and the eccentricity e = 0.5 and are represented in Figure 5.",
+            "source": "claim",
+            "claim_index": 2
+          },
+          {
+            "id": "a0005",
+            "text": " [2]",
+            "source": "answer_span",
+            "claim_index": null
+          }
+        ],
+        "reference_score_status": "scored",
+        "groundedness": 1.0
+      },
+      "judge_request": {
+        "reference": {
+          "response_id": "resp_022aefeb6f83824a016ad70c200e8487d28faede694c4e2027",
+          "response_ids": [
+            "resp_022aefeb6f83824a016ad70c200e8487d28faede694c4e2027"
+          ],
+          "attempts": 1,
+          "quote_validation_failures": [],
+          "schema_validation_failures": [],
+          "consistency_validation_failures": [],
+          "consistency_status": "no_detected_conflict",
+          "raw_correctness": 0.5,
+          "score_status": "scored",
+          "answer_anchor_mode": "claim_ids",
+          "request_id": "req_4c959a183eac4cad9122de6bb0cec28c",
+          "model": "gpt-5-mini-2025-08-07",
+          "max_output_tokens": 16384,
+          "usage": {
+            "input_tokens": 3908,
+            "output_tokens": 535,
+            "total_tokens": 4443
+          }
+        },
+        "grounding": {
+          "response_id": "resp_0845857b92ab27c9016ad70c26a29487d29ef96dcf02ae39da",
+          "response_ids": [
+            "resp_0845857b92ab27c9016ad70c26a29487d29ef96dcf02ae39da"
+          ],
+          "attempts": 1,
+          "quote_validation_failures": [],
+          "schema_validation_failures": [],
+          "consistency_validation_failures": [],
+          "consistency_status": "no_detected_conflict",
+          "raw_correctness": null,
+          "score_status": "scored",
+          "answer_anchor_mode": "claim_ids",
+          "request_id": "req_61470998e65543269ffc447648f0c731",
+          "model": "gpt-5-mini-2025-08-07",
+          "max_output_tokens": 16384,
+          "usage": {
+            "input_tokens": 2898,
+            "output_tokens": 207,
+            "total_tokens": 3105
+          },
+          "method_attributions": [
+            {
+              "applicability": "not_applicable",
+              "answer_claim_id": "a0001",
+              "claim_index": 0
+            },
+            {
+              "applicability": "not_applicable",
+              "answer_claim_id": "a0002",
+              "claim_index": 1
+            },
+            {
+              "applicability": "not_applicable",
+              "answer_claim_id": "a0003",
+              "claim_index": 2
+            }
+          ],
+          "claim_anchors": [
+            {
+              "id": "a0001",
+              "claim_index": 0
+            },
+            {
+              "id": "a0002",
+              "claim_index": 1
+            },
+            {
+              "id": "a0003",
+              "claim_index": 2
+            }
+          ],
+          "annotation_validation_failures": [],
+          "method_validation_failures": [],
+          "method_scope_issues": [],
+          "raw_groundedness": 1.0
+        }
+      },
+      "judge_error": null,
+      "judge_safeguards": [
+        {
+          "metric": "correctness",
+          "from": 0.5,
+          "to": 0.5,
+          "reason": "reference_assessment_not_answer_anchored",
+          "checks": [
+            {
+              "check_index": 0,
+              "status": "answered",
+              "invalid_quote_count": 0,
+              "missing_numeric_values": [
+                "0.51"
+              ]
+            },
+            {
+              "check_index": 1,
+              "status": "answered",
+              "invalid_quote_count": 0,
+              "missing_numeric_values": [
+                "0.14"
+              ]
+            },
+            {
+              "check_index": 2,
+              "status": "missing",
+              "invalid_quote_count": 0,
+              "missing_numeric_values": [
+                "1.38",
+                "0.00",
+                "0.48"
+              ]
+            }
+          ]
+        }
+      ],
+      "agent_execution": null,
+      "retrieval_diagnostics": {
+        "policy": "hybrid-reviewed-graph-v2",
+        "publication_id": "publication:ef340620c8c35358052b02616a177172a1bdc4710641fe603f2fc127b447ba70",
+        "graph_name": "star-clusters-pilot",
+        "extraction_revision": "83a393f73bedc2a248aba2000cf7a16208a461029afa3b86322cd97fbd384549",
+        "plan_id": "65d9079bda8743744583da188e5b9a41fe1e37a1649ec353512ef0908c88bb0e",
+        "graph_paper_count": 8,
+        "eligible_graph_paper_count": 8,
+        "graph_build_ids": [
+          "34eb5f35-38cc-52c0-b968-919813e40de3",
+          "3ee890b7-f475-51fc-93bd-8e222f1812de",
+          "7e872b04-edf9-580e-bb62-3fdcde30a06a",
+          "857f03f5-5a9d-5259-9c13-3fb2366b96f1",
+          "90456f74-656c-5dc3-bac6-5739e80edeee",
+          "bee7f645-7b83-52b8-b1f5-03410d99d146",
+          "c35fa35e-89c3-5a4c-bbd0-3b8745801521",
+          "f68cb9e4-8b5a-5b1f-9080-d174a829e777"
+        ],
+        "excluded_graph_paper_count": 0,
+        "matched_entity_ids": [],
+        "seed_record_count": 0,
+        "validated_record_count": 175,
+        "traversed_record_ids": [],
+        "graph_candidate_count": 0,
+        "graph_candidates_truncated": false,
+        "graph_chunk_ids": [],
+        "scope_kind": "frozen",
+        "traversal_max_links": 2,
+        "database_writes": 0,
+        "query_entity_names": [],
+        "resolved_catalogue_ids": [],
+        "cross_paper_entity_groups": [],
+        "entity_resolution_conflicts": [],
+        "identity_expanded_seed_count": 0,
+        "survey_coverage_requested": false,
+        "coverage_candidate_paper_ids": [],
+        "coverage_selected_paper_ids": [],
+        "paper_diversity_applied": false,
+        "hybrid_seed_count": 5,
+        "hybrid_candidate_limit": 5,
+        "selected_graph_chunk_count": 0,
+        "selected_chunk_count": 5,
+        "graph_used": false,
+        "hybrid_seconds": 2.482,
+        "graph_seconds": 0.113,
+        "retrieval_status": "hybrid_only_no_graph_match",
+        "candidate_count": 5,
+        "candidate_paper_ids": [
+          "d8b1a37d-8307-5790-bbeb-6246d2343374"
+        ],
+        "candidate_paper_count": 1,
+        "selected_paper_ids": [
+          "d8b1a37d-8307-5790-bbeb-6246d2343374"
+        ],
+        "selected_paper_count": 1,
+        "required_paper_count": 1,
+        "required_paper_candidate_recall": 1.0,
+        "required_paper_selected_recall": 1.0,
+        "all_required_papers_in_candidates": 1.0,
+        "all_required_papers_selected": 1.0
+      },
+      "generation_diagnostics": null,
+      "stage_timings": {
+        "kg_hybrid_seconds": 2.482,
+        "kg_graph_seconds": 0.113,
+        "retrieval_seconds": 2.619,
+        "generation_seconds": 29.509,
+        "pipeline_seconds": 32.134,
+        "judge_reference_seconds": 6.344,
+        "judge_grounding_seconds": 3.0,
+        "judge_seconds": 9.344
+      },
+      "elapsed_seconds": 41.482,
+      "error": null
+    }
+  ]
+}

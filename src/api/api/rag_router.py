@@ -302,8 +302,8 @@ async def rag(
             try:
                 publication = await run_in_threadpool(open_publication, payload.kg_publication_id)
             except KGUnavailable as error:
-                raise HTTPException(409 if str(error) == "kg_publication_changed" else 503,
-                    f"KG unavailable ({error}). Check Neo4j and the active publication; start a new conversation if it changed.") from error
+                raise HTTPException(409 if error.code == "kg_publication_changed" else 503,
+                    f"KG unavailable ({error.code}; stage={error.stage or 'pin'}). Check Neo4j and the active publication; start a new conversation if it changed.") from error
             kg_options["kg_publication_id"] = publication["publication_id"]
             memory_id += f":{publication['publication_id']}"
         try:
@@ -313,8 +313,8 @@ async def rag(
             from src.api.kg.retrieval import KGUnavailable
             if not isinstance(error, KGUnavailable):
                 raise
-            raise HTTPException(409 if str(error) == "kg_publication_changed" else 503,
-                f"KG unavailable ({error}). Check the active graph and current source builds.") from error
+            raise HTTPException(409 if error.code == "kg_publication_changed" else 503,
+                f"KG unavailable ({error.code}; stage={error.stage or 'unknown'}). Check the active graph and current source builds.") from error
         await run_in_threadpool(add_message, memory_id, "user", payload.query)
         await run_in_threadpool(add_message, memory_id, "assistant", result["answer"])
         memory = await run_in_threadpool(get_memory, memory_id)

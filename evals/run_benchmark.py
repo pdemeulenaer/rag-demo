@@ -34,6 +34,7 @@ from evals.review_dataset import (
     validate_v2,
 )
 from src.api.core.config import config
+from src.api.observability.stage_timings import collect_stage_timings
 from src.api.observability.tracing import (
     flush,
     langfuse_client,
@@ -58,7 +59,7 @@ class BenchmarkError(ValueError):
 
 
 Score = Literal[0.0, 0.5, 1.0]
-JUDGE_POLICY = "claim-role-bound-v13"
+JUDGE_POLICY = "claim-role-bound-v14"
 # Native Pydantic/SDK schema constraint: finite decimal literals, not symbolic
 # settings, scientific notation, units, or strings pretending to be empty lists.
 DecimalTarget = Annotated[str, Field(
@@ -1014,11 +1015,12 @@ def evaluate_item(question: dict, mode: str, *, qdrant: QdrantClient, collection
             try:
                 pipeline_started = monotonic()
                 try:
-                    result = rag_pipeline(question["question"], qdrant,
-                        f"eval:{run_id}:{mode}:{question['id']}", generation_model=generation_model,
-                        top_k=top_k, mode=mode, collection=collection, scope=scope,
-                        catalogue=catalogue, stage_timings=stage_timings,
-                        **({"kg_publication_id": kg_publication_id} if mode == "kg" else {}))
+                    with collect_stage_timings(stage_timings):
+                        result = rag_pipeline(question["question"], qdrant,
+                            f"eval:{run_id}:{mode}:{question['id']}", generation_model=generation_model,
+                            top_k=top_k, mode=mode, collection=collection, scope=scope,
+                            catalogue=catalogue, stage_timings=stage_timings,
+                            **({"kg_publication_id": kg_publication_id} if mode == "kg" else {}))
                 finally:
                     stage_timings["pipeline_seconds"] = round(monotonic() - pipeline_started, 3)
                 chunks = result.get("retrieved_chunks", [])
@@ -1114,7 +1116,8 @@ def evaluate_item(question: dict, mode: str, *, qdrant: QdrantClient, collection
                 if span is not None:
                     span.update(
                         output={"agent_execution": agent_execution,
-                                "retrieval_diagnostics": retrieval_diagnostics}, level="ERROR",
+                                "retrieval_diagnostics": retrieval_diagnostics,
+                                "stage_timings": stage_timings}, level="ERROR",
                         status_message=details.get("category", type(error).__name__),
                     )
                 return {"question_id": question["id"], "kind": question["kind"],
@@ -1321,6 +1324,14 @@ def _summarize_rows(rows: list[dict]) -> dict:
                           for name, values in samples.items()},
               "metric_sample_counts": {name: {"scored": len(values), "unscored": len(rows) - len(values)}
                                        for name, values in samples.items()}}
+    kg_failures = [(row.get("error") or {}).get("kg_failure") for row in rows]
+    kg_failures = [failure for failure in kg_failures if failure]
+    if kg_failures:
+        result["kg_failures"] = {
+            "runs": len(kg_failures),
+            "codes": dict(sorted(Counter(f["code"] for f in kg_failures).items())),
+            "stages": dict(sorted(Counter(f.get("stage", "unknown") for f in kg_failures).items())),
+        }
     agent_execution = _summarize_agent_execution(rows)
     if agent_execution is not None:
         result["agent_execution"] = agent_execution
@@ -1328,7 +1339,8 @@ def _summarize_rows(rows: list[dict]) -> dict:
     if retrieval_diagnostics is not None:
         result["retrieval_diagnostics"] = retrieval_diagnostics
     graph_rows = [r["retrieval_diagnostics"] for r in rows
-                  if (r.get("retrieval_diagnostics") or {}).get("policy") == "hybrid-reviewed-graph-v1"]
+                  if (r.get("retrieval_diagnostics") or {}).get("policy") in
+                  {"hybrid-reviewed-graph-v1", "hybrid-reviewed-graph-v2", "hybrid-reviewed-graph-v3"}]
     if graph_rows:
         result["kg_retrieval"] = {
             "runs": len(graph_rows),
@@ -1336,6 +1348,8 @@ def _summarize_rows(rows: list[dict]) -> dict:
             "graph_used_runs": sum(bool(r["graph_used"]) for r in graph_rows),
             "hybrid_only_runs": sum(not r["graph_used"] for r in graph_rows),
             "mean_selected_graph_chunks": round(fmean(r["selected_graph_chunk_count"] for r in graph_rows), 3),
+            "cross_paper_identity_runs": sum(bool(r.get("cross_paper_entity_groups")) for r in graph_rows),
+            "paper_diversity_runs": sum(bool(r.get("paper_diversity_applied")) for r in graph_rows),
         }
     generation_diagnostics = _summarize_generation_diagnostics(rows)
     if generation_diagnostics is not None:
@@ -1391,6 +1405,11 @@ def report_markdown(manifest: dict, summary: dict) -> str:
             f"Pinned publication(s): {', '.join(graph['publication_ids'])}.",
             f"Graph-supported runs: {graph['graph_used_runs']}; Hybrid-only runs: {graph['hybrid_only_runs']}.",
             "The reviewed pilot graph covers only part of the corpus; do not attribute Hybrid-only answers to graph retrieval."])
+    if failures := summary.get("kg", {}).get("kg_failures"):
+        lines.extend(["", "## KG retrieval failures", "",
+            f"Failed retrievals: {failures['runs']}; codes: {json.dumps(failures['codes'], sort_keys=True)}; "
+            f"stages: {json.dumps(failures['stages'], sort_keys=True)}.",
+            "Failed retrievals have no answer-quality scores; inspect successful sample counts before comparing modes."])
     if any(summary[mode].get("judge_errors") or summary[mode].get("grounding_consistency")
            for mode in manifest["modes"]):
         lines.extend(["", "## Judge failures and grounding annotations", "",
@@ -1433,6 +1452,21 @@ def report_markdown(manifest: dict, summary: dict) -> str:
                 f"{show_time('generation_seconds')} | {show_time('judge_reference_seconds')} | "
                 f"{show_time('judge_grounding_seconds')} | {row['mean_latency_seconds']} |"
             )
+        if any(any(key in (summary[mode].get("stage_timings") or {}).get("mean_seconds", {})
+                   for key in ("embedding_seconds", "qdrant_seconds")) for mode in manifest["modes"]):
+            lines.extend([
+                "", "### Retrieval breakdown (seconds)", "",
+                "Already included in Retrieval above. Embedding includes configured SDK retries;",
+                "Qdrant measures query_points calls only, excluding embedding and BM25 encoding.",
+                "Repeated/parallel calls are summed, so these work durations can exceed wall time.",
+                "Failed calls retain elapsed time; absent stages are not fabricated as zero.", "",
+                "| Mode | Embedding | Qdrant | Graph |", "| --- | ---: | ---: | ---: |",
+            ])
+            for mode in manifest["modes"]:
+                means = (summary[mode].get("stage_timings") or {}).get("mean_seconds", {})
+                cells = ["—" if name not in means else f"{means[name]:.3f}"
+                         for name in ("embedding_seconds", "qdrant_seconds", "kg_graph_seconds")]
+                lines.append(f"| {mode} | " + " | ".join(cells) + " |")
         synthesis_modes = [mode for mode in manifest["modes"] if any(
             name.startswith("agentic_") for name in
             (summary[mode].get("stage_timings") or {}).get("mean_seconds", {})
@@ -1567,6 +1601,7 @@ def run(args) -> Path:
         kg_configuration = pinned | dict(max_records=settings.KG_QUERY_MAX_RECORDS,
             max_chunks=settings.KG_QUERY_MAX_CHUNKS, max_text_bytes=settings.KG_QUERY_MAX_TEXT_BYTES,
             max_source_links=settings.KG_QUERY_MAX_SOURCE_LINKS,
+            hybrid_candidates=settings.KG_QUERY_HYBRID_CANDIDATES,
             scope_policy="snapshot_ready_undeleted_builds_with_matching_manifest")
     run_id = args.run_id or f"{datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ')}-{uuid4().hex[:8]}"
     run_dir = args.output_root / run_id
@@ -1591,6 +1626,10 @@ def run(args) -> Path:
         "kg_configuration": kg_configuration,
         "generation_model": args.generation_model, "judge_enabled": args.judge,
         "generation_max_completion_tokens": config.GENERATION_MODEL_MAX_TOKENS,
+        "embedding_configuration": {"model": config.EMBEDDING_MODEL,
+                                    "timeout_seconds": config.EMBEDDING_TIMEOUT_SECONDS,
+                                    "max_retries": config.EMBEDDING_MAX_RETRIES,
+                                    "timeout_scope": "per_http_phase_not_total_deadline"},
         "judge_policy": JUDGE_POLICY if args.judge else None,
         "judge_model": args.judge_model if args.judge else None,
         "judge_reasoning_effort": args.judge_reasoning_effort if args.judge else None,
@@ -1669,6 +1708,7 @@ def run(args) -> Path:
                     metadata={"run_id": run_id, "mode": mode, "dataset_hash": dataset_hash,
                               "split": args.split, "evaluation_set_hash": evaluation_set_hash,
                               "generation_model": args.generation_model,
+                              "embedding_configuration": manifest["embedding_configuration"],
                               "kg_configuration": kg_configuration if mode == "kg" else None,
                               "agentic_configuration": manifest["agentic_configuration"]
                               if mode == "agentic" else None,

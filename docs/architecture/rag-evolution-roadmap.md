@@ -284,8 +284,17 @@ commands, validation limits and remaining slices. Paid extraction is explicitly 
 never enabled automatically. Reviewed-only graph writing, verification and explicit
 activation are now implemented with immutable snapshots and current PostgreSQL scope
 checks. Deterministic `kg` retrieval, UI/API and frozen-run evaluation are implemented.
-KG-Agentic and conservative cross-paper entity resolution remain pending; do not infer
+KG-Agentic and general scientific entity resolution remain pending; do not infer
 corpus-wide graph coverage from the pilot.
+The first narrow read-time resolver is now implemented for source-backed M/NGC/IC catalogue
+IDs, with conflicting aliases held and measurements kept separate. General scientific
+entity resolution remains pending. Explicit survey requests also gain bounded evidence
+diversity; see the KG guide's query-policy-v2 limits and diagnostics.
+Controlled expansion now has [live-catalogue browsing and explicit selections](knowledge-graph.md#expand-from-the-live-catalogue),
+with full-artifact verification and free extraction-call previews. Evaluation snapshots do
+not need regeneration for that selection. Cross-plan approved-record reuse/composition and
+daily KG automation remain separate work; new publication staging does not append to the
+current graph automatically.
 
 ### Graph construction
 

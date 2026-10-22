@@ -85,6 +85,8 @@ two ingestion modes. MkDocs documentation is in `docs/`; start at
 
 ```bash
 make compose       # local stack (recommended runtime path)
+make ui-update     # rebuild/recreate only Compose UI; API must already be running
+make kg-password   # local Neo4j username/initial-password reminder; sensitive output, never a reset
 make docs-build    # validate/render MkDocs
 make docs PORT=8001
 make ingest        # legacy script: bypasses catalogue; do not use for the current workflow
@@ -98,6 +100,10 @@ make langfuse-up   # Start this repo's optional self-hosted Langfuse v4 stack
 
 Before changing behavior, trace the request through the router, RAG/ingestion module, and the
 Qdrant payload fields together: retrieval and citation rendering depend on exact field names.
+Frontend targets use ui-update/ui-build/ui-run/ui-tag/ui-push. update-ui and the previous
+streamlit-update/build-ui/run-ui/tag-ui/push-ui names remain compatibility aliases.
+Backend targets use fastapi-build/fastapi-run/fastapi-tag/fastapi-push; the previous
+build-fastapi/run-fastapi/tag-fastapi/push-fastapi names remain compatibility aliases.
 
 ## Product direction and arXiv scope
 
@@ -371,7 +377,7 @@ planner tokens, named-paper coverage and deterministic reviewed-paper coverage, 
 freeze the effective Agentic configuration. Correctness/relevance and groundedness use
 separate judge requests so gold evidence cannot leak into grounding. Answerable abstentions are
 scored incorrect deterministically; claim-level grounding checks source/entity attribution
-against only the claim's cited chunks. New judging uses claim-role-bound-v13, retaining v8's
+against only the claim's cited chunks. New judging uses claim-role-bound-v14, retaining v8's
 reference anchoring:
 required per-question-part assessments, native-enum answer_claim_ids and required numeric values.
 The runner freezes exact rendered claim spans plus remaining answer spans (including refusals/gaps),
@@ -440,6 +446,12 @@ Shared scientific range multipliers apply to both endpoints, without treating co
 as measured values. Answer anchoring recognizes explicit percentage-to-fraction equivalence
 and whitespace/case-only quote differences. Legacy quote checks still reject bare counts,
 changed numbers and stitched/ellipsis quotes; new provider outputs select IDs instead of copying text.
+Judge v14's shared numeric comparison recognizes English comma-grouped thousands: 10,136
+equals 10136, not 10.136. Only complete three-digit groups after a nonzero 1–3 digit prefix
+are normalized; signs/fractional suffixes/scientific exponents remain meaningful. Decimal
+commas such as 0,123 and 1,25 retain decimal meaning; malformed groups are not repaired.
+This also applies to Agentic's cited-value guard, not literal quote identity or stored text.
+Do not rewrite historical results, auto-promote model verdicts or add calls/retries.
 Anchor/quote-format correction shares the existing one-retry judge budget
 with schema failures. Record quote_validation_failures, response IDs and available usage.
 Native Pydantic numeric-target patterns permit only decimal strings; [] is the real empty
@@ -664,18 +676,121 @@ API graph ID pins conversation memory (changed IDs ->409); unavailable graph ->5
 silent fallback. Hybrid-only no-match results ARE allowed and labelled, not graph successes.
 Publication-only graph_ready:false remains conservative with query_readiness:not_checked.
 
-The active reviewed graph covers 7 papers / 16 chunks / 86 records (only 4 scientific relationships);
+The original reviewed graph covered 7 papers / 16 chunks / 86 records (4 scientific relationships);
 no universal quality improvement is established. Scope/candidate/traversal/selected graph
 diagnostics go to public kg_retrieval, results.json and Langfuse. Evaluation pins ID before
 paid work, freezes kg_configuration/manifest/query bounds, checks per item and reports
 graph-used/Hybrid-only counts. EVAL_MODES defaults remain four; opt in with kg or all five.
-No evaluation regeneration/reindex needed. KG-Agentic, entity resolution and automation
+No evaluation regeneration/reindex needed. KG-Agentic, general entity resolution and automation
 remain pending. Official neo4j driver is a base dependency; neo4j-graphrag stays offline-only.
 Compose API NEO4J_URI uses NEO4J_URI_CONTAINER default bolt://neo4j:7687; host stays localhost.
 KG_QUERY_MAX_RECORDS/CHUNKS/SOURCE_LINKS/TEXT_BYTES and optional QUERY_PUBLICATION_ID are
 explicit in KGSettings/.env.sample/docs. Keep caps visible and errors explicit.
 Tests: test_kg_retrieval.py/test_kg_runtime.py plus disposable native traversal coverage in
 test_kg_neo4j_publication.py. No paid test, .env read, or write to the user's graph is needed.
+
+Query policy v2 adds entities.py (M/NGC/IC spacing normalization and a bounded union/find
+identity index) and selection_policy.py (explicit survey coverage). Only approved eligible
+astronomical objects with whole catalogue-ID names/aliases supported in source quotes can
+bridge across papers. Same-catalogue conflicting IDs block identity expansion. Do not merge
+stored nodes/measurements, infer aliases or link generic names, datasets or properties.
+Equivalent identity seeds remain in the same validated publication/SQL scope and feed the
+existing two-link native traversal; source/build/text validation and caps remain unchanged.
+Survey tokens papers/studies/literature/compare/comparison select one Hybrid candidate pool
+of max(top_k,KG_QUERY_HYBRID_CANDIDATES), default20 range1..100, with no extra embedding call.
+Final top_k is unchanged: reserve a graph slot and one best literal-ID-relevant chunk per
+paper for surveys, then fill by RRF. Not a complexity classifier or guarantee of answer
+coverage. UI/evaluation diagnostics expose identities/conflicts/selected-paper coverage.
+New policy hybrid-reviewed-graph-v2; benchmark summaries accept v1/v2 and freeze candidate
+settings. Existing four modes and shared generation/citation contracts remain unchanged.
+The user activated expanded-v1 (publication:ef340620c8c35358052b02616a177172a1bdc4710641fe603f2fc127b447ba70):
+8papers,22sourcechunks,175records,7scientificrelationships; other ingested papers remain
+SQL/Qdrant-only until explicit KG extraction/review/publication. Current M22 astronomical
+entity coverage is sparse; do not invent identity from M22_stars_sample dataset names.
+No paid extraction, new publication or reindex needed for v2; restart API/UI and new chat.
+
+### KG live-catalogue expansion
+
+Query policy v3 is implemented in KG runtime: compare duplicate vector/graph passages with
+boundary-only str.strip(), preserving raw text/hashes and rejecting all substantive/interior
+differences. Before Hybrid/KG retrieval, resolve full quoted titles in the existing catalogue
+scope; modes/named_selection.py reserves one best available chunk per exact collection/build
+without exceeding top_k. Hybrid uses one max(20,top_k) pool for named questions; KG uses its
+existing configurable candidate pool. No extra embedding/query loop or generation retry.
+KG prioritizes named slots, then a graph slot if capacity remains; never mislabel an unselected
+graph candidate as graph-used. Missing candidates remain observable and still abstain.
+Vanilla, Agentic, Cohere behavior and unquoted Hybrid queries are unchanged. Expose named
+candidate-versus-selected missing build IDs. errors.py defines allowlisted KG codes/stages;
+API and eval diagnostics never expose raw messages/URLs/credentials. Summaries/reports include
+kg_failures codes/stages, accept v1/v2/v3 graph policies, and preserve historical results.
+Reader cleanup cannot mask the original failure. No implicit paid benchmark, .env read,
+Qdrant write, graph publication or extraction is authorized by this correction. Tests:
+test_named_selection.py, KG retrieval/runtime, presets and evaluation suites. Saved top-five
+Hybrid seed replay against live read-only Neo4j verifies retrieval only, not a fresh search,
+Langfuse-enabled execution or answer/judge quality. Rerun kg0001 explicitly before the cohort.
+
+The supplementary KG development set is `data/evaluation/kg-pilot-v1/questions.reviewed.json`:
+eight questions (four single-paper controls, four cross-paper comparisons), source-checked
+and AI-attributed, not specialist-validated or held-out. Tracked recipe:
+`evals/datasets/kg_pilot_v1.json`; free offline assembler: `evals/curate_kg_dataset.py`.
+It validates existing KG checkpoints/review, plan/fingerprint, exact quotes and frozen scope;
+copies the complete unchanged 48-paper snapshot and writes only a NEW output directory.
+No paid generation, .env read, retrieval change, Neo4j write or automatic semantic approval.
+Questions retain full original chunk references plus diagnostic KG record IDs/quotes; gold
+and these annotations never enter runtime retrieval. Schema-v2 accepts development-only-v1
+with null requested_test_ratio/zero test allocation; ordinary paper-components-v1 remains
+unchanged and requires a real requested ratio. This set is deliberately graph-covered;
+measure actual graph_used versus Hybrid-only outcomes, do not promise selected gold chunks
+or multihop benefit. See the KG guide's "Source-curated KG development set" commands.
+Pin expanded-v1's publication explicitly when comparing Hybrid/KG. The old evaluation
+dataset and graph are unchanged; no benchmark has been run implicitly. Offline tests:
+`tests/unit/test_curate_kg_dataset.py` and existing reviewed-dataset validation tests.
+
+`src/api/kg/catalogue.py` adds metadata-only, bounded SQL keyset browsing of active, ready,
+undeleted builds in configured collections/model and the existing arXiv category/topic scope.
+`make kg-catalogue KG_TERM="M22"` searches literal title/abstract text (not chunks/aliases);
+`KG_SOURCE=arxiv|uploads|all`, `KG_PAGE_SIZE=1..100`, `KG_AFTER=<next_after>` control paging.
+Do not replace this with `inventory()`/`all_builds()` or load full history in memory.
+
+`make kg-select KG_DIR=data/knowledge_graph/expanded-v1 KG_PAPER_IDS="<id> <id>"` writes
+an integrity-checked, explicit paper/build/version/collection/manifest selection.json.
+Original pilot IDs are included by default; `KG_INCLUDE_PILOT=false` disables that. Missing
+or ineligible IDs fail, never silently shrink scope. Identical selection saves preserve bytes;
+changed inputs/old extraction folders cannot be overwritten. The live catalogue supplies
+authoritative titles/builds, not pilot display labels or evaluation excerpts.
+
+`make kg-prepare-preview KG_DIR=... KG_CHUNKS_PER_PAPER=3 KG_MAX_CALLS=30` verifies full
+artifacts one paper at a time and reports full/sample/fresh-invocation request upper bounds;
+no model calls, database writes or local output writes. Counts are not dollar estimates or
+checkpoint-aware cost forecasts. `make kg-prepare KG_DIR=... KG_SELECTION_FILE=.../selection.json`
+explicitly freezes that selection into the existing plan. Without KG_SELECTION_FILE the
+old snapshot path remains unchanged. Preparation rechecks exact active metadata/manifest
+before/after loading; stale selections fail rather than substitute builds. Publication still
+does independent current-scope checks; this is not a distributed snapshot transaction.
+
+Visible KG_PREPARE_MAX_PAPERS/CHUNKS/BYTES defaults (100/20000/50000000) bound named plans;
+hard ranges/settings are in .env.sample and the KG guide. Existing JSON plans still load in
+memory; do not claim arbitrary-corpus streaming. Review/publication/query caps remain intact.
+This slice does NOT run paid extraction, alter active Neo4j state, regenerate evaluations,
+merge entities or automate daily KG updates. A new plan does NOT reuse old extractions or
+approvals automatically; including original paper IDs does NOT union old approved records.
+Publication replacement is complete, not append; cross-plan approved-record composition
+remains future work. Keep these limitations explicit before any paid expansion/activation.
+Offline tests: tests/unit/test_kg_catalogue.py plus existing extraction/foundation suites.
+
+Expanded-v1 was source-reviewed by Codex (AI, not astrophysicist validation) on 2026-10-16:
+257 examined ->175 approved/eligible (76 entities,92 observations,7 relationships),41 excluded,
+41 unresolved;24 quarantined remain ineligible. Local REVIEW.md, review.ai-decisions.json
+(explicit decisions bound to original review SHA/plan/fingerprint) and review.before-ai.json
+preserve rationale/audit. review.json/reviewed.json contain validated AI-attributed decisions;
+no approved dependency holds. Plan/candidates/checkpoints/selection/failures unchanged;
+no .env read, model call, Neo4j write or activation. Active graph is still the prior pilot.
+Do not claim full extraction/review: only24/867chunks extracted and41records unresolved.
+Review found unflagged velocity/inverse-time metadata, detector/object and parameter/model
+mistyping, incomplete selected quotes, ambiguous birthrate units and presentation-only facts.
+No numeric/quote/type repair or quarantine bypass was performed. Optional bounded semantic
+AI-review automation is a future slice, NOT an implemented kg-review-auto command; preserve
+AI/human attribution, existing decisions and explicit publication approval.
 
 The user selected **star-cluster papers within `astro-ph.GA`**, not the whole category
 and not an automatic expansion to `astro-ph.SR`. arXiv has no dedicated star-cluster
@@ -893,6 +1008,25 @@ Generated unanswerable items remain excerpt-scoped until a reviewer searches the
 corpus, and independent human-written questions must be added manually.
 
 ## Evaluation runner and Langfuse
+
+Query embedding limits are now explicit Config/.env.sample settings:
+EMBEDDING_TIMEOUT_SECONDS=30 (1–300; per HTTP phase, NOT a total deadline),
+EMBEDDING_MAX_RETRIES=0 (0–2 retries after first attempt). get_embedding uses the installed
+SDK's with_options per call; never mutate/close the shared client or change generation,
+planner, judge, ingestion or background-generator policies. Defaults work without editing
+an existing .env; no paid retry/cap escalation is implicit. Following official OpenAI retry
+guidance, document per-attempt versus total-operation limits and account for SDK retries;
+no custom retry loop. observability/stage_timings.py supplies a locked ContextVar collector
+for each evaluated pipeline. All query embedding calls and search.py query_points calls
+record elapsed durations in finally, including failures. Native parallel ToolNode context
+propagation is tested; sums may exceed wall time. Sparse calls have no embedding sample.
+Benchmark results/summary/Markdown and Langfuse eval outputs retain embedding_seconds and
+qdrant_seconds; the latter excludes sparse encoding and evidence validation. Manifests and
+experiment metadata freeze embedding_configuration. Existing data/historical scores and
+all retrieval rankings remain unchanged. Offline SDK MockTransport tests check real timeout/
+retry options, no shared-client mutation, failure retention and native parallel timing.
+No .env read or paid benchmark is authorized as a test. See evaluation.md's retrieval timing
+section; rerun kg0001 explicitly before interpreting a live speedup.
 
 `evals/run_benchmark.py` consumes only `review_status=approved` records from a separate
 `questions.reviewed.json`. It validates the sibling snapshot hash and embedding model, then

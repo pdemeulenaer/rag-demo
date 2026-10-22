@@ -1,0 +1,220 @@
+{
+  "name": "kg-reviewed-evidence-development-v1",
+  "purpose": "Eight source-curated development questions over approved expanded-v1 records; not a held-out test or proof that graph retrieval improves answers.",
+  "publication_id": "publication:ef340620c8c35358052b02616a177172a1bdc4710641fe603f2fc127b447ba70",
+  "kg_plan_id": "65d9079bda8743744583da188e5b9a41fe1e37a1649ec353512ef0908c88bb0e",
+  "candidate_fingerprint": "b68f04db5b45018bcd2be1b20fd5e6244b893e967f4d289c4275f203ec71f4b9",
+  "snapshot_hash": "75b42cafef00a4fbbfa28b36fd1e5d2bac393ada5d5d3293378928257d65b6d5",
+  "review": {
+    "reviewer": "Codex (AI source review; not astrophysicist validation)",
+    "reviewed_at": "2026-10-20T08:29:44Z",
+    "decision": "approved",
+    "original_sources_checked": true,
+    "corpus_search_verified": false
+  },
+  "questions": [
+    {
+      "id": "kg0001",
+      "kind": "single_paper",
+      "profile": "single_fact",
+      "question": "In \"Globular Clusters in the Time of the JWST. I. Survey Design and First Results on Multiple Populations and Beyond\", how do the s-rich and s-poor populations of M22 differ in metallicity, and how does this contrast with NGC 1851? Give the reported approximate metallicity difference for M22 and cite the evidence.",
+      "reference_answer": "The survey identifies M22 as NGC 6656. In M22, the s-rich stars are enhanced in metallicity relative to the s-poor component by approximately 0.2 dex, in addition to their s-process abundance differences. NGC 1851's s-rich and s-poor populations differ in s-process elements but share a similar total metallicity. Both clusters also exhibit intrinsic variations in s-process abundances and overall C+N+O content.",
+      "required_numeric_values": [
+        "0.2"
+      ],
+      "sources": [
+        {
+          "point_id": "b1f06a9b-f6de-5490-97d8-ed78611d8eef",
+          "record_ids": [
+            "o3",
+            "o4",
+            "o5",
+            "o6"
+          ]
+        }
+      ],
+      "review_notes": "Checked the complete page-3 source chunk and approved o3-o6. Explicit M22/NGC 6656 alias; retain the approximate sign and metallicity direction. No inferred alias or uncertainty repair. Single-paper alias-sensitive control, not cross-paper reasoning."
+    },
+    {
+      "id": "kg0002",
+      "kind": "single_paper",
+      "profile": "single_fact",
+      "question": "In \"Unresolved Binary Systems in the Rubin Era I: An Autoencoder Framework for Binary Identification Applied to 47 Tucanae\", what initial angular search radius was used for 47 Tucanae, which central region was excluded to avoid crowding, and how many objects remained in the parent sample before the subsequent Gaia membership filtering?",
+      "reference_answer": "The Rubin DP1 Object-table query initially selected objects within 2 degrees of the centre of 47 Tucanae. Sources within 18 arcmin of the centre were excluded to avoid crowding. After the described photometric and quality cuts, the parent sample contained 10,136 objects; the text then describes cross-matching with Gaia DR3 to filter SMC and field stars. The 10,136 count is the parent sample, not a count of confirmed cluster binaries or final members.",
+      "required_numeric_values": [
+        "2",
+        "18",
+        "10136"
+      ],
+      "sources": [
+        {
+          "point_id": "5edf5a98-512f-5d48-bb5d-83db97b52b82",
+          "record_ids": [
+            "o1",
+            "o5",
+            "o9",
+            "o10",
+            "o11"
+          ]
+        }
+      ],
+      "review_notes": "Checked the full page-4 chunk and approved selection/sample records. Distinguishes the initial query radius, crowding exclusion, and pre-Gaia parent count; does not turn the maximum observed member radius into a selection cut."
+    },
+    {
+      "id": "kg0003",
+      "kind": "single_paper",
+      "profile": "single_synthesis",
+      "question": "According to \"The chemo-dynamical complexity of ω Centauri: different kinematics for different populations\", how do the Al-rich and Al-poor populations compare in internal rotation and velocity anisotropy? Include the reported significance for the proper-motion anisotropy contrast and for the line-of-sight-based proxy, and do not treat them as equally strong detections.",
+      "reference_answer": "Both populations show significant internal rotation and comparable intrinsic rotation amplitudes within the uncertainties, consistent with the same global rotation pattern. Al-rich stars have a lower tangential-to-radial proper-motion dispersion ratio and a more radially biased orbital distribution; Al-poor stars are approximately isotropic. The proper-motion anisotropy difference has significance 2.43 sigma. With the tangential-proper-motion to line-of-sight-dispersion proxy the difference is only 0.51 sigma, so the contrast is not detected in the line-of-sight component. These are not equally significant anisotropy detections.",
+      "required_numeric_values": [
+        "2.43",
+        "0.51"
+      ],
+      "sources": [
+        {
+          "point_id": "13a7fc71-a0d3-5b40-9931-19b3162e6190",
+          "record_ids": [
+            "obs_rotation_both",
+            "obs_anisotropy_Alrich_lower",
+            "obs_anisotropy_significance_2.43",
+            "obs_anisotropy_los_0.51",
+            "obs_radial_behavior"
+          ]
+        }
+      ],
+      "review_notes": "Checked the complete page-7 source chunk. The two quoted significance values are legible; explicitly preserve proxy differences and the weak line-of-sight result. No claim about a progenitor galaxy follows from this passage alone."
+    },
+    {
+      "id": "kg0004",
+      "kind": "single_paper",
+      "profile": "single_synthesis",
+      "question": "In \"SPURS: An Ultra-deep View Inside the Compact, Nitrogen-Enriched Nuclei of Little Red Dots\", what role do the authors propose for the winds associated with the He II P-Cygni profiles of GN-2 and GN-2004, and is their powering source established? Distinguish the proposed interpretation from a demonstrated result.",
+      "reference_answer": "The authors suggest that the winds may help deliver the nitrogen-enhanced abundance pattern to the interstellar medium. They explicitly state that it is unclear whether these winds are powered by massive stars or an AGN. Nitrogen delivery is presented as a possible role, not an established causal result, and neither powering source is uniquely identified.",
+      "sources": [
+        {
+          "point_id": "08f601a4-0eb0-5b16-a905-91d47e447e75",
+          "record_ids": [
+            "o6"
+          ]
+        }
+      ],
+      "review_notes": "Checked the full page-39 prose and approved hypothesis o6. Avoids the quarantined velocity measurement and unrelated schematic labels. Preserve 'may' and uncertainty about stars versus AGN."
+    },
+    {
+      "id": "kg0005",
+      "kind": "cross_paper",
+      "profile": "cross_comparison",
+      "question": "Compare the observed chemical differences in M22 reported in \"Globular Clusters in the Time of the JWST. I. Survey Design and First Results on Multiple Populations and Beyond\" with the enrichment-scenario limitations discussed in \"Tracing M22's origins: Spatial and chemical constraints on its formation history\". (a) Which abundances vary, and which population is more metal-rich? (b) What still needs to be assessed for AGB stars plus Type Ia supernovae, and for an alternative massive-star enrichment scenario? Keep observations separate from proposed explanations and cite both papers.",
+      "reference_answer": "The JWST survey reports intrinsic s-process and overall C+N+O variations in M22 (NGC 6656), with the s-rich population approximately 0.2 dex more metal-rich than the s-poor population. Tracing M22's origins says further assessment is required to determine whether low- and intermediate-mass AGB stars combined with Type Ia supernovae can reproduce the full observational constraints. For massive-star enrichment, dedicated calculations tailored to M22 are still required: the scenario must produce substantial carbon enrichment without significant s-process enrichment or incompatible light-element abundances, and massive-star carbon yields remain uncertain. Thus the observed chemical diversity is not, by itself, a demonstrated choice between these enrichment explanations.",
+      "required_numeric_values": [
+        "0.2"
+      ],
+      "sources": [
+        {
+          "point_id": "b1f06a9b-f6de-5490-97d8-ed78611d8eef",
+          "record_ids": [
+            "o3",
+            "o5",
+            "o6"
+          ]
+        },
+        {
+          "point_id": "510d3394-5260-5779-85f9-ddb625418970",
+          "record_ids": [
+            "o001",
+            "o005"
+          ]
+        }
+      ],
+      "review_notes": "Checked both complete chunks (JWST p3; Tracing p14). The latter begins mid-sentence, but its full first clause and following paragraph explicitly describe unresolved assessment/calculations. No assertion that either scenario has already reproduced the data. A comparison of source claims, not an invented causal graph edge."
+    },
+    {
+      "id": "kg0006",
+      "kind": "cross_paper",
+      "profile": "cross_comparison",
+      "question": "What do \"The chemo-dynamical complexity of ω Centauri: different kinematics for different populations\" and \"Bar-induced migration of ω Centauri away from Gaia Sausage-Enceladus\" say about different aspects of ω Centauri's complexity? Contrast (a) the measured internal rotation and anisotropy of its Al-rich and Al-poor populations with (b) the introductory evidence and uncertainty concerning a stripped-nucleus origin and the identity of its parent galaxy. Do not claim that the internal anisotropy measurement proves a particular progenitor; cite both papers.",
+      "reference_answer": "The chemo-dynamical study reports comparable rotation amplitudes and a shared global rotation pattern, but a more radially biased Al-rich population relative to the approximately isotropic Al-poor population; the proper-motion anisotropy difference has significance 2.43 sigma. The bar-migration paper's introduction describes a broad, multi-peaked metallicity distribution, multiple populations, internal abundance variations and a complex age-metallicity structure as motivations for the stripped-nucleus interpretation. It says the parent galaxy remains uncertain: the retrograde orbit motivated Sequoia links, whereas more recent chemo-dynamical studies argue for GSE as a plausible, perhaps preferred parent. These internal-population observations and proposed accretion history are different levels of evidence; the cited anisotropy result does not establish the parent galaxy.",
+      "required_numeric_values": [
+        "2.43"
+      ],
+      "sources": [
+        {
+          "point_id": "13a7fc71-a0d3-5b40-9931-19b3162e6190",
+          "record_ids": [
+            "obs_rotation_both",
+            "obs_anisotropy_Alrich_lower",
+            "obs_anisotropy_significance_2.43",
+            "obs_radial_behavior"
+          ]
+        },
+        {
+          "point_id": "36469dea-19d3-58f4-a204-032e54c1680e",
+          "record_ids": [
+            "o2",
+            "o3",
+            "o4",
+            "o5"
+          ]
+        }
+      ],
+      "review_notes": "Checked complete chemo-dynamical p7 and bar-migration p1 chunks. The bar passage is introductory discussion of prior work, not a newly proven progenitor assignment. Retain uncertainty and avoid inventing a causal link from internal anisotropy to GSE or Sequoia."
+    },
+    {
+      "id": "kg0007",
+      "kind": "cross_paper",
+      "profile": "cross_comparison",
+      "question": "Compare two distinct limitations discussed in studies of 47 Tucanae: (a) how \"Unresolved Binary Systems in the Rubin Era I: An Autoencoder Framework for Binary Identification Applied to 47 Tucanae\" handles crowded central sources, and (b) what \"Axion Constraints from White Dwarf Cooling in 47 Tucanae\" says about the WFC3 and ACS white-dwarf birthrate priors used by its reference [21]. Which correction is an applied sample cut, and which remains a proposed improvement requiring further analysis? Cite both papers; no numerical birthrate values are required.",
+      "reference_answer": "The binary-identification study applies an observational sample cut: it excludes objects within 18 arcmin of the centre of 47 Tucanae to avoid crowding. The axion study instead discusses inference priors: the reference [21] priors appear to overestimate the WFC3-field white-dwarf birthrate and underestimate the ACS-field birthrate. It proposes that nonuniform birthrate priors might improve the unbinned-likelihood constraints, but appropriate values require further analysis beyond the work's scope. The crowding exclusion is already applied; the prior change is a proposed improvement. These address different selection/inference issues and are not presented as one common correction.",
+      "required_numeric_values": [
+        "18"
+      ],
+      "sources": [
+        {
+          "point_id": "5edf5a98-512f-5d48-bb5d-83db97b52b82",
+          "record_ids": [
+            "o5"
+          ]
+        },
+        {
+          "point_id": "1e0e51d3-5fc0-5233-9274-560ca4130979",
+          "record_ids": [
+            "o_priors_bias_description",
+            "o_prior_nonuniform_proposal"
+          ]
+        }
+      ],
+      "review_notes": "Checked Rubin p4 and axion p24. Avoids damaged birthrate values/units and does not claim the nonuniform priors were implemented. Shared-object comparison, not evidence of a cross-paper scientific relationship edge."
+    },
+    {
+      "id": "kg0008",
+      "kind": "cross_paper",
+      "profile": "cross_comparison",
+      "question": "Compare the binary-population plans in \"Globular Clusters in the Time of the JWST. I. Survey Design and First Results on Multiple Populations and Beyond\" with the reported classifier results in \"Unresolved Binary Systems in the Rubin Era I: An Autoencoder Framework for Binary Identification Applied to 47 Tucanae\". (a) Which binary-population properties does the JWST survey plan to refine, including its treatment of 1P and 2P? (b) What binary-class precision and completeness does the autoencoder study report on its test set at threshold 0.5, and what does the bimodal prediction distribution suggest? Explain why these classifier metrics are not themselves a measured cluster binary fraction. Cite both papers.",
+      "reference_answer": "The JWST survey plans to refine binary fractions, mass-ratio distributions and radial segregation using its CMDs, and to estimate binary fractions separately for different populations, including 1P and 2P. It motivates this separation by the hypothesis that 2P formed in denser environments with more efficient binary disruption. The autoencoder study reports binary-class test-set precision 0.87 and completeness 0.81 at threshold 0.5; its often bimodal predictions indicate confidence in classifying targets as single or binary. Precision/completeness describe classifier performance on the test set, not the proportion of cluster stars that are binaries. They do not replace the survey's population-fraction measurements or establish the 1P-versus-2P hypothesis.",
+      "required_numeric_values": [
+        "0.87",
+        "0.81",
+        "0.5"
+      ],
+      "sources": [
+        {
+          "point_id": "881ca153-c4bc-517d-93c1-8c6dcfb675fe",
+          "record_ids": [
+            "o001",
+            "o002",
+            "o003"
+          ]
+        },
+        {
+          "point_id": "546f4da1-8794-566f-836d-60c64811f52e",
+          "record_ids": [
+            "o1",
+            "o2",
+            "o5"
+          ]
+        }
+      ],
+      "review_notes": "Checked JWST p17 and autoencoder p12 source chunks. Distinguishes future measurements, disruption hypothesis and measured test-set metrics; no inferred binary fraction or astrophysical causal link. Cross-paper comparison, not labelled multihop graph reasoning."
+    }
+  ]
+}

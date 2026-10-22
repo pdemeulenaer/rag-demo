@@ -105,6 +105,19 @@ The application is composed of several key components:
 - Access API: [http://localhost:8000/docs](http://localhost:8000/docs)
 - Both frontend and backend logs can be investigated in the Docker Desktop containers
 
+To rebuild and restart **only Streamlit** on an already running stack:
+
+```bash
+make ui-update
+```
+
+This leaves the API, workers and databases untouched, and prints the UI URL after success.
+Existing Streamlit sessions may reset. Use `make compose` when the backend also needs updating.
+`make update-ui` is an alias. Standalone image commands are grouped as `ui-build`, `ui-run`,
+`ui-tag` and `ui-push`; their previous names remain compatible aliases.
+Backend equivalents are `fastapi-build`, `fastapi-run`, `fastapi-tag` and `fastapi-push`,
+also with aliases for their previous names.
+
 ---
 
 ## arXiv ingestion and PostgreSQL
@@ -219,9 +232,17 @@ Approved records can be staged in Neo4j (`make kg-publish`), verified and explic
 activated (`make kg-activate`), with current PostgreSQL source checks and immutable
 replacement history. **KG** is selectable in Streamlit/API and with `EVAL_MODES=kg`:
 Hybrid seeds + bounded reviewed graph expansion + shared cited generation. Graph coverage
-is currently a partial seven-paper pilot; the UI distinguishes graph use from Hybrid-only
+is currently a partial eight-paper graph (original seven plus SPURS, 22 source chunks);
+the UI distinguishes graph use from Hybrid-only
 results. Rebuild the API/UI after this update; no re-indexing or question regeneration.
+To expand beyond that pilot, `make kg-catalogue` lists current ready papers;
+`kg-select` pins explicit IDs and `kg-prepare-preview` verifies artifacts and previews call
+counts for free. This workflow is independent of evaluation snapshots and does not alter
+the active graph; see [live KG expansion](docs/architecture/knowledge-graph.md#expand-from-the-live-catalogue).
 See [KG design and commands](docs/architecture/knowledge-graph.md).
+KG lookup normalizes catalogue-ID spacing and resolves source-backed reviewed object
+identities across papers; explicit survey requests retain a bounded, more diverse evidence
+selection. It does not merge measurements, add unreviewed papers, or guarantee multi-paper citations.
 KG-Agentic remains a subsequent
 milestone defined in [RAG modes](docs/architecture/rag-modes.md) and sequenced in the
 [RAG evolution roadmap](docs/architecture/rag-evolution-roadmap.md).

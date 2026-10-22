@@ -747,6 +747,35 @@ def test_answer_anchoring_normalizes_scientific_ranges_and_explicit_percentages(
     assert safeguards == []
 
 
+@pytest.mark.parametrize("answer,value,expected", [
+    ("This resulted in a parent sample with 10,136 objects.", "10136", 1),
+    ("This resulted in a parent sample with 10136 objects.", "10136", 1),
+    ("This resulted in a parent sample with 1,234,567 objects.", "1234567", 1),
+    ("The measured offset is -10,136.25.", "-10136.25", 1),
+    ("This resulted in a parent sample with 10,136 objects.", "10137", 0.5),
+    ("The measured value is 10.136.", "10136", 0.5),
+    ("The measured offset is 10,136.25.", "-10136.25", 0.5),
+])
+def test_answer_anchoring_normalizes_grouped_counts_without_waiving_value_checks(
+        answer, value, expected):
+    result, safeguards = runner.apply_judge_safeguards(
+        {"kind": "single_paper"}, {}, ["point"],
+        {"correctness": 1, "answer_checks": [answer_check(quotes=(answer,), values=(value,))]},
+        answer)
+    assert result["correctness"] == expected
+    assert bool(safeguards) == (expected != 1)
+
+
+def test_grouped_count_anchoring_still_requires_a_literal_answer_quote():
+    answer = "The parent sample contains 10,136 objects."
+    result, safeguards = runner.apply_judge_safeguards(
+        {"kind": "single_paper"}, {}, ["point"],
+        {"correctness": 1, "answer_checks": [answer_check(
+            quotes=("The parent sample contains 10136 objects.",), values=("10136",))]}, answer)
+    assert result["correctness"] == 0.5
+    assert safeguards[0]["checks"][0]["invalid_quote_count"] == 1
+
+
 def test_bare_counts_do_not_become_fractions_and_short_numeric_quotes_do_not_match_longer_values():
     answer = "The model includes 50 systems. The mass is 80 solar masses."
     assert not runner._valid_answer_quote(answer, "The mass is 8")
@@ -926,6 +955,8 @@ def test_groundedness_cap_does_not_penalize_citation_free_safe_abstention():
 @pytest.mark.parametrize("judge_enabled,judge_failed", [(False, False), (True, False), (True, True)])
 def test_local_run_checkpoints_both_modes(tmp_path, monkeypatch, judge_enabled, judge_failed):
     monkeypatch.setattr(runner.config, "EVAL_JUDGE_MAX_OUTPUT_TOKENS", 32768)
+    monkeypatch.setattr(runner.config, "EMBEDDING_TIMEOUT_SECONDS", 12.0)
+    monkeypatch.setattr(runner.config, "EMBEDDING_MAX_RETRIES", 1)
     dataset = reviewed_dataset(tmp_path / "dataset")
     qdrant = Mock()
     monkeypatch.setattr(runner, "QdrantClient", Mock(return_value=qdrant))
@@ -954,6 +985,9 @@ def test_local_run_checkpoints_both_modes(tmp_path, monkeypatch, judge_enabled, 
     assert [row["mode"] for row in results] == ["vanilla", "hybrid"]
     assert manifest["status"] == ("completed_with_judge_errors" if judge_failed else "complete")
     assert manifest["judge_max_output_tokens"] == (32768 if judge_enabled else None)
+    assert manifest["embedding_configuration"] == {
+        "model": runner.config.EMBEDDING_MODEL, "timeout_seconds": 12.0,
+        "max_retries": 1, "timeout_scope": "per_http_phase_not_total_deadline"}
     assert manifest["question_profiles"] == {"single_fact": 1}
     assert summary["vanilla"]["profiles"]["single_fact"]["questions"] == 1
     assert summary["vanilla"]["judge_errors"] == int(judge_failed)

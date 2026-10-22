@@ -30,6 +30,7 @@ def test_kg_uses_shared_generation_and_preserves_citations(runtime, monkeypatch)
     assert result["sources"][0].id == "point"
     assert result["retrieval_diagnostics"]["publication_id"] == "pub"
     assert kg.retrieve.call_args.kwargs["publication_id"] == "pub"
+    assert kg.retrieve.call_args.kwargs["required_papers"] == []
     generate.assert_called_once()
 
 
@@ -117,3 +118,35 @@ def test_kg_summary_reports_hybrid_only_honestly():
         retrieval_diagnostics=dict(policy="hybrid-reviewed-graph-v1",publication_id="pub",graph_used=False,
             selected_graph_chunk_count=0))],["kg"])
     assert result["kg"]["kg_retrieval"]["hybrid_only_runs"] == 1
+
+
+@pytest.mark.parametrize("policy", ["hybrid-reviewed-graph-v2", "hybrid-reviewed-graph-v3"])
+def test_kg_v2_summary_keeps_identity_and_diversity_diagnostics(policy):
+    from evals import run_benchmark as runner
+    result=runner.summarize([dict(mode="kg",kind="cross_paper",elapsed_seconds=0.1,error=None,metrics={},
+        retrieval_diagnostics=dict(policy=policy,publication_id="pub",graph_used=True,
+            selected_graph_chunk_count=2,cross_paper_entity_groups=[dict(catalogue_ids=["m22"])],
+            paper_diversity_applied=True))],["kg"])
+    summary=result["kg"]["kg_retrieval"]
+    assert summary["graph_used_runs"] == 1
+    assert summary["cross_paper_identity_runs"] == summary["paper_diversity_runs"] == 1
+
+
+def test_benchmark_summary_exposes_kg_codes_and_stages_without_fabricated_scores():
+    from evals import run_benchmark as runner
+    from evals.diagnostics import error_details
+    error = error_details(KGUnavailable("kg_vector_graph_text_mismatch", stage="merge"))
+    result = runner.summarize([dict(mode="kg", kind="single_paper", elapsed_seconds=0.1,
+                                   error=error, metrics={})], ["kg"])["kg"]
+    assert result["kg_failures"] == dict(runs=1, codes={"kg_vector_graph_text_mismatch": 1},
+                                       stages={"merge": 1})
+    assert result["metrics"] == {}
+    assert result["errors"] == 1
+
+
+def test_unregistered_kg_message_and_stage_are_never_public():
+    from evals.diagnostics import error_details
+    error = KGUnavailable("password=secret-private-URL", stage="token=secret")
+    data = error_details(error)
+    assert data["kg_failure"] == {"code": "kg_retrieval_unavailable_or_invalid"}
+    assert "secret" not in json.dumps(data)

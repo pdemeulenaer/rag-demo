@@ -2,10 +2,16 @@
 
 
 def error_details(error):
+    from src.api.kg.errors import KGUnavailable
+    kg_failure = None
     chain, seen = [], set()
     while error is not None and id(error) not in seen and len(chain) < 10:
         seen.add(id(error))
         item = {"type": type(error).__name__}
+        if isinstance(error, KGUnavailable):
+            item.update(error.safe_diagnostics)
+            if kg_failure is None:
+                kg_failure = error.safe_diagnostics
         for field in ("errno", "verify_code", "status_code"):
             value = getattr(error, field, None)
             if type(value) is int:
@@ -43,4 +49,7 @@ def error_details(error):
         category, hint = "output_limit", "Model output hit its token cap; prepare a new plan with a higher EVAL_MAX_TOKENS."
     elif names & {"ValidationError", "InvalidCitationIdsError"}:
         category, hint = "response_validation", "A structured model response remained invalid after its bounded retry."
-    return {"category": category, "causes": chain, "hint": hint}
+    if kg_failure and category == "unknown":
+        category, hint = "kg_retrieval", "Inspect the KG failure code/stage, publication and source provenance; no automatic retry was performed."
+    return {"category": category, "causes": chain, "hint": hint,
+            **({"kg_failure": kg_failure} if kg_failure else {})}

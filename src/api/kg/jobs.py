@@ -31,17 +31,67 @@ def directory_lock(directory):
             fcntl.flock(handle, fcntl.LOCK_UN)
 
 
-def prepare(directory, selection, catalogue, reader, settings, *, paper_limit=None):
+def _prepare_inputs(selection, catalogue, reader, settings, *, paper_limit=None, retain_text=True):
     from .artifacts import load_paper
-    from .extraction import REVISION, LIBRARY_VERSION
+    document = None
+    if selection.get("scope") == "live_active_catalogue_selection":
+        from .catalogue import CatalogueSelection, check_current
+        document = CatalogueSelection.model_validate(selection)
+        if paper_limit is not None:
+            raise ValueError("Live selection already fixes the paper set; select a smaller batch instead of --papers")
+        check_current(document,catalogue,settings)
     if paper_limit is not None and paper_limit < 1:
         raise ValueError("Paper limit must be positive")
     papers = selection["papers"][:paper_limit]
-    chunks, manifests = [], {}
+    if not papers or len(papers) > settings.KG_PREPARE_MAX_PAPERS:
+        raise ValueError("Preparation needs 1–KG_PREPARE_MAX_PAPERS papers; use smaller named batches")
+    chunks, manifests, summaries = [], {}, []
+    count, size = 0, len(canonical(papers).encode())
     for paper in papers:
         loaded, digest = load_paper(paper, catalogue, reader)
-        chunks.extend(chunk.model_dump(mode="json") for chunk in loaded)
+        if document and (digest != paper["manifest_sha256"] or len(loaded) != paper["text_chunk_count"]):
+            raise ValueError("Verified artifacts differ from selected manifest; create a new selection")
+        count += len(loaded)
+        if count > settings.KG_PREPARE_MAX_CHUNKS:
+            raise ValueError("Preparation exceeds KG_PREPARE_MAX_CHUNKS; use smaller named batches")
+        for chunk in loaded:
+            value = chunk.model_dump(mode="json")
+            size += len(canonical(value).encode())+1
+            if size > settings.KG_PREPARE_MAX_BYTES:
+                raise ValueError("Preparation exceeds KG_PREPARE_MAX_BYTES; use smaller named batches")
+            if retain_text:
+                chunks.append(value)
         manifests[paper["build_id"]] = digest
+        summaries.append(dict(paper_id=paper["paper_id"],build_id=paper["build_id"],title=paper["title"],
+                              full_text_chunks=len(loaded),manifest_sha256=digest))
+    if document:
+        check_current(document,catalogue,settings)
+    return papers, chunks, manifests, summaries
+
+
+def prepare_preview(selection, catalogue, reader, settings, *, paper_limit=None,
+                    chunks_per_paper=None, max_calls=None):
+    """No files/DB writes. Verify one paper at a time; retain summaries, not corpus text."""
+    from .selection import select_chunks  # Shares runtime option validation, without model/provider imports.
+    max_calls = settings.KG_MAX_CALLS if max_calls is None else max_calls
+    select_chunks([],{},max_calls=max_calls,chunks_per_paper=chunks_per_paper)
+    papers, _, _, summaries = _prepare_inputs(selection,catalogue,reader,settings,
+                                             paper_limit=paper_limit,retain_text=False)
+    total = sum(p["full_text_chunks"] for p in summaries)
+    sample = sum(min(chunks_per_paper,p["full_text_chunks"]) for p in summaries) if chunks_per_paper else total
+    return dict(papers=len(papers),full_text_chunks=total,maximum_first_pass_calls=total,
+        sample_first_pass_calls=sample,maximum_calls_next_fresh_invocation=min(sample,max_calls),
+        estimate_scope="fresh_run_first_pass_without_retries_not_a_dollar_estimate",
+        chunks_per_paper=chunks_per_paper,per_invocation_call_limit=max_calls,
+        model=settings.KG_MODEL,reasoning_effort=settings.KG_REASONING_EFFORT,
+        max_completion_tokens=settings.KG_MAX_COMPLETION_TOKENS,
+        artifacts_verified=True,selection_id=selection.get("selection_id"),
+        per_paper=summaries,model_calls=0,database_writes=0,local_writes=0,graph_ready=False)
+
+
+def prepare(directory, selection, catalogue, reader, settings, *, paper_limit=None):
+    from .extraction import REVISION, LIBRARY_VERSION
+    papers, chunks, manifests, summaries = _prepare_inputs(selection,catalogue,reader,settings,paper_limit=paper_limit)
     plan = dict(schema_version=1, scope="verified_frozen_catalogue_builds",
                 corpus_fingerprint=selection["corpus_fingerprint"], papers=papers,
                 manifest_hashes=manifests, chunks=chunks, extraction_revision=REVISION,
@@ -49,6 +99,8 @@ def prepare(directory, selection, catalogue, reader, settings, *, paper_limit=No
                 reasoning_effort=settings.KG_REASONING_EFFORT,
                 max_completion_tokens=settings.KG_MAX_COMPLETION_TOKENS)
     plan["plan_id"] = sha256(canonical(plan).encode()).hexdigest()
+    if len(canonical(plan).encode()) > settings.KG_PREPARE_MAX_BYTES:
+        raise ValueError("Prepared plan exceeds KG_PREPARE_MAX_BYTES; use smaller named batches")
     with directory_lock(directory):
         path = directory / "plan.json"
         if path.exists():

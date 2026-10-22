@@ -1,0 +1,562 @@
+{
+  "schema_version": 1,
+  "run_id": "20261020T145906Z-8fd540f2",
+  "results": [
+    {
+      "question_id": "kg0001",
+      "kind": "single_paper",
+      "profile": "single_fact",
+      "mode": "kg",
+      "question": "In \"Globular Clusters in the Time of the JWST. I. Survey Design and First Results on Multiple Populations and Beyond\", how do the s-rich and s-poor populations of M22 differ in metallicity, and how does this contrast with NGC 1851? Give the reported approximate metallicity difference for M22 and cite the evidence.",
+      "reference_answer": "The survey identifies M22 as NGC 6656. In M22, the s-rich stars are enhanced in metallicity relative to the s-poor component by approximately 0.2 dex, in addition to their s-process abundance differences. NGC 1851's s-rich and s-poor populations differ in s-process elements but share a similar total metallicity. Both clusters also exhibit intrinsic variations in s-process abundances and overall C+N+O content.",
+      "answer": "In M22 (NGC 6656) the s-rich stars are enhanced in metallicity relative to the s-poor component by approximately 0.2 dex. [1] [2]\n\nIn NGC 1851 the s-rich and s-poor stellar populations display significant differences in s-process element abundances while sharing a similar total metallicity. [1]",
+      "retrieved_chunks": [
+        {
+          "id": "b1f06a9b-f6de-5490-97d8-ed78611d8eef",
+          "text": "For the _Type II_ category, our sample includes NGC 1851 and M 22 (NGC 6656). Both clusters exhibit intrinsic variations in _s_ -process element abundances as well as in the overall C+N+O content. In NGC 1851, the _s_ -rich and _s_ -poor stellar populations display significant differences in _s_ -process elements while sharing a similar total metallicity (e.g. Yong & Grundahl 2008; Marino et al. 2014, 2019a). In contrast, NGC 6656 hosts _s_ -rich and _s_ -poor populations that not only differ in their _s_ -process element abundances, but also in their metallicity, with the _s_ -rich stars being enhanced in metallicity relative to the _s_ -poor component by _∼_ 0.2 dex (e.g. Marino et al. 2009, 2011; Da Costa et al. 2009; McKenzie et al. 2022). \n\nOur sample further includes two of the most metal-rich GCs in the Milky Way, NGC 6528 and NGC 6553, which have near-solar metallicities (e.g. Dias et al. 2015). These Galactic bulge clusters likely formed in an environment that experienced rapid chemical enrichment, at a time when a substantial fraction of the present-day bulge mass (of order 2 _×_ 10[10] M _⊙_ ) was already in place (e.g. Ortolani et al. 1995). Constraining the properties of multiple populations in such high-metallicity systems is therefore of particular importance for understanding GC formation in the dense, metal-rich conditions of the early bulge. ",
+          "collection": "arxiv_papers_v2",
+          "build_id": "34eb5f35-38cc-52c0-b968-919813e40de3",
+          "paper_id": "723368a4-0f0d-597b-8ede-50157d4601cb",
+          "title": "Globular Clusters in the Time of the JWST. I. Survey Design and First Results on Multiple Populations and Beyond",
+          "arxiv_id": "2606.20979",
+          "paper_version": 2,
+          "source_url": "https://arxiv.org/abs/2606.20979v2",
+          "authors": [
+            "A. P. Milone",
+            "A. F. Marino",
+            "G. Cordoni",
+            "E. Dondoglio",
+            "M. V. Legnardi",
+            "T. Ziliotto",
+            "E. Bortolan",
+            "F. Muratore",
+            "F. D'Antona",
+            "A. Renzini",
+            "G. Girardi",
+            "L. Gorza",
+            "A. Mastrobuono-Battisti",
+            "C. Ventura",
+            "P. Ventura",
+            "V. Altomonte",
+            "L. Bisigello",
+            "Y. Cavecchi",
+            "F. Dell'Agli",
+            "A. Dotter",
+            "E. P. Lagioia",
+            "C. Li",
+            "S. Lionetto",
+            "A. Marchuk",
+            "J. Qi",
+            "G. Rodighiero",
+            "M. Tailo",
+            "H. Wirth"
+          ],
+          "year": 2026,
+          "page": 3,
+          "section_header": "**2 THE TARGET GCS**",
+          "content_kind": "text",
+          "chunk_index": 11,
+          "score": 0.032266458495966696,
+          "rerank_score": null,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        },
+        {
+          "id": "33335b6e-8afe-55a4-9e71-7b4cea14604b",
+          "text": "A Homogenized Catalogue of Variable Stars in the Globular Cluster M22: Membership, Physical Parameters, and Distance \n\nYepez et al. \n\ncould explain its considerable old age. Even more recently, evidence of as many as five distinct stellar subpopulations within the cluster has been reported (Lee, 2020). McKenzie et al. (2022) provide a comprehensive compilation of metallicity determinations spanning four decades in their Table 1, which consistently reports metallicity dispersions, and confirm with high-precision spectroscopy a ∆[Fe∕H] = 0.238 dex between two populations. Lee (2023) demonstrated this bimodality clearly through photometric CMDs, which distinctly separate the two metallicity populations with the same dispersion. This complexity further supports the idea of a complex evolutionary history and distinguishes M22 from the archetypal globular cluster. However, despite being one of the clusters closest to the Sun, factors such as high-field star contamination, complicate the study of M22, making of it a challenging object for investigating its variable stars. In addition, the cluster is affected by significant differential reddening (Marino et al., 2009). Several studies have adopted different values for the reddening, ranging from average estimates, such as 𝐸(𝐵−𝑉) = 0.34 (Harris, 1996), to those with reddening ranges as large as 0.3 < 𝐸(𝐵−𝑉) < 0.5 (Marino et al., 2009). This peculiarity has probably contributed to exclude this cluster from certain studies related to the chemical composition of stellar populations (e.g., Carretta et al., 2010). \n\nDespite these peculiarities, photometric studies have revealed that the cluster exhibits an extended horizontal branch morphology (Monaco et al., 2004), with a well-defined instability strip populated by numerous RR Lyrae stars (Rozyczka et al., 2017) (hereafter R17). The mean pulsation periods of these variables place M22 within the Oosterhoff type II class. Their pulsational properties, therefore, provide valuable insights about the evolutionary effects along its HB. ",
+          "collection": "arxiv_papers_v2",
+          "build_id": "bee7f645-7b83-52b8-b1f5-03410d99d146",
+          "paper_id": "58fc9409-3fec-5fde-8a4c-67848a571dd7",
+          "title": "A Homogenized Catalogue of Variable Stars in the Globular Cluster M22: Membership, Physical Parameters, and Distance",
+          "arxiv_id": "2609.11850",
+          "paper_version": 1,
+          "source_url": "https://arxiv.org/abs/2609.11850v1",
+          "authors": [
+            "M. A. Yepez",
+            "B. Moreno-Amaro",
+            "M. Ornelas-Castañeda",
+            "A. Arellano Ferro",
+            "D. Deras"
+          ],
+          "year": 2026,
+          "page": 2,
+          "section_header": "**A Homogenized Catalogue of Variable Stars in the Globular Cluster M22: Membership, Physical Parameters, and Distance** > **1. INTRODUCTION**",
+          "content_kind": "text",
+          "chunk_index": 6,
+          "score": 0.01639344262295082,
+          "rerank_score": null,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        },
+        {
+          "id": "846f7617-1286-5513-a0df-d725cedb5823",
+          "text": "## **ABSTRACT** \n\nGlobular clusters (GCs) host multiple stellar populations with distinct chemical compositions, but their properties among very low-mass stars remain poorly constrained. The James Webb Space Telescope (JWST) enables precise infrared studies that are highly sensitive to abundance variations in cool stars. We initiate a homogeneous survey of Galactic GCs, based primarily on deep JWST GO-8960 observations and complemented by archival JWST and Hubble Space Telescope data, to characterize multiple populations across a wide range of cluster properties. In this first paper, we present the survey and initial NIRCam results. We analyze eleven GCs, deriving high-precision photometry and astrometry to measure proper motions. Multiple populations are detected among low-mass stars in all clusters, with diverse behaviors. We find discrete main sequences in NGC 288, NGC 6723, and NGC 2808, and more continuous distributions in NGC 104 and the Type II clusters NGC 1851 and NGC 6656. The bulge clusters NGC 6528, NGC 6553, and NGC 6440 show patterns consistent with varying helium and oxygen abundances that do not scale simply with cluster mass. In Terzan 5 and Liller 1, we identify populations spanning different ages and helium variations within the old population of Terzan 5. We also detect an M-dwarf gap in NGC 104 at _∼_ 0 _._ 35 _M⊙_ , consistent with the Jao Gap of field stars and open clusters. This work establishes the foundation for a homogeneous JWST survey of Galactic GCs and provides a valuable dataset for studies of cluster evolution, Galactic stellar populations, and background extragalactic sources. \n\n**Key words:** globular clusters: general, stars: population II, stars: abundances, techniques: photometry.",
+          "collection": "arxiv_papers_v2",
+          "build_id": "34eb5f35-38cc-52c0-b968-919813e40de3",
+          "paper_id": "723368a4-0f0d-597b-8ede-50157d4601cb",
+          "title": "Globular Clusters in the Time of the JWST. I. Survey Design and First Results on Multiple Populations and Beyond",
+          "arxiv_id": "2606.20979",
+          "paper_version": 2,
+          "source_url": "https://arxiv.org/abs/2606.20979v2",
+          "authors": [
+            "A. P. Milone",
+            "A. F. Marino",
+            "G. Cordoni",
+            "E. Dondoglio",
+            "M. V. Legnardi",
+            "T. Ziliotto",
+            "E. Bortolan",
+            "F. Muratore",
+            "F. D'Antona",
+            "A. Renzini",
+            "G. Girardi",
+            "L. Gorza",
+            "A. Mastrobuono-Battisti",
+            "C. Ventura",
+            "P. Ventura",
+            "V. Altomonte",
+            "L. Bisigello",
+            "Y. Cavecchi",
+            "F. Dell'Agli",
+            "A. Dotter",
+            "E. P. Lagioia",
+            "C. Li",
+            "S. Lionetto",
+            "A. Marchuk",
+            "J. Qi",
+            "G. Rodighiero",
+            "M. Tailo",
+            "H. Wirth"
+          ],
+          "year": 2026,
+          "page": 1,
+          "section_header": "**ABSTRACT**",
+          "content_kind": "text",
+          "chunk_index": 3,
+          "score": 0.016129032258064516,
+          "rerank_score": null,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        },
+        {
+          "id": "881ca153-c4bc-517d-93c1-8c6dcfb675fe",
+          "text": "_• Binary populations._ The analysis of CMDs provides key constraints on the binary content of GCs, including the fraction of MS–MS systems, their mass-ratio distribution, and their radial distribution (Romani & Weinberg 1991; Sollima et al. 2007; Milone et al. 2012a). These properties are essential for understanding GC dynamical evolution and the formation of exotic stellar populations, such as blue straggler stars, cataclysmic variables, millisecond pulsars, and low-mass X-ray binaries. \n\nWe will exploit the CMDs presented in this work to refine measurements of the binary fraction, mass-ratio distribution, and radial segregation, extending previous studies (Milone et al. 2012a), which were largely limited to cluster inner regions. We will also estimate the binary fraction for different stellar populations following the methodology introduced in our previous works (Milone et al. 2020, 2025b; Bortolan et al. 2025). Measuring the binary fraction separately for 1P and 2P stars is particularly important, as 2P stars likely formed in denser environments where binaries are more efficiently disrupted. Differences in binary fraction and radial distribution \n\n> 7 Synthetic spectra and spectroscopic analyses have demonstrated that the intrinsic extension of 1P stars in ChMs constructed from suitable combinations of _HST_ and _JWST_ filters is primarily driven by small star-to-star metallicity variations (Marino et al. 2019a,b, 2023; Legnardi et al. 2022). Consequently, once the observed pseudo-colour distribution is corrected for photometric uncertainties, it can be directly translated into a metallicity distribution through comparison with synthetic stellar models. The accuracy of the inferred metallicities is therefore determined mainly by the photometric precision of the ChM, and can reach a few hundredths of a dex for high-quality _HST_ + _JWST_ photometry (see, e.g., Legnardi et al. 2022, 2024). \n\nbetween the two populations thus provide direct constraints on formation scenarios and dynamical evolution.",
+          "collection": "arxiv_papers_v2",
+          "build_id": "34eb5f35-38cc-52c0-b968-919813e40de3",
+          "paper_id": "723368a4-0f0d-597b-8ede-50157d4601cb",
+          "title": "Globular Clusters in the Time of the JWST. I. Survey Design and First Results on Multiple Populations and Beyond",
+          "arxiv_id": "2606.20979",
+          "paper_version": 2,
+          "source_url": "https://arxiv.org/abs/2606.20979v2",
+          "authors": [
+            "A. P. Milone",
+            "A. F. Marino",
+            "G. Cordoni",
+            "E. Dondoglio",
+            "M. V. Legnardi",
+            "T. Ziliotto",
+            "E. Bortolan",
+            "F. Muratore",
+            "F. D'Antona",
+            "A. Renzini",
+            "G. Girardi",
+            "L. Gorza",
+            "A. Mastrobuono-Battisti",
+            "C. Ventura",
+            "P. Ventura",
+            "V. Altomonte",
+            "L. Bisigello",
+            "Y. Cavecchi",
+            "F. Dell'Agli",
+            "A. Dotter",
+            "E. P. Lagioia",
+            "C. Li",
+            "S. Lionetto",
+            "A. Marchuk",
+            "J. Qi",
+            "G. Rodighiero",
+            "M. Tailo",
+            "H. Wirth"
+          ],
+          "year": 2026,
+          "page": 17,
+          "section_header": "**6 OTHER RESULTS AND SCIENTIFIC POTENTIAL OF THE DATASET**",
+          "content_kind": "text",
+          "chunk_index": 51,
+          "score": 0.016129032258064516,
+          "rerank_score": null,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        },
+        {
+          "id": "14e6f472-a3d2-5fed-a316-3ae90cf74feb",
+          "text": "## **Globular Clusters in the Time of the JWST. I. Survey Design and First Results on Multiple Populations and Beyond** \n\nA. P. Milone[1] _[,]_[2] , A. F. Marino[2] , G. Cordoni[3] _[⋆]_ , E. Dondoglio[4] , M. V. Legnardi[1] , T. Ziliotto[5] , \n\nE. Bortolan[1] , F. Muratore[1] , F. D’Antona[6] , A. Renzini[2] , G. Girardi[1] , L. Gorza[1] , \n\nA. Mastrobuono-Battisti[1] _[,]_[2] _[,]_[7] , C. Ventura[6] , P. Ventura[6] , V. Altomonte[1] , L. Bisigello[2] , Y. Cavecchi[8] , \n\nF. Dell’Agli[6] , A. Dotter[9] , E. P. Lagioia[10] , C. Li[11] _[,]_[12] , S. Lionetto[1] , A. Marchuk[1] , \n\nJ. Qi[10] , G. Rodighiero[1] , M. Tailo[13] , H. Wirth[14] _[,]_[15] \n\n## \n\n> 1 _Dipartimento di Fisica e Astronomia “Galileo Galilei”, Università di Padova, Vicolo dell’Osservatorio 3, 35122 Padova, Italy_ \n\n> 2 _Istituto Nazionale di Astrofisica - Osservatorio Astronomico di Padova, Vicolo dell’Osservatorio 5, 35122 Padova, Italy_ \n\n> 3 _Research School of Astronomy & Astrophysics, Australian National University, Canberra, ACT 2611, Australia_ \n\n> 4 _Physics Department, American University of Sharjah, P.O. Box 26666, Sharjah, UAE_ \n\n> 5 _Space Telescope Science Institute, 3700 San Martin Drive, Baltimore, MD 21218, USA_ ",
+          "collection": "arxiv_papers_v2",
+          "build_id": "34eb5f35-38cc-52c0-b968-919813e40de3",
+          "paper_id": "723368a4-0f0d-597b-8ede-50157d4601cb",
+          "title": "Globular Clusters in the Time of the JWST. I. Survey Design and First Results on Multiple Populations and Beyond",
+          "arxiv_id": "2606.20979",
+          "paper_version": 2,
+          "source_url": "https://arxiv.org/abs/2606.20979v2",
+          "authors": [
+            "A. P. Milone",
+            "A. F. Marino",
+            "G. Cordoni",
+            "E. Dondoglio",
+            "M. V. Legnardi",
+            "T. Ziliotto",
+            "E. Bortolan",
+            "F. Muratore",
+            "F. D'Antona",
+            "A. Renzini",
+            "G. Girardi",
+            "L. Gorza",
+            "A. Mastrobuono-Battisti",
+            "C. Ventura",
+            "P. Ventura",
+            "V. Altomonte",
+            "L. Bisigello",
+            "Y. Cavecchi",
+            "F. Dell'Agli",
+            "A. Dotter",
+            "E. P. Lagioia",
+            "C. Li",
+            "S. Lionetto",
+            "A. Marchuk",
+            "J. Qi",
+            "G. Rodighiero",
+            "M. Tailo",
+            "H. Wirth"
+          ],
+          "year": 2026,
+          "page": 1,
+          "section_header": "**Globular Clusters in the Time of the JWST. I. Survey Design and First Results on Multiple Populations and Beyond**",
+          "content_kind": "text",
+          "chunk_index": 1,
+          "score": 0.015625,
+          "rerank_score": null,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        }
+      ],
+      "claims": [
+        {
+          "text": "In M22 (NGC 6656) the s-rich stars are enhanced in metallicity relative to the s-poor component by approximately 0.2 dex.",
+          "cited_context_ids": [
+            "b1f06a9b-f6de-5490-97d8-ed78611d8eef",
+            "33335b6e-8afe-55a4-9e71-7b4cea14604b"
+          ],
+          "need_ids": []
+        },
+        {
+          "text": "In NGC 1851 the s-rich and s-poor stellar populations display significant differences in s-process element abundances while sharing a similar total metallicity.",
+          "cited_context_ids": [
+            "b1f06a9b-f6de-5490-97d8-ed78611d8eef"
+          ],
+          "need_ids": []
+        }
+      ],
+      "cited_context_ids": [
+        "33335b6e-8afe-55a4-9e71-7b4cea14604b",
+        "b1f06a9b-f6de-5490-97d8-ed78611d8eef"
+      ],
+      "metrics": {
+        "retrieval_hit": 1.0,
+        "retrieval_recall": 1.0,
+        "gold_citation_recall": 1.0,
+        "citation_from_retrieval": 1.0,
+        "retrieved_count": 5,
+        "cited_count": 2,
+        "required_paper_count": 1,
+        "retrieved_required_paper_count": 1,
+        "cited_required_paper_count": 1,
+        "required_paper_retrieval_recall": 1.0,
+        "required_paper_citation_recall": 1.0,
+        "all_required_papers_retrieved": 1.0,
+        "required_numeric_value_count": 1,
+        "covered_required_numeric_value_count": 1,
+        "required_numeric_value_recall": 1.0,
+        "missing_required_numeric_values": [],
+        "answer_correctness": 1.0,
+        "groundedness": 1.0,
+        "answer_relevance": 1.0,
+        "correct_abstention": null
+      },
+      "judge": {
+        "correctness": 1.0,
+        "answer_relevance": 1.0,
+        "abstention": "not_applicable",
+        "reason": "Reference assessment: The actual answer correctly states the ~0.2 dex metallicity enhancement for M22's s-rich stars and correctly contrasts NGC 1851 as having similar total metallicity between s-rich and s-poor populations; answer text matches the reference evidence. Grounding assessment: Both claims cite the paper and the quoted passages directly state the reported metallicity difference for M22 (~0.2 dex) and that NGC 1851 populations share similar total metallicity while differing in s-process abundances.",
+        "answer_checks": [
+          {
+            "question_part_id": "q_original",
+            "requested_fact": "M22 metallicity difference between s-rich and s-poor populations (approximate value)",
+            "status": "answered",
+            "required_numeric_values": [
+              "0.2"
+            ],
+            "missing_or_incorrect_detail": "",
+            "deficit_basis": "none",
+            "claimed_missing_answer_fragments": [],
+            "answer_claim_ids": [
+              "a0001"
+            ],
+            "answer_quotes": [
+              "In M22 (NGC 6656) the s-rich stars are enhanced in metallicity relative to the s-poor component by approximately 0.2 dex."
+            ]
+          },
+          {
+            "question_part_id": "q_original",
+            "requested_fact": "Contrast for NGC 1851: whether s-rich and s-poor differ in total metallicity",
+            "status": "answered",
+            "required_numeric_values": [],
+            "missing_or_incorrect_detail": "",
+            "deficit_basis": "none",
+            "claimed_missing_answer_fragments": [],
+            "answer_claim_ids": [
+              "a0003"
+            ],
+            "answer_quotes": [
+              "In NGC 1851 the s-rich and s-poor stellar populations display significant differences in s-process element abundances while sharing a similar total metallicity."
+            ]
+          }
+        ],
+        "answer_anchors": [
+          {
+            "id": "a0001",
+            "text": "In M22 (NGC 6656) the s-rich stars are enhanced in metallicity relative to the s-poor component by approximately 0.2 dex.",
+            "source": "claim",
+            "claim_index": 0
+          },
+          {
+            "id": "a0002",
+            "text": " [1] [2]",
+            "source": "answer_span",
+            "claim_index": null
+          },
+          {
+            "id": "a0003",
+            "text": "In NGC 1851 the s-rich and s-poor stellar populations display significant differences in s-process element abundances while sharing a similar total metallicity.",
+            "source": "claim",
+            "claim_index": 1
+          },
+          {
+            "id": "a0004",
+            "text": " [1]",
+            "source": "answer_span",
+            "claim_index": null
+          }
+        ],
+        "reference_score_status": "scored",
+        "groundedness": 1.0
+      },
+      "judge_request": {
+        "reference": {
+          "response_id": "resp_0d0093c9e4d67205016ad784226dc087d285aa0c8c1b2cb3ab",
+          "response_ids": [
+            "resp_0d0093c9e4d67205016ad784226dc087d285aa0c8c1b2cb3ab"
+          ],
+          "attempts": 1,
+          "quote_validation_failures": [],
+          "schema_validation_failures": [],
+          "consistency_validation_failures": [],
+          "consistency_status": "no_detected_conflict",
+          "raw_correctness": 1.0,
+          "score_status": "scored",
+          "answer_anchor_mode": "claim_ids",
+          "request_id": "req_cd6e051910c74d8a9c68491e429ad6d7",
+          "model": "gpt-5-mini-2025-08-07",
+          "max_output_tokens": 16384,
+          "usage": {
+            "input_tokens": 2712,
+            "output_tokens": 305,
+            "total_tokens": 3017
+          }
+        },
+        "grounding": {
+          "response_id": "resp_0d278c546bf6d5a5016ad78426785887d2a2b2b94b59d0d736",
+          "response_ids": [
+            "resp_0d278c546bf6d5a5016ad78426785887d2a2b2b94b59d0d736"
+          ],
+          "attempts": 1,
+          "quote_validation_failures": [],
+          "schema_validation_failures": [],
+          "consistency_validation_failures": [],
+          "consistency_status": "no_detected_conflict",
+          "raw_correctness": null,
+          "score_status": "scored",
+          "answer_anchor_mode": "claim_ids",
+          "request_id": "req_b1e9dba4ba79448ab30243ad5fcf5d84",
+          "model": "gpt-5-mini-2025-08-07",
+          "max_output_tokens": 16384,
+          "usage": {
+            "input_tokens": 3364,
+            "output_tokens": 129,
+            "total_tokens": 3493
+          },
+          "method_attributions": [
+            {
+              "applicability": "not_applicable",
+              "answer_claim_id": "a0001",
+              "claim_index": 0
+            },
+            {
+              "applicability": "not_applicable",
+              "answer_claim_id": "a0002",
+              "claim_index": 1
+            }
+          ],
+          "claim_anchors": [
+            {
+              "id": "a0001",
+              "claim_index": 0
+            },
+            {
+              "id": "a0002",
+              "claim_index": 1
+            }
+          ],
+          "annotation_validation_failures": [],
+          "method_validation_failures": [],
+          "method_scope_issues": [],
+          "raw_groundedness": 1.0
+        }
+      },
+      "judge_error": null,
+      "judge_safeguards": [],
+      "agent_execution": null,
+      "retrieval_diagnostics": {
+        "policy": "hybrid-reviewed-graph-v3",
+        "publication_id": "publication:ef340620c8c35358052b02616a177172a1bdc4710641fe603f2fc127b447ba70",
+        "graph_name": "star-clusters-pilot",
+        "extraction_revision": "83a393f73bedc2a248aba2000cf7a16208a461029afa3b86322cd97fbd384549",
+        "plan_id": "65d9079bda8743744583da188e5b9a41fe1e37a1649ec353512ef0908c88bb0e",
+        "graph_paper_count": 8,
+        "eligible_graph_paper_count": 8,
+        "graph_build_ids": [
+          "34eb5f35-38cc-52c0-b968-919813e40de3",
+          "3ee890b7-f475-51fc-93bd-8e222f1812de",
+          "7e872b04-edf9-580e-bb62-3fdcde30a06a",
+          "857f03f5-5a9d-5259-9c13-3fb2366b96f1",
+          "90456f74-656c-5dc3-bac6-5739e80edeee",
+          "bee7f645-7b83-52b8-b1f5-03410d99d146",
+          "c35fa35e-89c3-5a4c-bbd0-3b8745801521",
+          "f68cb9e4-8b5a-5b1f-9080-d174a829e777"
+        ],
+        "excluded_graph_paper_count": 0,
+        "matched_entity_ids": [
+          "record:191097cfe7ff1ffdb9b3cfd6b285757bd41422b044752536505385d33831b1c8",
+          "record:38b03a58e72b936835aaeb2bdaf5ecfd3e4afde156a0fd269ed511176492eb10",
+          "record:c8c12c4a517bf5921f8ac38f552f3d3c4a0207375917fce09b3ed5e747c8f7ec"
+        ],
+        "seed_record_count": 15,
+        "validated_record_count": 175,
+        "traversed_record_ids": [
+          "record:0db0ce55804d4e6d2569adc9a004fff90ff33a57a0d168d7c7bbd996b274c9f0",
+          "record:191097cfe7ff1ffdb9b3cfd6b285757bd41422b044752536505385d33831b1c8",
+          "record:19399a6de64bc1c5dcfdb75d8924abc3d7d406184037efdc85df1905ac13233e",
+          "record:38b03a58e72b936835aaeb2bdaf5ecfd3e4afde156a0fd269ed511176492eb10",
+          "record:51a7554a21aa42924e7e14990416143de632bdc22c4c7ff777b8fe3a7e12b15b",
+          "record:58d8cb31a3d4073a811e7a47d7ecf775d34379fea538700747f11ac416468eb1",
+          "record:7d4a9bd6ce484da9f820c4f596f45011534fd1dcf64bb7cf8a214925166f6144",
+          "record:876f4df33845471bbbc3687304812c254408cc9a68af9cd1fa8971763ebb9256",
+          "record:8f40c3c2567a03c91aeb642306b9e3a02777781179e5b67522c942875cdfd566",
+          "record:a44e47760476826d43a2d81061bcc8a06bacdd1dff998ff029c0679a0e160826",
+          "record:a8ee4ef7506f36e4b4a45e16780c6f0315aaabf4bbd1fc1e902f72be4c60fb08",
+          "record:be8e0b2537756213de4e1e85599aa137199381dc24b279d82015e03072d5d231",
+          "record:c8c12c4a517bf5921f8ac38f552f3d3c4a0207375917fce09b3ed5e747c8f7ec",
+          "record:e44b30c9e5aa13990f5791f25d272cedb964695a1074f34e2a746937afe96cac",
+          "record:f27f321d15650f343aee16a101b19e91a0d2d15abdde061a7d4f542e6937e28e"
+        ],
+        "graph_candidate_count": 2,
+        "graph_candidates_truncated": false,
+        "graph_chunk_ids": [
+          "b1f06a9b-f6de-5490-97d8-ed78611d8eef",
+          "881ca153-c4bc-517d-93c1-8c6dcfb675fe"
+        ],
+        "scope_kind": "frozen",
+        "traversal_max_links": 2,
+        "database_writes": 0,
+        "query_entity_names": [
+          "JWST",
+          "M 22",
+          "NGC 1851",
+          "NGC 6656",
+          "_JWST_"
+        ],
+        "resolved_catalogue_ids": [
+          "m22",
+          "ngc1851",
+          "ngc6528",
+          "ngc6553",
+          "ngc6656"
+        ],
+        "cross_paper_entity_groups": [],
+        "entity_resolution_conflicts": [],
+        "identity_expanded_seed_count": 0,
+        "survey_coverage_requested": false,
+        "coverage_candidate_paper_ids": [
+          "20ae5d4a-c291-5ce9-ba9f-038fe2fd905c",
+          "58fc9409-3fec-5fde-8a4c-67848a571dd7",
+          "723368a4-0f0d-597b-8ede-50157d4601cb"
+        ],
+        "coverage_selected_paper_ids": [
+          "58fc9409-3fec-5fde-8a4c-67848a571dd7",
+          "723368a4-0f0d-597b-8ede-50157d4601cb"
+        ],
+        "paper_diversity_applied": false,
+        "named_required_build_ids": [
+          "34eb5f35-38cc-52c0-b968-919813e40de3"
+        ],
+        "named_candidate_missing_build_ids": [],
+        "named_selected_missing_build_ids": [],
+        "hybrid_seed_count": 20,
+        "hybrid_candidate_limit": 20,
+        "selected_graph_chunk_count": 2,
+        "selected_chunk_count": 5,
+        "graph_used": true,
+        "hybrid_seconds": 602.037,
+        "graph_seconds": 0.095,
+        "retrieval_status": "graph_augmented",
+        "candidate_count": 21,
+        "candidate_paper_ids": [
+          "20ae5d4a-c291-5ce9-ba9f-038fe2fd905c",
+          "58fc9409-3fec-5fde-8a4c-67848a571dd7",
+          "61c86dcf-d4fb-5635-aec6-62c524cdbcc8",
+          "723368a4-0f0d-597b-8ede-50157d4601cb",
+          "7e47495f-ab03-51ce-b27c-64f10eeed66f",
+          "a34ba51c-b773-55c1-afd0-8a4e8ad0c252"
+        ],
+        "candidate_paper_count": 6,
+        "selected_paper_ids": [
+          "58fc9409-3fec-5fde-8a4c-67848a571dd7",
+          "723368a4-0f0d-597b-8ede-50157d4601cb"
+        ],
+        "selected_paper_count": 2,
+        "required_paper_count": 1,
+        "required_paper_candidate_recall": 1.0,
+        "required_paper_selected_recall": 1.0,
+        "all_required_papers_in_candidates": 1.0,
+        "all_required_papers_selected": 1.0
+      },
+      "generation_diagnostics": null,
+      "stage_timings": {
+        "kg_hybrid_seconds": 602.037,
+        "kg_graph_seconds": 0.095,
+        "retrieval_seconds": 602.159,
+        "generation_seconds": 12.742,
+        "pipeline_seconds": 614.909,
+        "judge_reference_seconds": 4.158,
+        "judge_grounding_seconds": 2.187,
+        "judge_seconds": 6.345
+      },
+      "elapsed_seconds": 621.257,
+      "error": null
+    }
+  ]
+}

@@ -31,6 +31,9 @@ class Config(BaseSettings):
     # Model Settings (Defaults provided)
     EMBEDDING_MODEL: str
     EMBEDDING_MODEL_PROVIDER: str
+    # Query embeddings only; per HTTP phase, not a whole-operation deadline.
+    EMBEDDING_TIMEOUT_SECONDS: float = Field(default=30.0, ge=1, le=300)
+    EMBEDDING_MAX_RETRIES: int = Field(default=0, ge=0, le=2)
     GENERATION_MODEL: str
     GENERATION_MODEL_PROVIDER: str
 

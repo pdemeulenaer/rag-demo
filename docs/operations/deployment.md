@@ -2,6 +2,15 @@
 
 ## Local — Docker Compose
 
+After starting the stack, `make ui-update` (alias `make update-ui`) rebuilds and recreates only the
+`streamlit-app` container, waits for it to start, and prints <http://localhost:8501>.
+The API must already be running: dependencies are not started/rebuilt by this command.
+Active UI sessions may reset; databases, workers and the API are left untouched.
+Use `make compose` when updating the backend too. The standalone `ui-build`/`ui-run`
+image commands are separate from this Compose update workflow.
+The previous `streamlit-update`, `build-ui`, `run-ui`, `tag-ui` and `push-ui` names still
+work as compatibility aliases; prefer `ui-*` for the grouped command list.
+
 ```bash
 make compose            # docker compose up -d --build
 ```
@@ -38,9 +47,12 @@ Verify a running stack with:
 Image tags come from `version.txt`:
 
 ```bash
-make build-ui      && make tag-ui      && make push-ui
-make build-fastapi && make tag-fastapi && make push-fastapi
+make ui-build      && make ui-tag      && make ui-push
+make fastapi-build && make fastapi-tag && make fastapi-push
 ```
+
+The backend commands are `fastapi-build`, `fastapi-run`, `fastapi-tag` and `fastapi-push`.
+The previous `build-fastapi`, `run-fastapi`, `tag-fastapi` and `push-fastapi` names remain aliases.
 
 Images are published under the `pdemeulenaer` Docker Hub namespace as `rag-frontend` and
 `rag-backend`.

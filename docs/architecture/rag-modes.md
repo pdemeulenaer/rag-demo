@@ -72,6 +72,16 @@ index specification; changing it requires a new collection and re-index.
 Hybrid is implemented in `src/api/rag/modes/hybrid.py`. It is still one retrieval round and
 cannot decide to search another paper or expand weak evidence.
 
+For catalogue-resolved full paper titles explicitly quoted in the question, Hybrid now
+requests `max(20, top_k)` candidates once, reserves the highest-ranked available chunk from
+each exact collection/build, and fills remaining slots in RRF order. Final `top_k` does not
+increase. Ordinary unquoted queries retain the original top-k search. This prevents one
+named paper dominating final selection, but cannot recover a paper absent from the candidate
+pool. Diagnostics distinguish missing candidates from final-selection loss; the existing
+missing-paper abstention and citation checks remain. This is an explicit Hybrid retrieval
+policy change: compare fresh runs, not historical scores. Vanilla, Agentic and Cohere
+reranking behavior are unchanged.
+
 ## Hybrid + Rerank RAG
 
 `hybrid_rerank` runs the same dense + BM25 + RRF search with a larger candidate pool, sends
@@ -528,10 +538,15 @@ implemented. Reviewed-only graph publication, verification, activation and deter
 The modes are deliberately separate:
 
 - **KG (available):** Hybrid searches the selected full corpus; exact normalized reviewed
-  entity/alias mentions and matching source points seed Neo4j traversal. Up to two structural
+  entity/alias mentions and matching source points seed Neo4j traversal. M/NGC/IC catalogue
+  spacing is normalized, and supported approved catalogue aliases resolve object seeds
+  across eligible papers without merging stored assertions. Up to two structural
   links connect entities, observations and first-class relationship assertions. Merge the
   original supporting chunks with Hybrid using RRF (constant 60), reserve one graph-backed
-  slot when available, then keep the same final `top_k`. It uses baseline generation/citation
+  slot when available, then keep the same final `top_k`. Explicit survey/comparison requests
+  use a larger Hybrid candidate pool (default 20) and reserve distinct papers with literal
+  requested/resolved object IDs in their chunks. This is a lexical coverage policy, not a
+  guarantee of complete answers or citations. It uses baseline generation/citation
   validation, not Agentic's planner or semantic review, and does not use Cohere. Graph-only
   candidate chunks default to 20; validation bounds are explicit in the KG guide.
 - **KG-Agentic (planned):** the bounded agent may use graph traversal alongside metadata and vector
@@ -544,8 +559,11 @@ knowledge graph.
 ## Availability and selection
 
 KG uses only approved records in the active named publication and SQL-eligible builds.
-No fuzzy alias matching, inferred synonyms, entity merging or query-time extraction occurs.
-The current graph covers only a reviewed subset of seven papers. A query can therefore
+No fuzzy alias matching, inferred synonyms, stored entity/measurement merging or query-time
+extraction occurs. Read-time identity links use only approved, quoted catalogue aliases;
+conflicting catalogue-ID components are not expanded. The current expanded graph covers
+only 22 reviewed source chunks in eight papers (the original seven plus SPURS). Airflow's
+larger SQL/Qdrant corpus is not automatically ingested into Neo4j. A query can therefore
 return `hybrid_only_no_graph_match`; this is visible in the UI/evaluation diagnostics and
 must not be reported as evidence of a graph improvement. An unavailable graph is an explicit
 error, never an invisible fallback. See [query commands and limits](knowledge-graph.md#query-the-active-graph).

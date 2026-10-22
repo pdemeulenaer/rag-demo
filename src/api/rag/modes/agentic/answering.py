@@ -253,6 +253,10 @@ _PERCENT_VALUE = re.compile(
     r"\s*(?:%|\bpercent(?:age)?\b)", re.I,
 )
 _NUMBER = re.compile(r"(?<![\w.])[+-]?(?:\d+(?:[.,]\d+)?|\.\d+)(?:[eE][+-]?\d+)?")
+_GROUPED_NUMBER = re.compile(
+    r"(?<![\w.,])[+-]?[1-9]\d{0,2}(?:,\d{3})+(?:\.\d+)?"
+    r"(?:[eE][+-]?\d+)?(?![\w,]|\.\d)"
+)
 _BRACKETED_POWER10 = re.compile(
     r"(?<![\w.])10\s*_?\s*(?P<sign>\[\s*[-+−]\s*\]\s*_?\s*)?"
     r"(?P<exponent>\[+\s*\d+\s*\]+)"
@@ -421,6 +425,10 @@ def _numeric_tokens(text: str, *, percentage_fractions: bool = False) -> set[str
     text = _STRUCTURAL_RESONANCE_RATIO.sub(" ", text)
     text = _NUMBERED_OBJECT.sub(" ", text)
     text = re.sub(r"\[\s*\d+\s*\]", " ", text)
+    # English-style thousands grouping, consistent with benchmark count parsing.
+    # Normalize only complete groups in this comparison view, not quotes/artifacts.
+    # Preserve decimal commas (0,123; 1,25), signs and malformed grouping.
+    text = _GROUPED_NUMBER.sub(lambda match: match.group().replace(",", ""), text)
     # Explicit percentage notation alone licenses conversion to a decimal fraction.
     # Keep this opt-in for answer anchoring, not a general unit-conversion license.
     power_spans = [match.span() for match in _POWER10.finditer(text)]

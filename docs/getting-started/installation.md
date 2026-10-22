@@ -77,4 +77,4 @@ make docs-build           # render the static site into site/
 | `make create-eval-dataset` | Build the retrieval evaluation dataset |
 | `make eval-run EVAL_DIR=...` | Run the reviewed four-mode benchmark |
 | `make langfuse-up` | Start this repo's optional Langfuse stack |
-| `make build-ui` / `make build-fastapi` | Build the Docker images |
+| `make ui-build` / `make fastapi-build` | Build the Docker images |

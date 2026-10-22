@@ -15,6 +15,9 @@ The target is all eligible papers, not a permanent seven-paper corpus. Validate 
 connected pilot first, then expand. Unrelated papers may form disconnected components;
 never manufacture a relationship just to connect the graph.
 
+To add newly ingested papers, use [live-catalogue selection](#expand-from-the-live-catalogue).
+It does not require regenerating the evaluation dataset or changing the active graph.
+
 ## How papers reach Neo4j
 
 KG construction is a **second, derived indexing pipeline**, using papers already ingested
@@ -52,6 +55,9 @@ only staging and activation write to Neo4j.
 activation selects the publication used by retrieval.** These are separate decisions.
 `kg-publish-preview` is an optional read-only preflight before staging.
 
+For new papers, first run `kg-catalogue` and `kg-select` as described below; these choose
+the input to step 1. `kg-prepare-preview` verifies that input without writing the plan.
+
 After activation, select **KG** in Streamlit: Hybrid search and bounded graph traversal
 recover eligible original source chunks for cited answer generation. KG-Agentic remains
 planned. Daily arXiv ingestion and GUI uploads **do not automatically run this KG pipeline**.
@@ -71,6 +77,129 @@ records are publication-local, not globally merged entities. Shared paper/build/
 references are immutable; source reference sharing must not grant access to another
 publication's assertions. Daily KG
 automation comes after this construction/activation path has been tested, not before.
+
+## Expand from the live catalogue
+
+Use this workflow after Airflow or ordinary ingestion has made additional papers ready.
+The old `kg-preview` reads an evaluation snapshot; **`kg-catalogue` reads today's
+PostgreSQL catalogue**. These are deliberately separate inputs.
+
+### 1. Find ready papers
+
+```bash
+make kg-catalogue KG_TERM="M22"
+make kg-catalogue KG_TERM="47 Tucanae"
+make kg-catalogue KG_PAGE_SIZE=20
+```
+
+Copy the desired `paper_id` values, not build IDs. `KG_TERM` is an optional literal,
+case-insensitive substring in the **title or abstract**, not full-chunk or semantic search.
+Try other spellings explicitly when necessary; no scientific aliases are inferred.
+By default only arXiv papers in the configured category/topic scope are listed. Use
+`KG_SOURCE=uploads` or `KG_SOURCE=all` to include ready manual uploads. All sources must
+have a ready, undeleted active build, the configured embedding model/current collection,
+and structured-manifest metadata. Actual artifact availability is checked in step 3.
+
+When `has_more` is true, pass the returned `next_after` as `KG_AFTER` to the next page
+(keep the same source/search). Page size is 1–100; a search term is at most 200 characters.
+Browsing is read-only, uses bounded SQL batches and paper-ID cursors rather than loading
+all build history or using growing OFFSETs. A concurrent ingestion can change later pages;
+the saved selection, not the browsing session, defines extraction inputs.
+
+### 2. Save an explicit paper/build selection
+
+Choose a **new directory**, and replace the example IDs below with the IDs just listed:
+
+```bash
+make kg-select \
+  KG_DIR=data/knowledge_graph/expanded-v1 \
+  KG_PAPER_IDS="<paper-id-1> <paper-id-2>"
+```
+
+This writes only local `selection.json`: exact paper/build IDs, source, version, collection,
+title, manifest hash and text-chunk count, with an integrity fingerprint. It includes the
+original seven pilot paper IDs by default, resolving their **current** eligible builds;
+missing pilot papers cause an error rather than silent omission. Duplicate IDs are removed.
+For only the explicit new IDs, add `KG_INCLUDE_PILOT=false`. An alternate `KG_PILOT` file
+can supply an explicit reusable list and group labels.
+
+Identical selections can be repeated without overwriting the file. A changed selection
+needs a new directory. Selection does not lock PostgreSQL; if a selected build or its
+metadata changes before preparation, preparation fails explicitly rather than silently
+substituting a new version. Reselect into another new directory in that case.
+
+### 3. Verify artifacts and preview extraction calls — free
+
+```bash
+make kg-prepare-preview \
+  KG_DIR=data/knowledge_graph/expanded-v1 \
+  KG_CHUNKS_PER_PAPER=3 KG_MAX_CALLS=30
+```
+
+This verifies full existing Markdown/pages/chunks and hashes, one paper at a time, without
+writing files, calling a model or connecting to Neo4j. The important output fields are:
+
+| Field | Meaning |
+| --- | --- |
+| `full_text_chunks` / `maximum_first_pass_calls` | Full extraction's first-pass request upper bound: one request per chunk. |
+| `sample_first_pass_calls` | At most three chunks per paper in this example, summed over the selected papers. |
+| `maximum_calls_next_fresh_invocation` | The smaller of that sample and the per-invocation call limit (30 here). |
+| `per_paper` | Verified chunk counts and build/manifest identities for each paper. |
+
+These are **request counts, not a price or lifetime budget**. The preview assumes a fresh
+run, not existing extraction checkpoints; retries may add paid requests. The sampling/call
+options are not saved in `selection.json` or the preparation plan: pass them again when
+you later run extraction.
+
+### 4. Freeze the full input plan — still free
+
+```bash
+make kg-prepare \
+  KG_DIR=data/knowledge_graph/expanded-v1 \
+  KG_SELECTION_FILE=data/knowledge_graph/expanded-v1/selection.json
+```
+
+`KG_SELECTION_FILE` explicitly selects the new manifest path; without it, `kg-prepare`
+keeps the existing snapshot workflow. Live selections cannot be truncated with `KG_PAPERS`;
+choose a smaller explicit selection instead. Preparation verifies again and writes local
+`plan.json`, including full chunk text and frozen model/settings. No PDFs are reprocessed,
+no embeddings are regenerated, and evaluation files/approvals remain untouched.
+
+**Stop here to inspect the free preview and plan.** The next command is explicitly paid:
+
+```bash
+make kg-extract KG_DIR=data/knowledge_graph/expanded-v1 \
+  KG_CHUNKS_PER_PAPER=3 KG_MAX_CALLS=30
+make kg-validate KG_DIR=data/knowledge_graph/expanded-v1
+make kg-review-prepare KG_DIR=data/knowledge_graph/expanded-v1
+```
+
+Continue with [review](#review-existing-candidates-without-another-paid-trial), then
+[staging, verification and explicit activation](#publish-the-approved-subset-to-neo4j).
+Successes and approvals are reused **within their existing directory**, not automatically
+copied from the old pilot to a new plan. Including the old seven papers in a new plan can
+therefore incur new extraction costs when you invoke it.
+
+**A replacement publication is a complete approved snapshot, not an append.** Including
+the original paper IDs alone does not preserve all 86 old approved records: only records
+actually extracted, reviewed and eligible in the new plan are published. Check the preview
+before activation; the old publication remains active until you explicitly replace it and
+is retained afterward. Cross-plan approved-record reuse/union is not implemented.
+
+### Visible preparation limits and scaling
+
+| Setting in `.env.sample` | Default | Range / meaning |
+| --- | ---: | --- |
+| `KG_PREPARE_MAX_PAPERS` | 100 | 1–1000 selected papers per plan |
+| `KG_PREPARE_MAX_CHUNKS` | 20000 | 1–100000 full text chunks per plan |
+| `KG_PREPARE_MAX_BYTES` | 50000000 | 10000–500000000 UTF-8 bytes; bounds accumulated input and final serialized plan |
+
+Limits fail explicitly; no papers/chunks are silently dropped. Preview retains summaries
+instead of the whole corpus; preparation still writes one bounded JSON plan and loads each
+paper's artifacts in memory. For larger corpora, use named batches rather than unbounded
+limits. Metadata substring search may scan many rows; indexed full-text discovery, streaming
+plans, cross-batch publication composition, entity resolution and automatic daily KG updates
+are separate future scaling work, not features claimed by this slice.
 
 ## Query the active graph
 
@@ -96,14 +225,22 @@ The isolated implementations are `src/api/rag/modes/kg.py` (retrieval compositio
 `src/api/kg/retrieval.py` (read-only graph and eligibility policies):
 
 1. Pin the named active publication; absent/inconsistent/changed publication fails explicitly.
-2. Run one existing Hybrid search over the full selected corpus with the same `top_k`.
+2. Run one existing Hybrid search over the full selected corpus. Explicit survey/comparison
+   requests consider up to `max(top_k, KG_QUERY_HYBRID_CANDIDATES)` candidates; final context
+   still contains at most `top_k` chunks. No extra embedding/model request is added.
 3. Recheck graph builds against PostgreSQL: paper/build/collection/source/version and manifest
    SHA must match. Live queries require active, ready, undeleted builds. Frozen evaluations
    may use retained **ready**, undeleted builds explicitly in their snapshot, never newer
    replacements outside it. Ineligible graph builds are excluded, not silently broadened.
-4. Match reviewed names/aliases as exact normalized word-bounded mentions (case/Unicode and
-   punctuation normalization only), and find records supported by Hybrid seed points.
-   This is entity **lookup**, not cross-paper entity merging or inferred alias enrichment.
+4. Match reviewed names/aliases with word boundaries, case/Unicode/punctuation normalization
+   and M/NGC/IC catalogue spacing normalization (`M22`/`M 22`, `NGC6656`/`NGC 6656`). Find
+   records supported by Hybrid seed points. A read-time identity index groups approved
+   **astronomical objects** sharing catalogue IDs. Cross-catalogue bridges require an
+   approved name/alias and those IDs in the source quotations. Generic dataset/study names,
+   properties and prefixes inside longer labels are not used to infer object identities.
+   Components with different IDs in the same catalogue are flagged and not identity-expanded.
+   This adds equivalent-object seeds across eligible papers; it does not merge stored nodes,
+   observations, values, uncertainties or hypotheses, and does not write inferred graph edges.
 5. Use fixed parameterized Cypher with at most two `HAS_OBSERVATION`/`SUBJECT`/`OBJECT`
    structural links, e.g. entity → relationship assertion → entity. Every intermediate
    node/edge must be in the publication and eligible projection; structural links must agree
@@ -111,14 +248,21 @@ The isolated implementations are `src/api/rag/modes/kg.py` (retrieval compositio
 6. Validate approved attribution, dependencies/roles, literal evidence quotes, original chunk
    identity and text hashes. Return full original source chunks, not generated KG statements.
 7. Merge Hybrid and graph chunk rankings with RRF (60), reserve one graph-backed slot if
-   found, and keep final `top_k`. Recheck SQL eligibility and publication identity. Use shared
+   found, and keep final `top_k`. For explicit survey/comparison questions, also reserve the
+   best candidate per paper whose original chunk text contains a requested/resolved catalogue
+   ID, then fill remaining slots by RRF. Apply paper diversity to graph candidates too.
+   This is a limited coverage policy, not proof that a passage answers every requested fact.
+   Recheck SQL eligibility and publication identity. Use shared
    baseline atomic-claim generation and citation checks. These checks do not prove scientific
    entailment; the same independent evaluation judges still apply.
 
-The initial pilot has **86 approved records, but only 4 scientific relationships** across
-16 source chunks and 7 papers. The 376 stored edges include provenance; they are not 376
-scientific connections. There is no global entity resolution, and two structural links do
-not imply arbitrary scientific multihop reasoning. Do not expect universal improvements.
+The initial pilot had 86 approved records and 4 scientific relationships across 16 source
+chunks and 7 papers. The active `expanded-v1` publication now has **175 approved records,
+7 scientific relationships, 22 source chunks and 8 papers** (the original seven plus SPURS).
+Its 752 stored edges include provenance, not 752 scientific connections. Airflow ingestion
+does not add papers to this graph automatically. Read-time catalogue-ID resolution is not
+a global scientific entity resolver, and two structural links do not imply arbitrary
+scientific multihop reasoning. Do not expect universal improvements.
 Hybrid-only answers remain explicitly labelled; missing Neo4j is a 503, and a changed pinned
 publication is a 409. Start a new conversation after a graph change. Backend memory is
 isolated by graph publication as well as the ordinary corpus/mode/model fingerprint.
@@ -132,12 +276,78 @@ Query limits in `.env.sample` / `KGSettings`:
 | `KG_QUERY_MAX_SOURCE_LINKS` | 20000 | 1–1000000; source-quote validation bound; explicit failure |
 | `KG_QUERY_MAX_TEXT_BYTES` | 10000000 | 10000–50000000; unique eligible chunk UTF-8 bytes; explicit failure |
 | `KG_QUERY_MAX_CHUNKS` | 20 | 1–50 graph candidates before final `top_k` |
+| `KG_QUERY_HYBRID_CANDIDATES` | 20 | 1–100; candidate pool for explicit survey/comparison requests, at least requested `top_k` |
 | `KG_QUERY_PUBLICATION_ID` | empty | Optional expected active ID for runtime; otherwise follow active |
 | `KG_NEO4J_TIMEOUT_SECONDS` | 30 | 1–300; each Neo4j transaction/connection; no driver retries |
 
 This first pilot reader validates the bounded eligible projection on each request; it is
 not yet a large-corpus query optimization. Neo4j traversal syntax follows the official
 [bounded path documentation](https://neo4j.com/docs/cypher-manual/current/patterns/variable-length-paths/).
+
+### Identifier and multi-paper behavior (query policy v2)
+
+`entities.py` owns formatting and read-time catalogue identity, `selection_policy.py` owns
+bounded coverage selection, and `rag/modes/kg.py` composes those with existing retrieval.
+Formatting normalization never equates `M22` with `NGC6656` on its own: that bridge must
+exist in approved source-backed entity aliases. It preserves object suffixes and word
+boundaries (`M22` is not `M220`, `M22A` or `M22_stars_sample`). Unrecognized catalogue names
+retain ordinary exact normalized matching. No fuzzy/LLM alias inference is performed.
+
+Survey detection uses explicit English tokens: `papers`, `studies`, `literature`, `compare`
+or `comparison`. This is a visible lexical policy, **not** a semantic complexity classifier.
+Only literal requested/resolved identifiers in original chunk text qualify for paper-slot
+reservation; unrelated papers cannot gain slots merely to increase a diversity count.
+Generic-object surveys without supported catalogue IDs retain ranked retrieval.
+
+The UI shows matched names, selected-paper count, cross-paper identity groups, alias
+conflicts and candidate/selected survey coverage. Evaluation/Langfuse keep the same details;
+that revision records `hybrid-reviewed-graph-v2`, while old v1 summaries remain readable. Retrieved
+context coverage is not answer citation coverage: the shared generator must still ground
+its claims and may not cite every retrieved paper. No extra generation retry is imposed.
+
+These changes require restarting the API/UI (e.g. `make compose`) and a new conversation,
+not re-indexing, extraction, review, republishing or evaluation-dataset regeneration.
+The active publication remains unchanged. Crucially, the current sample may still have only
+one approved astronomical-object identity for M22: a dataset named `M22_stars_sample` is
+not evidence to invent a new object node/link. Further source-backed extraction/review is
+needed for graph connections that the sample does not contain.
+
+#### Query policy v3: named-paper coverage and failure diagnostics
+
+New runs record `hybrid-reviewed-graph-v3`; historical v1/v2 results remain readable and
+are not rewritten. This revision addresses failures exposed by the KG development set:
+
+- When vector and graph retrieval return the **same collection/point ID**, compare their
+  texts after stripping only leading/trailing whitespace. Preserve the original returned
+  passages and stored hashes. Changed internal whitespace, signs, values, case or wording
+  still fail with `kg_vector_graph_text_mismatch`; this is not fuzzy text matching.
+- Full quoted paper titles are resolved through the scoped PostgreSQL catalogue before
+  retrieval. KG uses its existing `max(top_k, KG_QUERY_HYBRID_CANDIDATES)` candidate pool
+  for these questions, even without a survey keyword. Final selection reserves the best
+  available passage per exact named collection/build, then a graph-backed slot when room
+  remains, then normal survey/RRF selection. Final top-k never increases. Named coverage
+  takes precedence if its reservations already fill every slot. A graph candidate not
+  selected is labelled `hybrid_only_graph_not_selected`, not a graph-augmented success.
+- Plain Hybrid applies the same named-paper reservation to one `max(20, top_k)` pool.
+  Ordinary queries, Vanilla, Agentic and Cohere reranking behavior remain unchanged.
+  There is no per-paper retry/search loop, new embedding call or generation retry.
+- `named_candidate_missing_build_ids` versus `named_selected_missing_build_ids` distinguishes
+  candidate-generation misses from final-selection losses. A missing candidate still leads
+  to the existing safe abstention; retrieved presence does not prove factual sufficiency.
+- KG exceptions expose application-owned, allowlisted `code` and `stage` only. For example,
+  `error.kg_failure` can be `{"code":"kg_vector_graph_text_mismatch","stage":"merge"}`.
+  Unexpected exceptions retain cause **types**, not raw messages/hosts/credentials.
+  Stage labels distinguish configuration/connect/pin, Hybrid search, graph search, merge,
+  selection/recheck and close. API errors show these labels; evaluation JSON/Markdown
+  summarize `kg_failures.codes` and `.stages`. Closing an owned reader cannot mask the
+  primary error. These diagnostics do not convert failures into scored answers.
+
+Only retrieval/comparison policy changed: no graph mutation, new publication, re-index,
+PDF processing or evaluation regeneration. Host `make eval-run` picks up the code directly;
+rebuild/restart the API for UI testing (e.g. `make compose`) and start a new conversation.
+First rerun `kg0001` with `EVAL_QUESTION_ID=kg0001`, then the eight-question comparison below.
+Offline tests and saved-seed/live-read-only graph replay do not establish fresh vector-search,
+Langfuse-enabled or end-to-end answer quality; those require an explicitly paid rerun.
 
 For a paid smoke benchmark, explicitly opt in (same questions/split; no regeneration):
 
@@ -157,6 +367,73 @@ The original four default evaluation modes remain
 unchanged. For a five-mode comparison pass
 `EVAL_MODES="vanilla hybrid hybrid_rerank agentic kg"`; interpret graph-covered questions
 separately from the rest. These tests establish wiring/scope, not a measured quality gain.
+
+### Source-curated KG development set
+
+`data/evaluation/kg-pilot-v1/questions.reviewed.json` contains **eight** additional
+questions: four single-paper controls and four cross-paper comparisons. Their reference
+passages are full original chunks supporting approved, eligible `expanded-v1` graph
+records—not merely passages from papers whose titles happen to be in the graph.
+The tracked recipe is `evals/datasets/kg_pilot_v1.json`; each question records its selected
+record IDs, source quotes, review attribution and rationale. No model calls created this set.
+
+| Questions | What they test |
+| --- | --- |
+| `kg0001` | M22 / NGC 6656 alias and metallicity contrast with NGC 1851 |
+| `kg0002` | 47 Tuc sample radius, crowding exclusion and parent-sample count |
+| `kg0003` | Omega Centauri rotation versus distinct anisotropy proxies |
+| `kg0004` | SPURS wind interpretation versus an established powering source |
+| `kg0005` | M22 observed chemistry versus unresolved enrichment scenarios |
+| `kg0006` | Omega Centauri internal populations versus proposed accretion origin |
+| `kg0007` | 47 Tuc applied crowding cut versus proposed birthrate-prior changes |
+| `kg0008` | Planned binary-population measurements versus classifier test metrics |
+
+The references were source-checked by **Codex (AI), not an astrophysicist**. Approval here
+is attributed AI review, not independent specialist validation. In particular, hypothetical
+enrichment/origin explanations must not become proven causal links. The cross-paper items
+are comparisons, not claimed multihop graph proofs. All eight are explicitly development-only
+(`development-only-v1`, no requested or allocated test partition); do not run `eval-split`
+and relabel this curated diagnostic set as a held-out result.
+
+The sibling snapshot reuses the **same complete 48-paper frozen corpus** as `markdown-mini-v4`.
+It does not restrict queries to the seven papers referenced by the questions or the eight
+graph papers. The old dataset/snapshot, graph and Qdrant points are unchanged. Original gold
+excerpts in the copied snapshot are not expanded: these new references come from verified
+KG-plan full chunks in the same frozen builds. No generation evidence is claimed.
+
+Validate locally, then explicitly run the paid comparison:
+
+```bash
+make eval-validate EVAL_DIR=data/evaluation/kg-pilot-v1 EVAL_SPLIT=development
+
+# Paid: 8 questions × 2 modes = 16 RAG answers, plus reference/grounding judges.
+make eval-run \
+  EVAL_DIR=data/evaluation/kg-pilot-v1 \
+  EVAL_SPLIT=development EVAL_MODES="hybrid kg" EVAL_JUDGE=true \
+  EVAL_KG_PUBLICATION_ID=publication:ef340620c8c35358052b02616a177172a1bdc4710641fe603f2fc127b447ba70
+```
+
+To run only the cross-paper comparisons, add `EVAL_PROFILES=cross_comparison` (four questions,
+eight answers). Keep the same top-k/model/settings for both modes. Read per-question graph
+diagnostics: eligible reference records do **not** guarantee that graph lookup will select
+them or improve the answer. Compare graph-augmented versus Hybrid-only runs, answer scores,
+paper/chunk coverage and latency; inspect failed/unscored judgments separately. This deliberately
+graph-covered, small development cohort cannot establish a corpus-wide quality gain.
+
+To reconstruct the local files on another machine with the original artifacts/checkpoints,
+use the following **free**, offline assembly command. It verifies the original KG review
+against checkpoints, source quotes, plan identity and frozen build scope. It refuses an
+existing output directory and never changes approvals or the original inputs. It performs
+no fresh semantic review and does not check live Neo4j publication state; the benchmark's
+explicit publication assertion does the latter.
+
+```bash
+uv run --group kg python -m evals.curate_kg_dataset \
+  --spec evals/datasets/kg_pilot_v1.json \
+  --snapshot data/evaluation/markdown-mini-v4/snapshot.json \
+  --kg-dir data/knowledge_graph/expanded-v1 \
+  --output data/evaluation/kg-pilot-v1
+```
 
 Offline tests: `tests/unit/test_kg_retrieval.py`, `test_kg_runtime.py`. The opt-in
 `make kg-test-neo4j` also exercises native read-only traversal in a disposable synthetic
@@ -365,6 +642,17 @@ Browser: **http://localhost:7474**. Username: `neo4j`. The local-only initial pa
 the setting into your existing `.env`; do not overwrite that file with `.env.sample`.
 Changing the variable does not change the password of an already initialized database.
 
+Forgot the login? With the Neo4j container running, use:
+
+```bash
+make kg-password
+```
+
+This displays the Browser URL and configured username/initial password from the running
+container. **Do not share the output.** It does not reset or verify the persisted database
+password; a password changed inside Neo4j can differ. For the active graph publication ID
+(not a login credential), use `make kg-publication-status`.
+
 The container is pinned to `neo4j:2026.09.0`, binds browser/Bolt ports to localhost, and
 uses persistent `neo4j_data`/`neo4j_logs` volumes. `make kg-stop` stops it without deleting
 data. `make kg-logs` follows logs. Normal `make compose` does not start Neo4j. The service
@@ -477,6 +765,27 @@ connects to Neo4j or activates a graph.
 Further extraction that changes the completed candidate set makes an old review stale.
 Use `KG_REVIEW=review-batch2.json` to prepare a fresh sidecar; previous decisions are not
 overwritten or automatically copied. Only separate local JSON filenames are accepted.
+
+### Can scientific review be automated?
+
+The CLI already automates structure, provenance, literal-quote, quarantine and dependency
+checks. `kg-review-prepare` only creates a checklist; **there is currently no automated
+semantic-review command**. Source-based AI review can fill the existing decision fields,
+but must identify the reviewer as AI, record reasons and leave uncertainty unresolved.
+It is not equivalent to an astrophysicist's approval.
+
+The expanded eight-paper sample in `data/knowledge_graph/expanded-v1` was AI-reviewed on
+2026-10-16: 257 records examined, 175 eligible approvals, 41 exclusions and 41 unresolved.
+Its local `REVIEW.md` records findings and audit files; the active graph was not changed.
+This is a source-fidelity assessment, not a measured KG quality gain or expert validation.
+
+A future optional model-assisted reviewer should operate in bounded per-chunk batches,
+save model/revision/reasons and resumable checkpoints, preserve previous decisions, and
+respect existing source fingerprints and quarantine. It should flag uncertain typing,
+units, incomplete evidence and contradictory claims for human attention. Do not silently
+repair records or clear flags, equate model agreement with truth, or auto-publish/activate.
+Human spot-checking and explicit activation remain separate safeguards. This automated
+reviewer is a planned follow-up, not a command available today.
 
 ## Publish the approved subset to Neo4j
 
@@ -786,7 +1095,9 @@ for native typed parsing. Schema conformance is not a substitute for scientific 
 3. **Deterministic KG mode (implemented):** Hybrid seeds + bounded, parameterized read-only
    graph queries return original supporting chunks under the same scope. Separate mode,
    API, UI and frozen runner integration; no LLM-generated Cypher. Next: controlled coverage
-   and quality benchmarks, then scaling/entity-resolution work.
+   and quality benchmarks, then scaling/entity-resolution work. Live catalogue browsing,
+   explicit build-pinned selections and free full-artifact/call-count previews are available
+   for controlled expansion beyond evaluation snapshots.
 4. **KG-Agentic:** add the tested graph tool to existing LangGraph orchestration without
    changing the four existing modes; record paths, supporting IDs and stage latency.
 5. **Comparison and daily integration:** reuse reviewed questions, add genuinely relational

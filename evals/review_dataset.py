@@ -12,7 +12,7 @@ import random
 import re
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, Field, ValidationError
+from pydantic import BaseModel, ConfigDict, Field, ValidationError, model_validator
 
 
 QuestionKind = Literal["single_paper", "cross_paper", "unanswerable_candidate"]
@@ -67,12 +67,22 @@ class ReviewedQuestionV2(BaseModel):
 class SplitPolicy(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
-    name: Literal["paper-components-v1"]
+    name: Literal["paper-components-v1", "development-only-v1"]
     seed: int
-    requested_test_ratio: float = Field(gt=0, lt=1)
+    requested_test_ratio: float | None = Field(gt=0, lt=1)
     actual_test_ratio: float = Field(ge=0, le=1)
     development_questions: int = Field(ge=0)
     test_questions: int = Field(ge=0)
+
+    @model_validator(mode="after")
+    def explicit_holdout_policy(self):
+        if self.name == "paper-components-v1" and self.requested_test_ratio is None:
+            raise ValueError("Paper-component splits require a requested test ratio")
+        if self.name == "development-only-v1" and (
+                self.requested_test_ratio is not None or self.actual_test_ratio != 0
+                or self.test_questions != 0):
+            raise ValueError("Development-only datasets cannot declare a test allocation")
+        return self
 
 
 class ReviewedDatasetV2(BaseModel):

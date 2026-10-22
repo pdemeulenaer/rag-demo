@@ -104,6 +104,132 @@ def test_exact_alias_matching_not_substrings_or_inferred_aliases():
     assert not mentioned("a", "a star")
 
 
+@pytest.mark.parametrize("name,query", [
+    ("M 22", "What about M22?"), ("M22", "M\u202f22"),
+    ("NGC 6656", "NGC6656"), ("IC10", "IC 10"),
+    ("NGC 123A", "NGC123a"),
+])
+def test_catalogue_spacing_and_case_are_formatting_not_new_aliases(name, query):
+    assert mentioned(name, query)
+
+
+@pytest.mark.parametrize("name,query", [
+    ("M22", "M220 M222 M22A"), ("M22", "M22_stars_sample"),
+    ("NGC6656", "NGC6656A"), ("A 1", "A1"), ("M22", "NGC 6656"),
+])
+def test_catalogue_normalization_does_not_infer_components_or_unknown_catalogues(name, query):
+    assert not mentioned(name, query)
+
+
+def add_object_paper(g, name, aliases, text, value="4"):
+    """Distinct source/record identities; even contradictory values stay separate."""
+    paper, build, point = map(str, (uuid4(), uuid4(), uuid4()))
+    source = dict(paper_id=paper,build_id=build,collection="papers",point_id=point,
+                  source="arxiv",page_number=1,section_header="Results")
+    entity_id = build+":entity"
+    entity = dict(id=entity_id,kind="astronomical_object",name=name,aliases=aliases,
+                  evidence=[source|dict(quote=text)])
+    obs = dict(id=build+":observation",subject_id=entity_id,kind="measurement",
+        statement=f"Distance is {value} kpc.",quantity="distance",value_text=value,unit_text="kpc",
+        conditions=[],evidence=[source|dict(quote=text)])
+    chunk = source|dict(id=identity("chunk","papers",point),text=text,
+                       text_sha256=sha256(text.encode()).hexdigest(),chunk_index=0)
+    for kind,label,record in (("entity","KGEntity",entity),("observation","KGObservation",obs)):
+        key = identity("record",g.publication,record["id"])
+        g.records.append(dict(record=dict(id=key,publication_id=g.publication,record_id=record["id"],
+            record_type=kind,build_id=build,paper_id=paper,collection="papers",record_json=canonical(record),
+            review_json=canonical(dict(decision="approved",reviewer="offline reviewer"))),labels=["KGRecord",label]))
+        g.sources.append(dict(record_id=key,support=dict(publication_id=g.publication,quote=text,
+                                                       evidence_json=canonical(source|dict(quote=text))),chunk=chunk))
+    g.builds.append(dict(build_id=build,paper_id=paper,collection="papers",source="arxiv",version=1,
+                        title=name+" Study",manifest_sha256="verified"))
+    row = dict(g.row,id=build,paper_id=paper,active_build=build)
+    g.rows = [*getattr(g,"rows",[g.row]),row]
+    g.catalogue.scoped_ready_builds.return_value = g.rows
+    g.scope = RetrievalScope("papers",tuple(b["build_id"] for b in g.builds),
+        builds=(*g.scope.builds,ScopedBuild(build,paper,(point,))))
+    g.manifest["counts"] = dict(papers=len(g.builds),records=len(g.records))
+    return paper, point, row
+
+
+def test_source_backed_catalogue_aliases_resolve_across_papers_without_merging_measurements(graph):
+    a,point_a,_ = add_object_paper(graph,"M22",["NGC 6656"],"M 22 (NGC 6656): distance is 4 kpc.")
+    b,point_b,_ = add_object_paper(graph,"NGC6656",[],"NGC 6656: distance is 9 kpc.",value="9")
+    result = graph.reader.search("What do papers report about M22?",scope=graph.scope,
+        catalogue=graph.catalogue,seeds=[],limit=2)
+    assert {c.id for c in result.chunks} == {point_a,point_b}
+    assert {c.paper_id for c in result.chunks} == {a,b}
+    assert result.diagnostics["resolved_catalogue_ids"] == ["m22","ngc6656"]
+    assert len(result.diagnostics["cross_paper_entity_groups"]) == 1
+    assert result.diagnostics["identity_expanded_seed_count"] == 1
+    assert any("4 kpc" in c.text for c in result.chunks)
+    assert any("9 kpc" in c.text for c in result.chunks)
+
+
+def test_conflicting_catalogue_bridges_do_not_expand_to_third_paper(graph):
+    add_object_paper(graph,"M22",["NGC6656"],"M22 (NGC6656): distance is 4 kpc.")
+    add_object_paper(graph,"NGC6656",[],"NGC6656: distance is 4 kpc.")
+    _,conflicting,_ = add_object_paper(graph,"NGC9999",["M22"],"M22 (NGC9999): distance is 4 kpc.")
+    result = graph.reader.search("NGC6656",scope=graph.scope,catalogue=graph.catalogue,seeds=[],limit=20)
+    assert conflicting not in {c.id for c in result.chunks}
+    assert result.diagnostics["entity_resolution_conflicts"]
+    assert not result.diagnostics["cross_paper_entity_groups"]
+
+
+def test_unquoted_alias_cannot_supply_cross_paper_identity_bridge(graph):
+    add_object_paper(graph,"M22",["NGC6656"],"M22: distance is 4 kpc.")
+    _,other,_ = add_object_paper(graph,"NGC6656",[],"NGC6656: distance is 4 kpc.")
+    result = graph.reader.search("M22",scope=graph.scope,catalogue=graph.catalogue,seeds=[],limit=20)
+    assert other not in {c.id for c in result.chunks}
+
+
+def test_ineligible_paper_cannot_join_identity_group(graph):
+    add_object_paper(graph,"M22",["NGC6656"],"M22 (NGC6656): distance is 4 kpc.")
+    _,other,row = add_object_paper(graph,"NGC6656",[],"NGC6656: distance is 4 kpc.")
+    row["deleted"] = True
+    result = graph.reader.search("M22",scope=graph.scope,catalogue=graph.catalogue,seeds=[],limit=20)
+    assert other not in {c.id for c in result.chunks}
+    assert not result.diagnostics["cross_paper_entity_groups"]
+
+
+def test_generic_names_are_not_used_for_cross_paper_resolution(graph):
+    _,other,_ = add_object_paper(graph,"Cluster Alpha",[],"Cluster Alpha: distance is 4 kpc.")
+    result = graph.reader.search("distance",scope=graph.scope,catalogue=graph.catalogue,
+        seeds=[dict(collection="papers",id=graph.point)],limit=20)
+    assert other not in {c.id for c in result.chunks}
+
+
+def test_survey_selection_considers_more_candidates_but_keeps_top_k_and_graph_slot(graph):
+    add_object_paper(graph,"M22",[],"M22: distance is 4 kpc.")
+    seeds = [dict(id=f"a{i}",collection="papers",paper_id="a",text="M 22 abundance study.") for i in range(5)]
+    seeds += [dict(id="b",collection="papers",paper_id="b",text="M22 variables.")]
+    seeds += [dict(id="unrelated",collection="papers",paper_id="c",text="A galaxy survey.")]
+    search = Mock(return_value=seeds)
+    result = retrieve("What do papers report about M22?",Mock(),top_k=3,collection="papers",scope=graph.scope,
+        catalogue=graph.catalogue,retrieve_context=search,reader=graph.reader,settings=graph.settings)
+    assert search.call_args.kwargs["top_k"] == graph.settings.KG_QUERY_HYBRID_CANDIDATES
+    assert len(result) == 3 and len({r["paper_id"] for r in result}) == 3
+    assert result.diagnostics["selected_graph_chunk_count"] == 1
+    assert result.diagnostics["paper_diversity_applied"]
+    assert "unrelated" not in {r["id"] for r in result}
+
+
+def test_single_fact_does_not_enable_larger_survey_pool(graph):
+    search = Mock(return_value=[])
+    retrieve("Distance of A1?",Mock(),top_k=2,collection="papers",scope=graph.scope,
+        catalogue=graph.catalogue,retrieve_context=search,reader=graph.reader,settings=graph.settings)
+    assert search.call_args.kwargs["top_k"] == 2
+
+
+def test_graph_reservation_prefers_literal_subject_over_unrelated_graph_hit():
+    from src.api.kg.selection_policy import select_context
+    rows = {"unrelated":dict(paper_id="other",text="47 Tuc stars."),
+            "target":dict(paper_id="m22",text="M 22 abundances.")}
+    chosen,_ = select_context(list(rows),rows,set(rows),limit=1,
+                             query="What do papers report about M22?")
+    assert chosen == ["target"]
+
+
 def test_graph_traversal_returns_original_scoped_chunk_and_attribution(graph):
     result = graph.reader.search("Cluster Alpha distance", scope=graph.scope,
         catalogue=graph.catalogue, seeds=[], limit=5)
@@ -200,6 +326,73 @@ def test_vector_graph_text_conflict_is_not_silently_overwritten(graph):
     with pytest.raises(KGUnavailable,match="text_mismatch"):
         retrieve("A1",Mock(),top_k=5,collection="papers",scope=graph.scope,
             catalogue=graph.catalogue,retrieve_context=Mock(return_value=[seed]),reader=graph.reader,settings=graph.settings)
+
+
+@pytest.mark.parametrize("boundary", ["\n", "  ", "\r\n"])
+def test_vector_graph_boundary_whitespace_preserves_original_text(graph, boundary):
+    original = boundary + graph.text + boundary
+    seed = dict(id=graph.point, collection="papers", text=original, paper_id=graph.paper,
+                build_id=graph.build)
+    result = retrieve("A1", Mock(), top_k=5, collection="papers", scope=graph.scope,
+        catalogue=graph.catalogue, retrieve_context=Mock(return_value=[seed]),
+        reader=graph.reader, settings=graph.settings)
+    assert next(r["text"] for r in result if r["id"] == graph.point) == original
+    assert result.diagnostics["graph_used"]
+
+
+@pytest.mark.parametrize("changed", ["7  kpc", "9 kpc", "-7 kpc", "7 Kpc"])
+def test_vector_graph_inner_content_changes_remain_fail_closed(graph, changed):
+    seed = dict(id=graph.point, collection="papers", text=graph.text.replace("7 kpc", changed),
+                paper_id=graph.paper, build_id=graph.build)
+    with pytest.raises(KGUnavailable) as caught:
+        retrieve("A1", Mock(), top_k=5, collection="papers", scope=graph.scope,
+            catalogue=graph.catalogue, retrieve_context=Mock(return_value=[seed]),
+            reader=graph.reader, settings=graph.settings)
+    assert caught.value.code == "kg_vector_graph_text_mismatch"
+    assert caught.value.stage == "merge"
+
+
+@pytest.mark.parametrize("stage", ["pin", "hybrid_search", "graph_search"])
+def test_unexpected_kg_errors_record_stage_without_raw_messages(graph, stage):
+    reader = Mock(wraps=graph.reader)
+    search = Mock(return_value=[])
+    secret = "private-host-and-password-must-not-be-serialized"
+    if stage == "pin":
+        reader.publication.side_effect = RuntimeError(secret)
+    elif stage == "hybrid_search":
+        search.side_effect = RuntimeError(secret)
+    else:
+        reader.search.side_effect = RuntimeError(secret)
+    with pytest.raises(KGUnavailable) as caught:
+        retrieve("A1", Mock(), top_k=5, collection="papers", scope=graph.scope,
+            catalogue=graph.catalogue, retrieve_context=search, reader=reader, settings=graph.settings)
+    from evals.diagnostics import error_details
+    details = error_details(caught.value)
+    assert details["category"] == "kg_retrieval"
+    assert details["kg_failure"] == dict(code="kg_retrieval_unavailable_or_invalid", stage=stage)
+    assert secret not in json.dumps(details)
+    reader.close.assert_not_called()  # Caller-owned reader.
+
+
+def test_owned_reader_close_cannot_mask_the_primary_failure(graph, monkeypatch):
+    reader = Mock()
+    reader.publication.side_effect = KGUnavailable("kg_no_active_publication")
+    reader.close.side_effect = RuntimeError("secondary private error")
+    monkeypatch.setattr(KGReader, "connect", Mock(return_value=reader))
+    with pytest.raises(KGUnavailable) as caught:
+        retrieve("A1", Mock(), top_k=5, collection="papers", scope=graph.scope,
+            catalogue=graph.catalogue, retrieve_context=Mock(), settings=graph.settings)
+    assert caught.value.code == "kg_no_active_publication"
+    assert caught.value.stage == "pin"
+    reader.close.assert_called_once()
+
+
+def test_connect_failure_is_safe_and_stage_labelled(graph, monkeypatch):
+    monkeypatch.setattr(KGReader, "connect", Mock(side_effect=RuntimeError("private endpoint")))
+    with pytest.raises(KGUnavailable) as caught:
+        retrieve("A1", Mock(), top_k=5, collection="papers", scope=graph.scope,
+            catalogue=graph.catalogue, retrieve_context=Mock(), settings=graph.settings)
+    assert caught.value.stage == "connect"
 
 
 def test_mid_query_sql_change_fails_closed(graph):

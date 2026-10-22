@@ -1,0 +1,1044 @@
+{
+  "hybrid": {
+    "questions": 8,
+    "errors": 0,
+    "judge_errors": 0,
+    "mean_latency_seconds": 36.464,
+    "metrics": {
+      "all_required_papers_retrieved": 1.0,
+      "answer_correctness": 0.625,
+      "answer_relevance": 1.0,
+      "citation_from_retrieval": 1.0,
+      "correct_abstention": null,
+      "gold_citation_recall": 0.5625,
+      "groundedness": 0.9375,
+      "required_numeric_value_recall": 0.4286,
+      "required_paper_citation_recall": 0.875,
+      "required_paper_retrieval_recall": 1.0,
+      "retrieval_hit": 0.75,
+      "retrieval_recall": 0.5625
+    },
+    "metric_sample_counts": {
+      "all_required_papers_retrieved": {
+        "scored": 8,
+        "unscored": 0
+      },
+      "answer_correctness": {
+        "scored": 8,
+        "unscored": 0
+      },
+      "answer_relevance": {
+        "scored": 8,
+        "unscored": 0
+      },
+      "citation_from_retrieval": {
+        "scored": 7,
+        "unscored": 1
+      },
+      "correct_abstention": {
+        "scored": 0,
+        "unscored": 8
+      },
+      "gold_citation_recall": {
+        "scored": 8,
+        "unscored": 0
+      },
+      "groundedness": {
+        "scored": 8,
+        "unscored": 0
+      },
+      "required_numeric_value_recall": {
+        "scored": 7,
+        "unscored": 1
+      },
+      "required_paper_citation_recall": {
+        "scored": 8,
+        "unscored": 0
+      },
+      "required_paper_retrieval_recall": {
+        "scored": 8,
+        "unscored": 0
+      },
+      "retrieval_hit": {
+        "scored": 8,
+        "unscored": 0
+      },
+      "retrieval_recall": {
+        "scored": 8,
+        "unscored": 0
+      }
+    },
+    "retrieval_diagnostics": {
+      "runs": 8,
+      "mean_candidate_count": 20.0,
+      "mean_candidate_paper_count": 3.375,
+      "mean_selected_paper_count": 1.625,
+      "mean_paper_diversity_retention": 0.5833,
+      "mean_required_paper_candidate_recall": 1.0,
+      "mean_required_paper_selected_recall": 1.0,
+      "all_required_papers_candidate_rate": 1.0,
+      "all_required_papers_selected_rate": 1.0
+    },
+    "generation_diagnostics": {
+      "runs": 1,
+      "statuses": {
+        "safe_abstention": 1
+      },
+      "reasons": {
+        "citation_validation_failed": 1
+      }
+    },
+    "stage_timings": {
+      "runs": 8,
+      "mean_seconds": {
+        "embedding_seconds": 0.488,
+        "generation_seconds": 24.343,
+        "judge_grounding_seconds": 3.244,
+        "judge_reference_seconds": 8.111,
+        "judge_seconds": 11.356,
+        "pipeline_seconds": 25.104,
+        "qdrant_seconds": 0.248,
+        "retrieval_seconds": 0.751
+      },
+      "sample_counts": {
+        "embedding_seconds": 8,
+        "generation_seconds": 8,
+        "judge_grounding_seconds": 8,
+        "judge_reference_seconds": 8,
+        "judge_seconds": 8,
+        "pipeline_seconds": 8,
+        "qdrant_seconds": 8,
+        "retrieval_seconds": 8
+      }
+    },
+    "judge_consistency": {
+      "runs": 8,
+      "statuses": {
+        "no_detected_conflict": 8
+      },
+      "flagged_runs": 2,
+      "needs_review_question_ids": []
+    },
+    "grounding_consistency": {
+      "runs": 8,
+      "statuses": {
+        "scored": 8
+      },
+      "flagged_runs": 0,
+      "needs_review_question_ids": []
+    },
+    "profiles": {
+      "cross_comparison": {
+        "questions": 4,
+        "errors": 0,
+        "judge_errors": 0,
+        "mean_latency_seconds": 47.177,
+        "metrics": {
+          "all_required_papers_retrieved": 1.0,
+          "answer_correctness": 0.5,
+          "answer_relevance": 1.0,
+          "citation_from_retrieval": 1.0,
+          "correct_abstention": null,
+          "gold_citation_recall": 0.375,
+          "groundedness": 1.0,
+          "required_numeric_value_recall": 0.25,
+          "required_paper_citation_recall": 1.0,
+          "required_paper_retrieval_recall": 1.0,
+          "retrieval_hit": 0.75,
+          "retrieval_recall": 0.375
+        },
+        "metric_sample_counts": {
+          "all_required_papers_retrieved": {
+            "scored": 4,
+            "unscored": 0
+          },
+          "answer_correctness": {
+            "scored": 4,
+            "unscored": 0
+          },
+          "answer_relevance": {
+            "scored": 4,
+            "unscored": 0
+          },
+          "citation_from_retrieval": {
+            "scored": 4,
+            "unscored": 0
+          },
+          "correct_abstention": {
+            "scored": 0,
+            "unscored": 4
+          },
+          "gold_citation_recall": {
+            "scored": 4,
+            "unscored": 0
+          },
+          "groundedness": {
+            "scored": 4,
+            "unscored": 0
+          },
+          "required_numeric_value_recall": {
+            "scored": 4,
+            "unscored": 0
+          },
+          "required_paper_citation_recall": {
+            "scored": 4,
+            "unscored": 0
+          },
+          "required_paper_retrieval_recall": {
+            "scored": 4,
+            "unscored": 0
+          },
+          "retrieval_hit": {
+            "scored": 4,
+            "unscored": 0
+          },
+          "retrieval_recall": {
+            "scored": 4,
+            "unscored": 0
+          }
+        },
+        "retrieval_diagnostics": {
+          "runs": 4,
+          "mean_candidate_count": 20.0,
+          "mean_candidate_paper_count": 3.5,
+          "mean_selected_paper_count": 2.0,
+          "mean_paper_diversity_retention": 0.6667,
+          "mean_required_paper_candidate_recall": 1.0,
+          "mean_required_paper_selected_recall": 1.0,
+          "all_required_papers_candidate_rate": 1.0,
+          "all_required_papers_selected_rate": 1.0
+        },
+        "stage_timings": {
+          "runs": 4,
+          "mean_seconds": {
+            "embedding_seconds": 0.223,
+            "generation_seconds": 32.075,
+            "judge_grounding_seconds": 3.668,
+            "judge_reference_seconds": 10.924,
+            "judge_seconds": 14.592,
+            "pipeline_seconds": 32.579,
+            "qdrant_seconds": 0.25,
+            "retrieval_seconds": 0.492
+          },
+          "sample_counts": {
+            "embedding_seconds": 4,
+            "generation_seconds": 4,
+            "judge_grounding_seconds": 4,
+            "judge_reference_seconds": 4,
+            "judge_seconds": 4,
+            "pipeline_seconds": 4,
+            "qdrant_seconds": 4,
+            "retrieval_seconds": 4
+          }
+        },
+        "judge_consistency": {
+          "runs": 4,
+          "statuses": {
+            "no_detected_conflict": 4
+          },
+          "flagged_runs": 2,
+          "needs_review_question_ids": []
+        },
+        "grounding_consistency": {
+          "runs": 4,
+          "statuses": {
+            "scored": 4
+          },
+          "flagged_runs": 0,
+          "needs_review_question_ids": []
+        }
+      },
+      "single_fact": {
+        "questions": 2,
+        "errors": 0,
+        "judge_errors": 0,
+        "mean_latency_seconds": 23.941,
+        "metrics": {
+          "all_required_papers_retrieved": 1.0,
+          "answer_correctness": 0.5,
+          "answer_relevance": 1.0,
+          "citation_from_retrieval": 1.0,
+          "correct_abstention": null,
+          "gold_citation_recall": 0.5,
+          "groundedness": 0.75,
+          "required_numeric_value_recall": 0.5,
+          "required_paper_citation_recall": 0.5,
+          "required_paper_retrieval_recall": 1.0,
+          "retrieval_hit": 0.5,
+          "retrieval_recall": 0.5
+        },
+        "metric_sample_counts": {
+          "all_required_papers_retrieved": {
+            "scored": 2,
+            "unscored": 0
+          },
+          "answer_correctness": {
+            "scored": 2,
+            "unscored": 0
+          },
+          "answer_relevance": {
+            "scored": 2,
+            "unscored": 0
+          },
+          "citation_from_retrieval": {
+            "scored": 1,
+            "unscored": 1
+          },
+          "correct_abstention": {
+            "scored": 0,
+            "unscored": 2
+          },
+          "gold_citation_recall": {
+            "scored": 2,
+            "unscored": 0
+          },
+          "groundedness": {
+            "scored": 2,
+            "unscored": 0
+          },
+          "required_numeric_value_recall": {
+            "scored": 2,
+            "unscored": 0
+          },
+          "required_paper_citation_recall": {
+            "scored": 2,
+            "unscored": 0
+          },
+          "required_paper_retrieval_recall": {
+            "scored": 2,
+            "unscored": 0
+          },
+          "retrieval_hit": {
+            "scored": 2,
+            "unscored": 0
+          },
+          "retrieval_recall": {
+            "scored": 2,
+            "unscored": 0
+          }
+        },
+        "retrieval_diagnostics": {
+          "runs": 2,
+          "mean_candidate_count": 20.0,
+          "mean_candidate_paper_count": 3.5,
+          "mean_selected_paper_count": 1.5,
+          "mean_paper_diversity_retention": 0.6667,
+          "mean_required_paper_candidate_recall": 1.0,
+          "mean_required_paper_selected_recall": 1.0,
+          "all_required_papers_candidate_rate": 1.0,
+          "all_required_papers_selected_rate": 1.0
+        },
+        "generation_diagnostics": {
+          "runs": 1,
+          "statuses": {
+            "safe_abstention": 1
+          },
+          "reasons": {
+            "citation_validation_failed": 1
+          }
+        },
+        "stage_timings": {
+          "runs": 2,
+          "mean_seconds": {
+            "embedding_seconds": 0.865,
+            "generation_seconds": 14.614,
+            "judge_grounding_seconds": 2.753,
+            "judge_reference_seconds": 5.453,
+            "judge_seconds": 8.207,
+            "pipeline_seconds": 15.732,
+            "qdrant_seconds": 0.231,
+            "retrieval_seconds": 1.107
+          },
+          "sample_counts": {
+            "embedding_seconds": 2,
+            "generation_seconds": 2,
+            "judge_grounding_seconds": 2,
+            "judge_reference_seconds": 2,
+            "judge_seconds": 2,
+            "pipeline_seconds": 2,
+            "qdrant_seconds": 2,
+            "retrieval_seconds": 2
+          }
+        },
+        "judge_consistency": {
+          "runs": 2,
+          "statuses": {
+            "no_detected_conflict": 2
+          },
+          "flagged_runs": 0,
+          "needs_review_question_ids": []
+        },
+        "grounding_consistency": {
+          "runs": 2,
+          "statuses": {
+            "scored": 2
+          },
+          "flagged_runs": 0,
+          "needs_review_question_ids": []
+        }
+      },
+      "single_synthesis": {
+        "questions": 2,
+        "errors": 0,
+        "judge_errors": 0,
+        "mean_latency_seconds": 27.562,
+        "metrics": {
+          "all_required_papers_retrieved": 1.0,
+          "answer_correctness": 1.0,
+          "answer_relevance": 1.0,
+          "citation_from_retrieval": 1.0,
+          "correct_abstention": null,
+          "gold_citation_recall": 1.0,
+          "groundedness": 1.0,
+          "required_numeric_value_recall": 1.0,
+          "required_paper_citation_recall": 1.0,
+          "required_paper_retrieval_recall": 1.0,
+          "retrieval_hit": 1.0,
+          "retrieval_recall": 1.0
+        },
+        "metric_sample_counts": {
+          "all_required_papers_retrieved": {
+            "scored": 2,
+            "unscored": 0
+          },
+          "answer_correctness": {
+            "scored": 2,
+            "unscored": 0
+          },
+          "answer_relevance": {
+            "scored": 2,
+            "unscored": 0
+          },
+          "citation_from_retrieval": {
+            "scored": 2,
+            "unscored": 0
+          },
+          "correct_abstention": {
+            "scored": 0,
+            "unscored": 2
+          },
+          "gold_citation_recall": {
+            "scored": 2,
+            "unscored": 0
+          },
+          "groundedness": {
+            "scored": 2,
+            "unscored": 0
+          },
+          "required_numeric_value_recall": {
+            "scored": 1,
+            "unscored": 1
+          },
+          "required_paper_citation_recall": {
+            "scored": 2,
+            "unscored": 0
+          },
+          "required_paper_retrieval_recall": {
+            "scored": 2,
+            "unscored": 0
+          },
+          "retrieval_hit": {
+            "scored": 2,
+            "unscored": 0
+          },
+          "retrieval_recall": {
+            "scored": 2,
+            "unscored": 0
+          }
+        },
+        "retrieval_diagnostics": {
+          "runs": 2,
+          "mean_candidate_count": 20.0,
+          "mean_candidate_paper_count": 3.0,
+          "mean_selected_paper_count": 1.0,
+          "mean_paper_diversity_retention": 0.3333,
+          "mean_required_paper_candidate_recall": 1.0,
+          "mean_required_paper_selected_recall": 1.0,
+          "all_required_papers_candidate_rate": 1.0,
+          "all_required_papers_selected_rate": 1.0
+        },
+        "stage_timings": {
+          "runs": 2,
+          "mean_seconds": {
+            "embedding_seconds": 0.642,
+            "generation_seconds": 18.607,
+            "judge_grounding_seconds": 2.888,
+            "judge_reference_seconds": 5.143,
+            "judge_seconds": 8.032,
+            "pipeline_seconds": 19.526,
+            "qdrant_seconds": 0.262,
+            "retrieval_seconds": 0.914
+          },
+          "sample_counts": {
+            "embedding_seconds": 2,
+            "generation_seconds": 2,
+            "judge_grounding_seconds": 2,
+            "judge_reference_seconds": 2,
+            "judge_seconds": 2,
+            "pipeline_seconds": 2,
+            "qdrant_seconds": 2,
+            "retrieval_seconds": 2
+          }
+        },
+        "judge_consistency": {
+          "runs": 2,
+          "statuses": {
+            "no_detected_conflict": 2
+          },
+          "flagged_runs": 0,
+          "needs_review_question_ids": []
+        },
+        "grounding_consistency": {
+          "runs": 2,
+          "statuses": {
+            "scored": 2
+          },
+          "flagged_runs": 0,
+          "needs_review_question_ids": []
+        }
+      }
+    }
+  },
+  "kg": {
+    "questions": 8,
+    "errors": 0,
+    "judge_errors": 0,
+    "mean_latency_seconds": 30.841,
+    "metrics": {
+      "all_required_papers_retrieved": 1.0,
+      "answer_correctness": 0.9375,
+      "answer_relevance": 1.0,
+      "citation_from_retrieval": 1.0,
+      "correct_abstention": null,
+      "gold_citation_recall": 1.0,
+      "groundedness": 1.0,
+      "required_numeric_value_recall": 1.0,
+      "required_paper_citation_recall": 1.0,
+      "required_paper_retrieval_recall": 1.0,
+      "retrieval_hit": 1.0,
+      "retrieval_recall": 1.0
+    },
+    "metric_sample_counts": {
+      "all_required_papers_retrieved": {
+        "scored": 8,
+        "unscored": 0
+      },
+      "answer_correctness": {
+        "scored": 8,
+        "unscored": 0
+      },
+      "answer_relevance": {
+        "scored": 8,
+        "unscored": 0
+      },
+      "citation_from_retrieval": {
+        "scored": 8,
+        "unscored": 0
+      },
+      "correct_abstention": {
+        "scored": 0,
+        "unscored": 8
+      },
+      "gold_citation_recall": {
+        "scored": 8,
+        "unscored": 0
+      },
+      "groundedness": {
+        "scored": 8,
+        "unscored": 0
+      },
+      "required_numeric_value_recall": {
+        "scored": 7,
+        "unscored": 1
+      },
+      "required_paper_citation_recall": {
+        "scored": 8,
+        "unscored": 0
+      },
+      "required_paper_retrieval_recall": {
+        "scored": 8,
+        "unscored": 0
+      },
+      "retrieval_hit": {
+        "scored": 8,
+        "unscored": 0
+      },
+      "retrieval_recall": {
+        "scored": 8,
+        "unscored": 0
+      }
+    },
+    "retrieval_diagnostics": {
+      "runs": 8,
+      "mean_candidate_count": 21.125,
+      "mean_candidate_paper_count": 3.375,
+      "mean_selected_paper_count": 1.625,
+      "mean_paper_diversity_retention": 0.5833,
+      "mean_required_paper_candidate_recall": 1.0,
+      "mean_required_paper_selected_recall": 1.0,
+      "all_required_papers_candidate_rate": 1.0,
+      "all_required_papers_selected_rate": 1.0
+    },
+    "kg_retrieval": {
+      "runs": 8,
+      "publication_ids": [
+        "publication:ef340620c8c35358052b02616a177172a1bdc4710641fe603f2fc127b447ba70"
+      ],
+      "graph_used_runs": 8,
+      "hybrid_only_runs": 0,
+      "mean_selected_graph_chunks": 2.25,
+      "cross_paper_identity_runs": 0,
+      "paper_diversity_runs": 0
+    },
+    "stage_timings": {
+      "runs": 8,
+      "mean_seconds": {
+        "embedding_seconds": 0.312,
+        "generation_seconds": 21.335,
+        "judge_grounding_seconds": 3.206,
+        "judge_reference_seconds": 5.567,
+        "judge_seconds": 8.773,
+        "kg_graph_seconds": 0.116,
+        "kg_hybrid_seconds": 0.567,
+        "pipeline_seconds": 22.065,
+        "qdrant_seconds": 0.251,
+        "retrieval_seconds": 0.724
+      },
+      "sample_counts": {
+        "embedding_seconds": 8,
+        "generation_seconds": 8,
+        "judge_grounding_seconds": 8,
+        "judge_reference_seconds": 8,
+        "judge_seconds": 8,
+        "kg_graph_seconds": 8,
+        "kg_hybrid_seconds": 8,
+        "pipeline_seconds": 8,
+        "qdrant_seconds": 8,
+        "retrieval_seconds": 8
+      }
+    },
+    "judge_consistency": {
+      "runs": 8,
+      "statuses": {
+        "no_detected_conflict": 8
+      },
+      "flagged_runs": 0,
+      "needs_review_question_ids": []
+    },
+    "grounding_consistency": {
+      "runs": 8,
+      "statuses": {
+        "scored": 8
+      },
+      "flagged_runs": 0,
+      "needs_review_question_ids": []
+    },
+    "profiles": {
+      "cross_comparison": {
+        "questions": 4,
+        "errors": 0,
+        "judge_errors": 0,
+        "mean_latency_seconds": 37.555,
+        "metrics": {
+          "all_required_papers_retrieved": 1.0,
+          "answer_correctness": 1.0,
+          "answer_relevance": 1.0,
+          "citation_from_retrieval": 1.0,
+          "correct_abstention": null,
+          "gold_citation_recall": 1.0,
+          "groundedness": 1.0,
+          "required_numeric_value_recall": 1.0,
+          "required_paper_citation_recall": 1.0,
+          "required_paper_retrieval_recall": 1.0,
+          "retrieval_hit": 1.0,
+          "retrieval_recall": 1.0
+        },
+        "metric_sample_counts": {
+          "all_required_papers_retrieved": {
+            "scored": 4,
+            "unscored": 0
+          },
+          "answer_correctness": {
+            "scored": 4,
+            "unscored": 0
+          },
+          "answer_relevance": {
+            "scored": 4,
+            "unscored": 0
+          },
+          "citation_from_retrieval": {
+            "scored": 4,
+            "unscored": 0
+          },
+          "correct_abstention": {
+            "scored": 0,
+            "unscored": 4
+          },
+          "gold_citation_recall": {
+            "scored": 4,
+            "unscored": 0
+          },
+          "groundedness": {
+            "scored": 4,
+            "unscored": 0
+          },
+          "required_numeric_value_recall": {
+            "scored": 4,
+            "unscored": 0
+          },
+          "required_paper_citation_recall": {
+            "scored": 4,
+            "unscored": 0
+          },
+          "required_paper_retrieval_recall": {
+            "scored": 4,
+            "unscored": 0
+          },
+          "retrieval_hit": {
+            "scored": 4,
+            "unscored": 0
+          },
+          "retrieval_recall": {
+            "scored": 4,
+            "unscored": 0
+          }
+        },
+        "retrieval_diagnostics": {
+          "runs": 4,
+          "mean_candidate_count": 21.5,
+          "mean_candidate_paper_count": 3.5,
+          "mean_selected_paper_count": 2.0,
+          "mean_paper_diversity_retention": 0.6667,
+          "mean_required_paper_candidate_recall": 1.0,
+          "mean_required_paper_selected_recall": 1.0,
+          "all_required_papers_candidate_rate": 1.0,
+          "all_required_papers_selected_rate": 1.0
+        },
+        "kg_retrieval": {
+          "runs": 4,
+          "publication_ids": [
+            "publication:ef340620c8c35358052b02616a177172a1bdc4710641fe603f2fc127b447ba70"
+          ],
+          "graph_used_runs": 4,
+          "hybrid_only_runs": 0,
+          "mean_selected_graph_chunks": 2.75,
+          "cross_paper_identity_runs": 0,
+          "paper_diversity_runs": 0
+        },
+        "stage_timings": {
+          "runs": 4,
+          "mean_seconds": {
+            "embedding_seconds": 0.282,
+            "generation_seconds": 26.711,
+            "judge_grounding_seconds": 3.997,
+            "judge_reference_seconds": 6.106,
+            "judge_seconds": 10.103,
+            "kg_graph_seconds": 0.141,
+            "kg_hybrid_seconds": 0.535,
+            "pipeline_seconds": 27.448,
+            "qdrant_seconds": 0.25,
+            "retrieval_seconds": 0.73
+          },
+          "sample_counts": {
+            "embedding_seconds": 4,
+            "generation_seconds": 4,
+            "judge_grounding_seconds": 4,
+            "judge_reference_seconds": 4,
+            "judge_seconds": 4,
+            "kg_graph_seconds": 4,
+            "kg_hybrid_seconds": 4,
+            "pipeline_seconds": 4,
+            "qdrant_seconds": 4,
+            "retrieval_seconds": 4
+          }
+        },
+        "judge_consistency": {
+          "runs": 4,
+          "statuses": {
+            "no_detected_conflict": 4
+          },
+          "flagged_runs": 0,
+          "needs_review_question_ids": []
+        },
+        "grounding_consistency": {
+          "runs": 4,
+          "statuses": {
+            "scored": 4
+          },
+          "flagged_runs": 0,
+          "needs_review_question_ids": []
+        }
+      },
+      "single_fact": {
+        "questions": 2,
+        "errors": 0,
+        "judge_errors": 0,
+        "mean_latency_seconds": 17.428,
+        "metrics": {
+          "all_required_papers_retrieved": 1.0,
+          "answer_correctness": 0.75,
+          "answer_relevance": 1.0,
+          "citation_from_retrieval": 1.0,
+          "correct_abstention": null,
+          "gold_citation_recall": 1.0,
+          "groundedness": 1.0,
+          "required_numeric_value_recall": 1.0,
+          "required_paper_citation_recall": 1.0,
+          "required_paper_retrieval_recall": 1.0,
+          "retrieval_hit": 1.0,
+          "retrieval_recall": 1.0
+        },
+        "metric_sample_counts": {
+          "all_required_papers_retrieved": {
+            "scored": 2,
+            "unscored": 0
+          },
+          "answer_correctness": {
+            "scored": 2,
+            "unscored": 0
+          },
+          "answer_relevance": {
+            "scored": 2,
+            "unscored": 0
+          },
+          "citation_from_retrieval": {
+            "scored": 2,
+            "unscored": 0
+          },
+          "correct_abstention": {
+            "scored": 0,
+            "unscored": 2
+          },
+          "gold_citation_recall": {
+            "scored": 2,
+            "unscored": 0
+          },
+          "groundedness": {
+            "scored": 2,
+            "unscored": 0
+          },
+          "required_numeric_value_recall": {
+            "scored": 2,
+            "unscored": 0
+          },
+          "required_paper_citation_recall": {
+            "scored": 2,
+            "unscored": 0
+          },
+          "required_paper_retrieval_recall": {
+            "scored": 2,
+            "unscored": 0
+          },
+          "retrieval_hit": {
+            "scored": 2,
+            "unscored": 0
+          },
+          "retrieval_recall": {
+            "scored": 2,
+            "unscored": 0
+          }
+        },
+        "retrieval_diagnostics": {
+          "runs": 2,
+          "mean_candidate_count": 20.5,
+          "mean_candidate_paper_count": 3.5,
+          "mean_selected_paper_count": 1.5,
+          "mean_paper_diversity_retention": 0.6667,
+          "mean_required_paper_candidate_recall": 1.0,
+          "mean_required_paper_selected_recall": 1.0,
+          "all_required_papers_candidate_rate": 1.0,
+          "all_required_papers_selected_rate": 1.0
+        },
+        "kg_retrieval": {
+          "runs": 2,
+          "publication_ids": [
+            "publication:ef340620c8c35358052b02616a177172a1bdc4710641fe603f2fc127b447ba70"
+          ],
+          "graph_used_runs": 2,
+          "hybrid_only_runs": 0,
+          "mean_selected_graph_chunks": 1.5,
+          "cross_paper_identity_runs": 0,
+          "paper_diversity_runs": 0
+        },
+        "stage_timings": {
+          "runs": 2,
+          "mean_seconds": {
+            "embedding_seconds": 0.383,
+            "generation_seconds": 9.277,
+            "judge_grounding_seconds": 2.652,
+            "judge_reference_seconds": 4.742,
+            "judge_seconds": 7.395,
+            "kg_graph_seconds": 0.089,
+            "kg_hybrid_seconds": 0.632,
+            "pipeline_seconds": 10.032,
+            "qdrant_seconds": 0.245,
+            "retrieval_seconds": 0.749
+          },
+          "sample_counts": {
+            "embedding_seconds": 2,
+            "generation_seconds": 2,
+            "judge_grounding_seconds": 2,
+            "judge_reference_seconds": 2,
+            "judge_seconds": 2,
+            "kg_graph_seconds": 2,
+            "kg_hybrid_seconds": 2,
+            "pipeline_seconds": 2,
+            "qdrant_seconds": 2,
+            "retrieval_seconds": 2
+          }
+        },
+        "judge_consistency": {
+          "runs": 2,
+          "statuses": {
+            "no_detected_conflict": 2
+          },
+          "flagged_runs": 0,
+          "needs_review_question_ids": []
+        },
+        "grounding_consistency": {
+          "runs": 2,
+          "statuses": {
+            "scored": 2
+          },
+          "flagged_runs": 0,
+          "needs_review_question_ids": []
+        }
+      },
+      "single_synthesis": {
+        "questions": 2,
+        "errors": 0,
+        "judge_errors": 0,
+        "mean_latency_seconds": 30.826,
+        "metrics": {
+          "all_required_papers_retrieved": 1.0,
+          "answer_correctness": 1.0,
+          "answer_relevance": 1.0,
+          "citation_from_retrieval": 1.0,
+          "correct_abstention": null,
+          "gold_citation_recall": 1.0,
+          "groundedness": 1.0,
+          "required_numeric_value_recall": 1.0,
+          "required_paper_citation_recall": 1.0,
+          "required_paper_retrieval_recall": 1.0,
+          "retrieval_hit": 1.0,
+          "retrieval_recall": 1.0
+        },
+        "metric_sample_counts": {
+          "all_required_papers_retrieved": {
+            "scored": 2,
+            "unscored": 0
+          },
+          "answer_correctness": {
+            "scored": 2,
+            "unscored": 0
+          },
+          "answer_relevance": {
+            "scored": 2,
+            "unscored": 0
+          },
+          "citation_from_retrieval": {
+            "scored": 2,
+            "unscored": 0
+          },
+          "correct_abstention": {
+            "scored": 0,
+            "unscored": 2
+          },
+          "gold_citation_recall": {
+            "scored": 2,
+            "unscored": 0
+          },
+          "groundedness": {
+            "scored": 2,
+            "unscored": 0
+          },
+          "required_numeric_value_recall": {
+            "scored": 1,
+            "unscored": 1
+          },
+          "required_paper_citation_recall": {
+            "scored": 2,
+            "unscored": 0
+          },
+          "required_paper_retrieval_recall": {
+            "scored": 2,
+            "unscored": 0
+          },
+          "retrieval_hit": {
+            "scored": 2,
+            "unscored": 0
+          },
+          "retrieval_recall": {
+            "scored": 2,
+            "unscored": 0
+          }
+        },
+        "retrieval_diagnostics": {
+          "runs": 2,
+          "mean_candidate_count": 21.0,
+          "mean_candidate_paper_count": 3.0,
+          "mean_selected_paper_count": 1.0,
+          "mean_paper_diversity_retention": 0.3333,
+          "mean_required_paper_candidate_recall": 1.0,
+          "mean_required_paper_selected_recall": 1.0,
+          "all_required_papers_candidate_rate": 1.0,
+          "all_required_papers_selected_rate": 1.0
+        },
+        "kg_retrieval": {
+          "runs": 2,
+          "publication_ids": [
+            "publication:ef340620c8c35358052b02616a177172a1bdc4710641fe603f2fc127b447ba70"
+          ],
+          "graph_used_runs": 2,
+          "hybrid_only_runs": 0,
+          "mean_selected_graph_chunks": 2.0,
+          "cross_paper_identity_runs": 0,
+          "paper_diversity_runs": 0
+        },
+        "stage_timings": {
+          "runs": 2,
+          "mean_seconds": {
+            "embedding_seconds": 0.3,
+            "generation_seconds": 22.64,
+            "judge_grounding_seconds": 2.178,
+            "judge_reference_seconds": 5.315,
+            "judge_seconds": 7.492,
+            "kg_graph_seconds": 0.093,
+            "kg_hybrid_seconds": 0.564,
+            "pipeline_seconds": 23.331,
+            "qdrant_seconds": 0.26,
+            "retrieval_seconds": 0.685
+          },
+          "sample_counts": {
+            "embedding_seconds": 2,
+            "generation_seconds": 2,
+            "judge_grounding_seconds": 2,
+            "judge_reference_seconds": 2,
+            "judge_seconds": 2,
+            "kg_graph_seconds": 2,
+            "kg_hybrid_seconds": 2,
+            "pipeline_seconds": 2,
+            "qdrant_seconds": 2,
+            "retrieval_seconds": 2
+          }
+        },
+        "judge_consistency": {
+          "runs": 2,
+          "statuses": {
+            "no_detected_conflict": 2
+          },
+          "flagged_runs": 0,
+          "needs_review_question_ids": []
+        },
+        "grounding_consistency": {
+          "runs": 2,
+          "statuses": {
+            "scored": 2
+          },
+          "flagged_runs": 0,
+          "needs_review_question_ids": []
+        }
+      }
+    }
+  }
+}

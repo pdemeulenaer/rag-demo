@@ -446,6 +446,16 @@ def main():
                             st.write(f"Eligible graph papers: {graph.get('eligible_graph_paper_count', 0)} / {graph.get('graph_paper_count', 0)} · "
                                      f"Graph-supported selected chunks: {graph.get('selected_graph_chunk_count', 0)}")
                             st.caption("Hybrid searches the full selected corpus. Graph coverage is limited to reviewed, source-eligible records.")
+                            st.write(f"Selected evidence papers: {graph.get('selected_paper_count', 0)} · "
+                                     f"Cross-paper identity groups: {len(graph.get('cross_paper_entity_groups', []))}")
+                            if names := graph.get("query_entity_names"):
+                                st.caption("Matched reviewed names: " + "; ".join(names))
+                            if graph.get("survey_coverage_requested"):
+                                st.caption(f"Survey coverage: {len(graph.get('coverage_selected_paper_ids', []))} / "
+                                           f"{len(graph.get('coverage_candidate_paper_ids', []))} candidate papers with literal object identifiers. "
+                                           "This is retrieved-context coverage, not a guarantee that the answer cites every paper.")
+                            if graph.get("entity_resolution_conflicts"):
+                                st.warning("Conflicting reviewed catalogue aliases were not linked across papers.")
 
                     # 1. Logic for text/source processing
                     # Combine the answer and sources into a single markdown string

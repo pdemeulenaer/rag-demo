@@ -813,3 +813,30 @@ def test_explicit_modes_abstain_before_generation_when_named_paper_is_missing(
     assert result["generation_diagnostics"]["missing_build_ids"] == ["build-b"]
     assert result["retrieved_chunks"] == contexts
     generate.assert_not_called()
+
+
+def test_hybrid_pipeline_reserves_resolved_named_builds_before_generation(runtime, monkeypatch):
+    retrieval, _ = runtime
+    required = [SimpleNamespace(build_id=b, collection="papers", paper_id=f"paper-{b}",
+                                title=f"Named scientific study {b}") for b in ("a", "b")]
+    resolve = Mock(return_value=required)
+    monkeypatch.setattr(retrieval, "_resolve_required_papers", resolve)
+    candidates = [dict(id=f"a{i}", build_id="a", paper_id="paper-a", collection="papers",
+                       title="Named scientific study a", text="Evidence A") for i in range(6)]
+    candidates.append(dict(id="b1", build_id="b", paper_id="paper-b", collection="papers",
+                           title="Named scientific study b", text="Evidence B"))
+    search = Mock(return_value=candidates)
+    monkeypatch.setattr(retrieval, "retrieve_context", search)
+    monkeypatch.setattr(retrieval, "build_prompt", Mock(return_value=[]))
+    generate = Mock(return_value=retrieval.RAGGenerationResponse(claims=[
+        retrieval.RAGClaim(text="A result", cited_context_ids=["a0"], need_ids=[]),
+        retrieval.RAGClaim(text="B result", cited_context_ids=["b1"], need_ids=[])]))
+    monkeypatch.setattr(retrieval, "generate_answer", generate)
+    result = retrieval.rag_pipeline('Compare "Named scientific study a" and "Named scientific study b".',
+                                   Mock(), "session", mode="hybrid", collection="papers", scope="ready", top_k=3)
+    assert [r["id"] for r in result["retrieved_chunks"]] == ["a0", "a1", "b1"]
+    assert search.call_args.kwargs["top_k"] == 20
+    search.assert_called_once()
+    resolve.assert_called_once()
+    generate.assert_called_once()
+    assert result["retrieval_diagnostics"]["named_selected_missing_build_ids"] == []

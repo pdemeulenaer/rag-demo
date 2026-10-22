@@ -15,6 +15,7 @@ from src.api.core.config import config
 from src.api.core.clients import openai_client
 from src.api.core.structured import StructuredOutputError, parse_chat
 from src.api.observability.tracing import observe, observation, trace_attributes, update_span
+from src.api.observability.stage_timings import measure_stage
 from src.api.rag.utils.utils import prompt_template_config
 from src.api.rag.summarize import summarize_text
 from src.api.api.models import Source
@@ -107,11 +108,16 @@ def add_message(session_id: str, role: str, content: str): #, summarizer_llm):
     redis_client.setex(session_id, session_time_to_live, pickle.dumps(memory))        
 
 
+@observe(name="query_embedding", as_type="embedding", capture_input=False, capture_output=False)
 def get_embedding(text, model=config.EMBEDDING_MODEL):
-    response = openai_client().embeddings.create(
-        input=[text],
-        model=model,
-    )
+    # Per-call options preserve the shared client and generation/judge policies.
+    update_span(metadata={"model": model, "timeout_seconds": config.EMBEDDING_TIMEOUT_SECONDS,
+                          "max_retries": config.EMBEDDING_MAX_RETRIES})
+    with measure_stage("embedding_seconds"):
+        response = openai_client().with_options(
+            timeout=config.EMBEDDING_TIMEOUT_SECONDS,
+            max_retries=config.EMBEDDING_MAX_RETRIES,
+        ).embeddings.create(input=[text], model=model)
     return response.data[0].embedding
 
 
@@ -845,23 +851,24 @@ def rag_pipeline(question, qdrant_client, session_id, generation_model=None, top
     # If in evaluation mode, return a fresh memory each time
     elif mode == "kg":
         from src.api.rag.modes.kg import retrieve
+        required_papers = _resolve_required_papers(catalogue, scope, question)
         retrieved_context = retrieve(question, qdrant_client, top_k=top_k, collection=collection,
             scope=scope, catalogue=catalogue, retrieve_context=retrieve_context,
-            publication_id=kg_publication_id)
+            publication_id=kg_publication_id, required_papers=required_papers)
         retrieval_diagnostics = retrieved_context.diagnostics
         if stage_timings is not None:
             stage_timings["kg_hybrid_seconds"] = retrieval_diagnostics["hybrid_seconds"]
             stage_timings["kg_graph_seconds"] = retrieval_diagnostics["graph_seconds"]
-        required_papers = _resolve_required_papers(catalogue, scope, question)
     elif mode is not None:
         from src.api.rag.dispatcher import retrieve_for_mode
+        required_papers = _resolve_required_papers(catalogue, scope, question)
         retrieved_context = retrieve_for_mode(
             mode, question, qdrant_client, top_k=top_k, collection=collection,
             scope=scope, retrieve_context=retrieve_context,
             rerank_context=timed_rerank_context,
+            required_papers=required_papers,
         )
         retrieval_diagnostics = getattr(retrieved_context, "diagnostics", None)
-        required_papers = _resolve_required_papers(catalogue, scope, question)
     elif os.getenv("EVALUATION_MODE") == "true":
         
         # just use hybrid retrieval without reranking

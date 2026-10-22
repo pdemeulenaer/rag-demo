@@ -92,6 +92,44 @@ def run(responses, descriptions=("Report the inflow.",), evidence_by_requirement
     return result, request
 
 
+@pytest.mark.parametrize("text,expected", [
+    ("The parent sample contains 10,136 objects.", {"10136"}),
+    ("The sample contains 1,234,567 objects.", {"1234567"}),
+    ("The offset is -10,136.25.", {"-10136.25"}),
+    ("The offset is +10,136.25.", {"10136.25"}),
+    ("The rate is 10,136 × 10^-3.", {"10.136"}),
+    ("The rate is 10,136e-3.", {"10.136"}),
+    ("The percentage is 10,136%.", {"10136"}),
+    ("The values are 0,123 and 1,25.", {"0.123", "1.25"}),
+    ("The count is 10136; the value is 10.136.", {"10136", "10.136"}),
+])
+def test_numeric_tokens_distinguish_grouped_counts_from_decimal_values(text, expected):
+    assert _numeric_tokens(text) == expected
+
+
+@pytest.mark.parametrize("text", ["12,34,567", "1,234,56", "1234,567"])
+def test_numeric_tokens_do_not_repair_malformed_thousands_grouping(text):
+    assert text.replace(",", "") not in _numeric_tokens(text)
+
+
+@pytest.mark.parametrize("answer,source,supported", [
+    ("The sample contains 10,136 objects.", "The sample contains 10136 objects.", True),
+    ("The sample contains 10136 objects.", "The sample contains 10,136 objects.", True),
+    ("The sample contains 10137 objects.", "The sample contains 10,136 objects.", False),
+    ("The offset is -10,136.", "The offset is 10,136.", False),
+    ("The value is 10.136.", "The value is 10,136.", False),
+])
+def test_grouped_count_equivalence_preserves_numeric_evidence_checks(answer, source, supported):
+    claims = draft(claim(answer, ids=("a",))).claims
+    check = ClaimCheck(claim_index=0, supported=True, feedback="", evidence_quotes=[],
+                       method_attributions=[])
+    contexts = {"a": {"text": source}, "uncited": {"text": answer}}
+    error = _numeric_evidence_error(claims[0], check, contexts)
+    assert (error is None) == supported
+    assert contexts["a"]["text"] == source
+    assert claims[0].text == answer
+
+
 def test_any_retrieved_chunk_can_support_any_requirement_without_tool_group_membership():
     # The answer's associations need not match whichever search happened to find "a".
     result, request = run([

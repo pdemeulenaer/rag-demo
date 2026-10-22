@@ -56,7 +56,9 @@ An explicit one-shot request produces a hierarchy equivalent to:
 rag_request
 └── rag_pipeline
     ├── retrieve_context
-    │   └── OpenAI embedding
+    │   ├── query_embedding              # explicit timeout/retry metadata
+    │   │   └── OpenAI embedding         # normal provider usage/error trace
+    │   └── search_chunks               # scoped Qdrant retrieval
     ├── rerank_context          # hybrid_rerank only
     └── generate_answer
         └── OpenAI generation
@@ -93,6 +95,14 @@ Short-lived evaluation commands flush traces before exiting. The API flushes on 
 shutdown. Langfuse transport errors are asynchronous and should not change an answer;
 benchmark authentication is checked before paid calls when Langfuse is enabled because the
 requested Dataset Experiment could not otherwise be recorded.
+
+Benchmarks additionally retain separate `embedding_seconds` and `qdrant_seconds` in the
+evaluation span's output on success **and failure**, and freeze embedding timeout/retry
+settings in experiment metadata. These timings overlap total retrieval; parallel/repeated
+calls sum work, not wall time. See the
+[retrieval timing guide](evaluation.md#distinguish-embedding-latency-from-qdrant-latency)
+for settings, ranges and interpretation. Query-embedding SDK overrides leave the shared
+client and generation/judge policies unchanged.
 
 ## Evaluation experiments
 

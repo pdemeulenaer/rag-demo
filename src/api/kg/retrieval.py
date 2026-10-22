@@ -7,19 +7,16 @@ from contextlib import contextmanager
 from dataclasses import dataclass
 from hashlib import sha256
 import json
-import re
-import unicodedata
 
 from src.api.rag.contracts import EvidenceChunk, FederatedRetrievalScope
 from src.api.rag.tools.evidence import validate_target
 from .contracts import SourceChunk
 from .scientific_schema import Entity, Observation, Relationship
+from .entities import normalized, mentioned, resolve
+from .selection_policy import select_context
+from .errors import KGUnavailable
 
-POLICY = "hybrid-reviewed-graph-v1"
-
-
-class KGUnavailable(ValueError):
-    """A safe public failure code; do not expose database exceptions or credentials."""
+POLICY = "hybrid-reviewed-graph-v3"
 
 
 def canonical(value):
@@ -28,16 +25,6 @@ def canonical(value):
 
 def identity(kind, *parts):
     return kind + ":" + sha256(canonical(parts).encode()).hexdigest()
-
-
-def normalized(value):
-    return " ".join(re.findall(r"\w+", unicodedata.normalize("NFKC", value).casefold()))
-
-
-def mentioned(name, query):
-    """Exact normalized, word-bounded mention; no alias inference or entity merging."""
-    name = normalized(name)
-    return len(name) >= 2 and f" {name} " in f" {normalized(query)} "
 
 
 @dataclass
@@ -139,6 +126,15 @@ class KGReader:
             seed_keys = {(row["collection"], row["id"]) for row in seeds}
             seed_ids = sorted(set(entity_ids) | {key for key, points in by_record.items()
                 if any(point in seed_keys for point in points)})
+            # A seed observation/relationship may identify an object indirectly.
+            object_seeds = set(seed_ids)
+            for key in seed_ids:
+                record = parsed[key][1]
+                for field in ("subject_id", "object_id"):
+                    if target := getattr(record, field, None):
+                        object_seeds.add(identity("record", publication, target))
+            resolved, resolution = resolve(parsed, object_seeds)
+            seed_ids = sorted(set(seed_ids) | (resolved-object_seeds))
             # Two structural links: entity->assertion->entity, or entity->observation.
             # Every intermediate node/edge must belong to this approved scoped projection.
             traversed = list(tx.run(
@@ -163,7 +159,9 @@ class KGReader:
                     if point not in ranked or rank < ranked[point]:
                         ranked[point] = rank
             ordered = sorted(ranked, key=lambda point: (ranked[point], point))
-            result = [to_evidence(chunks[point], allowed[chunks[point]["build_id"]]) for point in ordered[:limit]]
+            selected, coverage = select_context(ordered, chunks, set(), limit=limit,
+                query=query, resolved_ids=resolution["resolved_catalogue_ids"])
+            result = [to_evidence(chunks[point], allowed[chunks[point]["build_id"]]) for point in selected]
             # A second SQL read excludes changes during graph/vector retrieval. No writer locks.
             if eligible_builds(builds, scope, catalogue) != allowed:
                 raise KGUnavailable("kg_source_scope_changed")
@@ -176,7 +174,10 @@ class KGReader:
                 validated_record_count=len(parsed),
                 traversed_record_ids=sorted(distances), graph_candidate_count=len(ordered),
                 graph_candidates_truncated=len(ordered)>limit, graph_chunk_ids=[r.id for r in result],
-                scope_kind=scope.kind, traversal_max_links=2, database_writes=0)
+                scope_kind=scope.kind, traversal_max_links=2, database_writes=0,
+                query_entity_names=sorted({name for key in entity_ids for name in
+                    [parsed[key][1].name, *parsed[key][1].aliases]}),
+                **resolution, **coverage)
             return GraphEvidence(result, diagnostics)
 
 
