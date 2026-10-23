@@ -357,8 +357,20 @@ This performs paid generation/judging. No graph extraction or re-indexing occurs
 The runner freezes the active graph ID/manifest and query policy in `kg_configuration`
 and checks that ID on every KG item; `EVAL_KG_PUBLICATION_ID=publication:...` can assert an
 explicit expected ID. `results.json` retains graph diagnostics, and `summary.json` includes
-`kg_retrieval.graph_used_runs` / `hybrid_only_runs`. Only a reviewed seven-paper subset
+`kg_retrieval.graph_used_runs` / `hybrid_only_runs`. Only a reviewed eight-paper subset
 is currently covered, not the full frozen corpus. See [KG query policies and limits](../architecture/knowledge-graph.md#query-the-active-graph).
+Policies v4/v5 protect Hybrid evidence and require qualified, scoped graph additions;
+it no longer forces a graph slot. `selected_graph_chunk_count` is provenance, while
+`graph_expansion_count` and `graph_used` identify actual additions to the final Hybrid baseline.
+Inspect `graph_candidate_decisions`, `protected_hybrid_chunks`, `graph_expansion_chunks` and
+`displaced_hybrid_chunks` per item. Summaries include expansion/protection means and rejected
+promotion reasons. Historical policy counts/results are unchanged and are not like-for-like
+graph-contribution comparisons. No graph publication or re-indexing is needed.
+V5 additionally permits direct assertion/own-quote matches within resolved named papers;
+inspect each candidate's `qualification_basis`, `fact_record_id` and `matched_fact_terms`.
+`graph_expansion_bases` separates those additions from specific-entity paths. The manifest
+freezes the lexical matching policy and two-distinct-term threshold. This is a relevance
+heuristic, not a correctness or semantic-support verdict; existing independent judging remains.
 Use `EVAL_MODES="vanilla hybrid hybrid_rerank agentic kg"` for all five. Defaults remain
 the original four to avoid requiring Neo4j for existing workflows; KG-Agentic is not available.
 

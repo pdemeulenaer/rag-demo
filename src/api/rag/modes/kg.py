@@ -4,7 +4,7 @@ from src.api.kg.retrieval import KGReader, KGUnavailable, POLICY
 from src.api.kg.settings import KGSettings
 from src.api.rag.contracts import RetrievalScope, FederatedRetrievalScope
 from src.api.observability.tracing import observe, observation, update_span
-from src.api.kg.selection_policy import select_context, survey_requested
+from src.api.kg.selection_policy import select_expansion_context, survey_requested
 
 
 class KGContext(list):
@@ -37,7 +37,8 @@ def retrieve(query, client, *, top_k, collection, scope, catalogue, retrieve_con
         stage = "graph_search"
         with observation(name="kg_graph_retrieval", as_type="retriever", input={"query":query}) as span:
             graph = reader.search(query, scope=scope, catalogue=catalogue, seeds=seeds,
-                                  limit=settings.KG_QUERY_MAX_CHUNKS, expected=pinned["publication_id"])
+                                  limit=settings.KG_QUERY_MAX_CHUNKS, expected=pinned["publication_id"],
+                                  required_papers=required_papers)
             if span is not None:
                 span.update(metadata=graph.diagnostics, output={"chunk_ids":[r.id for r in graph.chunks]})
         graph_seconds = monotonic()-started
@@ -56,24 +57,27 @@ def retrieve(query, client, *, top_k, collection, scope, catalogue, retrieve_con
                 rows.setdefault(key, row)
                 scores[key] = scores.get(key, 0) + 1/(60+rank)
         order = sorted(scores, key=lambda key:(-scores[key], key))
-        # Reserve a graph-supported slot when named-paper coverage leaves capacity.
-        # This is observable, not a claim that every graph candidate is relevant.
+        # Provenance is not relevance: no mandatory graph slot. Retain Hybrid's
+        # strongest evidence and bound specifically anchored graph additions.
         graph_keys = {(r["collection"], r["id"]) for r in graph_rows}
         stage = "selection"
-        selected, coverage = select_context(order, rows, graph_keys, limit=top_k, query=query,
+        selected, coverage = select_expansion_context(order, rows, graph_keys,
+            hybrid_order=[(r["collection"], r["id"]) for r in seeds],
+            graph_support=graph.diagnostics.get("graph_candidate_support", []), limit=top_k, query=query,
             resolved_ids=graph.diagnostics.get("resolved_catalogue_ids", []),
             required_papers=required_papers)
         if len({key[1] for key in selected}) != len(selected):
             raise KGUnavailable("kg_ambiguous_citation_identity")
         stage = "recheck"
         reader.publication(pinned["publication_id"])
-        graph_used = bool(graph_keys.intersection(selected))
+        graph_used = bool(coverage["graph_expansion_count"])
         diagnostics = graph.diagnostics | coverage | dict(policy=POLICY, hybrid_seed_count=len(seeds),
             hybrid_candidate_limit=candidate_limit,
             selected_graph_chunk_count=len(graph_keys.intersection(selected)),
             selected_chunk_count=len(selected), graph_used=graph_used,
             hybrid_seconds=round(hybrid_seconds,3), graph_seconds=round(graph_seconds,3),
             retrieval_status=("graph_augmented" if graph_used else
+                              "hybrid_only_graph_already_retrieved" if graph_keys.intersection(selected) else
                               "hybrid_only_graph_not_selected" if graph_rows else "hybrid_only_no_graph_match"))
         diagnostics.update(candidate_count=len(rows),
             candidate_paper_ids=sorted({r["paper_id"] for r in rows.values()}),

@@ -13,7 +13,7 @@ in the API and Streamlit. KG-Agentic remains planned.
 | **Hybrid** | Available | Dense + BM25 sparse retrieval, fused with RRF | 1 | No |
 | **Hybrid + Rerank** (`hybrid_rerank`) | Available | Hybrid candidates, then Cohere reranking | 1 | No |
 | **Agentic** | Available | A bounded LangGraph agent selects dense, sparse, hybrid and expansion tools | Up to 3 | No |
-| **KG** (`kg`) | Available, partial reviewed pilot | Hybrid seeds + bounded reviewed graph traversal + RRF | 1 | Yes, when matched |
+| **KG** (`kg`) | Available, partial reviewed pilot | Protected Hybrid evidence + bounded qualified graph expansion | 1 | Yes, when qualified |
 | **KG-Agentic** | Placeholder | The bounded agent combines vector, metadata and graph tools | Up to 3 | Yes |
 
 All modes share the corpus scope, evidence provenance and atomic-claim output schema.
@@ -541,12 +541,20 @@ The modes are deliberately separate:
   entity/alias mentions and matching source points seed Neo4j traversal. M/NGC/IC catalogue
   spacing is normalized, and supported approved catalogue aliases resolve object seeds
   across eligible papers without merging stored assertions. Up to two structural
-  links connect entities, observations and first-class relationship assertions. Merge the
-  original supporting chunks with Hybrid using RRF (constant 60), reserve one graph-backed
-  slot when available, then keep the same final `top_k`. Explicit survey/comparison requests
-  use a larger Hybrid candidate pool (default 20) and reserve distinct papers with literal
-  requested/resolved object IDs in their chunks. This is a lexical coverage policy, not a
-  guarantee of complete answers or citations. It uses baseline generation/citation
+  links connect entities, observations and first-class relationship assertions. Full quoted
+  titles restrict graph matching/traversal to those exact collection/build pairs; open-ended
+  questions retain corpus scope. RRF (constant 60) orders graph expansion candidates, but
+  graph provenance alone earns no reserved slot. With `top_k=5`, protect three Hybrid passages
+  and admit at most two graph additions with a specific reviewed query-entity anchor and a
+  validated bounded traversal path, or a direct requested assertion in a resolved named paper.
+  The latter requires at least two distinct question content terms in both the assertion and
+  one own-source quote; it licenses no neighbouring passage. Titles/identity names/numbers
+  cannot supply fact matches. Population/process/property matches alone do not qualify.
+  Named-paper coverage takes precedence; unused slots return to Hybrid and passages already
+  in its baseline are not additions. Survey/named requests use a larger Hybrid pool (default
+  20); the graph reader still uses literal-ID diversity within its bounded candidate pool.
+  These are conservative lexical/type guards, not semantic relevance or answer guarantees.
+  It uses baseline generation/citation
   validation, not Agentic's planner or semantic review, and does not use Cohere. Graph-only
   candidate chunks default to 20; validation bounds are explicit in the KG guide.
 - **KG-Agentic (planned):** the bounded agent may use graph traversal alongside metadata and vector

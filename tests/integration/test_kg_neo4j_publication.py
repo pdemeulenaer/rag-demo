@@ -119,6 +119,7 @@ def test_native_content_tampering_blocks_activation(ready, native):
 
 
 def test_native_read_only_scoped_traversal_and_retired_exclusion(ready,native):
+    from types import SimpleNamespace
     from src.api.kg.retrieval import KGReader, KGUnavailable
     from src.api.rag.contracts import RetrievalScope, ScopedBuild
     p=payload(ready)
@@ -137,8 +138,17 @@ def test_native_read_only_scoped_traversal_and_retired_exclusion(ready,native):
     assert result.diagnostics["validated_record_count"] > 0
     assert result.diagnostics["matched_entity_ids"]
     assert result.chunks
+    assert result.diagnostics["promotion_anchor_entities"]
+    assert any(r["anchor_record_ids"] for r in result.diagnostics["graph_candidate_support"])
     assert result.diagnostics["publication_id"] == p["id"]
     assert result.chunks[0].build_id == build["build_id"]
+    with ready.catalogue.writer_lock():
+        fact_result=reader.search("Report distance in kpc.",scope=scope,catalogue=ready.catalogue,
+            seeds=[],limit=5,required_papers=[SimpleNamespace(collection=build["collection"],
+                build_id=build["build_id"],title=build["title"])])
+    assert fact_result.chunks
+    assert not fact_result.diagnostics["promotion_anchor_entities"]
+    assert any(r.get("fact_record_id") for r in fact_result.diagnostics["graph_candidate_support"])
     # Read query must not alter the staged/active projection, including source links.
     assert run(ready,native,"verify")["verified"]
     ready.row["deleted"]=True

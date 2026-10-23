@@ -12,11 +12,12 @@ from src.api.rag.contracts import EvidenceChunk, FederatedRetrievalScope
 from src.api.rag.tools.evidence import validate_target
 from .contracts import SourceChunk
 from .scientific_schema import Entity, Observation, Relationship
-from .entities import normalized, mentioned, resolve
+from .entities import normalized, mentioned, resolve, promotion_anchors
+from .fact_matching import requested_fact_matches, FACT_MATCHING_POLICY, MIN_FACT_TERMS
 from .selection_policy import select_context
 from .errors import KGUnavailable
 
-POLICY = "hybrid-reviewed-graph-v3"
+POLICY = "hybrid-reviewed-graph-v5"
 
 
 def canonical(value):
@@ -79,7 +80,7 @@ class KGReader:
             return dict(publication_id=pub, graph_name=self.settings.KG_GRAPH_NAME,
                         policy=POLICY, manifest=manifest)
 
-    def search(self, query, *, scope, catalogue, seeds, limit, expected=None):
+    def search(self, query, *, scope, catalogue, seeds, limit, expected=None, required_papers=()):
         with self.transaction() as tx:
             publication, manifest = self._active(tx, expected)
             builds = [dict(row["build"]) for row in tx.run(
@@ -88,7 +89,14 @@ class KGReader:
                 publication=publication, limit=self.settings.KG_QUERY_MAX_RECORDS + 1)]
             if len(builds) != manifest["counts"]["papers"]:
                 raise KGUnavailable("kg_invalid_source_builds")
-            allowed = eligible_builds(builds, scope, catalogue)
+            corpus_allowed = eligible_builds(builds, scope, catalogue)
+            requested = {(p.collection, p.build_id) for p in required_papers}
+
+            def paper_scope(eligible):
+                return {key: value for key, value in eligible.items()
+                        if not requested or (value["collection"], key) in requested}
+
+            allowed = paper_scope(corpus_allowed)
             records = list(tx.run(
                 "MATCH (p:KGPublication {id: $publication})-[i:INCLUDES]->(r:KGRecord) "
                 "MATCH (r)-[f:FROM_BUILD]->(b:KGSourceBuild)<-[h:HAS_BUILD]-(p) "
@@ -123,8 +131,19 @@ class KGReader:
             by_record, chunks = validate_sources(sources, parsed, allowed)
             if sum(len(c["text"].encode()) for c in chunks.values()) > self.settings.KG_QUERY_MAX_TEXT_BYTES:
                 raise KGUnavailable("kg_query_text_limit")
+            facts = requested_fact_matches(parsed, query, required_papers)
+            point_facts = {}
+            for key, match in sorted(facts.items()):
+                for source in match["source_matches"]:
+                    point = (source["collection"], source["id"])
+                    witness = dict(fact_record_id=key, fact_record_kind=match["kind"],
+                                   matched_fact_terms=source["matched_terms"])
+                    previous = point_facts.get(point)
+                    if (previous is None or (-len(witness["matched_fact_terms"]), key) <
+                            (-len(previous["matched_fact_terms"]), previous["fact_record_id"])):
+                        point_facts[point] = witness
             seed_keys = {(row["collection"], row["id"]) for row in seeds}
-            seed_ids = sorted(set(entity_ids) | {key for key, points in by_record.items()
+            seed_ids = sorted(set(entity_ids) | set(facts) | {key for key, points in by_record.items()
                 if any(point in seed_keys for point in points)})
             # A seed observation/relationship may identify an object indirectly.
             object_seeds = set(seed_ids)
@@ -135,6 +154,10 @@ class KGReader:
                         object_seeds.add(identity("record", publication, target))
             resolved, resolution = resolve(parsed, object_seeds)
             seed_ids = sorted(set(seed_ids) | (resolved-object_seeds))
+            anchors = promotion_anchors(parsed, query)
+            # Only explicitly matched specific entities (and their source-backed
+            # catalogue equivalents) license promotion, not Hybrid-derived objects.
+            anchor_ids, _ = resolve(parsed, set(anchors))
             # Two structural links: entity->assertion->entity, or entity->observation.
             # Every intermediate node/edge must belong to this approved scoped projection.
             traversed = list(tx.run(
@@ -143,11 +166,19 @@ class KGReader:
                 "AND n.publication_id = $publication) "
                 "AND all(e IN relationships(path) WHERE e.publication_id = $publication "
                 "AND any(link IN $links WHERE link.start = startNode(e).id AND link.end = endNode(e).id AND link.type = type(e))) "
-                "RETURN r.id AS id, min(length(path)) AS distance ORDER BY distance, id LIMIT $limit",
+                "RETURN r.id AS id, min(length(path)) AS distance, "
+                "min(CASE WHEN seed.id IN $anchors THEN seed.id ELSE null END) AS anchor_id "
+                "ORDER BY distance, id LIMIT $limit",
                 seeds=seed_ids, records=list(parsed), links=links, publication=publication,
+                anchors=sorted(anchor_ids),
                 limit=self.settings.KG_QUERY_MAX_RECORDS + 1))
             distances = {row["id"]:row["distance"] for row in traversed}
             if set(distances).difference(parsed):
+                raise KGUnavailable("kg_traversal_scope_violation")
+            # One deterministic witness per reached record, rather than collecting
+            # every origin/path (which could grow quadratically with seed count).
+            origins = {row["id"]: {row["anchor_id"]} if row["anchor_id"] else set() for row in traversed}
+            if any(values.difference(anchor_ids.intersection(seed_ids)) for values in origins.values()):
                 raise KGUnavailable("kg_traversal_scope_violation")
             tokens = set(normalized(query).split())
             ranked = {}
@@ -155,15 +186,24 @@ class KGReader:
                 _, record = parsed[key]
                 overlap = len(tokens.intersection(normalized(record.model_dump_json()).split()))
                 for point in by_record[key]:
-                    rank = (distance, -overlap, key)
+                    # Direct requested assertions precede entity-only expansion;
+                    # their witness licenses ONLY that assertion's own source point.
+                    fact = point_facts.get(point)
+                    rank = ((0, -len(fact["matched_fact_terms"]), distance, key) if fact else
+                            (1, distance, -overlap, key))
                     if point not in ranked or rank < ranked[point]:
                         ranked[point] = rank
             ordered = sorted(ranked, key=lambda point: (ranked[point], point))
-            selected, coverage = select_context(ordered, chunks, set(), limit=limit,
+            selected, coverage = select_context(ordered, chunks, limit=limit,
                 query=query, resolved_ids=resolution["resolved_catalogue_ids"])
+            point_anchors = {point: set() for point in selected}
+            for key in distances:
+                for point in by_record[key]:
+                    if point in point_anchors:
+                        point_anchors[point].update(origins[key].intersection(anchor_ids))
             result = [to_evidence(chunks[point], allowed[chunks[point]["build_id"]]) for point in selected]
             # A second SQL read excludes changes during graph/vector retrieval. No writer locks.
-            if eligible_builds(builds, scope, catalogue) != allowed:
+            if paper_scope(eligible_builds(builds, scope, catalogue)) != allowed:
                 raise KGUnavailable("kg_source_scope_changed")
             self._active(tx, publication)
             diagnostics = dict(policy=POLICY, publication_id=publication, graph_name=self.settings.KG_GRAPH_NAME,
@@ -175,6 +215,14 @@ class KGReader:
                 traversed_record_ids=sorted(distances), graph_candidate_count=len(ordered),
                 graph_candidates_truncated=len(ordered)>limit, graph_chunk_ids=[r.id for r in result],
                 scope_kind=scope.kind, traversal_max_links=2, database_writes=0,
+                graph_paper_scope="resolved_named_papers" if requested else "corpus",
+                graph_requested_build_ids=sorted(p.build_id for p in required_papers),
+                requested_fact_record_count=len(facts),
+                fact_matching_policy=FACT_MATCHING_POLICY, fact_matching_min_terms=MIN_FACT_TERMS,
+                graph_scope_excluded_build_ids=sorted(set(corpus_allowed)-set(allowed)),
+                promotion_anchor_entities=[dict(record_id=key, **value) for key, value in sorted(anchors.items())],
+                graph_candidate_support=[dict(collection=chunks[point]["collection"], id=point[1],
+                    anchor_record_ids=sorted(point_anchors[point]), **point_facts.get(point, {})) for point in selected],
                 query_entity_names=sorted({name for key in entity_ids for name in
                     [parsed[key][1].name, *parsed[key][1].aliases]}),
                 **resolution, **coverage)

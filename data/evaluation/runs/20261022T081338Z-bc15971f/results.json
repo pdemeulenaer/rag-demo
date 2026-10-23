@@ -1,0 +1,1291 @@
+{
+  "schema_version": 1,
+  "run_id": "20261022T081338Z-bc15971f",
+  "results": [
+    {
+      "question_id": "q0024",
+      "kind": "single_paper",
+      "profile": "single_synthesis",
+      "mode": "hybrid",
+      "question": "According to the results reported in \"Tracing M22's origins: Spatial and chemical constraints on its formation history\", how do the anomalous stellar populations (AI, AIIa, AIIb) compare to the canonical populations (1P, 2P) in terms of (a) iron and s-process element abundances, and (b) total C+N+O and its relation to light-element (C, N, O, Mg, Al) abundance patterns?",
+      "reference_answer": "a) The anomalous populations (AI, AIIa, AIIb) are enhanced in iron and s-process elements relative to the canonical populations (1P, 2P) (evidence_id: ae9bbf47388932a271bcd8b4). b) Anomalous stars have systematically larger C, N, and Al abundances and higher total C+N+O than canonical stars; moreover, Fe and s-process enrichment and total C+N+O correlate with light-element abundances such that the most chemically extreme anomalous stars are the most Fe- and Ce-rich while showing the lowest [(C+N+O)/Fe] values (evidence_ids: fae0bcec98069b8edcc42784, 021e465494714404bd5c2be6).",
+      "answer": "The anomalous component's average iron abundance is approximately 0.10 dex higher than that of canonical stars. [1]\n\nThe s-process element [Ce/Fe] exhibits a pronounced enhancement among anomalous stars, exceeding the canonical population by approximately 0.6–0.7 dex. [1]\n\nCanonical 2P stars are, on average, depleted in C, O, and Mg and enriched in N and Al relative to 1P stars. [1]\n\nThe anomalous populations display analogous internal light-element variations, with AII stars being more depleted in C, O, and Mg and more enriched in N and Al than AI stars. [1]\n\nWithin the AII subgroup, AIIb stars exhibit more extreme light-element abundances than AIIa stars and have larger [N/Fe]STD values. [1]\n\nBoth AI and AII anomalous stars occupy systematically higher C, N, and Al abundances than the bulk of 1P+2P, while the O and Mg distributions largely overlap between anomalous and canonical stars. [1]\n\nThe Fe, s-process, and total C+N+O enhancements among anomalous stars are not uniform but correlate with their light-element composition. [2] [3] [4]\n\nThe most chemically extreme anomalous stars are also the most Fe- and Ce-rich while exhibiting the lowest [(C+N+O)/Fe] values. [4] [5]\n\nThe authors state that the internal heavy-element trends linking Fe, Ce, C+N+O and light-element differences have no analogue among Type I GCs and that these observations disfavor a merger interpretation for M22. [2] [5]",
+      "retrieved_chunks": [
+        {
+          "id": "34b68165-6656-5db4-a9af-6cf4bbf6ee88",
+          "text": "Figure 7 summarizes the chemical properties of the different stellar populations. For each element, the median abundance is represented by an open black dot, while the corresponding interquartile range is shown as a colored vertical bar, adopting the same color scheme introduced in Section 3. Population labels are shifted to arbitrary positions along the x-axis for visualization purposes. Each element is displayed in two panels: the left panel compares the canonical 1P and 2P populations, whereas the right panel focuses on the anomalous AI and AII populations. For the latter, the AII component is further divided into the AIIa and AIIb subgroups, represented by two separate purple symbols arranged in increasing order along the x-axis. \n\nThe upper row of Figure 7 presents five light-elements known to vary as part of the multiple-population phenomenon. As expected, 2P stars exhibit, on average, lower C, O, and Mg abundances, together with enhanced N and Al, relative to the 1P. The anomalous subpopulations display a qualitatively similar pattern, with AII stars being more depleted in C, O, and Mg and more enriched in N and Al than AI stars. Furthermore, AIIb stars exhibit more extreme light-element abundances than AIIa stars, lying farther from the canonical 1P composition. The larger [N/Fe]STD values observed in AIIb stars relative to AIIa are fully consistent with their locations along the vertical axis of the ChM, which traces nitrogen enrichment (A. P. Milone et al. 2018). The light-element abundance patterns reveal significant differences between canonical and anomalous populations. In particular, both AI and AII stars occupy systematically higher C, N, and Al abundances than the bulk of 1P+2P, while the O and Mg distributions largely overlap. \n\nThe lower row of Figure 7 shows the _α_ -elements [Si/Fe] and [Ca/Fe], both of which appear mildly enhanced in anomalous stars, with no significant differences among their subpopulations. The [Fe/H] distributions confirm the well-established enhancement of the anomalous component, whose average iron abundance is approximately 0.10 dex higher than that of canonical stars. Likewise, the s-process element [Ce/Fe] exhibits a pronounced enhancement among anomalous stars, exceeding the canonical population by approximately 0.6–0.7 dex. Finally, anomalous stars are substantially enriched",
+          "collection": "arxiv_papers_v2",
+          "build_id": "7e872b04-edf9-580e-bb62-3fdcde30a06a",
+          "paper_id": "20ae5d4a-c291-5ce9-ba9f-038fe2fd905c",
+          "title": "Tracing M22's origins: Spatial and chemical constraints on its formation history",
+          "arxiv_id": "2609.09765",
+          "paper_version": 1,
+          "source_url": "https://arxiv.org/abs/2609.09765v1",
+          "authors": [
+            "Emanuele Dondoglio",
+            "Antonino P. Milone",
+            "Randa Asa'd",
+            "Anna F. Marino",
+            "Alessandra Mastrobuono-Battisti",
+            "Fabrizio Muratore",
+            "Tuila Ziliotto",
+            "Emanuele Bortolan",
+            "Giacomo Cordoni",
+            "Maria Vittoria Legnardi",
+            "Edoardo P. Lagioia",
+            "Marco Tailo"
+          ],
+          "year": 2026,
+          "page": 9,
+          "section_header": "**Tracing M22’s origins: Spatial and chemical constraints on its formation history** > 6. THE CHEMICAL COMPOSITION OF M22’S POPULATIONS",
+          "content_kind": "text",
+          "chunk_index": 29,
+          "score": 0.8333334,
+          "rerank_score": null,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        },
+        {
+          "id": "6774379b-f0e9-5b4a-b87a-621be9a15003",
+          "text": "- A second difficulty arises from the internal chemical trends displayed in Figure 8. The anomalous stars exhibiting the largest light-element differences relative to AI are also slightly more enriched in iron and cerium while displaying lower [(C+N+O)/Fe]. This behavior has no analogue among Type I GCs, where 2P stars span a wide range of light-element abundances while maintaining essentially constant iron, s-process, and C+N+O abundances. If the AI and AII populations originated within an independent GC analo- \n\ngous to present-day Type I clusters, these internal heavy-element trends would not be expected. \n\nOverall, although the merger hypothesis naturally explains the existence of anomalous stars, their global iron, s-process-, and C+N+O enrichment, and the presence of multiple populations within the anomalous component, it struggles to reproduce both the peculiar chemistry of the AI population and the internal correlations linking heavy and light-elements. Reconciling these observations would require the anomalous progenitor cluster to have experienced an enrichment history substantially different from that inferred for ordinary Type I Galactic GCs. While our strictly qualitative considerations cannot robustly discard this idea, our observations seems to disfavor the merging interpretation for M22.",
+          "collection": "arxiv_papers_v2",
+          "build_id": "7e872b04-edf9-580e-bb62-3fdcde30a06a",
+          "paper_id": "20ae5d4a-c291-5ce9-ba9f-038fe2fd905c",
+          "title": "Tracing M22's origins: Spatial and chemical constraints on its formation history",
+          "arxiv_id": "2609.09765",
+          "paper_version": 1,
+          "source_url": "https://arxiv.org/abs/2609.09765v1",
+          "authors": [
+            "Emanuele Dondoglio",
+            "Antonino P. Milone",
+            "Randa Asa'd",
+            "Anna F. Marino",
+            "Alessandra Mastrobuono-Battisti",
+            "Fabrizio Muratore",
+            "Tuila Ziliotto",
+            "Emanuele Bortolan",
+            "Giacomo Cordoni",
+            "Maria Vittoria Legnardi",
+            "Edoardo P. Lagioia",
+            "Marco Tailo"
+          ],
+          "year": 2026,
+          "page": 13,
+          "section_header": "**Tracing M22’s origins: Spatial and chemical constraints on its formation history** > 8.1. _The merger hypothesis_",
+          "content_kind": "text",
+          "chunk_index": 42,
+          "score": 0.5833333,
+          "rerank_score": null,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        },
+        {
+          "id": "be5e0911-b386-58ea-9802-bb3f66e36d2c",
+          "text": "16 \n\nical populations exhibit the well-known lightelement abundance patterns associated with the multiple-population phenomenon, with 2P stars being depleted in C, O, and Mg and enriched in N and Al relative to 1P stars. The anomalous populations display analogous internal variations, although shifted toward systematically larger C, N, and Al abundances than the canonical stars. In addition to confirming the established enhancements in iron, s-process elements, and total C+N+O among anomalous stars, we show for the first time that these quantities correlate with the light-element abundances. In particular, the most chemically extreme anomalous stars are also the most Fe- and Ce-rich, while exhibiting the lowest [(C+N+O)/Fe] values. \n\nas the counterparts of 1P and 2P stars in a second merged cluster. Conversely, the observed abundance patterns show qualitative similarities with those recently identified in _ω_ Centauri and appear more naturally explained within a self-enrichment framework regulated by dilution. \n\nFuture works, involving other Type II Gcs and tailored nucleosynthetic modeling, will be crucial to robustly test the proposed scenario, constraining the the origin of the polluter(s), address a possible mass-budget problem for such self-pollution process (as recently raised by K. Bekki & M. McKenzie 2026), and account for the cluster-to-cluster variability observed within this class of GCs. \n\nauthor year, title, version, publisher, prefix:identifier \n\n- The HB of M22 exhibits a complex morphology in the _G_ versus _u_ SDSS _− G_ CMD, reflecting the chemical diversity observed along the RGB. We identify a distinct red overdensity likely populated by 1P stars, together with the least chemically extreme 2P (and possibly AI) stars. Moreover, based on the different chemical patterns observed between RGB and AGB stars, we argue that the extreme, hottest HB component is dominated by AIIb stars, which represent the most chemically enriched anomalous population. \n\n- The chemical properties of the anomalous populations present significant challenges to a merger scenario. In particular, the unusual composition of AI stars and the internal correlations involving Fe, Ce, C+N+O, and light-elements are difficult to reconcile with the interpretation of AI and AII",
+          "collection": "arxiv_papers_v2",
+          "build_id": "7e872b04-edf9-580e-bb62-3fdcde30a06a",
+          "paper_id": "20ae5d4a-c291-5ce9-ba9f-038fe2fd905c",
+          "title": "Tracing M22's origins: Spatial and chemical constraints on its formation history",
+          "arxiv_id": "2609.09765",
+          "paper_version": 1,
+          "source_url": "https://arxiv.org/abs/2609.09765v1",
+          "authors": [
+            "Emanuele Dondoglio",
+            "Antonino P. Milone",
+            "Randa Asa'd",
+            "Anna F. Marino",
+            "Alessandra Mastrobuono-Battisti",
+            "Fabrizio Muratore",
+            "Tuila Ziliotto",
+            "Emanuele Bortolan",
+            "Giacomo Cordoni",
+            "Maria Vittoria Legnardi",
+            "Edoardo P. Lagioia",
+            "Marco Tailo"
+          ],
+          "year": 2026,
+          "page": 16,
+          "section_header": "**Tracing M22’s origins: Spatial and chemical constraints on its formation history** > 9. SUMMARY AND CONCLUSIONS",
+          "content_kind": "text",
+          "chunk_index": 51,
+          "score": 0.5,
+          "rerank_score": null,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        },
+        {
+          "id": "88037de3-b461-5f71-84df-8f42e609789d",
+          "text": "## ABSTRACT \n\nGlobular clusters (GCs) are well known to host stellar populations characterized by light-element variations. A subset of Galactic GCs, beyond such ’canonical’ populations, contains an additional group enriched in iron, s-process elements, and total C+N+O abundance (i.e., the anomalous stars). We combine multi-facility photometry with APOGEE spectroscopy to investigate the spatial distribution, chemical properties, and formation history of the stellar populations in M22, with particular focus on its anomalous component. We trace the canonical and anomalous populations, together with their subpopulations, from the cluster center out to eight half-mass radii. The anomalous population becomes increasingly dominant in the outermost regions, whereas no significant radial gradients are detected among its subpopulations. Our chemical analysis reveals light-element anticorrelations within both the canonical and anomalous components, although the latter are shifted toward higher C, N, and Al abundances. For the first time, we show that the Fe, s-process, and C+N+O enhancements among anomalous stars are not uniform but correlate with their light-element composition: the most chemically extreme anomalous stars are also the most Fe-, Ce-rich, and C+N+O-poor. We identify a distinct red overdensity on the horizontal branch, likely populated by the most He-poor stars, and tentatively associate the extreme horizontal branch with the most chemically enriched anomalous population. These observations are difficult to reconcile with M22 being a merger between two GCs. Instead, they qualitatively favor a self-enrichment scenario regulated by dilution, similar to that recently proposed for _ω_ Centauri, with their close chemical correspondence suggesting that they experienced analogous formation histories. \n\n_Keywords:_ Globular star clusters (656) — Photometry (1234) — Spectroscopy (1558) — Stellar astronomy (1583)",
+          "collection": "arxiv_papers_v2",
+          "build_id": "7e872b04-edf9-580e-bb62-3fdcde30a06a",
+          "paper_id": "20ae5d4a-c291-5ce9-ba9f-038fe2fd905c",
+          "title": "Tracing M22's origins: Spatial and chemical constraints on its formation history",
+          "arxiv_id": "2609.09765",
+          "paper_version": 1,
+          "source_url": "https://arxiv.org/abs/2609.09765v1",
+          "authors": [
+            "Emanuele Dondoglio",
+            "Antonino P. Milone",
+            "Randa Asa'd",
+            "Anna F. Marino",
+            "Alessandra Mastrobuono-Battisti",
+            "Fabrizio Muratore",
+            "Tuila Ziliotto",
+            "Emanuele Bortolan",
+            "Giacomo Cordoni",
+            "Maria Vittoria Legnardi",
+            "Edoardo P. Lagioia",
+            "Marco Tailo"
+          ],
+          "year": 2026,
+          "page": 1,
+          "section_header": "**Tracing M22’s origins: Spatial and chemical constraints on its formation history** > ABSTRACT",
+          "content_kind": "text",
+          "chunk_index": 2,
+          "score": 0.34285715,
+          "rerank_score": null,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        },
+        {
+          "id": "9db55b19-33b4-5058-8ea0-9d0fd48a6a15",
+          "text": "that skip the AGB are generally the hottest ones on the HB, it is tempting to associate the bluest and faintest HB region in M22 with these most chemically extreme anomalous stars. \n\n**==> picture [232 x 20] intentionally omitted <==**\n\nThe chemical patterns presented in Section 6 provide a set of observational constraints that any successful formation scenario for Type II GCs must reproduce. In particular, our analysis identifies four key properties of the anomalous populations in M22: (i) anomalous stars are enriched in iron, s-process elements, and total C+N+O relative to the canonical populations; (ii) they exhibit internal light-element variations analogous to those observed between canonical 1P and 2P stars; (iii) their light-element distributions are systematically shifted toward higher carbon, nitrogen, and aluminum abundances than the canonical populations; and (iv) their iron, s-process, and C+N+O abundances are not constant, but correlate with the degree of lightelement enrichment (Figure 8). In the following, we assess whether the two main scenarios proposed for the origin of Type II GCs – the merger of two initially distinct GCs and prolonged self-enrichment within a single stellar system – can naturally account for these observational constraints. We emphasize that, given the present uncertainties in the theoretical modeling of Type II clusters, our discussion is necessarily qualitative.",
+          "collection": "arxiv_papers_v2",
+          "build_id": "7e872b04-edf9-580e-bb62-3fdcde30a06a",
+          "paper_id": "20ae5d4a-c291-5ce9-ba9f-038fe2fd905c",
+          "title": "Tracing M22's origins: Spatial and chemical constraints on its formation history",
+          "arxiv_id": "2609.09765",
+          "paper_version": 1,
+          "source_url": "https://arxiv.org/abs/2609.09765v1",
+          "authors": [
+            "Emanuele Dondoglio",
+            "Antonino P. Milone",
+            "Randa Asa'd",
+            "Anna F. Marino",
+            "Alessandra Mastrobuono-Battisti",
+            "Fabrizio Muratore",
+            "Tuila Ziliotto",
+            "Emanuele Bortolan",
+            "Giacomo Cordoni",
+            "Maria Vittoria Legnardi",
+            "Edoardo P. Lagioia",
+            "Marco Tailo"
+          ],
+          "year": 2026,
+          "page": 12,
+          "section_header": "**Tracing M22’s origins: Spatial and chemical constraints on its formation history** > 7. THE HORIZONTAL BRANCH OF M22",
+          "content_kind": "text",
+          "chunk_index": 39,
+          "score": 0.32692307,
+          "rerank_score": null,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        }
+      ],
+      "claims": [
+        {
+          "text": "The anomalous component's average iron abundance is approximately 0.10 dex higher than that of canonical stars.",
+          "cited_context_ids": [
+            "34b68165-6656-5db4-a9af-6cf4bbf6ee88"
+          ],
+          "need_ids": []
+        },
+        {
+          "text": "The s-process element [Ce/Fe] exhibits a pronounced enhancement among anomalous stars, exceeding the canonical population by approximately 0.6–0.7 dex.",
+          "cited_context_ids": [
+            "34b68165-6656-5db4-a9af-6cf4bbf6ee88"
+          ],
+          "need_ids": []
+        },
+        {
+          "text": "Canonical 2P stars are, on average, depleted in C, O, and Mg and enriched in N and Al relative to 1P stars.",
+          "cited_context_ids": [
+            "34b68165-6656-5db4-a9af-6cf4bbf6ee88"
+          ],
+          "need_ids": []
+        },
+        {
+          "text": "The anomalous populations display analogous internal light-element variations, with AII stars being more depleted in C, O, and Mg and more enriched in N and Al than AI stars.",
+          "cited_context_ids": [
+            "34b68165-6656-5db4-a9af-6cf4bbf6ee88"
+          ],
+          "need_ids": []
+        },
+        {
+          "text": "Within the AII subgroup, AIIb stars exhibit more extreme light-element abundances than AIIa stars and have larger [N/Fe]STD values.",
+          "cited_context_ids": [
+            "34b68165-6656-5db4-a9af-6cf4bbf6ee88"
+          ],
+          "need_ids": []
+        },
+        {
+          "text": "Both AI and AII anomalous stars occupy systematically higher C, N, and Al abundances than the bulk of 1P+2P, while the O and Mg distributions largely overlap between anomalous and canonical stars.",
+          "cited_context_ids": [
+            "34b68165-6656-5db4-a9af-6cf4bbf6ee88"
+          ],
+          "need_ids": []
+        },
+        {
+          "text": "The Fe, s-process, and total C+N+O enhancements among anomalous stars are not uniform but correlate with their light-element composition.",
+          "cited_context_ids": [
+            "88037de3-b461-5f71-84df-8f42e609789d",
+            "9db55b19-33b4-5058-8ea0-9d0fd48a6a15",
+            "be5e0911-b386-58ea-9802-bb3f66e36d2c"
+          ],
+          "need_ids": []
+        },
+        {
+          "text": "The most chemically extreme anomalous stars are also the most Fe- and Ce-rich while exhibiting the lowest [(C+N+O)/Fe] values.",
+          "cited_context_ids": [
+            "be5e0911-b386-58ea-9802-bb3f66e36d2c",
+            "6774379b-f0e9-5b4a-b87a-621be9a15003"
+          ],
+          "need_ids": []
+        },
+        {
+          "text": "The authors state that the internal heavy-element trends linking Fe, Ce, C+N+O and light-element differences have no analogue among Type I GCs and that these observations disfavor a merger interpretation for M22.",
+          "cited_context_ids": [
+            "6774379b-f0e9-5b4a-b87a-621be9a15003",
+            "88037de3-b461-5f71-84df-8f42e609789d"
+          ],
+          "need_ids": []
+        }
+      ],
+      "cited_context_ids": [
+        "34b68165-6656-5db4-a9af-6cf4bbf6ee88",
+        "6774379b-f0e9-5b4a-b87a-621be9a15003",
+        "88037de3-b461-5f71-84df-8f42e609789d",
+        "9db55b19-33b4-5058-8ea0-9d0fd48a6a15",
+        "be5e0911-b386-58ea-9802-bb3f66e36d2c"
+      ],
+      "metrics": {
+        "retrieval_hit": 1.0,
+        "retrieval_recall": 0.3333333333333333,
+        "gold_citation_recall": 0.3333333333333333,
+        "citation_from_retrieval": 1.0,
+        "retrieved_count": 5,
+        "cited_count": 5,
+        "required_paper_count": 1,
+        "retrieved_required_paper_count": 1,
+        "cited_required_paper_count": 1,
+        "required_paper_retrieval_recall": 1.0,
+        "required_paper_citation_recall": 1.0,
+        "all_required_papers_retrieved": 1.0,
+        "answer_correctness": 1.0,
+        "groundedness": 1.0,
+        "answer_relevance": 1.0,
+        "correct_abstention": null
+      },
+      "judge": {
+        "correctness": 1.0,
+        "answer_relevance": 1.0,
+        "abstention": "not_applicable",
+        "reason": "Reference assessment: The actual answer states that anomalous populations are enhanced in Fe and s-process elements, and that anomalous stars have higher C, N, Al and larger total C+N+O with correlations between Fe/Ce/C+N+O and light-elements; these match the reference summary. Grounding assessment: Each claim cites explicit passages from the paper that directly state the asserted comparisons and correlations; the provided evidence quotes verbatim support the claims' values and qualitative statements.",
+        "answer_checks": [
+          {
+            "question_part_id": "q_a",
+            "requested_fact": "Anomalous populations enhanced in iron relative to canonical populations",
+            "status": "answered",
+            "required_numeric_values": [],
+            "missing_or_incorrect_detail": "",
+            "deficit_basis": "none",
+            "claimed_missing_answer_fragments": [],
+            "answer_claim_ids": [
+              "a0001",
+              "a0008"
+            ],
+            "answer_quotes": [
+              "The anomalous component's average iron abundance is approximately 0.10 dex higher than that of canonical stars.",
+              "The Fe, s-process, and total C+N+O enhancements among anomalous stars are not uniform but correlate with their light-element composition."
+            ]
+          },
+          {
+            "question_part_id": "q_a",
+            "requested_fact": "Anomalous populations enhanced in s-process elements (e.g., Ce) relative to canonical populations",
+            "status": "answered",
+            "required_numeric_values": [],
+            "missing_or_incorrect_detail": "",
+            "deficit_basis": "none",
+            "claimed_missing_answer_fragments": [],
+            "answer_claim_ids": [
+              "a0003",
+              "a0008"
+            ],
+            "answer_quotes": [
+              "The s-process element [Ce/Fe] exhibits a pronounced enhancement among anomalous stars, exceeding the canonical population by approximately 0.6–0.7 dex.",
+              "The Fe, s-process, and total C+N+O enhancements among anomalous stars are not uniform but correlate with their light-element composition."
+            ]
+          },
+          {
+            "question_part_id": "q_b",
+            "requested_fact": "Anomalous stars have systematically larger C, N, and Al abundances and higher total C+N+O than canonical stars",
+            "status": "answered",
+            "required_numeric_values": [],
+            "missing_or_incorrect_detail": "",
+            "deficit_basis": "none",
+            "claimed_missing_answer_fragments": [],
+            "answer_claim_ids": [
+              "a0004",
+              "a0007"
+            ],
+            "answer_quotes": [
+              "Canonical 2P stars are, on average, depleted in C, O, and Mg and enriched in N and Al relative to 1P stars.",
+              "Both AI and AII anomalous stars occupy systematically higher C, N, and Al abundances than the bulk of 1P+2P, while the O and Mg distributions largely overlap between anomalous and canonical stars."
+            ]
+          },
+          {
+            "question_part_id": "q_b",
+            "requested_fact": "Fe and s-process enrichment and total C+N+O correlate with light-element abundances; most chemically extreme anomalous stars are most Fe- and Ce-rich while showing lowest [(C+N+O)/Fe]",
+            "status": "answered",
+            "required_numeric_values": [],
+            "missing_or_incorrect_detail": "",
+            "deficit_basis": "none",
+            "claimed_missing_answer_fragments": [],
+            "answer_claim_ids": [
+              "a0010",
+              "a0008"
+            ],
+            "answer_quotes": [
+              "The most chemically extreme anomalous stars are also the most Fe- and Ce-rich while exhibiting the lowest [(C+N+O)/Fe] values.",
+              "The Fe, s-process, and total C+N+O enhancements among anomalous stars are not uniform but correlate with their light-element composition."
+            ]
+          }
+        ],
+        "answer_anchors": [
+          {
+            "id": "a0001",
+            "text": "The anomalous component's average iron abundance is approximately 0.10 dex higher than that of canonical stars.",
+            "source": "claim",
+            "claim_index": 0
+          },
+          {
+            "id": "a0002",
+            "text": " [1]",
+            "source": "answer_span",
+            "claim_index": null
+          },
+          {
+            "id": "a0003",
+            "text": "The s-process element [Ce/Fe] exhibits a pronounced enhancement among anomalous stars, exceeding the canonical population by approximately 0.6–0.7 dex.",
+            "source": "claim",
+            "claim_index": 1
+          },
+          {
+            "id": "a0004",
+            "text": "Canonical 2P stars are, on average, depleted in C, O, and Mg and enriched in N and Al relative to 1P stars.",
+            "source": "claim",
+            "claim_index": 2
+          },
+          {
+            "id": "a0005",
+            "text": "The anomalous populations display analogous internal light-element variations, with AII stars being more depleted in C, O, and Mg and more enriched in N and Al than AI stars.",
+            "source": "claim",
+            "claim_index": 3
+          },
+          {
+            "id": "a0006",
+            "text": "Within the AII subgroup, AIIb stars exhibit more extreme light-element abundances than AIIa stars and have larger [N/Fe]STD values.",
+            "source": "claim",
+            "claim_index": 4
+          },
+          {
+            "id": "a0007",
+            "text": "Both AI and AII anomalous stars occupy systematically higher C, N, and Al abundances than the bulk of 1P+2P, while the O and Mg distributions largely overlap between anomalous and canonical stars.",
+            "source": "claim",
+            "claim_index": 5
+          },
+          {
+            "id": "a0008",
+            "text": "The Fe, s-process, and total C+N+O enhancements among anomalous stars are not uniform but correlate with their light-element composition.",
+            "source": "claim",
+            "claim_index": 6
+          },
+          {
+            "id": "a0009",
+            "text": " [2] [3] [4]",
+            "source": "answer_span",
+            "claim_index": null
+          },
+          {
+            "id": "a0010",
+            "text": "The most chemically extreme anomalous stars are also the most Fe- and Ce-rich while exhibiting the lowest [(C+N+O)/Fe] values.",
+            "source": "claim",
+            "claim_index": 7
+          },
+          {
+            "id": "a0011",
+            "text": " [4] [5]",
+            "source": "answer_span",
+            "claim_index": null
+          },
+          {
+            "id": "a0012",
+            "text": "The authors state that the internal heavy-element trends linking Fe, Ce, C+N+O and light-element differences have no analogue among Type I GCs and that these observations disfavor a merger interpretation for M22.",
+            "source": "claim",
+            "claim_index": 8
+          },
+          {
+            "id": "a0013",
+            "text": " [2] [5]",
+            "source": "answer_span",
+            "claim_index": null
+          }
+        ],
+        "reference_score_status": "scored",
+        "groundedness": 1.0
+      },
+      "judge_request": {
+        "reference": {
+          "response_id": "resp_026d52420331a6c2016ad9c5de077087d297854c7f48aa21b4",
+          "response_ids": [
+            "resp_03ebb3cf9ab45185016ad9c5d7c3b487d287fbd2531bb2ccac",
+            "resp_026d52420331a6c2016ad9c5de077087d297854c7f48aa21b4"
+          ],
+          "attempts": 2,
+          "quote_validation_failures": [],
+          "schema_validation_failures": [],
+          "consistency_validation_failures": [
+            {
+              "attempt": 1,
+              "checks": [
+                {
+                  "check_index": 0,
+                  "reasons": [
+                    "claimed_missing_fragment_present"
+                  ],
+                  "present_fragment_count": 2
+                }
+              ]
+            }
+          ],
+          "consistency_status": "no_detected_conflict",
+          "raw_correctness": 1.0,
+          "score_status": "scored",
+          "answer_anchor_mode": "claim_ids",
+          "request_id": "req_f923a5405e78472fb76435bb8bb1feb8",
+          "model": "gpt-5-mini-2025-08-07",
+          "max_output_tokens": 16384,
+          "usage": {
+            "input_tokens": 9239,
+            "output_tokens": 1052,
+            "total_tokens": 10291
+          }
+        },
+        "grounding": {
+          "response_id": "resp_07245701e844780b016ad9c5e3a1b087d29d49ae5cf6d901ca",
+          "response_ids": [
+            "resp_07245701e844780b016ad9c5e3a1b087d29d49ae5cf6d901ca"
+          ],
+          "attempts": 1,
+          "quote_validation_failures": [],
+          "schema_validation_failures": [],
+          "consistency_validation_failures": [],
+          "consistency_status": "no_detected_conflict",
+          "raw_correctness": null,
+          "score_status": "scored",
+          "answer_anchor_mode": "claim_ids",
+          "request_id": "req_a8afdb808eeb49eca6cfc97e87c9b4bb",
+          "model": "gpt-5-mini-2025-08-07",
+          "max_output_tokens": 16384,
+          "usage": {
+            "input_tokens": 10337,
+            "output_tokens": 76,
+            "total_tokens": 10413
+          },
+          "method_attributions": [],
+          "claim_anchors": [
+            {
+              "id": "a0001",
+              "claim_index": 0
+            },
+            {
+              "id": "a0002",
+              "claim_index": 1
+            },
+            {
+              "id": "a0003",
+              "claim_index": 2
+            },
+            {
+              "id": "a0004",
+              "claim_index": 3
+            },
+            {
+              "id": "a0005",
+              "claim_index": 4
+            },
+            {
+              "id": "a0006",
+              "claim_index": 5
+            },
+            {
+              "id": "a0007",
+              "claim_index": 6
+            },
+            {
+              "id": "a0008",
+              "claim_index": 7
+            },
+            {
+              "id": "a0009",
+              "claim_index": 8
+            }
+          ],
+          "annotation_validation_failures": [],
+          "method_validation_failures": [],
+          "method_scope_issues": [],
+          "raw_groundedness": 1.0
+        }
+      },
+      "judge_error": null,
+      "judge_safeguards": [],
+      "agent_execution": null,
+      "retrieval_diagnostics": {
+        "candidate_count": 20,
+        "candidate_paper_ids": [
+          "20ae5d4a-c291-5ce9-ba9f-038fe2fd905c"
+        ],
+        "candidate_paper_count": 1,
+        "selected_paper_ids": [
+          "20ae5d4a-c291-5ce9-ba9f-038fe2fd905c"
+        ],
+        "selected_paper_count": 1,
+        "selected_count": 5,
+        "named_paper_diversity_guard_applied": false,
+        "reserved_candidate_ids": [
+          "34b68165-6656-5db4-a9af-6cf4bbf6ee88"
+        ],
+        "named_required_build_ids": [
+          "7e872b04-edf9-580e-bb62-3fdcde30a06a"
+        ],
+        "named_candidate_missing_build_ids": [],
+        "named_selected_missing_build_ids": [],
+        "hybrid_candidate_limit": 20,
+        "required_paper_count": 1,
+        "required_paper_candidate_recall": 1.0,
+        "required_paper_selected_recall": 1.0,
+        "all_required_papers_in_candidates": 1.0,
+        "all_required_papers_selected": 1.0
+      },
+      "generation_diagnostics": null,
+      "stage_timings": {
+        "embedding_seconds": 2.200863,
+        "qdrant_seconds": 0.227841,
+        "retrieval_seconds": 2.485,
+        "generation_seconds": 30.599,
+        "pipeline_seconds": 33.161,
+        "judge_reference_seconds": 11.943,
+        "judge_grounding_seconds": 1.897,
+        "judge_seconds": 13.841
+      },
+      "elapsed_seconds": 47.009,
+      "error": null
+    },
+    {
+      "question_id": "q0024",
+      "kind": "single_paper",
+      "profile": "single_synthesis",
+      "mode": "kg",
+      "question": "According to the results reported in \"Tracing M22's origins: Spatial and chemical constraints on its formation history\", how do the anomalous stellar populations (AI, AIIa, AIIb) compare to the canonical populations (1P, 2P) in terms of (a) iron and s-process element abundances, and (b) total C+N+O and its relation to light-element (C, N, O, Mg, Al) abundance patterns?",
+      "reference_answer": "a) The anomalous populations (AI, AIIa, AIIb) are enhanced in iron and s-process elements relative to the canonical populations (1P, 2P) (evidence_id: ae9bbf47388932a271bcd8b4). b) Anomalous stars have systematically larger C, N, and Al abundances and higher total C+N+O than canonical stars; moreover, Fe and s-process enrichment and total C+N+O correlate with light-element abundances such that the most chemically extreme anomalous stars are the most Fe- and Ce-rich while showing the lowest [(C+N+O)/Fe] values (evidence_ids: fae0bcec98069b8edcc42784, 021e465494714404bd5c2be6).",
+      "answer": "The anomalous component in M22 has an average iron abundance approximately 0.10 dex higher than the canonical stars. [1]\n\nThe s-process element [Ce/Fe] is enhanced among anomalous stars by approximately 0.6–0.7 dex relative to the canonical population. [1]\n\nAnomalous stars in M22 are enriched in total C+N+O relative to the canonical populations. [2] [3]\n\nCanonical 2P stars are, on average, depleted in C, O, and Mg and enriched in N and Al relative to 1P stars. [1]\n\nThe anomalous subpopulations display analogous internal light-element variations: AII stars are more depleted in C, O, and Mg and more enriched in N and Al than AI stars, and AIIb stars show more extreme light-element abundances than AIIa stars. [1]\n\nBoth AI and AII anomalous stars occupy systematically higher C, N, and Al abundances than the bulk of 1P+2P, while their O and Mg distributions largely overlap those of the canonical populations. [1]\n\nWithin the anomalous component, Fe, s-process, and C+N+O abundances are not uniform but correlate with light-element composition: the most chemically extreme anomalous stars are the most Fe- and Ce-rich and exhibit the lowest [(C+N+O)/Fe] values. [4] [5]",
+      "retrieved_chunks": [
+        {
+          "id": "34b68165-6656-5db4-a9af-6cf4bbf6ee88",
+          "text": "Figure 7 summarizes the chemical properties of the different stellar populations. For each element, the median abundance is represented by an open black dot, while the corresponding interquartile range is shown as a colored vertical bar, adopting the same color scheme introduced in Section 3. Population labels are shifted to arbitrary positions along the x-axis for visualization purposes. Each element is displayed in two panels: the left panel compares the canonical 1P and 2P populations, whereas the right panel focuses on the anomalous AI and AII populations. For the latter, the AII component is further divided into the AIIa and AIIb subgroups, represented by two separate purple symbols arranged in increasing order along the x-axis. \n\nThe upper row of Figure 7 presents five light-elements known to vary as part of the multiple-population phenomenon. As expected, 2P stars exhibit, on average, lower C, O, and Mg abundances, together with enhanced N and Al, relative to the 1P. The anomalous subpopulations display a qualitatively similar pattern, with AII stars being more depleted in C, O, and Mg and more enriched in N and Al than AI stars. Furthermore, AIIb stars exhibit more extreme light-element abundances than AIIa stars, lying farther from the canonical 1P composition. The larger [N/Fe]STD values observed in AIIb stars relative to AIIa are fully consistent with their locations along the vertical axis of the ChM, which traces nitrogen enrichment (A. P. Milone et al. 2018). The light-element abundance patterns reveal significant differences between canonical and anomalous populations. In particular, both AI and AII stars occupy systematically higher C, N, and Al abundances than the bulk of 1P+2P, while the O and Mg distributions largely overlap. \n\nThe lower row of Figure 7 shows the _α_ -elements [Si/Fe] and [Ca/Fe], both of which appear mildly enhanced in anomalous stars, with no significant differences among their subpopulations. The [Fe/H] distributions confirm the well-established enhancement of the anomalous component, whose average iron abundance is approximately 0.10 dex higher than that of canonical stars. Likewise, the s-process element [Ce/Fe] exhibits a pronounced enhancement among anomalous stars, exceeding the canonical population by approximately 0.6–0.7 dex. Finally, anomalous stars are substantially enriched",
+          "collection": "arxiv_papers_v2",
+          "build_id": "7e872b04-edf9-580e-bb62-3fdcde30a06a",
+          "paper_id": "20ae5d4a-c291-5ce9-ba9f-038fe2fd905c",
+          "title": "Tracing M22's origins: Spatial and chemical constraints on its formation history",
+          "arxiv_id": "2609.09765",
+          "paper_version": 1,
+          "source_url": "https://arxiv.org/abs/2609.09765v1",
+          "authors": [
+            "Emanuele Dondoglio",
+            "Antonino P. Milone",
+            "Randa Asa'd",
+            "Anna F. Marino",
+            "Alessandra Mastrobuono-Battisti",
+            "Fabrizio Muratore",
+            "Tuila Ziliotto",
+            "Emanuele Bortolan",
+            "Giacomo Cordoni",
+            "Maria Vittoria Legnardi",
+            "Edoardo P. Lagioia",
+            "Marco Tailo"
+          ],
+          "year": 2026,
+          "page": 9,
+          "section_header": "**Tracing M22’s origins: Spatial and chemical constraints on its formation history** > 6. THE CHEMICAL COMPOSITION OF M22’S POPULATIONS",
+          "content_kind": "text",
+          "chunk_index": 29,
+          "score": 0.01639344262295082,
+          "rerank_score": null,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        },
+        {
+          "id": "6774379b-f0e9-5b4a-b87a-621be9a15003",
+          "text": "- A second difficulty arises from the internal chemical trends displayed in Figure 8. The anomalous stars exhibiting the largest light-element differences relative to AI are also slightly more enriched in iron and cerium while displaying lower [(C+N+O)/Fe]. This behavior has no analogue among Type I GCs, where 2P stars span a wide range of light-element abundances while maintaining essentially constant iron, s-process, and C+N+O abundances. If the AI and AII populations originated within an independent GC analo- \n\ngous to present-day Type I clusters, these internal heavy-element trends would not be expected. \n\nOverall, although the merger hypothesis naturally explains the existence of anomalous stars, their global iron, s-process-, and C+N+O enrichment, and the presence of multiple populations within the anomalous component, it struggles to reproduce both the peculiar chemistry of the AI population and the internal correlations linking heavy and light-elements. Reconciling these observations would require the anomalous progenitor cluster to have experienced an enrichment history substantially different from that inferred for ordinary Type I Galactic GCs. While our strictly qualitative considerations cannot robustly discard this idea, our observations seems to disfavor the merging interpretation for M22.",
+          "collection": "arxiv_papers_v2",
+          "build_id": "7e872b04-edf9-580e-bb62-3fdcde30a06a",
+          "paper_id": "20ae5d4a-c291-5ce9-ba9f-038fe2fd905c",
+          "title": "Tracing M22's origins: Spatial and chemical constraints on its formation history",
+          "arxiv_id": "2609.09765",
+          "paper_version": 1,
+          "source_url": "https://arxiv.org/abs/2609.09765v1",
+          "authors": [
+            "Emanuele Dondoglio",
+            "Antonino P. Milone",
+            "Randa Asa'd",
+            "Anna F. Marino",
+            "Alessandra Mastrobuono-Battisti",
+            "Fabrizio Muratore",
+            "Tuila Ziliotto",
+            "Emanuele Bortolan",
+            "Giacomo Cordoni",
+            "Maria Vittoria Legnardi",
+            "Edoardo P. Lagioia",
+            "Marco Tailo"
+          ],
+          "year": 2026,
+          "page": 13,
+          "section_header": "**Tracing M22’s origins: Spatial and chemical constraints on its formation history** > 8.1. _The merger hypothesis_",
+          "content_kind": "text",
+          "chunk_index": 42,
+          "score": 0.016129032258064516,
+          "rerank_score": null,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        },
+        {
+          "id": "be5e0911-b386-58ea-9802-bb3f66e36d2c",
+          "text": "16 \n\nical populations exhibit the well-known lightelement abundance patterns associated with the multiple-population phenomenon, with 2P stars being depleted in C, O, and Mg and enriched in N and Al relative to 1P stars. The anomalous populations display analogous internal variations, although shifted toward systematically larger C, N, and Al abundances than the canonical stars. In addition to confirming the established enhancements in iron, s-process elements, and total C+N+O among anomalous stars, we show for the first time that these quantities correlate with the light-element abundances. In particular, the most chemically extreme anomalous stars are also the most Fe- and Ce-rich, while exhibiting the lowest [(C+N+O)/Fe] values. \n\nas the counterparts of 1P and 2P stars in a second merged cluster. Conversely, the observed abundance patterns show qualitative similarities with those recently identified in _ω_ Centauri and appear more naturally explained within a self-enrichment framework regulated by dilution. \n\nFuture works, involving other Type II Gcs and tailored nucleosynthetic modeling, will be crucial to robustly test the proposed scenario, constraining the the origin of the polluter(s), address a possible mass-budget problem for such self-pollution process (as recently raised by K. Bekki & M. McKenzie 2026), and account for the cluster-to-cluster variability observed within this class of GCs. \n\nauthor year, title, version, publisher, prefix:identifier \n\n- The HB of M22 exhibits a complex morphology in the _G_ versus _u_ SDSS _− G_ CMD, reflecting the chemical diversity observed along the RGB. We identify a distinct red overdensity likely populated by 1P stars, together with the least chemically extreme 2P (and possibly AI) stars. Moreover, based on the different chemical patterns observed between RGB and AGB stars, we argue that the extreme, hottest HB component is dominated by AIIb stars, which represent the most chemically enriched anomalous population. \n\n- The chemical properties of the anomalous populations present significant challenges to a merger scenario. In particular, the unusual composition of AI stars and the internal correlations involving Fe, Ce, C+N+O, and light-elements are difficult to reconcile with the interpretation of AI and AII",
+          "collection": "arxiv_papers_v2",
+          "build_id": "7e872b04-edf9-580e-bb62-3fdcde30a06a",
+          "paper_id": "20ae5d4a-c291-5ce9-ba9f-038fe2fd905c",
+          "title": "Tracing M22's origins: Spatial and chemical constraints on its formation history",
+          "arxiv_id": "2609.09765",
+          "paper_version": 1,
+          "source_url": "https://arxiv.org/abs/2609.09765v1",
+          "authors": [
+            "Emanuele Dondoglio",
+            "Antonino P. Milone",
+            "Randa Asa'd",
+            "Anna F. Marino",
+            "Alessandra Mastrobuono-Battisti",
+            "Fabrizio Muratore",
+            "Tuila Ziliotto",
+            "Emanuele Bortolan",
+            "Giacomo Cordoni",
+            "Maria Vittoria Legnardi",
+            "Edoardo P. Lagioia",
+            "Marco Tailo"
+          ],
+          "year": 2026,
+          "page": 16,
+          "section_header": "**Tracing M22’s origins: Spatial and chemical constraints on its formation history** > 9. SUMMARY AND CONCLUSIONS",
+          "content_kind": "text",
+          "chunk_index": 51,
+          "score": 0.015873015873015872,
+          "rerank_score": null,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        },
+        {
+          "id": "88037de3-b461-5f71-84df-8f42e609789d",
+          "text": "## ABSTRACT \n\nGlobular clusters (GCs) are well known to host stellar populations characterized by light-element variations. A subset of Galactic GCs, beyond such ’canonical’ populations, contains an additional group enriched in iron, s-process elements, and total C+N+O abundance (i.e., the anomalous stars). We combine multi-facility photometry with APOGEE spectroscopy to investigate the spatial distribution, chemical properties, and formation history of the stellar populations in M22, with particular focus on its anomalous component. We trace the canonical and anomalous populations, together with their subpopulations, from the cluster center out to eight half-mass radii. The anomalous population becomes increasingly dominant in the outermost regions, whereas no significant radial gradients are detected among its subpopulations. Our chemical analysis reveals light-element anticorrelations within both the canonical and anomalous components, although the latter are shifted toward higher C, N, and Al abundances. For the first time, we show that the Fe, s-process, and C+N+O enhancements among anomalous stars are not uniform but correlate with their light-element composition: the most chemically extreme anomalous stars are also the most Fe-, Ce-rich, and C+N+O-poor. We identify a distinct red overdensity on the horizontal branch, likely populated by the most He-poor stars, and tentatively associate the extreme horizontal branch with the most chemically enriched anomalous population. These observations are difficult to reconcile with M22 being a merger between two GCs. Instead, they qualitatively favor a self-enrichment scenario regulated by dilution, similar to that recently proposed for _ω_ Centauri, with their close chemical correspondence suggesting that they experienced analogous formation histories. \n\n_Keywords:_ Globular star clusters (656) — Photometry (1234) — Spectroscopy (1558) — Stellar astronomy (1583)",
+          "collection": "arxiv_papers_v2",
+          "build_id": "7e872b04-edf9-580e-bb62-3fdcde30a06a",
+          "paper_id": "20ae5d4a-c291-5ce9-ba9f-038fe2fd905c",
+          "title": "Tracing M22's origins: Spatial and chemical constraints on its formation history",
+          "arxiv_id": "2609.09765",
+          "paper_version": 1,
+          "source_url": "https://arxiv.org/abs/2609.09765v1",
+          "authors": [
+            "Emanuele Dondoglio",
+            "Antonino P. Milone",
+            "Randa Asa'd",
+            "Anna F. Marino",
+            "Alessandra Mastrobuono-Battisti",
+            "Fabrizio Muratore",
+            "Tuila Ziliotto",
+            "Emanuele Bortolan",
+            "Giacomo Cordoni",
+            "Maria Vittoria Legnardi",
+            "Edoardo P. Lagioia",
+            "Marco Tailo"
+          ],
+          "year": 2026,
+          "page": 1,
+          "section_header": "**Tracing M22’s origins: Spatial and chemical constraints on its formation history** > ABSTRACT",
+          "content_kind": "text",
+          "chunk_index": 2,
+          "score": 0.015625,
+          "rerank_score": null,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        },
+        {
+          "id": "9db55b19-33b4-5058-8ea0-9d0fd48a6a15",
+          "text": "that skip the AGB are generally the hottest ones on the HB, it is tempting to associate the bluest and faintest HB region in M22 with these most chemically extreme anomalous stars. \n\n**==> picture [232 x 20] intentionally omitted <==**\n\nThe chemical patterns presented in Section 6 provide a set of observational constraints that any successful formation scenario for Type II GCs must reproduce. In particular, our analysis identifies four key properties of the anomalous populations in M22: (i) anomalous stars are enriched in iron, s-process elements, and total C+N+O relative to the canonical populations; (ii) they exhibit internal light-element variations analogous to those observed between canonical 1P and 2P stars; (iii) their light-element distributions are systematically shifted toward higher carbon, nitrogen, and aluminum abundances than the canonical populations; and (iv) their iron, s-process, and C+N+O abundances are not constant, but correlate with the degree of lightelement enrichment (Figure 8). In the following, we assess whether the two main scenarios proposed for the origin of Type II GCs – the merger of two initially distinct GCs and prolonged self-enrichment within a single stellar system – can naturally account for these observational constraints. We emphasize that, given the present uncertainties in the theoretical modeling of Type II clusters, our discussion is necessarily qualitative.",
+          "collection": "arxiv_papers_v2",
+          "build_id": "7e872b04-edf9-580e-bb62-3fdcde30a06a",
+          "paper_id": "20ae5d4a-c291-5ce9-ba9f-038fe2fd905c",
+          "title": "Tracing M22's origins: Spatial and chemical constraints on its formation history",
+          "arxiv_id": "2609.09765",
+          "paper_version": 1,
+          "source_url": "https://arxiv.org/abs/2609.09765v1",
+          "authors": [
+            "Emanuele Dondoglio",
+            "Antonino P. Milone",
+            "Randa Asa'd",
+            "Anna F. Marino",
+            "Alessandra Mastrobuono-Battisti",
+            "Fabrizio Muratore",
+            "Tuila Ziliotto",
+            "Emanuele Bortolan",
+            "Giacomo Cordoni",
+            "Maria Vittoria Legnardi",
+            "Edoardo P. Lagioia",
+            "Marco Tailo"
+          ],
+          "year": 2026,
+          "page": 12,
+          "section_header": "**Tracing M22’s origins: Spatial and chemical constraints on its formation history** > 7. THE HORIZONTAL BRANCH OF M22",
+          "content_kind": "text",
+          "chunk_index": 39,
+          "score": 0.015384615384615385,
+          "rerank_score": null,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        }
+      ],
+      "claims": [
+        {
+          "text": "The anomalous component in M22 has an average iron abundance approximately 0.10 dex higher than the canonical stars.",
+          "cited_context_ids": [
+            "34b68165-6656-5db4-a9af-6cf4bbf6ee88"
+          ],
+          "need_ids": []
+        },
+        {
+          "text": "The s-process element [Ce/Fe] is enhanced among anomalous stars by approximately 0.6–0.7 dex relative to the canonical population.",
+          "cited_context_ids": [
+            "34b68165-6656-5db4-a9af-6cf4bbf6ee88"
+          ],
+          "need_ids": []
+        },
+        {
+          "text": "Anomalous stars in M22 are enriched in total C+N+O relative to the canonical populations.",
+          "cited_context_ids": [
+            "88037de3-b461-5f71-84df-8f42e609789d",
+            "9db55b19-33b4-5058-8ea0-9d0fd48a6a15"
+          ],
+          "need_ids": []
+        },
+        {
+          "text": "Canonical 2P stars are, on average, depleted in C, O, and Mg and enriched in N and Al relative to 1P stars.",
+          "cited_context_ids": [
+            "34b68165-6656-5db4-a9af-6cf4bbf6ee88"
+          ],
+          "need_ids": []
+        },
+        {
+          "text": "The anomalous subpopulations display analogous internal light-element variations: AII stars are more depleted in C, O, and Mg and more enriched in N and Al than AI stars, and AIIb stars show more extreme light-element abundances than AIIa stars.",
+          "cited_context_ids": [
+            "34b68165-6656-5db4-a9af-6cf4bbf6ee88"
+          ],
+          "need_ids": []
+        },
+        {
+          "text": "Both AI and AII anomalous stars occupy systematically higher C, N, and Al abundances than the bulk of 1P+2P, while their O and Mg distributions largely overlap those of the canonical populations.",
+          "cited_context_ids": [
+            "34b68165-6656-5db4-a9af-6cf4bbf6ee88"
+          ],
+          "need_ids": []
+        },
+        {
+          "text": "Within the anomalous component, Fe, s-process, and C+N+O abundances are not uniform but correlate with light-element composition: the most chemically extreme anomalous stars are the most Fe- and Ce-rich and exhibit the lowest [(C+N+O)/Fe] values.",
+          "cited_context_ids": [
+            "be5e0911-b386-58ea-9802-bb3f66e36d2c",
+            "6774379b-f0e9-5b4a-b87a-621be9a15003"
+          ],
+          "need_ids": []
+        }
+      ],
+      "cited_context_ids": [
+        "34b68165-6656-5db4-a9af-6cf4bbf6ee88",
+        "6774379b-f0e9-5b4a-b87a-621be9a15003",
+        "88037de3-b461-5f71-84df-8f42e609789d",
+        "9db55b19-33b4-5058-8ea0-9d0fd48a6a15",
+        "be5e0911-b386-58ea-9802-bb3f66e36d2c"
+      ],
+      "metrics": {
+        "retrieval_hit": 1.0,
+        "retrieval_recall": 0.3333333333333333,
+        "gold_citation_recall": 0.3333333333333333,
+        "citation_from_retrieval": 1.0,
+        "retrieved_count": 5,
+        "cited_count": 5,
+        "required_paper_count": 1,
+        "retrieved_required_paper_count": 1,
+        "cited_required_paper_count": 1,
+        "required_paper_retrieval_recall": 1.0,
+        "required_paper_citation_recall": 1.0,
+        "all_required_papers_retrieved": 1.0,
+        "answer_correctness": 1.0,
+        "groundedness": 1.0,
+        "answer_relevance": 1.0,
+        "correct_abstention": null
+      },
+      "judge": {
+        "correctness": 1.0,
+        "answer_relevance": 1.0,
+        "abstention": "not_applicable",
+        "reason": "Reference assessment: The actual answer states that anomalous populations are enhanced in Fe and s-process (Ce) relative to canonical populations, that anomalous stars have larger C, N, Al and higher total C+N+O, and that Fe/s-process/C+N+O correlate with light-element patterns with the most extreme anomalous stars being most Fe- and Ce-rich and having lowest [(C+N+O)/Fe]. These points match the reference summary and evidence. Grounding assessment: Each claim is directly supported by verbatim excerpts from the cited paper; the excerpts state the same quantities and qualitative relationships (Fe +0.10 dex, [Ce/Fe] +0.6–0.7 dex, C+N+O enrichment, canonical 2P vs 1P light-element differences, analogous anomalous subpopulation variations, AI/AII systematic shifts in C,N,Al with overlapping O/Mg, and internal correlations among Fe, Ce, C+N+O and light-elements). No named methods are attributed in these claims, so no method attributions are required.",
+        "answer_checks": [
+          {
+            "question_part_id": "q_a",
+            "requested_fact": "Anomalous (AI,AIIa,AIIb) vs canonical (1P,2P) iron abundance",
+            "status": "answered",
+            "required_numeric_values": [],
+            "missing_or_incorrect_detail": "",
+            "deficit_basis": "none",
+            "claimed_missing_answer_fragments": [],
+            "answer_claim_ids": [
+              "a0001",
+              "a0009"
+            ],
+            "answer_quotes": [
+              "The anomalous component in M22 has an average iron abundance approximately 0.10 dex higher than the canonical stars.",
+              "Within the anomalous component, Fe, s-process, and C+N+O abundances are not uniform but correlate with light-element composition: the most chemically extreme anomalous stars are the most Fe- and Ce-rich and exhibit the lowest [(C+N+O)/Fe] values."
+            ]
+          },
+          {
+            "question_part_id": "q_a",
+            "requested_fact": "Anomalous (AI,AIIa,AIIb) vs canonical (1P,2P) s-process element abundances (Ce)",
+            "status": "answered",
+            "required_numeric_values": [],
+            "missing_or_incorrect_detail": "",
+            "deficit_basis": "none",
+            "claimed_missing_answer_fragments": [],
+            "answer_claim_ids": [
+              "a0003",
+              "a0009"
+            ],
+            "answer_quotes": [
+              "The s-process element [Ce/Fe] is enhanced among anomalous stars by approximately 0.6–0.7 dex relative to the canonical population.",
+              "Within the anomalous component, Fe, s-process, and C+N+O abundances are not uniform but correlate with light-element composition: the most chemically extreme anomalous stars are the most Fe- and Ce-rich and exhibit the lowest [(C+N+O)/Fe] values."
+            ]
+          },
+          {
+            "question_part_id": "q_b",
+            "requested_fact": "Anomalous stars have larger total C+N+O and larger C, N, Al than canonical stars",
+            "status": "answered",
+            "required_numeric_values": [],
+            "missing_or_incorrect_detail": "",
+            "deficit_basis": "none",
+            "claimed_missing_answer_fragments": [],
+            "answer_claim_ids": [
+              "a0004",
+              "a0008"
+            ],
+            "answer_quotes": [
+              "Anomalous stars in M22 are enriched in total C+N+O relative to the canonical populations.",
+              "Both AI and AII anomalous stars occupy systematically higher C, N, and Al abundances than the bulk of 1P+2P, while their O and Mg distributions largely overlap those of the canonical populations."
+            ]
+          },
+          {
+            "question_part_id": "q_b",
+            "requested_fact": "Relation: Fe and s-process enrichment and total C+N+O correlate with light-element abundances; most extreme anomalous stars are most Fe- and Ce-rich and have lowest [(C+N+O)/Fe]",
+            "status": "answered",
+            "required_numeric_values": [],
+            "missing_or_incorrect_detail": "",
+            "deficit_basis": "none",
+            "claimed_missing_answer_fragments": [],
+            "answer_claim_ids": [
+              "a0009"
+            ],
+            "answer_quotes": [
+              "Within the anomalous component, Fe, s-process, and C+N+O abundances are not uniform but correlate with light-element composition: the most chemically extreme anomalous stars are the most Fe- and Ce-rich and exhibit the lowest [(C+N+O)/Fe] values."
+            ]
+          },
+          {
+            "question_part_id": "q_b",
+            "requested_fact": "Internal light-element patterns: AII more extreme than AI; AIIb more extreme than AIIa; canonical 2P depleted in C,O,Mg and enriched in N,Al vs 1P",
+            "status": "answered",
+            "required_numeric_values": [],
+            "missing_or_incorrect_detail": "",
+            "deficit_basis": "none",
+            "claimed_missing_answer_fragments": [],
+            "answer_claim_ids": [
+              "a0006",
+              "a0007"
+            ],
+            "answer_quotes": [
+              "Canonical 2P stars are, on average, depleted in C, O, and Mg and enriched in N and Al relative to 1P stars.",
+              "The anomalous subpopulations display analogous internal light-element variations: AII stars are more depleted in C, O, and Mg and more enriched in N and Al than AI stars, and AIIb stars show more extreme light-element abundances than AIIa stars."
+            ]
+          }
+        ],
+        "answer_anchors": [
+          {
+            "id": "a0001",
+            "text": "The anomalous component in M22 has an average iron abundance approximately 0.10 dex higher than the canonical stars.",
+            "source": "claim",
+            "claim_index": 0
+          },
+          {
+            "id": "a0002",
+            "text": " [1]",
+            "source": "answer_span",
+            "claim_index": null
+          },
+          {
+            "id": "a0003",
+            "text": "The s-process element [Ce/Fe] is enhanced among anomalous stars by approximately 0.6–0.7 dex relative to the canonical population.",
+            "source": "claim",
+            "claim_index": 1
+          },
+          {
+            "id": "a0004",
+            "text": "Anomalous stars in M22 are enriched in total C+N+O relative to the canonical populations.",
+            "source": "claim",
+            "claim_index": 2
+          },
+          {
+            "id": "a0005",
+            "text": " [2] [3]",
+            "source": "answer_span",
+            "claim_index": null
+          },
+          {
+            "id": "a0006",
+            "text": "Canonical 2P stars are, on average, depleted in C, O, and Mg and enriched in N and Al relative to 1P stars.",
+            "source": "claim",
+            "claim_index": 3
+          },
+          {
+            "id": "a0007",
+            "text": "The anomalous subpopulations display analogous internal light-element variations: AII stars are more depleted in C, O, and Mg and more enriched in N and Al than AI stars, and AIIb stars show more extreme light-element abundances than AIIa stars.",
+            "source": "claim",
+            "claim_index": 4
+          },
+          {
+            "id": "a0008",
+            "text": "Both AI and AII anomalous stars occupy systematically higher C, N, and Al abundances than the bulk of 1P+2P, while their O and Mg distributions largely overlap those of the canonical populations.",
+            "source": "claim",
+            "claim_index": 5
+          },
+          {
+            "id": "a0009",
+            "text": "Within the anomalous component, Fe, s-process, and C+N+O abundances are not uniform but correlate with light-element composition: the most chemically extreme anomalous stars are the most Fe- and Ce-rich and exhibit the lowest [(C+N+O)/Fe] values.",
+            "source": "claim",
+            "claim_index": 6
+          },
+          {
+            "id": "a0010",
+            "text": " [4] [5]",
+            "source": "answer_span",
+            "claim_index": null
+          }
+        ],
+        "reference_score_status": "scored",
+        "groundedness": 1.0
+      },
+      "judge_request": {
+        "reference": {
+          "response_id": "resp_0d0d9216160f8d6b016ad9c6071c9c87d295a2434e056af5a4",
+          "response_ids": [
+            "resp_0d0d9216160f8d6b016ad9c6071c9c87d295a2434e056af5a4"
+          ],
+          "attempts": 1,
+          "quote_validation_failures": [],
+          "schema_validation_failures": [],
+          "consistency_validation_failures": [],
+          "consistency_status": "no_detected_conflict",
+          "raw_correctness": 1.0,
+          "score_status": "scored",
+          "answer_anchor_mode": "claim_ids",
+          "request_id": "req_05abde4b0e9548e2b32908dd1aade5a8",
+          "model": "gpt-5-mini-2025-08-07",
+          "max_output_tokens": 16384,
+          "usage": {
+            "input_tokens": 4351,
+            "output_tokens": 694,
+            "total_tokens": 5045
+          }
+        },
+        "grounding": {
+          "response_id": "resp_02343042d6f715fb016ad9c60e28a887d2bea4a70e0958364e",
+          "response_ids": [
+            "resp_02343042d6f715fb016ad9c60e28a887d2bea4a70e0958364e"
+          ],
+          "attempts": 1,
+          "quote_validation_failures": [],
+          "schema_validation_failures": [],
+          "consistency_validation_failures": [],
+          "consistency_status": "no_detected_conflict",
+          "raw_correctness": null,
+          "score_status": "scored",
+          "answer_anchor_mode": "claim_ids",
+          "request_id": "req_60a30425472e4330bc3875df3a623c22",
+          "model": "gpt-5-mini-2025-08-07",
+          "max_output_tokens": 16384,
+          "usage": {
+            "input_tokens": 7763,
+            "output_tokens": 274,
+            "total_tokens": 8037
+          },
+          "method_attributions": [
+            {
+              "applicability": "not_applicable",
+              "answer_claim_id": "a0001",
+              "claim_index": 0
+            },
+            {
+              "applicability": "not_applicable",
+              "answer_claim_id": "a0002",
+              "claim_index": 1
+            },
+            {
+              "applicability": "not_applicable",
+              "answer_claim_id": "a0003",
+              "claim_index": 2
+            },
+            {
+              "applicability": "not_applicable",
+              "answer_claim_id": "a0004",
+              "claim_index": 3
+            },
+            {
+              "applicability": "not_applicable",
+              "answer_claim_id": "a0005",
+              "claim_index": 4
+            },
+            {
+              "applicability": "not_applicable",
+              "answer_claim_id": "a0006",
+              "claim_index": 5
+            },
+            {
+              "applicability": "not_applicable",
+              "answer_claim_id": "a0007",
+              "claim_index": 6
+            }
+          ],
+          "claim_anchors": [
+            {
+              "id": "a0001",
+              "claim_index": 0
+            },
+            {
+              "id": "a0002",
+              "claim_index": 1
+            },
+            {
+              "id": "a0003",
+              "claim_index": 2
+            },
+            {
+              "id": "a0004",
+              "claim_index": 3
+            },
+            {
+              "id": "a0005",
+              "claim_index": 4
+            },
+            {
+              "id": "a0006",
+              "claim_index": 5
+            },
+            {
+              "id": "a0007",
+              "claim_index": 6
+            }
+          ],
+          "annotation_validation_failures": [],
+          "method_validation_failures": [],
+          "method_scope_issues": [],
+          "raw_groundedness": 1.0
+        }
+      },
+      "judge_error": null,
+      "judge_safeguards": [],
+      "agent_execution": null,
+      "retrieval_diagnostics": {
+        "policy": "hybrid-reviewed-graph-v4",
+        "publication_id": "publication:ef340620c8c35358052b02616a177172a1bdc4710641fe603f2fc127b447ba70",
+        "graph_name": "star-clusters-pilot",
+        "extraction_revision": "83a393f73bedc2a248aba2000cf7a16208a461029afa3b86322cd97fbd384549",
+        "plan_id": "65d9079bda8743744583da188e5b9a41fe1e37a1649ec353512ef0908c88bb0e",
+        "graph_paper_count": 8,
+        "eligible_graph_paper_count": 1,
+        "graph_build_ids": [
+          "7e872b04-edf9-580e-bb62-3fdcde30a06a"
+        ],
+        "excluded_graph_paper_count": 7,
+        "matched_entity_ids": [],
+        "seed_record_count": 5,
+        "validated_record_count": 19,
+        "traversed_record_ids": [
+          "record:000982ebcb733cd38ac9225512c134cfc61c0f342d1e2f441a0247102382b3cd",
+          "record:5523059076f73917f2751889a88c5f1dc2a9030cd1900c06bcaf3491ce2316ab",
+          "record:c96d3130fd438d7961f8c32974110c0cd37774ac9b7b2e4bd24564afa8961f01",
+          "record:ca0ed0beef128d2193171e1596b5109a12daeaaa8f0ef5a3453cb3d5c9d407ac",
+          "record:debc5db45da8e395e92d39a9c7ee43230bc91136ec83c879aa68c3f5043f25cc"
+        ],
+        "graph_candidate_count": 1,
+        "graph_candidates_truncated": false,
+        "graph_chunk_ids": [
+          "510d3394-5260-5779-85f9-ddb625418970"
+        ],
+        "scope_kind": "frozen",
+        "traversal_max_links": 2,
+        "database_writes": 0,
+        "graph_paper_scope": "resolved_named_papers",
+        "graph_requested_build_ids": [
+          "7e872b04-edf9-580e-bb62-3fdcde30a06a"
+        ],
+        "graph_scope_excluded_build_ids": [
+          "34eb5f35-38cc-52c0-b968-919813e40de3",
+          "3ee890b7-f475-51fc-93bd-8e222f1812de",
+          "857f03f5-5a9d-5259-9c13-3fb2366b96f1",
+          "90456f74-656c-5dc3-bac6-5739e80edeee",
+          "bee7f645-7b83-52b8-b1f5-03410d99d146",
+          "c35fa35e-89c3-5a4c-bbd0-3b8745801521",
+          "f68cb9e4-8b5a-5b1f-9080-d174a829e777"
+        ],
+        "promotion_anchor_entities": [],
+        "graph_candidate_support": [
+          {
+            "collection": "arxiv_papers_v2",
+            "id": "510d3394-5260-5779-85f9-ddb625418970",
+            "anchor_record_ids": []
+          }
+        ],
+        "query_entity_names": [],
+        "resolved_catalogue_ids": [],
+        "cross_paper_entity_groups": [],
+        "entity_resolution_conflicts": [],
+        "identity_expanded_seed_count": 0,
+        "survey_coverage_requested": true,
+        "coverage_candidate_paper_ids": [
+          "20ae5d4a-c291-5ce9-ba9f-038fe2fd905c"
+        ],
+        "coverage_selected_paper_ids": [
+          "20ae5d4a-c291-5ce9-ba9f-038fe2fd905c"
+        ],
+        "paper_diversity_applied": false,
+        "named_required_build_ids": [
+          "7e872b04-edf9-580e-bb62-3fdcde30a06a"
+        ],
+        "named_candidate_missing_build_ids": [],
+        "named_selected_missing_build_ids": [],
+        "selection_policy": "protected-hybrid-bounded-graph-v1",
+        "hybrid_baseline_chunks": [
+          {
+            "collection": "arxiv_papers_v2",
+            "id": "34b68165-6656-5db4-a9af-6cf4bbf6ee88"
+          },
+          {
+            "collection": "arxiv_papers_v2",
+            "id": "6774379b-f0e9-5b4a-b87a-621be9a15003"
+          },
+          {
+            "collection": "arxiv_papers_v2",
+            "id": "be5e0911-b386-58ea-9802-bb3f66e36d2c"
+          },
+          {
+            "collection": "arxiv_papers_v2",
+            "id": "88037de3-b461-5f71-84df-8f42e609789d"
+          },
+          {
+            "collection": "arxiv_papers_v2",
+            "id": "9db55b19-33b4-5058-8ea0-9d0fd48a6a15"
+          }
+        ],
+        "protected_hybrid_chunks": [
+          {
+            "collection": "arxiv_papers_v2",
+            "id": "34b68165-6656-5db4-a9af-6cf4bbf6ee88"
+          },
+          {
+            "collection": "arxiv_papers_v2",
+            "id": "6774379b-f0e9-5b4a-b87a-621be9a15003"
+          },
+          {
+            "collection": "arxiv_papers_v2",
+            "id": "be5e0911-b386-58ea-9802-bb3f66e36d2c"
+          }
+        ],
+        "hybrid_protected_count": 3,
+        "graph_expansion_limit": 2,
+        "graph_expansion_count": 0,
+        "graph_expansion_chunks": [],
+        "displaced_hybrid_chunks": [],
+        "graph_candidate_decisions": [
+          {
+            "collection": "arxiv_papers_v2",
+            "id": "510d3394-5260-5779-85f9-ddb625418970",
+            "build_id": "7e872b04-edf9-580e-bb62-3fdcde30a06a",
+            "qualified": false,
+            "reason": "no_specific_query_anchor",
+            "anchor_record_ids": [],
+            "selected": false,
+            "selection_role": "rejected"
+          }
+        ],
+        "graph_rejected_candidate_count": 1,
+        "hybrid_seed_count": 20,
+        "hybrid_candidate_limit": 20,
+        "selected_graph_chunk_count": 0,
+        "selected_chunk_count": 5,
+        "graph_used": false,
+        "hybrid_seconds": 0.382,
+        "graph_seconds": 5.479,
+        "retrieval_status": "hybrid_only_graph_not_selected",
+        "candidate_count": 20,
+        "candidate_paper_ids": [
+          "20ae5d4a-c291-5ce9-ba9f-038fe2fd905c"
+        ],
+        "candidate_paper_count": 1,
+        "selected_paper_ids": [
+          "20ae5d4a-c291-5ce9-ba9f-038fe2fd905c"
+        ],
+        "selected_paper_count": 1,
+        "required_paper_count": 1,
+        "required_paper_candidate_recall": 1.0,
+        "required_paper_selected_recall": 1.0,
+        "all_required_papers_in_candidates": 1.0,
+        "all_required_papers_selected": 1.0
+      },
+      "generation_diagnostics": null,
+      "stage_timings": {
+        "embedding_seconds": 0.215342,
+        "qdrant_seconds": 0.163168,
+        "kg_hybrid_seconds": 0.382,
+        "kg_graph_seconds": 5.479,
+        "retrieval_seconds": 5.965,
+        "generation_seconds": 26.367,
+        "pipeline_seconds": 32.379,
+        "judge_reference_seconds": 7.041,
+        "judge_grounding_seconds": 3.477,
+        "judge_seconds": 10.519
+      },
+      "elapsed_seconds": 42.905,
+      "error": null
+    }
+  ]
+}

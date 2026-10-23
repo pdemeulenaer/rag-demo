@@ -450,6 +450,14 @@ def main():
                                      f"Cross-paper identity groups: {len(graph.get('cross_paper_entity_groups', []))}")
                             if names := graph.get("query_entity_names"):
                                 st.caption("Matched reviewed names: " + "; ".join(names))
+                            if graph.get("selection_policy"):
+                                st.caption(f"Protected Hybrid chunks: {graph['hybrid_protected_count']} · "
+                                           f"Graph additions: {graph['graph_expansion_count']} / {graph['graph_expansion_limit']}")
+                                if graph.get("graph_paper_scope") == "resolved_named_papers":
+                                    st.caption("Graph expansion is restricted to the resolved named papers.")
+                                st.json({key: graph.get(key, []) for key in (
+                                    "protected_hybrid_chunks", "graph_expansion_chunks", "displaced_hybrid_chunks",
+                                    "graph_candidate_decisions", "promotion_anchor_entities")}, expanded=False)
                             if graph.get("survey_coverage_requested"):
                                 st.caption(f"Survey coverage: {len(graph.get('coverage_selected_paper_ids', []))} / "
                                            f"{len(graph.get('coverage_candidate_paper_ids', []))} candidate papers with literal object identifiers. "

@@ -232,6 +232,9 @@ The isolated implementations are `src/api/rag/modes/kg.py` (retrieval compositio
    SHA must match. Live queries require active, ready, undeleted builds. Frozen evaluations
    may use retained **ready**, undeleted builds explicitly in their snapshot, never newer
    replacements outside it. Ineligible graph builds are excluded, not silently broadened.
+   When full quoted titles resolve to named papers, restrict graph records, identity
+   resolution and traversal to those exact collection/build pairs before entity matching.
+   Multiple named papers form a union; a missing graph build never broadens the filter.
 4. Match reviewed names/aliases with word boundaries, case/Unicode/punctuation normalization
    and M/NGC/IC catalogue spacing normalization (`M22`/`M 22`, `NGC6656`/`NGC 6656`). Find
    records supported by Hybrid seed points. A read-time identity index groups approved
@@ -247,11 +250,16 @@ The isolated implementations are `src/api/rag/modes/kg.py` (retrieval compositio
    with the approved record endpoints. No generated Cypher, APOC, query writes or LLM planner.
 6. Validate approved attribution, dependencies/roles, literal evidence quotes, original chunk
    identity and text hashes. Return full original source chunks, not generated KG statements.
-7. Merge Hybrid and graph chunk rankings with RRF (60), reserve one graph-backed slot if
-   found, and keep final `top_k`. For explicit survey/comparison questions, also reserve the
-   best candidate per paper whose original chunk text contains a requested/resolved catalogue
-   ID, then fill remaining slots by RRF. Apply paper diversity to graph candidates too.
-   This is a limited coverage policy, not proof that a passage answers every requested fact.
+7. Protect Hybrid's strongest passages and use RRF (60) only to order qualified graph
+   expansion candidates. With final `top_k=5`, retain three Hybrid passages and allow at
+   most two graph additions. There is no mandatory graph slot. Specific reviewed entities
+   explicitly mentioned in the query must support an actual bounded traversal path to an
+   added passage; generic population/process/property matches alone cannot displace Hybrid.
+   Named-paper coverage has priority. Graph passages already in the Hybrid baseline are
+   deduplicated; unused expansion slots are filled by the remaining Hybrid baseline.
+   The reader still applies literal-ID survey diversity within its capped candidate pool,
+   not as a reason to override protected Hybrid evidence. This is a conservative selection
+   guard, not proof that a passage answers every requested fact.
    Recheck SQL eligibility and publication identity. Use shared
    baseline atomic-claim generation and citation checks. These checks do not prove scientific
    entailment; the same independent evaluation judges still apply.
@@ -314,7 +322,7 @@ needed for graph connections that the sample does not contain.
 
 #### Query policy v3: named-paper coverage and failure diagnostics
 
-New runs record `hybrid-reviewed-graph-v3`; historical v1/v2 results remain readable and
+Policy v3 recorded `hybrid-reviewed-graph-v3`; historical v1/v2/v3 results remain readable and
 are not rewritten. This revision addresses failures exposed by the KG development set:
 
 - When vector and graph retrieval return the **same collection/point ID**, compare their
@@ -342,10 +350,106 @@ are not rewritten. This revision addresses failures exposed by the KG developmen
   summarize `kg_failures.codes` and `.stages`. Closing an owned reader cannot mask the
   primary error. These diagnostics do not convert failures into scored answers.
 
+#### Query policy v4: protected Hybrid evidence and qualified graph expansion
+
+Policy v4 recorded `hybrid-reviewed-graph-v4`. No extraction, publication, index, model,
+token cap or historical result changes are required. There are no new model calls.
+
+- **Paper scope:** before matching/traversal, intersect SQL-eligible graph builds with the
+  resolved full quoted titles. This limits graph expansion, not the full Hybrid corpus search.
+  Open-ended questions remain corpus-scoped. Diagnostics record `graph_paper_scope`,
+  `graph_requested_build_ids` and `graph_scope_excluded_build_ids`.
+- **Promotion anchor:** an exact normalized reviewed name/alias of an astronomical object,
+  spatial region, instrument or method must occur in the query. Its approved catalogue-ID
+  equivalents may also anchor a path. Generic stellar populations, physical processes,
+  datasets/studies and properties can seed traversal but cannot alone justify promotion.
+  This deliberately conservative type policy is not an entity-specific blacklist, semantic
+  relevance classifier or guarantee of scientific entailment. Weak/unknown matches keep Hybrid.
+- **Path attribution:** fixed read-only Cypher returns one deterministic specific-anchor
+  witness per reached record, not all possible paths. Only validated publication/scoped
+  two-link paths qualify. A specific entity elsewhere in the result cannot qualify an
+  unrelated generic population's chunk. Original evidence and quotes remain unchanged.
+- **Allocation:** at `top_k=5`, protect the first three passages in Hybrid's named-paper-aware
+  baseline. Permit at most two qualified additions outside that baseline. Smaller contexts
+  protect at least half their slots; a one-slot context keeps its Hybrid passage. Larger
+  contexts still allow at most two additions. Protect every available named-paper reservation
+  first, potentially leaving fewer/no expansion slots. Short/empty Hybrid results may receive
+  only qualified additions within the same two-addition/context cap. Fill unused slots from
+  Hybrid; never pad with unqualified graph evidence.
+- **Selection audit:** per-item `graph_candidate_decisions` records scoped chunk IDs, anchor
+  witnesses, qualification, selected status, role and rejection/capacity reason. Also inspect
+  `hybrid_baseline_chunks`, `protected_hybrid_chunks`, `graph_expansion_chunks` and
+  `displaced_hybrid_chunks`. The audit is bounded by the existing graph-candidate cap.
+  It is available in Streamlit, evaluation results and Langfuse without new requests.
+- **Honest contribution:** `selected_graph_chunk_count` counts source provenance, including
+  passages Hybrid already retrieved. In v4, `graph_used`/`graph_augmented` requires an actual
+  addition to the final Hybrid baseline. `hybrid_only_graph_already_retrieved` distinguishes
+  shared provenance from expansion; other unmatched/unselected outcomes remain explicit.
+  Summary/report expansion counts and rejection reasons preserve this distinction. Do not
+  compare historical graph-used counts without accounting for their pinned policy version.
+
+Restart/rebuild the API and update the UI for deployed queries; the host evaluation CLI uses
+the new code directly. Start a new chat when comparing policies. Rerun the affected question,
+the graph-covered pilot and then the broader development comparison explicitly; paid runs
+are never implementation tests. Keep held-out test questions untouched while tuning.
+
+#### Query policy v5: direct requested assertions within named papers
+
+New runs record `hybrid-reviewed-graph-v5` and selection policy
+`protected-hybrid-bounded-graph-v2`. V4's paper boundaries, protected Hybrid evidence,
+two-addition cap, source validation and actual-contribution reporting remain unchanged.
+
+An approved scientific assertion can now qualify its **own original source passage**
+without a specific-object path, when all of these conditions hold:
+
+1. Its exact collection/build belongs to the already resolved named papers. This alternative
+   is disabled for open-ended corpus queries; it cannot widen the publication/SQL scope.
+2. At least **two distinct content terms** from the original question occur in its
+   statement/quantity and in **one of its own source quotations**. Terms cannot be stitched
+   from separate quotes or borrowed from a neighbouring assertion.
+3. Resolved full quoted titles, matched identity/population names, English reporting/function
+   words and numbers cannot supply those matches. Physical-process terms may remain requested
+   facts. Limited plural normalization is formatting, not a synonym inventory or fuzzy alias merge.
+
+`fact_matching.py` performs this bounded lexical check on records already approved and
+validated by the reader. Matching assertions become additional seeds in the **existing**
+native traversal. Their promotion permission does not propagate through that traversal:
+adjacent records still need their own fact match or an existing specific-entity path.
+Within the existing candidate/addition limits, direct assertion matches take priority over
+entity-only candidates, with distinct overlap count and existing rank as tie-breakers.
+Titles remain source filters, never scientific fact terms. Full chunks, source quotes,
+values, units, qualifiers and record types are unchanged; no KG assertion replaces source text
+in generation. This is a conservative relevance heuristic, **not semantic entailment, condition
+matching, numeric validation or proof that an answer is complete**. One-term requests and
+paraphrases may still keep Hybrid rather than qualify an assertion.
+
+Per-candidate audit entries record `qualification_basis` (`named_paper_fact_overlap` or
+`specific_entity_path`), `fact_record_id`, `fact_record_kind` and `matched_fact_terms`, alongside
+the retained entity witnesses and selection/rejection reasons. Summaries record
+`graph_expansion_bases`. Manifest/runtime diagnostics freeze `fact_matching_policy`
+(`named-assertion-literal-overlap-v1`) and `fact_matching_min_terms` (2).
+Paper-title normalization is shared through the configuration-free `rag/title_matching.py`;
+offline fact matching imports no runtime Config, reads no `.env` and contacts no services.
+
+No extra model/embedding/Neo4j request, new alias, changed graph/extraction schema, higher cap,
+re-indexing, scientific approval or historical-score rewrite is involved. Other RAG modes
+and generation/citation contracts are unchanged. Tests use generic assertions and reject
+unrelated metrics, title-only matches, quarantined evidence and scope escapes. Paid reruns
+are explicit: check `kg0006`, `kg0008` and the `q0024` dilution control before the pilot/full
+development comparison. Local record inspection does not establish live answer quality.
+
+The v5 eight-question pilot has since completed: see the [2026-10-23 results and manual
+caveats](../operations/evaluation-results.md#kg-policy-v5-development-pilot-2026-10-23).
+Keep v5 as the working baseline. General answer-completeness and caption/body-attribution
+checks are [planned improvements, deferred rather than milestone blockers](rag-evolution-roadmap.md#planned-improvements-deferred-not-milestone-blockers).
+Next is one broader development regression comparison, then controlled incremental graph
+expansion and KG-Agentic composition; do not require another pilot-tuning cycle first.
+
 Only retrieval/comparison policy changed: no graph mutation, new publication, re-index,
 PDF processing or evaluation regeneration. Host `make eval-run` picks up the code directly;
 rebuild/restart the API for UI testing (e.g. `make compose`) and start a new conversation.
-First rerun `kg0001` with `EVAL_QUESTION_ID=kg0001`, then the eight-question comparison below.
+For fresh installations, `EVAL_QUESTION_ID=kg0001` can limit a smoke test before a full pilot.
+The completed v5 pilot does not need repeating merely to follow the current roadmap.
 Offline tests and saved-seed/live-read-only graph replay do not establish fresh vector-search,
 Langfuse-enabled or end-to-end answer quality; those require an explicitly paid rerun.
 
@@ -1107,4 +1211,7 @@ for native typed parsing. Schema conformance is not a substitute for scientific 
 During the pilot, do not compare a seven-paper graph against unrestricted 48-paper retrieval
 as if their coverage were equal. Graph incompleteness is not evidence that a fact is absent.
 No vector re-indexing or wholesale evaluation regeneration is inherently required; existing
-point IDs and approvals remain untouched. No KG quality/latency improvement is claimed yet.
+point IDs and approvals remain untouched. The [v5 development pilot](../operations/evaluation-results.md#kg-policy-v5-development-pilot-2026-10-23)
+shows a limited retrieval benefit, not corpus-wide quality or latency superiority. Follow
+the [current next steps](rag-evolution-roadmap.md#current-next-steps-2026-10-23) and its
+explicitly deferred quality backlog.

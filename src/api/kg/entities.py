@@ -12,6 +12,18 @@ from .scientific_schema import Entity
 
 
 CATALOGUE = re.compile(r"(?<!\w)(ngc|ic|m)\s*([0-9]+[a-z]?)(?!\w)", re.IGNORECASE)
+# Conservative promotion anchors, not a semantic relevance classifier. Population,
+# process and property matches remain useful traversal seeds but cannot alone evict
+# Hybrid evidence. No object-name blacklist or query-specific exceptions.
+PROMOTION_ENTITY_KINDS = {"astronomical_object", "spatial_region", "instrument", "method"}
+
+
+def promotion_anchors(parsed, query):
+    return {key: dict(kind=record.kind, names=sorted({name for name in
+                [record.name, *record.aliases] if mentioned(name, query)}))
+            for key, (_, record) in parsed.items()
+            if isinstance(record, Entity) and record.kind in PROMOTION_ENTITY_KINDS
+            and any(mentioned(name, query) for name in [record.name, *record.aliases])}
 
 
 def normalized(value):

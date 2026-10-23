@@ -3,6 +3,45 @@
 This page records named comparison baselines. Local run artifacts remain the authoritative
 per-question record, and Langfuse holds the corresponding traces and Dataset Experiments.
 
+## KG policy v5 development pilot — 2026-10-23
+
+Run `20261023T102416Z-7aed9c75` completed all 16 answers: eight questions each for Hybrid
+and KG, using `data/evaluation/kg-pilot-v1/questions.reviewed.json`. The run records KG
+policy `hybrid-reviewed-graph-v5`, selector `protected-hybrid-bounded-graph-v2` and judge
+policy `claim-role-bound-v14`. Neither mode had runtime or judge errors; all eight
+correctness and groundedness scores per mode were available.
+
+| Metric | Hybrid | KG |
+| --- | ---: | ---: |
+| Mean automated answer correctness | 0.75 | 1.00 |
+| Mean automated groundedness | 1.00 | 1.00 |
+| Reference-evidence retrieval recall | 0.6875 | 1.00 |
+| Mean latency including judging | 31.039 s | 27.713 s |
+
+KG scored higher on `kg0005`–`kg0008`, with no scored regressions. Those four comparisons
+used identical ordered Hybrid baselines before graph expansion, supporting a genuine
+retrieval contribution. KG added passages on seven of eight questions, protected three
+Hybrid passages per question, and averaged 1.375 additions within the two-addition cap.
+The mean graph stage was 0.067 s. The lower total latency mainly reflects generation and
+judging variation; it does not establish that graph retrieval is inherently faster.
+
+!!! warning "Automated perfect scores overstate manual answer quality"
+    `kg0007` omitted the WFC3-overestimate/ACS-underestimate distinction, although its
+    cited passage supplied it. `kg0008` incorrectly called reconstructed-feature residuals
+    bimodal instead of classifier predictions, apparently conflating an adjacent figure
+    caption with the body text. Both received full automated correctness/grounding scores.
+    Keep those saved scores unchanged, but do not report eight manually verified perfect
+    answers. These are generation/judge limitations, not missing retrieved evidence.
+
+This small, deliberately graph-covered development set is AI-source-reviewed, not
+specialist-validated or held-out. It does not establish corpus-wide superiority. The
+working decision is to retain v5, defer the general completeness/source-attribution fixes,
+and perform one broader development regression comparison before controlled graph expansion
+and KG-Agentic composition. See the [current roadmap and deferred backlog](../architecture/rag-evolution-roadmap.md#current-next-steps-2026-10-23).
+Local `manifest.json`, `results.json`, `summary.json` and `report.md` under
+`data/evaluation/runs/20261023T102416Z-7aed9c75/` remain authoritative; earlier and incomplete
+runs are not merged into this comparison.
+
 !!! warning "Answer anchoring in newer evaluations"
     Manual inspection of q0046 in run `20261005T072551Z-f040caaa` found that the
     reference judge awarded full correctness while attributing reference-only sensitivity

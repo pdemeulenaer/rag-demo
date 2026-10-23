@@ -17,11 +17,58 @@ Current modes:
 The first reviewed benchmark found Hybrid stronger on retrieval coverage, correctness,
 groundedness and relevance, while gold-citation recall remained approximately 0.43 in both
 modes. That run predates the current BM25 index and mode split; see
-[Evaluation results](../operations/evaluation-results.md). The next milestone is a new
-four-mode benchmark on the dense+sparse corpus. Development runs have since exercised all
-four modes; the next architecture milestone is knowledge-graph retrieval as an additional
+[Evaluation results](../operations/evaluation-results.md). Development runs have since
+exercised all four modes on the dense+sparse corpus; the next architecture milestone is
+knowledge-graph retrieval as an additional
 evidence tool for the same orchestration layer. Offline extraction/publication and deterministic
 KG querying are implemented; KG-Agentic composition and global entity resolution remain pending.
+
+## Current next steps — 2026-10-23
+
+Keep KG query policy `hybrid-reviewed-graph-v5` as the working retrieval baseline. The
+eight-question development pilot is complete; see the [results and manual caveats](../operations/evaluation-results.md#kg-policy-v5-development-pilot-2026-10-23).
+Do not block the next milestone on perfect pilot answers or another prompt-refinement cycle.
+
+1. **Broader regression check:** compare `hybrid kg` once on the existing 33-question
+   development split. Check for material answer degradation, unsupported claims, failures
+   and latency. Leave the held-out test split untouched. This is an explicit paid user run,
+   not an implementation test:
+
+   ```bash
+   make eval-run \
+     EVAL_REVIEWED=data/evaluation/markdown-mini-v4/questions.split.json \
+     EVAL_SPLIT=development \
+     EVAL_MODES="hybrid kg" \
+     EVAL_JUDGE=true
+   ```
+
+2. **Controlled incremental KG expansion:** select the next bounded batch from the live
+   catalogue, preview extraction cost, extract/review, then stage/verify/explicitly activate.
+   Preserve PostgreSQL/Qdrant responsibilities and source provenance. Existing commands
+   support explicit selections and replacement publications; cross-plan approved-record
+   reuse/composition and automatic daily updates are **not yet implemented**. Define a
+   simple, tested reuse/composition slice before promising cheap incremental publication;
+   do not silently append records or re-extract the whole corpus. See
+   [the expansion workflow](knowledge-graph.md#expand-from-the-live-catalogue).
+3. **KG-Agentic composition:** expose tested, scoped graph retrieval as a typed read-only
+   tool in the existing bounded LangGraph workflow, in a separate `kg_agentic` mode.
+   Preserve all existing modes, budgets, provenance and experiment comparability.
+
+### Planned improvements — deferred, not milestone blockers
+
+The latest pilot exposed two general generation/judge weaknesses. These are known backlog,
+not implemented fixes and not reasons to keep tuning these eight development questions:
+
+| Planned improvement | Observed example | Intended scope |
+| --- | --- | --- |
+| Check every requested distinction, not just the overall conclusion | `kg0007` omitted that priors overestimate WFC3 birthrates and underestimate ACS birthrates, despite retrieving the passage | Shared baseline generation instructions and independent per-part correctness judging |
+| Keep captions, adjacent paragraphs and scientific quantities distinct | `kg0008` incorrectly attributed bimodality to reconstruction residuals rather than classifier predictions | Shared generation/source-attribution guidance and own-citation grounding checks |
+
+When revisited, use generic regression fixtures and valid counterexamples; do not introduce
+question IDs, expected values or gold answers into runtime. Start within existing calls and
+retry bounds, version judge-policy changes and preserve historical scores. Perfect automated
+scores are not proof of perfect answers. Reprioritize this backlog if broader testing shows
+frequent materially misleading answers, or before claiming production readiness.
 
 ## Design rules
 

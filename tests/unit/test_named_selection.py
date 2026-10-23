@@ -4,7 +4,7 @@ from unittest.mock import Mock
 
 from src.api.rag.modes.hybrid import retrieve
 from src.api.rag.modes.named_selection import select_named_context
-from src.api.kg.selection_policy import select_context
+from src.api.kg.selection_policy import select_expansion_context
 
 
 def paper(build, collection="papers"):
@@ -65,15 +65,18 @@ def test_kg_named_reservations_take_priority_over_an_unrelated_graph_slot():
     source = rows() + [dict(id="g", paper_id="other", build_id="g", collection="papers", text="Graph")]
     order = [(r["collection"], r["id"]) for r in source]
     mapping = dict(zip(order, source))
-    selected, diagnostics = select_context(order, mapping, {order[-1]}, limit=2, query="Compare papers",
-                                         required_papers=[paper("a"), paper("b")])
+    selected, diagnostics = select_expansion_context(order, mapping, {order[-1]},
+        hybrid_order=order[:-1], graph_support=[], limit=2, query="Compare papers",
+        required_papers=[paper("a"), paper("b")])
     assert selected == [order[0], order[-2]]
     assert diagnostics["named_selected_missing_build_ids"] == []
 
 
-def test_kg_reserves_graph_and_named_papers_when_slots_allow():
+def test_kg_never_promotes_a_graph_candidate_from_another_named_paper_scope():
     source = rows() + [dict(id="g", paper_id="other", build_id="g", collection="papers", text="Graph")]
     order = [(r["collection"], r["id"]) for r in source]
-    selected, _ = select_context(order, dict(zip(order, source)), {order[-1]}, limit=3,
-                                 query="Compare papers", required_papers=[paper("a"), paper("b")])
-    assert selected == [order[0], order[-2], order[-1]]
+    selected, diagnostics = select_expansion_context(order, dict(zip(order, source)), {order[-1]},
+        hybrid_order=order[:-1], graph_support=[dict(collection="papers",id="g",anchor_record_ids=["object"])],
+        limit=3, query="Compare papers", required_papers=[paper("a"), paper("b")])
+    assert set(selected) == {order[0], order[1], order[-2]}
+    assert diagnostics["graph_candidate_decisions"][0]["reason"] == "outside_requested_papers"

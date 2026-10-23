@@ -3,23 +3,17 @@ from __future__ import annotations
 
 from collections.abc import Iterable
 import re
-import unicodedata
 
 from src.api.observability.tracing import observe, update_span
 from src.api.rag.contracts import PaperMatch, RetrievalScope
+from src.api.rag.title_matching import QUOTED_TEXT, normalized_title as _normalized_title
 
 
-QUOTED_TEXT = re.compile(r'["“]([^"”]{8,300})["”]')
 ARXIV_REFERENCE = re.compile(
     r"(?:\barxiv\s*:\s*|(?:https?://)?(?:export\.)?arxiv\.org/(?:abs|pdf)/)"
     r"(?P<id>\d{4}\.\d{4,5}|[a-z][a-z.-]*/\d{7})"
     r"(?:v(?P<version>[1-9]\d*))?(?![\w])", re.I,
 )
-
-
-def _normalized_title(value: str) -> str:
-    normalized = unicodedata.normalize("NFKC", value).casefold()
-    return " ".join(re.sub(r"[^\w]+", " ", normalized).split())
 
 
 def quoted_title_phrases(question: str) -> list[str]:

@@ -1,0 +1,1481 @@
+{
+  "schema_version": 1,
+  "run_id": "20261023T072819Z-8146e032",
+  "results": [
+    {
+      "question_id": "kg0008",
+      "kind": "cross_paper",
+      "profile": "cross_comparison",
+      "mode": "hybrid",
+      "question": "Compare the binary-population plans in \"Globular Clusters in the Time of the JWST. I. Survey Design and First Results on Multiple Populations and Beyond\" with the reported classifier results in \"Unresolved Binary Systems in the Rubin Era I: An Autoencoder Framework for Binary Identification Applied to 47 Tucanae\". (a) Which binary-population properties does the JWST survey plan to refine, including its treatment of 1P and 2P? (b) What binary-class precision and completeness does the autoencoder study report on its test set at threshold 0.5, and what does the bimodal prediction distribution suggest? Explain why these classifier metrics are not themselves a measured cluster binary fraction. Cite both papers.",
+      "reference_answer": "The JWST survey plans to refine binary fractions, mass-ratio distributions and radial segregation using its CMDs, and to estimate binary fractions separately for different populations, including 1P and 2P. It motivates this separation by the hypothesis that 2P formed in denser environments with more efficient binary disruption. The autoencoder study reports binary-class test-set precision 0.87 and completeness 0.81 at threshold 0.5; its often bimodal predictions indicate confidence in classifying targets as single or binary. Precision/completeness describe classifier performance on the test set, not the proportion of cluster stars that are binaries. They do not replace the survey's population-fraction measurements or establish the 1P-versus-2P hypothesis.",
+      "answer": "The JWST survey paper states it will refine measurements of the main-sequence (MS–MS) binary fraction, the mass-ratio distribution of binaries, and their radial distribution/segregation in globular clusters. [1]\n\nThe JWST survey paper states it will estimate the binary fraction separately for 1P and 2P stars and notes that 2P stars likely formed in denser environments where binaries are more efficiently disrupted. [1]\n\nThe autoencoder paper reports a classification accuracy of 0.85 on its simulated test set. [2]\n\nThe autoencoder paper presents a confusion matrix for the real and predicted classes in the test set using a threshold of ŷ = 0.8 and shows the full distribution of ŷ for the test set (Figure 22). [3]\n\nWhen applied to Rubin DP1 cluster members the autoencoder study adopted a conservative classification threshold of y > 0.9 and reported an observed MS+MS binary fraction of 2.2% (with stated uncertainties), which the authors emphasize is a lower limit. [4]\n\nThe autoencoder study trained its model on a simulated sample of single stars and binary systems (created with stellar atmosphere models), so its test-set classifier metrics were evaluated on simulated data rather than direct cluster measurements. [2]\n\nBecause the autoencoder classifier metrics are evaluations on simulated test data and depend on the chosen probability threshold (the paper shows ŷ = 0.8 for the test-set confusion matrix and uses y > 0.9 for the DP1 application), the authors treat the observed cluster binary fraction derived from applying the classifier to Rubin DP1 as a threshold-dependent, lower-limit measurement rather than as the intrinsic cluster binary fraction. [2] [3] [4]",
+      "retrieved_chunks": [
+        {
+          "id": "34bb2adc-f73d-5a85-ae34-dce90fc4b5c6",
+          "text": "An Autoencoder Framework for Binary Identification Applied to 47 Tucanae \n\n3 \n\ning variability metrics from the light curve from Zwicky Transient Facility (ZTF) combined with colors from AllWISE and ZTF as input features (P. S´anchez-S´aez et al. 2021). \n\nHowever, while the aforementioned ML models are very powerful, they are also typically tailored to identify specific binary populations or use specialized datasets. Furthermore, many of these techniques are also restrictive, which means that genuinely novel or unexpected events may go undetected. This highlights a gap in the field. There is a need for a classification technique that has all the advantages of CMD-based methods (i.e., fast and cheap) that uses all available filters and colors, yet remains versatile enough to adapt to any type of stellar population. In this work, we present `flexAE` , a novel and flexible ML approach to identifying binary stars that is based on a autoencoder (AE) framework that satisfies all criteria mentioned above. \n\nThe need for such a framework has become particularly apparent with the recent commencement of the NSF-DOE Vera C. Rubin Observatory’s LSST. This survey will image _∼_ 18,000 deg[2] in the southern sky up to a single-visit and co-added depth of _r ∼_ 24 _._ 0 mag and _r ∼_ 26 _._ 9 mag, respectively, in six photometric bands ( _ugrizy_ ) with a targeted seeing of _∼_ 0 _._ 73 arcsec in the _r_ band (F. B. Bianco et al. 2022; Z.[ˇ] Ivezi´c et al. 2019a).[5] With this footprint, depth, and photometric coverage, Rubin LSST has the potential to identify an unprecedented number of binary systems if their broadband SEDs can be fully leveraged. The first preliminary data from the Rubin Observatory was released in Data Preview 1 (DP1), which included a field centered on the globular cluster 47 Tucanae (NSF-DOE Vera C. Rubin Observatory 2025). This is the ideal opportunity to test `flexAE` and prepare for upcoming data releases from the Rubin Observatory, such as Data Preview 2 (DP2) and Data Release 1 (DR1), which will enable us to find even more binary systems in different stellar environments. ",
+          "collection": "arxiv_papers_v2",
+          "build_id": "f68cb9e4-8b5a-5b1f-9080-d174a829e777",
+          "paper_id": "bc8e3cc4-6720-5ac0-80d5-eff5051b2b23",
+          "title": "Unresolved Binary Systems in the Rubin Era I: An Autoencoder Framework for Binary Identification Applied to 47 Tucanae",
+          "arxiv_id": "2609.05616",
+          "paper_version": 1,
+          "source_url": "https://arxiv.org/abs/2609.05616v1",
+          "authors": [
+            "Tobias Géron",
+            "Alexander Laroche",
+            "Joshua S. Speagle",
+            "Maria R. Drout"
+          ],
+          "year": 2026,
+          "page": 3,
+          "section_header": "1. INTRODUCTION",
+          "content_kind": "text",
+          "chunk_index": 8,
+          "score": 0.75,
+          "rerank_score": null,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        },
+        {
+          "id": "ccc1e06b-684f-5a3b-8952-27d7e029036d",
+          "text": "We then applied the model to 47 Tucanae cluster members found in Rubin DP1. We adopt a conservaˆ tive classification threshold of _y >_ 0 _._ 9 to minimize single star contamination and find an observed MS+MS binary fraction of 2 _._ 2[+0] _−_ 0 _[.] ._[5] 3[%][in][the][outskirts][of][47][Tu-] canae, which is in general agreement with the literature (e.g., G. Cordoni et al. 2025). We emphasize that this value is a lower limit, as it is likely that lower mass ratio binary systems were missed. Using simplified extrapolations, we conclude that the intrinsic total binary fraction lies between 3 _._ 7[+0] _−_ 0 _[.] ._[8] 5[%][and][7] _[.]_[5][+1] _−_ 1 _[.] ._[5] 1[%.] \n\nWe also note that the observed binary fraction stays constant between 18 - 36 arcmin (or 5 _._ 7 _−_ 11 _._ 4 halflight radii) from the cluster center. Comparison to the literature suggests a non-monotonic binary fraction in 47 Tucanae as a function of radius; it is high in the core of the cluster and decreases with radius until approximately the half-light radius. Our work shows that the binary fraction increases again in the outskirts of 47 Tucanae, well beyond the half-light radius, forming an overall U-shaped trend. \n\nWe will analyze the binary systems found in this paper in greater detail in a companion paper, where we will use `MultiStarFitting` to characterize the systems, determine their mass ratios, and derive a more robust correction to obtain the intrinsic binary fraction. \n\nThe flexibility of the `flexAE` architecture makes it an ideal tool for large-scale, automated binary star classification in the era of wide-field photometric surveys. This",
+          "collection": "arxiv_papers_v2",
+          "build_id": "f68cb9e4-8b5a-5b1f-9080-d174a829e777",
+          "paper_id": "bc8e3cc4-6720-5ac0-80d5-eff5051b2b23",
+          "title": "Unresolved Binary Systems in the Rubin Era I: An Autoencoder Framework for Binary Identification Applied to 47 Tucanae",
+          "arxiv_id": "2609.05616",
+          "paper_version": 1,
+          "source_url": "https://arxiv.org/abs/2609.05616v1",
+          "authors": [
+            "Tobias Géron",
+            "Alexander Laroche",
+            "Joshua S. Speagle",
+            "Maria R. Drout"
+          ],
+          "year": 2026,
+          "page": 18,
+          "section_header": "5. CONCLUSION",
+          "content_kind": "text",
+          "chunk_index": 65,
+          "score": 0.5588235,
+          "rerank_score": null,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        },
+        {
+          "id": "2654035f-fb49-5f76-bc6a-2deada10ab1a",
+          "text": "An Autoencoder Framework for Binary Identification Applied to 47 Tucanae \n\n21 \n\n**==> picture [205 x 163] intentionally omitted <==**\n\n**Figure 21.** The location of the single stars (blue) and binary systems (orange) in the training sample in the _z_ 1 vs. _z_ 2 latent dimensions. There is some overlap in the latent space for both classes, but there is a population of binary systems that are clearly separated in the top half (high _z_ 2) of this plot. \n\n**==> picture [359 x 130] intentionally omitted <==**\n\n**Figure 22.** The left panel shows the confusion matrix of the real and predicted classes in the test set. A threshold of _y_ ˆ = 0 _._ 8 was used to distinguish between single stars and binary systems. The full distribution of _y_ ˆ for the test set is shown in the right panel. \n\nup to _∼_ 0 _._ 7 as the temperature gets closer to 50,000 K (i.e., hot O-type stars). A similar result was found in A. J. G. O’Grady et al. (2024), who found that, using optical photometry, it is easier to identify YSG binaries if the companion is hotter and more massive. However, they also found that including ultraviolet photometry allows them to reliably identify YSG binaries with smaller companions that have masses of _∼_ 7 _M⊙_ . Thus, adding bluer bands from other surveys will likely improve classification accuracy here as well. \n\nTo summarize, we find that we can use `flexAE` to identify binary systems with a YSG and O- or B-type MS companion with Rubin LSST at distances between 500 - 2,000 kpc. It is more challenging than finding MS+MS binaries with the Rubin LSST bands, but it is still possible to find a pure sample of YSG candidates. We note that we expect the model to improve if the model parameters, such as the number of latent space dimensions, are finetuned more carefully. We will use this model to find YSG binary candidates in Rubin DP2 in future work.",
+          "collection": "arxiv_papers_v2",
+          "build_id": "f68cb9e4-8b5a-5b1f-9080-d174a829e777",
+          "paper_id": "bc8e3cc4-6720-5ac0-80d5-eff5051b2b23",
+          "title": "Unresolved Binary Systems in the Rubin Era I: An Autoencoder Framework for Binary Identification Applied to 47 Tucanae",
+          "arxiv_id": "2609.05616",
+          "paper_version": 1,
+          "source_url": "https://arxiv.org/abs/2609.05616v1",
+          "authors": [
+            "Tobias Géron",
+            "Alexander Laroche",
+            "Joshua S. Speagle",
+            "Maria R. Drout"
+          ],
+          "year": 2026,
+          "page": 21,
+          "section_header": "A. TRAINING `FLEXAE` TO FIND YELLOW SUPERGIANT BINARIES",
+          "content_kind": "text",
+          "chunk_index": 74,
+          "score": 0.45833334,
+          "rerank_score": null,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        },
+        {
+          "id": "f06072ad-f2c7-5a25-8a45-494da049cea3",
+          "text": "## ABSTRACT \n\nBinary systems are extremely common and influence many areas of astrophysics, such as stellar evolution and cluster dynamics. In this work, we introduce `flexAE` , a framework that combines a classical autoencoder architecture with a dedicated classifier component. It is designed to distinguish between single stars and binary systems based on their broadband spectral energy distributions, using all available photometry simultaneously while accounting for observational uncertainties. We demonstrate the capability of `flexAE` by using it to identify unresolved main sequence binaries in the outskirts of the 47 Tucanae globular cluster (NGC 104) with photometric data from the Vera C. Rubin Observatory. We train the model on a simulated sample of single star and binary systems created with stellar atmosphere models. The model accurately reconstructs the photometric input features and achieves a classification accuracy of 0.85 on the simulated test set. We then apply the trained model to a sample of 1,424 cluster members found in Rubin DP1 with reliable _gri_ photometry, of which 32 are identified by the model as unresolved main sequence binaries. This corresponds to an observed binary fraction of 2 _._ 2[+0] _−_ 0 _[.] ._[5] 3[%.][We][estimate][that][the][intrinsic][main][sequence][binary][fraction][lies][between][3] _[.]_[7][+0] _−_ 0 _[.] ._[8] 5[%][and] 7 _._ 5[+1] _−_ 1 _[.] ._[5] 1[%.][The][binary][fraction][stays][constant][between][18] _[ −]_[36][arcmin][(5] _[.]_[7] _[ −]_[11] _[.]_[4][half-light][radii)][from] the cluster center. We highlight that `flexAE` can be easily adapted for other use cases. This makes `flexAE` well-suited for large-scale binary classification in upcoming wide-field surveys, such as Rubin LSST. The code is publicly available at https://github.com/tobiasgeron/flexAE. \n\n_Keywords:_ Binary stars (154); Stellar photometry (1620); Main sequence stars (1000); Stellar populations (1622); Star clusters (1567); Astronomy software (1855); Classification (1907)",
+          "collection": "arxiv_papers_v2",
+          "build_id": "f68cb9e4-8b5a-5b1f-9080-d174a829e777",
+          "paper_id": "bc8e3cc4-6720-5ac0-80d5-eff5051b2b23",
+          "title": "Unresolved Binary Systems in the Rubin Era I: An Autoencoder Framework for Binary Identification Applied to 47 Tucanae",
+          "arxiv_id": "2609.05616",
+          "paper_version": 1,
+          "source_url": "https://arxiv.org/abs/2609.05616v1",
+          "authors": [
+            "Tobias Géron",
+            "Alexander Laroche",
+            "Joshua S. Speagle",
+            "Maria R. Drout"
+          ],
+          "year": 2026,
+          "page": 1,
+          "section_header": "ABSTRACT",
+          "content_kind": "text",
+          "chunk_index": 2,
+          "score": 0.4166667,
+          "rerank_score": null,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        },
+        {
+          "id": "881ca153-c4bc-517d-93c1-8c6dcfb675fe",
+          "text": "_• Binary populations._ The analysis of CMDs provides key constraints on the binary content of GCs, including the fraction of MS–MS systems, their mass-ratio distribution, and their radial distribution (Romani & Weinberg 1991; Sollima et al. 2007; Milone et al. 2012a). These properties are essential for understanding GC dynamical evolution and the formation of exotic stellar populations, such as blue straggler stars, cataclysmic variables, millisecond pulsars, and low-mass X-ray binaries. \n\nWe will exploit the CMDs presented in this work to refine measurements of the binary fraction, mass-ratio distribution, and radial segregation, extending previous studies (Milone et al. 2012a), which were largely limited to cluster inner regions. We will also estimate the binary fraction for different stellar populations following the methodology introduced in our previous works (Milone et al. 2020, 2025b; Bortolan et al. 2025). Measuring the binary fraction separately for 1P and 2P stars is particularly important, as 2P stars likely formed in denser environments where binaries are more efficiently disrupted. Differences in binary fraction and radial distribution \n\n> 7 Synthetic spectra and spectroscopic analyses have demonstrated that the intrinsic extension of 1P stars in ChMs constructed from suitable combinations of _HST_ and _JWST_ filters is primarily driven by small star-to-star metallicity variations (Marino et al. 2019a,b, 2023; Legnardi et al. 2022). Consequently, once the observed pseudo-colour distribution is corrected for photometric uncertainties, it can be directly translated into a metallicity distribution through comparison with synthetic stellar models. The accuracy of the inferred metallicities is therefore determined mainly by the photometric precision of the ChM, and can reach a few hundredths of a dex for high-quality _HST_ + _JWST_ photometry (see, e.g., Legnardi et al. 2022, 2024). \n\nbetween the two populations thus provide direct constraints on formation scenarios and dynamical evolution. ",
+          "collection": "arxiv_papers_v2",
+          "build_id": "34eb5f35-38cc-52c0-b968-919813e40de3",
+          "paper_id": "723368a4-0f0d-597b-8ede-50157d4601cb",
+          "title": "Globular Clusters in the Time of the JWST. I. Survey Design and First Results on Multiple Populations and Beyond",
+          "arxiv_id": "2606.20979",
+          "paper_version": 2,
+          "source_url": "https://arxiv.org/abs/2606.20979v2",
+          "authors": [
+            "A. P. Milone",
+            "A. F. Marino",
+            "G. Cordoni",
+            "E. Dondoglio",
+            "M. V. Legnardi",
+            "T. Ziliotto",
+            "E. Bortolan",
+            "F. Muratore",
+            "F. D'Antona",
+            "A. Renzini",
+            "G. Girardi",
+            "L. Gorza",
+            "A. Mastrobuono-Battisti",
+            "C. Ventura",
+            "P. Ventura",
+            "V. Altomonte",
+            "L. Bisigello",
+            "Y. Cavecchi",
+            "F. Dell'Agli",
+            "A. Dotter",
+            "E. P. Lagioia",
+            "C. Li",
+            "S. Lionetto",
+            "A. Marchuk",
+            "J. Qi",
+            "G. Rodighiero",
+            "M. Tailo",
+            "H. Wirth"
+          ],
+          "year": 2026,
+          "page": 17,
+          "section_header": "**6 OTHER RESULTS AND SCIENTIFIC POTENTIAL OF THE DATASET**",
+          "content_kind": "text",
+          "chunk_index": 51,
+          "score": 0.17692308,
+          "rerank_score": null,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        }
+      ],
+      "claims": [
+        {
+          "text": "The JWST survey paper states it will refine measurements of the main-sequence (MS–MS) binary fraction, the mass-ratio distribution of binaries, and their radial distribution/segregation in globular clusters.",
+          "cited_context_ids": [
+            "881ca153-c4bc-517d-93c1-8c6dcfb675fe"
+          ],
+          "need_ids": []
+        },
+        {
+          "text": "The JWST survey paper states it will estimate the binary fraction separately for 1P and 2P stars and notes that 2P stars likely formed in denser environments where binaries are more efficiently disrupted.",
+          "cited_context_ids": [
+            "881ca153-c4bc-517d-93c1-8c6dcfb675fe"
+          ],
+          "need_ids": []
+        },
+        {
+          "text": "The autoencoder paper reports a classification accuracy of 0.85 on its simulated test set.",
+          "cited_context_ids": [
+            "f06072ad-f2c7-5a25-8a45-494da049cea3"
+          ],
+          "need_ids": []
+        },
+        {
+          "text": "The autoencoder paper presents a confusion matrix for the real and predicted classes in the test set using a threshold of ŷ = 0.8 and shows the full distribution of ŷ for the test set (Figure 22).",
+          "cited_context_ids": [
+            "2654035f-fb49-5f76-bc6a-2deada10ab1a"
+          ],
+          "need_ids": []
+        },
+        {
+          "text": "When applied to Rubin DP1 cluster members the autoencoder study adopted a conservative classification threshold of y > 0.9 and reported an observed MS+MS binary fraction of 2.2% (with stated uncertainties), which the authors emphasize is a lower limit.",
+          "cited_context_ids": [
+            "ccc1e06b-684f-5a3b-8952-27d7e029036d"
+          ],
+          "need_ids": []
+        },
+        {
+          "text": "The autoencoder study trained its model on a simulated sample of single stars and binary systems (created with stellar atmosphere models), so its test-set classifier metrics were evaluated on simulated data rather than direct cluster measurements.",
+          "cited_context_ids": [
+            "f06072ad-f2c7-5a25-8a45-494da049cea3"
+          ],
+          "need_ids": []
+        },
+        {
+          "text": "Because the autoencoder classifier metrics are evaluations on simulated test data and depend on the chosen probability threshold (the paper shows ŷ = 0.8 for the test-set confusion matrix and uses y > 0.9 for the DP1 application), the authors treat the observed cluster binary fraction derived from applying the classifier to Rubin DP1 as a threshold-dependent, lower-limit measurement rather than as the intrinsic cluster binary fraction.",
+          "cited_context_ids": [
+            "f06072ad-f2c7-5a25-8a45-494da049cea3",
+            "2654035f-fb49-5f76-bc6a-2deada10ab1a",
+            "ccc1e06b-684f-5a3b-8952-27d7e029036d"
+          ],
+          "need_ids": []
+        }
+      ],
+      "cited_context_ids": [
+        "2654035f-fb49-5f76-bc6a-2deada10ab1a",
+        "881ca153-c4bc-517d-93c1-8c6dcfb675fe",
+        "ccc1e06b-684f-5a3b-8952-27d7e029036d",
+        "f06072ad-f2c7-5a25-8a45-494da049cea3"
+      ],
+      "metrics": {
+        "retrieval_hit": 1.0,
+        "retrieval_recall": 0.5,
+        "gold_citation_recall": 0.5,
+        "citation_from_retrieval": 1.0,
+        "retrieved_count": 5,
+        "cited_count": 4,
+        "required_paper_count": 2,
+        "retrieved_required_paper_count": 2,
+        "cited_required_paper_count": 2,
+        "required_paper_retrieval_recall": 1.0,
+        "required_paper_citation_recall": 1.0,
+        "all_required_papers_retrieved": 1.0,
+        "required_numeric_value_count": 3,
+        "covered_required_numeric_value_count": 0,
+        "required_numeric_value_recall": 0.0,
+        "missing_required_numeric_values": [
+          "0.87",
+          "0.81",
+          "0.5"
+        ],
+        "answer_correctness": 0.5,
+        "groundedness": 1.0,
+        "answer_relevance": 1.0,
+        "correct_abstention": null
+      },
+      "judge": {
+        "correctness": 0.5,
+        "answer_relevance": 1.0,
+        "abstention": "not_applicable",
+        "reason": "Reference assessment: Part (a) is correctly answered. Part (b) omits the required numeric precision/completeness values (0.87 and 0.81) and instead gives an incorrect accuracy value (0.85) and other threshold details; it correctly describes bimodality and explains why classifier metrics ≠ measured cluster binary fraction. Thus partial correctness. Grounding assessment: Each claim cites text excerpts that directly state the claimed facts (JWST paper specifies which binary properties will be refined and the 1P/2P treatment; the autoencoder paper's abstract and figures/report pages state the 0.85 test accuracy, the confusion-matrix threshold ŷ=0.8 with distribution in Figure 22, the DP1 application threshold y>0.9 and observed 2.2% fraction, training on simulated data, and that the reported cluster fraction is a threshold-dependent lower limit). All claims correctly match the provided evidence in subject, quantities, thresholds, and qualifiers.",
+        "answer_checks": [
+          {
+            "question_part_id": "q_a",
+            "requested_fact": "JWST will refine binary fraction, mass-ratio distribution, and radial segregation; will estimate binary fraction separately for 1P and 2P and motivates 2P formed in denser environments with more binary disruption",
+            "status": "answered",
+            "required_numeric_values": [],
+            "missing_or_incorrect_detail": "",
+            "deficit_basis": "none",
+            "claimed_missing_answer_fragments": [],
+            "answer_claim_ids": [
+              "a0001",
+              "a0003"
+            ],
+            "answer_quotes": [
+              "The JWST survey paper states it will refine measurements of the main-sequence (MS–MS) binary fraction, the mass-ratio distribution of binaries, and their radial distribution/segregation in globular clusters.",
+              "The JWST survey paper states it will estimate the binary fraction separately for 1P and 2P stars and notes that 2P stars likely formed in denser environments where binaries are more efficiently disrupted."
+            ]
+          },
+          {
+            "question_part_id": "q_b",
+            "requested_fact": "Binary-class precision at threshold 0.5 (required numeric value 0.87)",
+            "status": "missing",
+            "required_numeric_values": [
+              "0.87"
+            ],
+            "missing_or_incorrect_detail": "The answer gives accuracy 0.85 instead of the required precision 0.87 at threshold 0.5; the numeric value 0.87 is not present.",
+            "deficit_basis": "missing_content",
+            "claimed_missing_answer_fragments": [
+              "0.87"
+            ],
+            "answer_claim_ids": [
+              "a0004"
+            ],
+            "answer_quotes": [
+              "The autoencoder paper reports a classification accuracy of 0.85 on its simulated test set."
+            ]
+          },
+          {
+            "question_part_id": "q_b",
+            "requested_fact": "Binary-class completeness at threshold 0.5 (required numeric value 0.81)",
+            "status": "missing",
+            "required_numeric_values": [
+              "0.81"
+            ],
+            "missing_or_incorrect_detail": "The answer does not provide completeness 0.81 at threshold 0.5; completeness value is absent.",
+            "deficit_basis": "missing_content",
+            "claimed_missing_answer_fragments": [
+              "0.81"
+            ],
+            "answer_claim_ids": [
+              "a0004"
+            ],
+            "answer_quotes": [
+              "The autoencoder paper reports a classification accuracy of 0.85 on its simulated test set."
+            ]
+          },
+          {
+            "question_part_id": "q_b",
+            "requested_fact": "Threshold 0.5 and bimodal prediction distribution implication (qualitative)",
+            "status": "answered",
+            "required_numeric_values": [
+              "0.5"
+            ],
+            "missing_or_incorrect_detail": "",
+            "deficit_basis": "none",
+            "claimed_missing_answer_fragments": [],
+            "answer_claim_ids": [
+              "a0006"
+            ],
+            "answer_quotes": [
+              "The autoencoder paper presents a confusion matrix for the real and predicted classes in the test set using a threshold of ŷ = 0.8 and shows the full distribution of ŷ for the test set (Figure 22)."
+            ]
+          },
+          {
+            "question_part_id": "q_b",
+            "requested_fact": "Why classifier precision/completeness are not the measured cluster binary fraction (qualitative; cite both papers)",
+            "status": "answered",
+            "required_numeric_values": [],
+            "missing_or_incorrect_detail": "",
+            "deficit_basis": "none",
+            "claimed_missing_answer_fragments": [],
+            "answer_claim_ids": [
+              "a0010",
+              "a0011",
+              "a0003"
+            ],
+            "answer_quotes": [
+              "The autoencoder study trained its model on a simulated sample of single stars and binary systems (created with stellar atmosphere models), so its test-set classifier metrics were evaluated on simulated data rather than direct cluster measurements.",
+              "Because the autoencoder classifier metrics are evaluations on simulated test data and depend on the chosen probability threshold (the paper shows ŷ = 0.8 for the test-set confusion matrix and uses y > 0.9 for the DP1 application), the authors treat the observed cluster binary fraction derived from applying the classifier to Rubin DP1 as a threshold-dependent, lower-limit measurement rather than as the intrinsic cluster binary fraction.",
+              "The JWST survey paper states it will estimate the binary fraction separately for 1P and 2P stars and notes that 2P stars likely formed in denser environments where binaries are more efficiently disrupted."
+            ]
+          }
+        ],
+        "answer_anchors": [
+          {
+            "id": "a0001",
+            "text": "The JWST survey paper states it will refine measurements of the main-sequence (MS–MS) binary fraction, the mass-ratio distribution of binaries, and their radial distribution/segregation in globular clusters.",
+            "source": "claim",
+            "claim_index": 0
+          },
+          {
+            "id": "a0002",
+            "text": " [1]",
+            "source": "answer_span",
+            "claim_index": null
+          },
+          {
+            "id": "a0003",
+            "text": "The JWST survey paper states it will estimate the binary fraction separately for 1P and 2P stars and notes that 2P stars likely formed in denser environments where binaries are more efficiently disrupted.",
+            "source": "claim",
+            "claim_index": 1
+          },
+          {
+            "id": "a0004",
+            "text": "The autoencoder paper reports a classification accuracy of 0.85 on its simulated test set.",
+            "source": "claim",
+            "claim_index": 2
+          },
+          {
+            "id": "a0005",
+            "text": " [2]",
+            "source": "answer_span",
+            "claim_index": null
+          },
+          {
+            "id": "a0006",
+            "text": "The autoencoder paper presents a confusion matrix for the real and predicted classes in the test set using a threshold of ŷ = 0.8 and shows the full distribution of ŷ for the test set (Figure 22).",
+            "source": "claim",
+            "claim_index": 3
+          },
+          {
+            "id": "a0007",
+            "text": " [3]",
+            "source": "answer_span",
+            "claim_index": null
+          },
+          {
+            "id": "a0008",
+            "text": "When applied to Rubin DP1 cluster members the autoencoder study adopted a conservative classification threshold of y > 0.9 and reported an observed MS+MS binary fraction of 2.2% (with stated uncertainties), which the authors emphasize is a lower limit.",
+            "source": "claim",
+            "claim_index": 4
+          },
+          {
+            "id": "a0009",
+            "text": " [4]",
+            "source": "answer_span",
+            "claim_index": null
+          },
+          {
+            "id": "a0010",
+            "text": "The autoencoder study trained its model on a simulated sample of single stars and binary systems (created with stellar atmosphere models), so its test-set classifier metrics were evaluated on simulated data rather than direct cluster measurements.",
+            "source": "claim",
+            "claim_index": 5
+          },
+          {
+            "id": "a0011",
+            "text": "Because the autoencoder classifier metrics are evaluations on simulated test data and depend on the chosen probability threshold (the paper shows ŷ = 0.8 for the test-set confusion matrix and uses y > 0.9 for the DP1 application), the authors treat the observed cluster binary fraction derived from applying the classifier to Rubin DP1 as a threshold-dependent, lower-limit measurement rather than as the intrinsic cluster binary fraction.",
+            "source": "claim",
+            "claim_index": 6
+          },
+          {
+            "id": "a0012",
+            "text": " [2] [3] [4]",
+            "source": "answer_span",
+            "claim_index": null
+          }
+        ],
+        "reference_score_status": "scored",
+        "groundedness": 1.0
+      },
+      "judge_request": {
+        "reference": {
+          "response_id": "resp_075e89087cda7709016adb0cbd305887d28a749777aec73251",
+          "response_ids": [
+            "resp_090fe920bfebb64e016adb0cb65dfc87d2baccbd6172193496",
+            "resp_075e89087cda7709016adb0cbd305887d28a749777aec73251"
+          ],
+          "attempts": 2,
+          "quote_validation_failures": [],
+          "schema_validation_failures": [],
+          "consistency_validation_failures": [
+            {
+              "attempt": 1,
+              "checks": [
+                {
+                  "check_index": 1,
+                  "reasons": [
+                    "omission_fragments_on_non_omission"
+                  ],
+                  "present_fragment_count": 0
+                }
+              ]
+            }
+          ],
+          "consistency_status": "no_detected_conflict",
+          "raw_correctness": 0.5,
+          "score_status": "scored",
+          "answer_anchor_mode": "claim_ids",
+          "request_id": "req_0b08ea6f4b2d45d987961b27715c0f9f",
+          "model": "gpt-5-mini-2025-08-07",
+          "max_output_tokens": 16384,
+          "usage": {
+            "input_tokens": 8548,
+            "output_tokens": 1432,
+            "total_tokens": 9980
+          }
+        },
+        "grounding": {
+          "response_id": "resp_0b39b49dcc2440fa016adb0cc3752887d2b0771be9b4e7d2ff",
+          "response_ids": [
+            "resp_0b39b49dcc2440fa016adb0cc3752887d2b0771be9b4e7d2ff"
+          ],
+          "attempts": 1,
+          "quote_validation_failures": [],
+          "schema_validation_failures": [],
+          "consistency_validation_failures": [],
+          "consistency_status": "no_detected_conflict",
+          "raw_correctness": null,
+          "score_status": "scored",
+          "answer_anchor_mode": "claim_ids",
+          "request_id": "req_a54d3dca1b0e47cb8e8e3bc4417d9222",
+          "model": "gpt-5-mini-2025-08-07",
+          "max_output_tokens": 16384,
+          "usage": {
+            "input_tokens": 8037,
+            "output_tokens": 355,
+            "total_tokens": 8392
+          },
+          "method_attributions": [
+            {
+              "applicability": "not_applicable",
+              "answer_claim_id": "a0001",
+              "claim_index": 0
+            },
+            {
+              "applicability": "not_applicable",
+              "answer_claim_id": "a0002",
+              "claim_index": 1
+            },
+            {
+              "applicability": "not_applicable",
+              "answer_claim_id": "a0003",
+              "claim_index": 2
+            },
+            {
+              "applicability": "not_applicable",
+              "answer_claim_id": "a0004",
+              "claim_index": 3
+            },
+            {
+              "applicability": "not_applicable",
+              "answer_claim_id": "a0005",
+              "claim_index": 4
+            },
+            {
+              "applicability": "not_applicable",
+              "answer_claim_id": "a0006",
+              "claim_index": 5
+            },
+            {
+              "applicability": "not_applicable",
+              "answer_claim_id": "a0007",
+              "claim_index": 6
+            }
+          ],
+          "claim_anchors": [
+            {
+              "id": "a0001",
+              "claim_index": 0
+            },
+            {
+              "id": "a0002",
+              "claim_index": 1
+            },
+            {
+              "id": "a0003",
+              "claim_index": 2
+            },
+            {
+              "id": "a0004",
+              "claim_index": 3
+            },
+            {
+              "id": "a0005",
+              "claim_index": 4
+            },
+            {
+              "id": "a0006",
+              "claim_index": 5
+            },
+            {
+              "id": "a0007",
+              "claim_index": 6
+            }
+          ],
+          "annotation_validation_failures": [],
+          "method_validation_failures": [],
+          "method_scope_issues": [],
+          "raw_groundedness": 1.0
+        }
+      },
+      "judge_error": null,
+      "judge_safeguards": [
+        {
+          "metric": "correctness",
+          "from": 0.5,
+          "to": 0.5,
+          "reason": "reference_assessment_not_answer_anchored",
+          "checks": [
+            {
+              "check_index": 1,
+              "status": "missing",
+              "invalid_quote_count": 0,
+              "missing_numeric_values": [
+                "0.87"
+              ]
+            },
+            {
+              "check_index": 2,
+              "status": "missing",
+              "invalid_quote_count": 0,
+              "missing_numeric_values": [
+                "0.81"
+              ]
+            },
+            {
+              "check_index": 3,
+              "status": "answered",
+              "invalid_quote_count": 0,
+              "missing_numeric_values": [
+                "0.5"
+              ]
+            }
+          ]
+        },
+        {
+          "metric": "correctness",
+          "from": 0.5,
+          "to": 0.5,
+          "reason": "missing_required_numeric_values",
+          "missing_values": [
+            "0.87",
+            "0.81",
+            "0.5"
+          ]
+        }
+      ],
+      "agent_execution": null,
+      "retrieval_diagnostics": {
+        "candidate_count": 20,
+        "candidate_paper_ids": [
+          "5f85c637-fb1b-5b13-95eb-35feee4f887c",
+          "723368a4-0f0d-597b-8ede-50157d4601cb",
+          "bc8e3cc4-6720-5ac0-80d5-eff5051b2b23"
+        ],
+        "candidate_paper_count": 3,
+        "selected_paper_ids": [
+          "723368a4-0f0d-597b-8ede-50157d4601cb",
+          "bc8e3cc4-6720-5ac0-80d5-eff5051b2b23"
+        ],
+        "selected_paper_count": 2,
+        "selected_count": 5,
+        "named_paper_diversity_guard_applied": true,
+        "reserved_candidate_ids": [
+          "881ca153-c4bc-517d-93c1-8c6dcfb675fe",
+          "34bb2adc-f73d-5a85-ae34-dce90fc4b5c6"
+        ],
+        "named_required_build_ids": [
+          "34eb5f35-38cc-52c0-b968-919813e40de3",
+          "f68cb9e4-8b5a-5b1f-9080-d174a829e777"
+        ],
+        "named_candidate_missing_build_ids": [],
+        "named_selected_missing_build_ids": [],
+        "hybrid_candidate_limit": 20,
+        "required_paper_count": 2,
+        "required_paper_candidate_recall": 1.0,
+        "required_paper_selected_recall": 1.0,
+        "all_required_papers_in_candidates": 1.0,
+        "all_required_papers_selected": 1.0
+      },
+      "generation_diagnostics": null,
+      "stage_timings": {
+        "embedding_seconds": 0.921068,
+        "qdrant_seconds": 0.381029,
+        "retrieval_seconds": 1.334,
+        "generation_seconds": 31.78,
+        "pipeline_seconds": 33.14,
+        "judge_reference_seconds": 13.245,
+        "judge_grounding_seconds": 3.229,
+        "judge_seconds": 16.475
+      },
+      "elapsed_seconds": 49.63,
+      "error": null
+    },
+    {
+      "question_id": "kg0008",
+      "kind": "cross_paper",
+      "profile": "cross_comparison",
+      "mode": "kg",
+      "question": "Compare the binary-population plans in \"Globular Clusters in the Time of the JWST. I. Survey Design and First Results on Multiple Populations and Beyond\" with the reported classifier results in \"Unresolved Binary Systems in the Rubin Era I: An Autoencoder Framework for Binary Identification Applied to 47 Tucanae\". (a) Which binary-population properties does the JWST survey plan to refine, including its treatment of 1P and 2P? (b) What binary-class precision and completeness does the autoencoder study report on its test set at threshold 0.5, and what does the bimodal prediction distribution suggest? Explain why these classifier metrics are not themselves a measured cluster binary fraction. Cite both papers.",
+      "reference_answer": "The JWST survey plans to refine binary fractions, mass-ratio distributions and radial segregation using its CMDs, and to estimate binary fractions separately for different populations, including 1P and 2P. It motivates this separation by the hypothesis that 2P formed in denser environments with more efficient binary disruption. The autoencoder study reports binary-class test-set precision 0.87 and completeness 0.81 at threshold 0.5; its often bimodal predictions indicate confidence in classifying targets as single or binary. Precision/completeness describe classifier performance on the test set, not the proportion of cluster stars that are binaries. They do not replace the survey's population-fraction measurements or establish the 1P-versus-2P hypothesis.",
+      "answer": "The JWST survey paper states it will refine measurements of the binary fraction, the mass-ratio distribution, and the radial (radial segregation) distribution of binaries in globular clusters. [1]\n\nThe JWST survey paper says it will estimate the binary fraction separately for different stellar populations and specifically measure the binary fraction for 1P and 2P stars, because 2P stars likely formed in denser environments where binaries are more efficiently disrupted. [1]\n\nThe autoencoder study reports that, on its test set using a threshold y > 0.5, the precision for the binary class is 0.87 and the completeness is 0.81. [2]\n\nThe autoencoder study reports that the distribution of predicted outputs is 'very bimodal', which 'suggests that the model is often confident that the target is either a single star (low yhat) or a binary system (high yhat)'. [2]\n\nThe autoencoder study reports that using a stricter threshold y > 0.9 changes the binary-class precision and completeness on the test set to 0.98 and 0.60, respectively. [2]\n\nWhen applied to 47 Tucanae Rubin DP1 members with a conservative threshold y > 0.9, the autoencoder study finds an observed MS+MS binary fraction of 2.2% in the outskirts and explicitly describes this value as a lower limit because lower mass-ratio binary systems were likely missed. [3]\n\nThe autoencoder study's sample-selection procedure included filtering Rubin DP1 objects within 2 degrees, removing extended sources, PSF failures, blended objects, excluding objects within 18 arcmin of the cluster center, and cross-matching with Gaia DR3 to ensure cluster membership. [4]\n\nPrecision and completeness reported on the model's test set are classification-performance metrics on labeled data and are not by themselves a measured cluster binary fraction, which requires applying the classifier to a selected sample of cluster members and accounting for missed systems and selection effects (as the autoencoder paper both applied selection/membership filtering and treated the observed fraction as a lower limit). [2] [3] [4]",
+      "retrieved_chunks": [
+        {
+          "id": "34bb2adc-f73d-5a85-ae34-dce90fc4b5c6",
+          "text": "An Autoencoder Framework for Binary Identification Applied to 47 Tucanae \n\n3 \n\ning variability metrics from the light curve from Zwicky Transient Facility (ZTF) combined with colors from AllWISE and ZTF as input features (P. S´anchez-S´aez et al. 2021). \n\nHowever, while the aforementioned ML models are very powerful, they are also typically tailored to identify specific binary populations or use specialized datasets. Furthermore, many of these techniques are also restrictive, which means that genuinely novel or unexpected events may go undetected. This highlights a gap in the field. There is a need for a classification technique that has all the advantages of CMD-based methods (i.e., fast and cheap) that uses all available filters and colors, yet remains versatile enough to adapt to any type of stellar population. In this work, we present `flexAE` , a novel and flexible ML approach to identifying binary stars that is based on a autoencoder (AE) framework that satisfies all criteria mentioned above. \n\nThe need for such a framework has become particularly apparent with the recent commencement of the NSF-DOE Vera C. Rubin Observatory’s LSST. This survey will image _∼_ 18,000 deg[2] in the southern sky up to a single-visit and co-added depth of _r ∼_ 24 _._ 0 mag and _r ∼_ 26 _._ 9 mag, respectively, in six photometric bands ( _ugrizy_ ) with a targeted seeing of _∼_ 0 _._ 73 arcsec in the _r_ band (F. B. Bianco et al. 2022; Z.[ˇ] Ivezi´c et al. 2019a).[5] With this footprint, depth, and photometric coverage, Rubin LSST has the potential to identify an unprecedented number of binary systems if their broadband SEDs can be fully leveraged. The first preliminary data from the Rubin Observatory was released in Data Preview 1 (DP1), which included a field centered on the globular cluster 47 Tucanae (NSF-DOE Vera C. Rubin Observatory 2025). This is the ideal opportunity to test `flexAE` and prepare for upcoming data releases from the Rubin Observatory, such as Data Preview 2 (DP2) and Data Release 1 (DR1), which will enable us to find even more binary systems in different stellar environments. ",
+          "collection": "arxiv_papers_v2",
+          "build_id": "f68cb9e4-8b5a-5b1f-9080-d174a829e777",
+          "paper_id": "bc8e3cc4-6720-5ac0-80d5-eff5051b2b23",
+          "title": "Unresolved Binary Systems in the Rubin Era I: An Autoencoder Framework for Binary Identification Applied to 47 Tucanae",
+          "arxiv_id": "2609.05616",
+          "paper_version": 1,
+          "source_url": "https://arxiv.org/abs/2609.05616v1",
+          "authors": [
+            "Tobias Géron",
+            "Alexander Laroche",
+            "Joshua S. Speagle",
+            "Maria R. Drout"
+          ],
+          "year": 2026,
+          "page": 3,
+          "section_header": "1. INTRODUCTION",
+          "content_kind": "text",
+          "chunk_index": 8,
+          "score": 0.01639344262295082,
+          "rerank_score": null,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        },
+        {
+          "id": "ccc1e06b-684f-5a3b-8952-27d7e029036d",
+          "text": "We then applied the model to 47 Tucanae cluster members found in Rubin DP1. We adopt a conservaˆ tive classification threshold of _y >_ 0 _._ 9 to minimize single star contamination and find an observed MS+MS binary fraction of 2 _._ 2[+0] _−_ 0 _[.] ._[5] 3[%][in][the][outskirts][of][47][Tu-] canae, which is in general agreement with the literature (e.g., G. Cordoni et al. 2025). We emphasize that this value is a lower limit, as it is likely that lower mass ratio binary systems were missed. Using simplified extrapolations, we conclude that the intrinsic total binary fraction lies between 3 _._ 7[+0] _−_ 0 _[.] ._[8] 5[%][and][7] _[.]_[5][+1] _−_ 1 _[.] ._[5] 1[%.] \n\nWe also note that the observed binary fraction stays constant between 18 - 36 arcmin (or 5 _._ 7 _−_ 11 _._ 4 halflight radii) from the cluster center. Comparison to the literature suggests a non-monotonic binary fraction in 47 Tucanae as a function of radius; it is high in the core of the cluster and decreases with radius until approximately the half-light radius. Our work shows that the binary fraction increases again in the outskirts of 47 Tucanae, well beyond the half-light radius, forming an overall U-shaped trend. \n\nWe will analyze the binary systems found in this paper in greater detail in a companion paper, where we will use `MultiStarFitting` to characterize the systems, determine their mass ratios, and derive a more robust correction to obtain the intrinsic binary fraction. \n\nThe flexibility of the `flexAE` architecture makes it an ideal tool for large-scale, automated binary star classification in the era of wide-field photometric surveys. This",
+          "collection": "arxiv_papers_v2",
+          "build_id": "f68cb9e4-8b5a-5b1f-9080-d174a829e777",
+          "paper_id": "bc8e3cc4-6720-5ac0-80d5-eff5051b2b23",
+          "title": "Unresolved Binary Systems in the Rubin Era I: An Autoencoder Framework for Binary Identification Applied to 47 Tucanae",
+          "arxiv_id": "2609.05616",
+          "paper_version": 1,
+          "source_url": "https://arxiv.org/abs/2609.05616v1",
+          "authors": [
+            "Tobias Géron",
+            "Alexander Laroche",
+            "Joshua S. Speagle",
+            "Maria R. Drout"
+          ],
+          "year": 2026,
+          "page": 18,
+          "section_header": "5. CONCLUSION",
+          "content_kind": "text",
+          "chunk_index": 65,
+          "score": 0.016129032258064516,
+          "rerank_score": null,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        },
+        {
+          "id": "881ca153-c4bc-517d-93c1-8c6dcfb675fe",
+          "text": "_• Binary populations._ The analysis of CMDs provides key constraints on the binary content of GCs, including the fraction of MS–MS systems, their mass-ratio distribution, and their radial distribution (Romani & Weinberg 1991; Sollima et al. 2007; Milone et al. 2012a). These properties are essential for understanding GC dynamical evolution and the formation of exotic stellar populations, such as blue straggler stars, cataclysmic variables, millisecond pulsars, and low-mass X-ray binaries. \n\nWe will exploit the CMDs presented in this work to refine measurements of the binary fraction, mass-ratio distribution, and radial segregation, extending previous studies (Milone et al. 2012a), which were largely limited to cluster inner regions. We will also estimate the binary fraction for different stellar populations following the methodology introduced in our previous works (Milone et al. 2020, 2025b; Bortolan et al. 2025). Measuring the binary fraction separately for 1P and 2P stars is particularly important, as 2P stars likely formed in denser environments where binaries are more efficiently disrupted. Differences in binary fraction and radial distribution \n\n> 7 Synthetic spectra and spectroscopic analyses have demonstrated that the intrinsic extension of 1P stars in ChMs constructed from suitable combinations of _HST_ and _JWST_ filters is primarily driven by small star-to-star metallicity variations (Marino et al. 2019a,b, 2023; Legnardi et al. 2022). Consequently, once the observed pseudo-colour distribution is corrected for photometric uncertainties, it can be directly translated into a metallicity distribution through comparison with synthetic stellar models. The accuracy of the inferred metallicities is therefore determined mainly by the photometric precision of the ChM, and can reach a few hundredths of a dex for high-quality _HST_ + _JWST_ photometry (see, e.g., Legnardi et al. 2022, 2024). \n\nbetween the two populations thus provide direct constraints on formation scenarios and dynamical evolution. ",
+          "collection": "arxiv_papers_v2",
+          "build_id": "34eb5f35-38cc-52c0-b968-919813e40de3",
+          "paper_id": "723368a4-0f0d-597b-8ede-50157d4601cb",
+          "title": "Globular Clusters in the Time of the JWST. I. Survey Design and First Results on Multiple Populations and Beyond",
+          "arxiv_id": "2606.20979",
+          "paper_version": 2,
+          "source_url": "https://arxiv.org/abs/2606.20979v2",
+          "authors": [
+            "A. P. Milone",
+            "A. F. Marino",
+            "G. Cordoni",
+            "E. Dondoglio",
+            "M. V. Legnardi",
+            "T. Ziliotto",
+            "E. Bortolan",
+            "F. Muratore",
+            "F. D'Antona",
+            "A. Renzini",
+            "G. Girardi",
+            "L. Gorza",
+            "A. Mastrobuono-Battisti",
+            "C. Ventura",
+            "P. Ventura",
+            "V. Altomonte",
+            "L. Bisigello",
+            "Y. Cavecchi",
+            "F. Dell'Agli",
+            "A. Dotter",
+            "E. P. Lagioia",
+            "C. Li",
+            "S. Lionetto",
+            "A. Marchuk",
+            "J. Qi",
+            "G. Rodighiero",
+            "M. Tailo",
+            "H. Wirth"
+          ],
+          "year": 2026,
+          "page": 17,
+          "section_header": "**6 OTHER RESULTS AND SCIENTIFIC POTENTIAL OF THE DATASET**",
+          "content_kind": "text",
+          "chunk_index": 51,
+          "score": 0.03047794966520434,
+          "rerank_score": null,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        },
+        {
+          "id": "546f4da1-8794-566f-836d-60c64811f52e",
+          "text": "G´eron et al. \n\n12 \n\n**==> picture [243 x 159] intentionally omitted <==**\n\n**Figure 8.** The number of standard deviations that the reconstructed features are removed from the input features (i.e., ( _x − x_ ˆ) _/σ_ ) for each target in the training set. This is shown separately for each feature: the _r_ -band magnitude (top; blue), the _g − r_ color (middle; orange), and _r − i_ color (bottom; green). The vertical dashed lines denote the median for each distribution. Note that the distributions are offset vertically to aid visualization. \n\nfor both samples is very bimodal. This suggests that the model is often confident that the target is either a single star (i.e., low _y_ ˆ) or a binary system (i.e., high _y_ ˆ). \n\nAs shown in Figure 12, it is possible to increase precision at the cost of completeness by only including targets with confident classifications. For example, the precision and completeness for the binary class in the test set equals 0.87 and 0.81, respectively, using a threshold ˆ of _y >_ 0 _._ 5. This changes to 0.98 and 0.60, respectively, ˆ using a stricter threshold of _y >_ 0 _._ 9 instead.",
+          "collection": "arxiv_papers_v2",
+          "build_id": "f68cb9e4-8b5a-5b1f-9080-d174a829e777",
+          "paper_id": "bc8e3cc4-6720-5ac0-80d5-eff5051b2b23",
+          "title": "Unresolved Binary Systems in the Rubin Era I: An Autoencoder Framework for Binary Identification Applied to 47 Tucanae",
+          "arxiv_id": "2609.05616",
+          "paper_version": 1,
+          "source_url": "https://arxiv.org/abs/2609.05616v1",
+          "authors": [
+            "Tobias Géron",
+            "Alexander Laroche",
+            "Joshua S. Speagle",
+            "Maria R. Drout"
+          ],
+          "year": 2026,
+          "page": 12,
+          "section_header": "4.1. _Model Performance on Simulated Templates_",
+          "content_kind": "text",
+          "chunk_index": 43,
+          "score": 0.016129032258064516,
+          "rerank_score": null,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        },
+        {
+          "id": "5edf5a98-512f-5d48-bb5d-83db97b52b82",
+          "text": "We accessed the Rubin DP1 `Object` table (NSF-DOE Vera C. Rubin Observatory 2025) on the RSP (M. Juri´c et al. 2019; W. O’Mullane et al. 2024) to query all objects within 2 degrees of the center of 47 Tucanae. Our sample selection is similar to Y. Choi et al. (2025) and G. Cordoni et al. (2025). To summarize, we explicitly excluded sources with `refExtendedness = 1` , which describes the extendedness parameter in the reference band, in order to remove galaxies and other nonstellar objects (J. Bosch et al. 2018). We also removed objects with `iPSF = True` , which denotes failure in the point spread function (PSF) model moments, in any of the _gri_ bands. To avoid incorrect photometric estimates due to blending, we removed objects where the `blendedness` _>_ 0 _._ 05 in any of the bands. We also excluded objects that are within 18 arcmin from the center to avoid crowding. The maximum distance of a cluster member to the cluster center in our sample is _∼_ 36 arcmin. Assuming a half-light radius of _Rh_ = 3 _._ 17 _[′]_ (W. E. Harris 1996), this coverage corresponds to a range of 5 _._ 7 _−_ 11 _._ 4 _Rh_ . This resulted in a parent sample with 10,136 objects, which is shown in grey in Figure 1. \n\nThese thresholds guaranteed stellar sources with reliable photometry in the _gri_ bands in the 47 Tuc field. However, the exposures also included stars from the SMC and overlapping field stars. To filter these out of our sample, we cross-matched our catalog with Gaia Data Release 3 (DR3) (Gaia Collaboration et al. 2016, 2023) using the `coordinate` ~~`m`~~ `atching` package[7] to ensure cluster membership using a maximum separation of 1 arcsec and kept objects where the membership prob- \n\n- 7 https://github.com/tobiasgeron/coordinate ~~m~~ atching",
+          "collection": "arxiv_papers_v2",
+          "build_id": "f68cb9e4-8b5a-5b1f-9080-d174a829e777",
+          "paper_id": "bc8e3cc4-6720-5ac0-80d5-eff5051b2b23",
+          "title": "Unresolved Binary Systems in the Rubin Era I: An Autoencoder Framework for Binary Identification Applied to 47 Tucanae",
+          "arxiv_id": "2609.05616",
+          "paper_version": 1,
+          "source_url": "https://arxiv.org/abs/2609.05616v1",
+          "authors": [
+            "Tobias Géron",
+            "Alexander Laroche",
+            "Joshua S. Speagle",
+            "Maria R. Drout"
+          ],
+          "year": 2026,
+          "page": 4,
+          "section_header": "2.2. _47 Tucanae Sample Selection_",
+          "content_kind": "text",
+          "chunk_index": 15,
+          "score": 0.015873015873015872,
+          "rerank_score": null,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        }
+      ],
+      "claims": [
+        {
+          "text": "The JWST survey paper states it will refine measurements of the binary fraction, the mass-ratio distribution, and the radial (radial segregation) distribution of binaries in globular clusters.",
+          "cited_context_ids": [
+            "881ca153-c4bc-517d-93c1-8c6dcfb675fe"
+          ],
+          "need_ids": []
+        },
+        {
+          "text": "The JWST survey paper says it will estimate the binary fraction separately for different stellar populations and specifically measure the binary fraction for 1P and 2P stars, because 2P stars likely formed in denser environments where binaries are more efficiently disrupted.",
+          "cited_context_ids": [
+            "881ca153-c4bc-517d-93c1-8c6dcfb675fe"
+          ],
+          "need_ids": []
+        },
+        {
+          "text": "The autoencoder study reports that, on its test set using a threshold y > 0.5, the precision for the binary class is 0.87 and the completeness is 0.81.",
+          "cited_context_ids": [
+            "546f4da1-8794-566f-836d-60c64811f52e"
+          ],
+          "need_ids": []
+        },
+        {
+          "text": "The autoencoder study reports that the distribution of predicted outputs is 'very bimodal', which 'suggests that the model is often confident that the target is either a single star (low yhat) or a binary system (high yhat)'.",
+          "cited_context_ids": [
+            "546f4da1-8794-566f-836d-60c64811f52e"
+          ],
+          "need_ids": []
+        },
+        {
+          "text": "The autoencoder study reports that using a stricter threshold y > 0.9 changes the binary-class precision and completeness on the test set to 0.98 and 0.60, respectively.",
+          "cited_context_ids": [
+            "546f4da1-8794-566f-836d-60c64811f52e"
+          ],
+          "need_ids": []
+        },
+        {
+          "text": "When applied to 47 Tucanae Rubin DP1 members with a conservative threshold y > 0.9, the autoencoder study finds an observed MS+MS binary fraction of 2.2% in the outskirts and explicitly describes this value as a lower limit because lower mass-ratio binary systems were likely missed.",
+          "cited_context_ids": [
+            "ccc1e06b-684f-5a3b-8952-27d7e029036d"
+          ],
+          "need_ids": []
+        },
+        {
+          "text": "The autoencoder study's sample-selection procedure included filtering Rubin DP1 objects within 2 degrees, removing extended sources, PSF failures, blended objects, excluding objects within 18 arcmin of the cluster center, and cross-matching with Gaia DR3 to ensure cluster membership.",
+          "cited_context_ids": [
+            "5edf5a98-512f-5d48-bb5d-83db97b52b82"
+          ],
+          "need_ids": []
+        },
+        {
+          "text": "Precision and completeness reported on the model's test set are classification-performance metrics on labeled data and are not by themselves a measured cluster binary fraction, which requires applying the classifier to a selected sample of cluster members and accounting for missed systems and selection effects (as the autoencoder paper both applied selection/membership filtering and treated the observed fraction as a lower limit).",
+          "cited_context_ids": [
+            "546f4da1-8794-566f-836d-60c64811f52e",
+            "5edf5a98-512f-5d48-bb5d-83db97b52b82",
+            "ccc1e06b-684f-5a3b-8952-27d7e029036d"
+          ],
+          "need_ids": []
+        }
+      ],
+      "cited_context_ids": [
+        "546f4da1-8794-566f-836d-60c64811f52e",
+        "5edf5a98-512f-5d48-bb5d-83db97b52b82",
+        "881ca153-c4bc-517d-93c1-8c6dcfb675fe",
+        "ccc1e06b-684f-5a3b-8952-27d7e029036d"
+      ],
+      "metrics": {
+        "retrieval_hit": 1.0,
+        "retrieval_recall": 1.0,
+        "gold_citation_recall": 1.0,
+        "citation_from_retrieval": 1.0,
+        "retrieved_count": 5,
+        "cited_count": 4,
+        "required_paper_count": 2,
+        "retrieved_required_paper_count": 2,
+        "cited_required_paper_count": 2,
+        "required_paper_retrieval_recall": 1.0,
+        "required_paper_citation_recall": 1.0,
+        "all_required_papers_retrieved": 1.0,
+        "required_numeric_value_count": 3,
+        "covered_required_numeric_value_count": 3,
+        "required_numeric_value_recall": 1.0,
+        "missing_required_numeric_values": [],
+        "answer_correctness": 1.0,
+        "groundedness": 1.0,
+        "answer_relevance": 1.0,
+        "correct_abstention": null
+      },
+      "judge": {
+        "correctness": 1.0,
+        "answer_relevance": 1.0,
+        "abstention": "not_applicable",
+        "reason": "Reference assessment: All requested facts (JWST survey targets including 1P/2P treatment; autoencoder precision 0.87, completeness 0.81 at threshold 0.5; bimodal prediction interpretation; why metrics are not cluster binary fractions) are directly stated in the actual answer and align with the provided reference excerpts. Grounding assessment: All claims are directly supported by cited excerpts from the two papers; each claim's subject, values, and qualifiers match the quoted source text.",
+        "answer_checks": [
+          {
+            "question_part_id": "q_a",
+            "requested_fact": "JWST will refine binary fraction, mass-ratio distribution, and radial segregation; will estimate binary fraction separately for 1P and 2P and motivate by 2P forming in denser environments",
+            "status": "answered",
+            "required_numeric_values": [],
+            "missing_or_incorrect_detail": "",
+            "deficit_basis": "none",
+            "claimed_missing_answer_fragments": [],
+            "answer_claim_ids": [
+              "a0001",
+              "a0003"
+            ],
+            "answer_quotes": [
+              "The JWST survey paper states it will refine measurements of the binary fraction, the mass-ratio distribution, and the radial (radial segregation) distribution of binaries in globular clusters.",
+              "The JWST survey paper says it will estimate the binary fraction separately for different stellar populations and specifically measure the binary fraction for 1P and 2P stars, because 2P stars likely formed in denser environments where binaries are more efficiently disrupted."
+            ]
+          },
+          {
+            "question_part_id": "q_b",
+            "requested_fact": "Autoencoder test-set binary-class precision at threshold 0.5 = 0.87",
+            "status": "answered",
+            "required_numeric_values": [
+              "0.87",
+              "0.5"
+            ],
+            "missing_or_incorrect_detail": "",
+            "deficit_basis": "none",
+            "claimed_missing_answer_fragments": [],
+            "answer_claim_ids": [
+              "a0004"
+            ],
+            "answer_quotes": [
+              "The autoencoder study reports that, on its test set using a threshold y > 0.5, the precision for the binary class is 0.87 and the completeness is 0.81."
+            ]
+          },
+          {
+            "question_part_id": "q_b",
+            "requested_fact": "Autoencoder test-set binary-class completeness at threshold 0.5 = 0.81",
+            "status": "answered",
+            "required_numeric_values": [
+              "0.81",
+              "0.5"
+            ],
+            "missing_or_incorrect_detail": "",
+            "deficit_basis": "none",
+            "claimed_missing_answer_fragments": [],
+            "answer_claim_ids": [
+              "a0004"
+            ],
+            "answer_quotes": [
+              "The autoencoder study reports that, on its test set using a threshold y > 0.5, the precision for the binary class is 0.87 and the completeness is 0.81."
+            ]
+          },
+          {
+            "question_part_id": "q_b",
+            "requested_fact": "Bimodal prediction distribution suggests model is confident classifying targets as single (low yhat) or binary (high yhat)",
+            "status": "answered",
+            "required_numeric_values": [],
+            "missing_or_incorrect_detail": "",
+            "deficit_basis": "none",
+            "claimed_missing_answer_fragments": [],
+            "answer_claim_ids": [
+              "a0006"
+            ],
+            "answer_quotes": [
+              "The autoencoder study reports that the distribution of predicted outputs is 'very bimodal', which 'suggests that the model is often confident that the target is either a single star (low yhat) or a binary system (high yhat)'."
+            ]
+          },
+          {
+            "question_part_id": "q_b",
+            "requested_fact": "Why classifier metrics are not themselves a measured cluster binary fraction",
+            "status": "answered",
+            "required_numeric_values": [],
+            "missing_or_incorrect_detail": "",
+            "deficit_basis": "none",
+            "claimed_missing_answer_fragments": [],
+            "answer_claim_ids": [
+              "a0012",
+              "a0010",
+              "a0008"
+            ],
+            "answer_quotes": [
+              "Precision and completeness reported on the model's test set are classification-performance metrics on labeled data and are not by themselves a measured cluster binary fraction, which requires applying the classifier to a selected sample of cluster members and accounting for missed systems and selection effects (as the autoencoder paper both applied selection/membership filtering and treated the observed fraction as a lower limit).",
+              "The autoencoder study's sample-selection procedure included filtering Rubin DP1 objects within 2 degrees, removing extended sources, PSF failures, blended objects, excluding objects within 18 arcmin of the cluster center, and cross-matching with Gaia DR3 to ensure cluster membership.",
+              "When applied to 47 Tucanae Rubin DP1 members with a conservative threshold y > 0.9, the autoencoder study finds an observed MS+MS binary fraction of 2.2% in the outskirts and explicitly describes this value as a lower limit because lower mass-ratio binary systems were likely missed."
+            ]
+          }
+        ],
+        "answer_anchors": [
+          {
+            "id": "a0001",
+            "text": "The JWST survey paper states it will refine measurements of the binary fraction, the mass-ratio distribution, and the radial (radial segregation) distribution of binaries in globular clusters.",
+            "source": "claim",
+            "claim_index": 0
+          },
+          {
+            "id": "a0002",
+            "text": " [1]",
+            "source": "answer_span",
+            "claim_index": null
+          },
+          {
+            "id": "a0003",
+            "text": "The JWST survey paper says it will estimate the binary fraction separately for different stellar populations and specifically measure the binary fraction for 1P and 2P stars, because 2P stars likely formed in denser environments where binaries are more efficiently disrupted.",
+            "source": "claim",
+            "claim_index": 1
+          },
+          {
+            "id": "a0004",
+            "text": "The autoencoder study reports that, on its test set using a threshold y > 0.5, the precision for the binary class is 0.87 and the completeness is 0.81.",
+            "source": "claim",
+            "claim_index": 2
+          },
+          {
+            "id": "a0005",
+            "text": " [2]",
+            "source": "answer_span",
+            "claim_index": null
+          },
+          {
+            "id": "a0006",
+            "text": "The autoencoder study reports that the distribution of predicted outputs is 'very bimodal', which 'suggests that the model is often confident that the target is either a single star (low yhat) or a binary system (high yhat)'.",
+            "source": "claim",
+            "claim_index": 3
+          },
+          {
+            "id": "a0007",
+            "text": "The autoencoder study reports that using a stricter threshold y > 0.9 changes the binary-class precision and completeness on the test set to 0.98 and 0.60, respectively.",
+            "source": "claim",
+            "claim_index": 4
+          },
+          {
+            "id": "a0008",
+            "text": "When applied to 47 Tucanae Rubin DP1 members with a conservative threshold y > 0.9, the autoencoder study finds an observed MS+MS binary fraction of 2.2% in the outskirts and explicitly describes this value as a lower limit because lower mass-ratio binary systems were likely missed.",
+            "source": "claim",
+            "claim_index": 5
+          },
+          {
+            "id": "a0009",
+            "text": " [3]",
+            "source": "answer_span",
+            "claim_index": null
+          },
+          {
+            "id": "a0010",
+            "text": "The autoencoder study's sample-selection procedure included filtering Rubin DP1 objects within 2 degrees, removing extended sources, PSF failures, blended objects, excluding objects within 18 arcmin of the cluster center, and cross-matching with Gaia DR3 to ensure cluster membership.",
+            "source": "claim",
+            "claim_index": 6
+          },
+          {
+            "id": "a0011",
+            "text": " [4]",
+            "source": "answer_span",
+            "claim_index": null
+          },
+          {
+            "id": "a0012",
+            "text": "Precision and completeness reported on the model's test set are classification-performance metrics on labeled data and are not by themselves a measured cluster binary fraction, which requires applying the classifier to a selected sample of cluster members and accounting for missed systems and selection effects (as the autoencoder paper both applied selection/membership filtering and treated the observed fraction as a lower limit).",
+            "source": "claim",
+            "claim_index": 7
+          },
+          {
+            "id": "a0013",
+            "text": " [2] [3] [4]",
+            "source": "answer_span",
+            "claim_index": null
+          }
+        ],
+        "reference_score_status": "scored",
+        "groundedness": 1.0
+      },
+      "judge_request": {
+        "reference": {
+          "response_id": "resp_078986ced95bed96016adb0cdedecc87d28c86384f8029ed6d",
+          "response_ids": [
+            "resp_078986ced95bed96016adb0cdedecc87d28c86384f8029ed6d"
+          ],
+          "attempts": 1,
+          "quote_validation_failures": [],
+          "schema_validation_failures": [],
+          "consistency_validation_failures": [],
+          "consistency_status": "no_detected_conflict",
+          "raw_correctness": 1.0,
+          "score_status": "scored",
+          "answer_anchor_mode": "claim_ids",
+          "request_id": "req_dd805c572dd8405aaa145dcfb1b27e16",
+          "model": "gpt-5-mini-2025-08-07",
+          "max_output_tokens": 16384,
+          "usage": {
+            "input_tokens": 4386,
+            "output_tokens": 641,
+            "total_tokens": 5027
+          }
+        },
+        "grounding": {
+          "response_id": "resp_09307e2c49d0fe4a016adb0ce39c5087d29f22c972beff2815",
+          "response_ids": [
+            "resp_09307e2c49d0fe4a016adb0ce39c5087d29f22c972beff2815"
+          ],
+          "attempts": 1,
+          "quote_validation_failures": [],
+          "schema_validation_failures": [],
+          "consistency_validation_failures": [],
+          "consistency_status": "no_detected_conflict",
+          "raw_correctness": null,
+          "score_status": "scored",
+          "answer_anchor_mode": "claim_ids",
+          "request_id": "req_77c89f29fd9c49dcbb9065b923b0af8d",
+          "model": "gpt-5-mini-2025-08-07",
+          "max_output_tokens": 16384,
+          "usage": {
+            "input_tokens": 8112,
+            "output_tokens": 72,
+            "total_tokens": 8184
+          },
+          "method_attributions": [],
+          "claim_anchors": [
+            {
+              "id": "a0001",
+              "claim_index": 0
+            },
+            {
+              "id": "a0002",
+              "claim_index": 1
+            },
+            {
+              "id": "a0003",
+              "claim_index": 2
+            },
+            {
+              "id": "a0004",
+              "claim_index": 3
+            },
+            {
+              "id": "a0005",
+              "claim_index": 4
+            },
+            {
+              "id": "a0006",
+              "claim_index": 5
+            },
+            {
+              "id": "a0007",
+              "claim_index": 6
+            },
+            {
+              "id": "a0008",
+              "claim_index": 7
+            }
+          ],
+          "annotation_validation_failures": [],
+          "method_validation_failures": [],
+          "method_scope_issues": [],
+          "raw_groundedness": 1.0
+        }
+      },
+      "judge_error": null,
+      "judge_safeguards": [],
+      "agent_execution": null,
+      "retrieval_diagnostics": {
+        "policy": "hybrid-reviewed-graph-v5",
+        "publication_id": "publication:ef340620c8c35358052b02616a177172a1bdc4710641fe603f2fc127b447ba70",
+        "graph_name": "star-clusters-pilot",
+        "extraction_revision": "83a393f73bedc2a248aba2000cf7a16208a461029afa3b86322cd97fbd384549",
+        "plan_id": "65d9079bda8743744583da188e5b9a41fe1e37a1649ec353512ef0908c88bb0e",
+        "graph_paper_count": 8,
+        "eligible_graph_paper_count": 2,
+        "graph_build_ids": [
+          "34eb5f35-38cc-52c0-b968-919813e40de3",
+          "f68cb9e4-8b5a-5b1f-9080-d174a829e777"
+        ],
+        "excluded_graph_paper_count": 6,
+        "matched_entity_ids": [
+          "record:01d95480556cce706a9db70057a3c7db14b6741f4046e07bc001b03f3a7d96c0",
+          "record:191097cfe7ff1ffdb9b3cfd6b285757bd41422b044752536505385d33831b1c8",
+          "record:c29a355e67fd9af72c55b8153c27b6715e96797c7a57623340e8ab83ff9db5fd",
+          "record:e4d45dd747eb26538bf701928f624655c4cc01221d6372b69bfe96b57d0b2978",
+          "record:ee591537fc3b65d3537ea12095bc4adce46ee2093607c903a3544752c5374735"
+        ],
+        "seed_record_count": 15,
+        "validated_record_count": 71,
+        "traversed_record_ids": [
+          "record:01d95480556cce706a9db70057a3c7db14b6741f4046e07bc001b03f3a7d96c0",
+          "record:191097cfe7ff1ffdb9b3cfd6b285757bd41422b044752536505385d33831b1c8",
+          "record:2f8f0316d5d04511a48945e94ef5443ed5900d00d8af5dcbb4903decebe490ff",
+          "record:399e5f80e30d9e011443efea4a49dbf04f27a5aa5bdc6f7662e6141c1a2ef8e1",
+          "record:4c50b123761d863240cc34fb650267254a9541e7da6a0569a569ee659960fd35",
+          "record:7928f8d1155aba0d1aed6ce9f0140f0e95fb3bc33a79ebeaf9e115ff6e4b0dde",
+          "record:820d3e8a511e61598c373e124dbb0b254bed9d515f4ccf9a2fd97a2c2e5989e4",
+          "record:8d684f7bc826745d42c6857ccef7494f7a426be5246a2e750c723a9dfa4c1e05",
+          "record:ad65e4503a021a4f419e21ff00d040c9d3c04299947b96cdfacee70eb4c59279",
+          "record:af5cc17e20adaaffef962eda72472884f9035b884737692a27a045b59e61995f",
+          "record:c29a355e67fd9af72c55b8153c27b6715e96797c7a57623340e8ab83ff9db5fd",
+          "record:dd9cabd7abb508aa85c79462d0f758eb2c570bc6218a8224fcf80ce11a21f54b",
+          "record:e4d45dd747eb26538bf701928f624655c4cc01221d6372b69bfe96b57d0b2978",
+          "record:ed48f725f59d0b3d40126ac9efa36636e0eb370731262bc419c0ef0b087fd41e",
+          "record:ee591537fc3b65d3537ea12095bc4adce46ee2093607c903a3544752c5374735"
+        ],
+        "graph_candidate_count": 3,
+        "graph_candidates_truncated": false,
+        "graph_chunk_ids": [
+          "881ca153-c4bc-517d-93c1-8c6dcfb675fe",
+          "546f4da1-8794-566f-836d-60c64811f52e",
+          "5edf5a98-512f-5d48-bb5d-83db97b52b82"
+        ],
+        "scope_kind": "frozen",
+        "traversal_max_links": 2,
+        "database_writes": 0,
+        "graph_paper_scope": "resolved_named_papers",
+        "graph_requested_build_ids": [
+          "34eb5f35-38cc-52c0-b968-919813e40de3",
+          "f68cb9e4-8b5a-5b1f-9080-d174a829e777"
+        ],
+        "requested_fact_record_count": 4,
+        "fact_matching_policy": "named-assertion-literal-overlap-v1",
+        "fact_matching_min_terms": 2,
+        "graph_scope_excluded_build_ids": [
+          "3ee890b7-f475-51fc-93bd-8e222f1812de",
+          "7e872b04-edf9-580e-bb62-3fdcde30a06a",
+          "857f03f5-5a9d-5259-9c13-3fb2366b96f1",
+          "90456f74-656c-5dc3-bac6-5739e80edeee",
+          "bee7f645-7b83-52b8-b1f5-03410d99d146",
+          "c35fa35e-89c3-5a4c-bbd0-3b8745801521"
+        ],
+        "promotion_anchor_entities": [
+          {
+            "record_id": "record:01d95480556cce706a9db70057a3c7db14b6741f4046e07bc001b03f3a7d96c0",
+            "kind": "astronomical_object",
+            "names": [
+              "47 Tucanae"
+            ]
+          },
+          {
+            "record_id": "record:191097cfe7ff1ffdb9b3cfd6b285757bd41422b044752536505385d33831b1c8",
+            "kind": "instrument",
+            "names": [
+              "JWST"
+            ]
+          }
+        ],
+        "graph_candidate_support": [
+          {
+            "collection": "arxiv_papers_v2",
+            "id": "881ca153-c4bc-517d-93c1-8c6dcfb675fe",
+            "anchor_record_ids": [
+              "record:191097cfe7ff1ffdb9b3cfd6b285757bd41422b044752536505385d33831b1c8"
+            ],
+            "fact_record_id": "record:399e5f80e30d9e011443efea4a49dbf04f27a5aa5bdc6f7662e6141c1a2ef8e1",
+            "fact_record_kind": "planned_analysis",
+            "matched_fact_terms": [
+              "distribution",
+              "fraction",
+              "refine"
+            ]
+          },
+          {
+            "collection": "arxiv_papers_v2",
+            "id": "546f4da1-8794-566f-836d-60c64811f52e",
+            "anchor_record_ids": [],
+            "fact_record_id": "record:2f8f0316d5d04511a48945e94ef5443ed5900d00d8af5dcbb4903decebe490ff",
+            "fact_record_kind": "measurement",
+            "matched_fact_terms": [
+              "completeness",
+              "threshold"
+            ]
+          },
+          {
+            "collection": "arxiv_papers_v2",
+            "id": "5edf5a98-512f-5d48-bb5d-83db97b52b82",
+            "anchor_record_ids": [
+              "record:01d95480556cce706a9db70057a3c7db14b6741f4046e07bc001b03f3a7d96c0"
+            ]
+          }
+        ],
+        "query_entity_names": [
+          "1P",
+          "1P stars",
+          "2P",
+          "2P stars",
+          "47 Tucanae",
+          "JWST",
+          "_JWST_",
+          "binary class",
+          "binary system",
+          "first-population stars",
+          "second-population stars"
+        ],
+        "resolved_catalogue_ids": [],
+        "cross_paper_entity_groups": [],
+        "entity_resolution_conflicts": [],
+        "identity_expanded_seed_count": 0,
+        "survey_coverage_requested": true,
+        "coverage_candidate_paper_ids": [],
+        "coverage_selected_paper_ids": [],
+        "paper_diversity_applied": true,
+        "named_required_build_ids": [
+          "34eb5f35-38cc-52c0-b968-919813e40de3",
+          "f68cb9e4-8b5a-5b1f-9080-d174a829e777"
+        ],
+        "named_candidate_missing_build_ids": [],
+        "named_selected_missing_build_ids": [],
+        "selection_policy": "protected-hybrid-bounded-graph-v2",
+        "hybrid_baseline_chunks": [
+          {
+            "collection": "arxiv_papers_v2",
+            "id": "34bb2adc-f73d-5a85-ae34-dce90fc4b5c6"
+          },
+          {
+            "collection": "arxiv_papers_v2",
+            "id": "ccc1e06b-684f-5a3b-8952-27d7e029036d"
+          },
+          {
+            "collection": "arxiv_papers_v2",
+            "id": "2654035f-fb49-5f76-bc6a-2deada10ab1a"
+          },
+          {
+            "collection": "arxiv_papers_v2",
+            "id": "f06072ad-f2c7-5a25-8a45-494da049cea3"
+          },
+          {
+            "collection": "arxiv_papers_v2",
+            "id": "881ca153-c4bc-517d-93c1-8c6dcfb675fe"
+          }
+        ],
+        "protected_hybrid_chunks": [
+          {
+            "collection": "arxiv_papers_v2",
+            "id": "34bb2adc-f73d-5a85-ae34-dce90fc4b5c6"
+          },
+          {
+            "collection": "arxiv_papers_v2",
+            "id": "ccc1e06b-684f-5a3b-8952-27d7e029036d"
+          },
+          {
+            "collection": "arxiv_papers_v2",
+            "id": "881ca153-c4bc-517d-93c1-8c6dcfb675fe"
+          }
+        ],
+        "hybrid_protected_count": 3,
+        "graph_expansion_limit": 2,
+        "graph_expansion_count": 2,
+        "graph_expansion_chunks": [
+          {
+            "collection": "arxiv_papers_v2",
+            "id": "546f4da1-8794-566f-836d-60c64811f52e"
+          },
+          {
+            "collection": "arxiv_papers_v2",
+            "id": "5edf5a98-512f-5d48-bb5d-83db97b52b82"
+          }
+        ],
+        "displaced_hybrid_chunks": [
+          {
+            "collection": "arxiv_papers_v2",
+            "id": "2654035f-fb49-5f76-bc6a-2deada10ab1a"
+          },
+          {
+            "collection": "arxiv_papers_v2",
+            "id": "f06072ad-f2c7-5a25-8a45-494da049cea3"
+          }
+        ],
+        "graph_candidate_decisions": [
+          {
+            "collection": "arxiv_papers_v2",
+            "id": "881ca153-c4bc-517d-93c1-8c6dcfb675fe",
+            "build_id": "34eb5f35-38cc-52c0-b968-919813e40de3",
+            "qualified": true,
+            "reason": "already_in_hybrid_baseline",
+            "anchor_record_ids": [
+              "record:191097cfe7ff1ffdb9b3cfd6b285757bd41422b044752536505385d33831b1c8"
+            ],
+            "qualification_basis": "named_paper_fact_overlap",
+            "fact_record_id": "record:399e5f80e30d9e011443efea4a49dbf04f27a5aa5bdc6f7662e6141c1a2ef8e1",
+            "fact_record_kind": "planned_analysis",
+            "matched_fact_terms": [
+              "distribution",
+              "fraction",
+              "refine"
+            ],
+            "selected": true,
+            "selection_role": "protected_hybrid"
+          },
+          {
+            "collection": "arxiv_papers_v2",
+            "id": "546f4da1-8794-566f-836d-60c64811f52e",
+            "build_id": "f68cb9e4-8b5a-5b1f-9080-d174a829e777",
+            "qualified": true,
+            "reason": "qualified_graph_expansion",
+            "anchor_record_ids": [],
+            "qualification_basis": "named_paper_fact_overlap",
+            "fact_record_id": "record:2f8f0316d5d04511a48945e94ef5443ed5900d00d8af5dcbb4903decebe490ff",
+            "fact_record_kind": "measurement",
+            "matched_fact_terms": [
+              "completeness",
+              "threshold"
+            ],
+            "selected": true,
+            "selection_role": "graph_expansion"
+          },
+          {
+            "collection": "arxiv_papers_v2",
+            "id": "5edf5a98-512f-5d48-bb5d-83db97b52b82",
+            "build_id": "f68cb9e4-8b5a-5b1f-9080-d174a829e777",
+            "qualified": true,
+            "reason": "qualified_graph_expansion",
+            "anchor_record_ids": [
+              "record:01d95480556cce706a9db70057a3c7db14b6741f4046e07bc001b03f3a7d96c0"
+            ],
+            "qualification_basis": "specific_entity_path",
+            "fact_record_id": null,
+            "fact_record_kind": null,
+            "matched_fact_terms": [],
+            "selected": true,
+            "selection_role": "graph_expansion"
+          }
+        ],
+        "graph_rejected_candidate_count": 0,
+        "hybrid_seed_count": 20,
+        "hybrid_candidate_limit": 20,
+        "selected_graph_chunk_count": 3,
+        "selected_chunk_count": 5,
+        "graph_used": true,
+        "hybrid_seconds": 0.826,
+        "graph_seconds": 0.214,
+        "retrieval_status": "graph_augmented",
+        "candidate_count": 22,
+        "candidate_paper_ids": [
+          "5f85c637-fb1b-5b13-95eb-35feee4f887c",
+          "723368a4-0f0d-597b-8ede-50157d4601cb",
+          "bc8e3cc4-6720-5ac0-80d5-eff5051b2b23"
+        ],
+        "candidate_paper_count": 3,
+        "selected_paper_ids": [
+          "723368a4-0f0d-597b-8ede-50157d4601cb",
+          "bc8e3cc4-6720-5ac0-80d5-eff5051b2b23"
+        ],
+        "selected_paper_count": 2,
+        "required_paper_count": 2,
+        "required_paper_candidate_recall": 1.0,
+        "required_paper_selected_recall": 1.0,
+        "all_required_papers_in_candidates": 1.0,
+        "all_required_papers_selected": 1.0
+      },
+      "generation_diagnostics": null,
+      "stage_timings": {
+        "embedding_seconds": 0.280121,
+        "qdrant_seconds": 0.540165,
+        "kg_hybrid_seconds": 0.826,
+        "kg_graph_seconds": 0.214,
+        "retrieval_seconds": 1.139,
+        "generation_seconds": 21.861,
+        "pipeline_seconds": 23.021,
+        "judge_reference_seconds": 4.734,
+        "judge_grounding_seconds": 2.042,
+        "judge_seconds": 6.776
+      },
+      "elapsed_seconds": 29.803,
+      "error": null
+    }
+  ]
+}

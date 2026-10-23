@@ -661,7 +661,7 @@ for `star-clusters-pilot`. Deterministic `kg` is now implemented separately in
 `rag/modes/kg.py` and `kg/retrieval.py`, selectable in API/Streamlit/evaluation.
 It runs existing full-scope Hybrid seeds plus exact normalized reviewed name/alias lookup,
 native read-only Neo4j traversal (two structural HAS_OBSERVATION/SUBJECT/OBJECT links),
-and RRF merge with one graph-backed slot reserved when possible; final top_k remains fixed.
+and protected Hybrid plus qualified graph expansion (current query policy v5); final top_k remains fixed.
 No Cohere, agent loop, generated Cypher, entity merging, query-time extraction or new model
 call beyond baseline embedding/generation. Keep all four previous controls unchanged.
 Use original source chunks/citation IDs, not generated graph claims as answer evidence.
@@ -711,7 +711,7 @@ No paid extraction, new publication or reindex needed for v2; restart API/UI and
 
 ### KG live-catalogue expansion
 
-Query policy v3 is implemented in KG runtime: compare duplicate vector/graph passages with
+Query policy v3 introduced the retained integrity/failure guards: compare duplicate vector/graph passages with
 boundary-only str.strip(), preserving raw text/hashes and rejecting all substantive/interior
 differences. Before Hybrid/KG retrieval, resolve full quoted titles in the existing catalogue
 scope; modes/named_selection.py reserves one best available chunk per exact collection/build
@@ -728,6 +728,67 @@ Qdrant write, graph publication or extraction is authorized by this correction. 
 test_named_selection.py, KG retrieval/runtime, presets and evaluation suites. Saved top-five
 Hybrid seed replay against live read-only Neo4j verifies retrieval only, not a fresh search,
 Langfuse-enabled execution or answer/judge quality. Rerun kg0001 explicitly before the cohort.
+
+Query policy v4 (`hybrid-reviewed-graph-v4`) removed mandatory graph slots. The reader
+intersects eligible graph builds with resolved named collection/build pairs BEFORE matching,
+identity expansion and traversal; open-ended questions retain corpus scope. Recheck the same
+filtered scope, preserving publication/SQL/quote/hash/role validation. Hybrid still searches
+the full selected corpus. Exact reviewed astronomical-object/spatial-region/instrument/method
+names/aliases in the query, plus source-backed catalogue equivalents, can qualify promotion.
+Population/process/property/dataset/study matches alone cannot. This is a conservative type/
+lexical guard, not semantic proof or a blacklist. Native Cypher returns one deterministic
+anchor witness per reached record (min qualified seed ID), not an unbounded collection of paths.
+A specific match elsewhere cannot qualify an unrelated generic entity's source chunk.
+selection_policy.py protects three Hybrid chunks at k=5 and permits at most two qualified
+additions outside the named-paper-aware Hybrid baseline; smaller k protects at least half,
+one slot keeps Hybrid, larger k still caps additions at two. Named reservations take priority,
+possibly leaving no expansion room. No promotion preserves baseline membership AND order;
+missing graph evidence never pads the context. Graph-only empty-Hybrid cases still obey caps.
+Per-item graph_candidate_decisions, protected_hybrid_chunks, graph_expansion_chunks and
+displaced_hybrid_chunks explain qualification, roles, anchor witnesses and capacity decisions.
+API/UI/Langfuse/evaluation expose these without extra calls. The manifest freezes selection
+policy and max_graph_expansions; reports aggregate expansion/protection and rejection reasons.
+In v4 graph_used requires an actual addition to final Hybrid context, whereas
+selected_graph_chunk_count remains source provenance. Already-retrieved graph support is
+hybrid_only_graph_already_retrieved, not proof of graph benefit. Historical v1-v3 counts are
+unchanged and not like-for-like. No retrieval/planner/generation models/caps/retries, graph
+publication, extraction, reindex, dataset or historical-result changes. Other modes stay intact.
+Offline selection/scope/provenance tests and disposable native Neo4j checks cover the policy;
+paid question/pilot/development reruns remain explicit user work, not implementation tests.
+
+Current KG query policy v5 adds fact_matching.py: approved, validated Observation assertions
+inside exact resolved named collection/build pairs may qualify their OWN source point without
+an object path. Require two distinct original-question content terms in statement/quantity
+AND a single own-source quote. Exclude confirmed full quoted titles, matched identity/population
+names, English function/reporting words and numbers; physical processes can remain requested
+facts. Limited plural normalization is lexical, not synonyms or semantic/condition proof.
+Open-ended queries cannot use this path. Matching assertions seed the same bounded native
+traversal, but no promotion permission propagates to neighbours. Direct fact matches outrank
+entity-only additions within unchanged caps. Keep original source text, values, units, kind,
+scientific review, active/frozen scope and citation/generation gates intact. No gold values,
+question IDs, expected passage IDs or benchmark reference annotations enter runtime.
+Per-point witnesses/decisions record qualification_basis, fact_record_id/kind, matched_fact_terms;
+summary graph_expansion_bases and manifests freeze named-assertion-literal-overlap-v1 with
+fact_matching_min_terms=2 and protected-hybrid-bounded-graph-v2. Query policy v5 is versioned
+separately; historical artifacts remain unchanged. rag/title_matching.py is configuration-free,
+shared with paper_search via compatibility aliases; the fact helper imports no runtime Config
+or tracing, reads no .env and calls no services. Fresh-process regression tests enforce that.
+Do not imply two token matches establish entailment or complete fact coverage. No new model/
+embedding/Neo4j call, cap/default change, graph write, extraction, reindex or paid trial.
+
+Current user-approved direction (2026-10-23): retain KG query policy v5 as the working baseline;
+do not block progress on another pilot prompt/judge refinement cycle. Full pilot run
+20261023T102416Z-7aed9c75 scored Hybrid correctness .75 versus KG 1.0 (8 scored each, no runtime/
+judge errors), but manual review found kg0007 missing WFC3/ACS prior directions and kg0008
+conflating prediction bimodality with reconstruction residuals. Perfect automated scores are
+not proof of perfect answers; historical scores stay unchanged. General per-request completeness
+and caption/body/quantity attribution checks are explicitly DEFERRED, not implemented or
+milestone blockers. Next: one explicit paid broader development comparison of hybrid/kg,
+then controlled incremental KG expansion (reuse/composition still needs a tested design),
+then separate kg_agentic tool composition. Do not launch paid runs, extract, publish or activate
+implicitly. Revisit deferred checks if material misleading answers become frequent or before
+production readiness. See docs/architecture/rag-evolution-roadmap.md, current next steps and
+planned-improvements backlog, and docs/operations/evaluation-results.md for evidence/caveats.
 
 The supplementary KG development set is `data/evaluation/kg-pilot-v1/questions.reviewed.json`:
 eight questions (four single-paper controls, four cross-paper comparisons), source-checked

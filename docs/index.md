@@ -42,6 +42,8 @@ flowchart LR
 - [Architecture](architecture/index.md) — how the components fit together.
 - [RAG modes](architecture/rag-modes.md) — exact definitions and availability of Vanilla,
   Hybrid, Hybrid + Rerank, Agentic and future knowledge-graph modes.
+- [RAG roadmap](architecture/rag-evolution-roadmap.md#current-next-steps-2026-10-23) — current
+  next steps, KG expansion and explicitly deferred quality improvements.
 - [Code Reference](reference/index.md) — API generated from the docstrings.
 
 !!! note "Building these docs"

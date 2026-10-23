@@ -1,0 +1,1416 @@
+{
+  "schema_version": 1,
+  "run_id": "20261023T062136Z-b59cae96",
+  "results": [
+    {
+      "question_id": "kg0006",
+      "kind": "cross_paper",
+      "profile": "cross_comparison",
+      "mode": "hybrid",
+      "question": "What do \"The chemo-dynamical complexity of ω Centauri: different kinematics for different populations\" and \"Bar-induced migration of ω Centauri away from Gaia Sausage-Enceladus\" say about different aspects of ω Centauri's complexity? Contrast (a) the measured internal rotation and anisotropy of its Al-rich and Al-poor populations with (b) the introductory evidence and uncertainty concerning a stripped-nucleus origin and the identity of its parent galaxy. Do not claim that the internal anisotropy measurement proves a particular progenitor; cite both papers.",
+      "reference_answer": "The chemo-dynamical study reports comparable rotation amplitudes and a shared global rotation pattern, but a more radially biased Al-rich population relative to the approximately isotropic Al-poor population; the proper-motion anisotropy difference has significance 2.43 sigma. The bar-migration paper's introduction describes a broad, multi-peaked metallicity distribution, multiple populations, internal abundance variations and a complex age-metallicity structure as motivations for the stripped-nucleus interpretation. It says the parent galaxy remains uncertain: the retrograde orbit motivated Sequoia links, whereas more recent chemo-dynamical studies argue for GSE as a plausible, perhaps preferred parent. These internal-population observations and proposed accretion history are different levels of evidence; the cited anisotropy result does not establish the parent galaxy.",
+      "answer": "Pagnini et al. (The chemo-dynamical complexity of ω Centauri) use a Gaussian mixture model in 8D abundance space that identifies five chemical components which, when examined through their radial cumulative distributions, group into two broader families referred to as Al-poor and Al-rich. [1] [2]\n\nPagnini et al. report that the Al-rich stars are significantly more centrally concentrated than the Al-poor stars. [2]\n\nPagnini et al. find that the Al-rich population exhibits stronger radial anisotropy while the Al-poor stars remain closer to isotropic across the radial range probed. [2]\n\nPagnini et al. report that despite their different anisotropies, the Al-rich and Al-poor populations share a common rotation pattern with comparable intrinsic rotation amplitudes and rotation-axis inclinations within the uncertainties (≈ 0.5 km s−1). [1] [2]\n\nPagnini et al. state that the chemo-dynamical differences they identify correlate primarily with light-element (aluminium) enrichment rather than with iron abundance. [2]\n\nPagnini et al. present their work as a first wide-field, fully spectroscopic, population-resolved 3D kinematic study of ω Cen that provides a key benchmark and that a formation path involving hierarchical assembly within a dwarf-galaxy potential plus centrally concentrated, chemically enriched star formation offers a natural explanation for the observed chemo-dynamical complexity; they also state that extending the approach will be essential to robustly uncover the origin. [1]\n\nThe bar-induced migration study states that ω Cen has been suggested to have originated in the Gaia Sausage–Enceladus (GSE) merger event, possibly as its nuclear star cluster, but that the present-day orbits of ω Cen and the GSE debris are very different. [3]\n\nThe bar-induced migration paper reports that simulations can trace ω Cen back to the phase-space region occupied by the GSE debris only if the Galactic bar's present-day pattern speed is ≲ 26 km s−1 kpc−1, a value much lower than most recent estimates. [3]\n\nThe bar-induced migration authors note that the [α/M] distributions of stars between the GSE debris and ω Cen in (Lz, E) space tentatively support a GSE origin but are not conclusive, and they conclude that a GSE origin is dynamically and chemically plausible only if the consensus on the bar’s pattern speed is re-evaluated. [3]",
+      "retrieved_chunks": [
+        {
+          "id": "20ef972b-a15a-58ef-8c71-0257d30cc35d",
+          "text": "## **ABSTRACT** \n\n_Context._ The origin of ω Centauri remains one of the key open questions in stellar dynamics and chemical evolution. Its large abundance spreads and multiple populations suggest a formation history more complex than that of a typical globular cluster. _Aims._ We investigate whether the chemical sub-populations identified in APOGEE DR17 also exhibit distinct spatial and kinematic signatures and the constraints these provide on the formation pathways of ω Cen. \n\n_Methods._ We analysed a sample of APOGEE DR17 red giant stars using a Gaussian mixture model in an 8D chemical-abundance space. The resulting chemical components were combined with Gaia proper motions and APOGEE line-of-sight velocities to derive intrinsic mean velocities and velocity dispersions in all three observable directions. We measured both global kinematic quantities and radial profiles for each chemically defined group, extending from the inner regions to ∼ 4 half-light radii. \n\n_Results._ The Gaussian mixture model identifies five chemical components, which, when examined through their radial cumulative distributions, naturally group into two broader families characterised by lower and higher aluminium enrichment. The two families differ significantly in their spatial and kinematic properties: the Al-rich stars are more centrally concentrated and exhibit stronger radial anisotropy than the Al-poor stars, which remain closer to isotropy over the radial range probed. Despite these significant differences (> 2σ), the two populations share a common rotation pattern, with comparable intrinsic rotation amplitudes and rotation-axis inclinations within the uncertainties (∼ 0.5 km s[−][1] ). Both families span a wide range in metallicity, indicating that they do not simply correspond to a first- and second-generation dichotomy but rather trace chemically and dynamically complex substructures within ω Cen. _Conclusions._ This work represents the first chemo-dynamical study of ω Cen linking detailed chemical tagging to internal kinematics from the inner regions to the cluster outskirts and provides a key benchmark for models of its formation. A formation path involving both hierarchical assembly within a dwarf-galaxy potential and centrally concentrated, chemically enriched star formation offers a natural explanation for the observed chemo-dynamical complexity. Extending this approach to larger fields of view and to more numerous, fainter stars will be essential to robustly uncover the origin of this uniquely complex system. ",
+          "collection": "arxiv_papers_v2",
+          "build_id": "c35fa35e-89c3-5a4c-bbd0-3b8745801521",
+          "paper_id": "0398c15c-c44e-5b90-bb2c-1e96a73da886",
+          "title": "The chemo-dynamical complexity of ω Centauri: different kinematics for different populations",
+          "arxiv_id": "2605.20503",
+          "paper_version": 2,
+          "source_url": "https://arxiv.org/abs/2605.20503v2",
+          "authors": [
+            "G. Pagnini",
+            "P. Bianchini",
+            "P. Di Matteo",
+            "A. Mastrobuono-Battisti"
+          ],
+          "year": 2026,
+          "page": 1,
+          "section_header": "**ABSTRACT**",
+          "content_kind": "text",
+          "chunk_index": 2,
+          "score": 0.8333334,
+          "rerank_score": null,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        },
+        {
+          "id": "dcdbec70-74ac-514c-b4a9-87a031e42f4d",
+          "text": "## **The chemo-dynamical complexity of** ω **Centauri: Different kinematics for different populations** \n\nG. Pagnini[1][,][ 2] , P. Bianchini[1] , P. Di Matteo[3] , and A. Mastrobuono-Battisti[4][,][ 5][,][ 6] \n\n- 1 Université de Strasbourg, CNRS, Observatoire Astronomique de Strasbourg, UMR 7550, F-67000 Strasbourg, France e-mail: `pagnini@astro.unistra.fr` \n\n- 2 Centre national d’études spatiales (CNES), 2, Place Maurice Quentin, 75039, Paris, France \n\n- 3 LIRA, Observatoire de Paris, Université PSL, Sorbonne Université, Université Paris Cité, CY Cergy Paris Université, CNRS, 92190 Meudon, France \n\n- 4 Dipartimento di Fisica e Astronomia “Galileo Galilei”, Università di Padova, Vicolo dell’Osservatorio 3, 35122 Padova, Italy \n\n- 5 Dipartimento di Tecnica e Gestione dei Sistemi Industriali, Università degli Studi di Padova, Stradella S. Nicola 3, I-36100 Vicenza, Italy \n\n- 6 Istituto Nazionale di Astrofisica – Osservatorio Astronomico di Padova, Vicolo dell’Osservatorio 5, Padova, I-35122, Italy \n\nReceived xxx; accepted xxx",
+          "collection": "arxiv_papers_v2",
+          "build_id": "c35fa35e-89c3-5a4c-bbd0-3b8745801521",
+          "paper_id": "0398c15c-c44e-5b90-bb2c-1e96a73da886",
+          "title": "The chemo-dynamical complexity of ω Centauri: different kinematics for different populations",
+          "arxiv_id": "2605.20503",
+          "paper_version": 2,
+          "source_url": "https://arxiv.org/abs/2605.20503v2",
+          "authors": [
+            "G. Pagnini",
+            "P. Bianchini",
+            "P. Di Matteo",
+            "A. Mastrobuono-Battisti"
+          ],
+          "year": 2026,
+          "page": 1,
+          "section_header": "**The chemo-dynamical complexity of** ω **Centauri: Different kinematics for different populations**",
+          "content_kind": "text",
+          "chunk_index": 1,
+          "score": 0.5555556,
+          "rerank_score": null,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        },
+        {
+          "id": "96e32909-cdb3-5419-a73a-dd2d32637f9e",
+          "text": "## **6. Conclusions** \n\nThis work provides the first wide-field, fully spectroscopic view of population-dependent 3D internal kinematics of ω Cen. We \n\ncombined APOGEE DR17 abundances with Gaia kinematics to study the chemo-dynamical structure of ω Cen. A GMM applied to 8D abundance space identifies five components, which, after examining their radial cumulative distributions, we grouped into two broader families that we refer to as Al-poor and Al-rich. These chemically defined families also differ in their spatial and kinematic properties. \n\nOur main findings are as follows: \n\n1. The Al-rich stars are significantly more centrally concentrated than the Al-poor stars, which dominate at larger radii. \n\n2. The Al-rich population exhibits stronger radial anisotropy and largely drives the global anisotropy trend of ω Cen, whereas the Al-poor stars remain closer to isotropic across the radial range probed. \n\n3. The chemo-dynamical differences correlate primarily with light-element enrichment rather than with iron abundance. Despite the well-known internal [Fe/H] spread in ω Cen, the spatial segregation and anisotropy differences identified here are more associated with aluminium enrichment than with metallicity itself, indicating that light-element chemistry is the dominant tracer of the dynamical substructure. \n\n4. Despite their different anisotropies, the two populations share a common rotation pattern, suggesting that they are embedded in the same global angular-momentum structure. Their total rotation amplitudes are comparable within the uncertainties, and we find no evidence for kinematically decoupled or counter-rotating components in our large field of view. ",
+          "collection": "arxiv_papers_v2",
+          "build_id": "c35fa35e-89c3-5a4c-bbd0-3b8745801521",
+          "paper_id": "0398c15c-c44e-5b90-bb2c-1e96a73da886",
+          "title": "The chemo-dynamical complexity of ω Centauri: different kinematics for different populations",
+          "arxiv_id": "2605.20503",
+          "paper_version": 2,
+          "source_url": "https://arxiv.org/abs/2605.20503v2",
+          "authors": [
+            "G. Pagnini",
+            "P. Bianchini",
+            "P. Di Matteo",
+            "A. Mastrobuono-Battisti"
+          ],
+          "year": 2026,
+          "page": 9,
+          "section_header": "**6. Conclusions**",
+          "content_kind": "text",
+          "chunk_index": 43,
+          "score": 0.5,
+          "rerank_score": null,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        },
+        {
+          "id": "e79d8ab0-16a0-5ab3-b1b1-b87903cc03e2",
+          "text": "The right panel of Fig. 4 provides an additional consistency check by comparing our results with the oMEGACat kinematics of Häberle et al. (2025). Their combined MUSE and HST measurements show that ω Cen is approximately isotropic in the core and becomes increasingly radially anisotropic towards the half-light radius. Our combined APOGEE and Gaia profile follows the same behaviour where the datasets overlap, but the population-resolved view reveals that this global trend is not uniform: the Al-rich group carries most of the increasing radial anisotropy, while the Al-poor stars remain close to isotropic. Because the oMEGACat data primarily probe the inner few central arcminutes, whereas our combined APOGEE and Gaia sample extends from the crowding-limited core to ∼ 4 _rh_ , we obtain a nearly continuous view of the radial behaviour of the two populations. \n\nOne of the most striking chemical properties of ω Cen is its large internal iron spread, spanning more than one dex in [Fe/H]. Previous studies have investigated the relation between rotation and metallicity in ω Cen, finding no strong systematic dependence of the rotation amplitude on [Fe/H] (Pancino et al. 2007). Consistent with this picture, we do not detect significant differences in the rotation properties when subdividing the sample either by iron abundance or by aluminium enrichment. Instead, the population-dependent kinematic differences identified in this work are primarily seen in the velocity anisotropy. When dividing the sample by metallicity alone, we did not detect statistically significant differences in anisotropy. In contrast, a clear anisotropy difference emerges when the populations are separated according to aluminium enrichment, with the Al-rich stars exhibiting more radially biased orbits than the Al-poor population (see also Cordoni et al. 2020; Häberle et al. 2025). This behaviour contrasts with that observed in systems such as M54, \n\nwhere kinematic differences are more closely linked to metallicity (e.g. Alfaro-Cuello et al. 2019), suggesting that similar present-day nuclear clusters may arise from different chemodynamical formation pathways. ",
+          "collection": "arxiv_papers_v2",
+          "build_id": "c35fa35e-89c3-5a4c-bbd0-3b8745801521",
+          "paper_id": "0398c15c-c44e-5b90-bb2c-1e96a73da886",
+          "title": "The chemo-dynamical complexity of ω Centauri: different kinematics for different populations",
+          "arxiv_id": "2605.20503",
+          "paper_version": 2,
+          "source_url": "https://arxiv.org/abs/2605.20503v2",
+          "authors": [
+            "G. Pagnini",
+            "P. Bianchini",
+            "P. Di Matteo",
+            "A. Mastrobuono-Battisti"
+          ],
+          "year": 2026,
+          "page": 8,
+          "section_header": "**5. Discussion**",
+          "content_kind": "text",
+          "chunk_index": 38,
+          "score": 0.36666667,
+          "rerank_score": null,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        },
+        {
+          "id": "36fa023e-cc4a-524c-b582-28692f415c87",
+          "text": "> 2 _Institute of Astronomy, University of Cambridge, Madingley Road, Cambridge CB3 0HA, UK_ \n\nAccepted XXX. Received YYY; in original form ZZZ \n\n**ABSTRACT** The globular cluster _𝜔_ Cen has been suggested to have originated in the Gaia Sausage-Enceladus (GSE) merger event, possibly as its nuclear star cluster. However, the present-day orbits of _𝜔_ Cen and the GSE debris are very different. We investigate the scenario in which _𝜔_ Cen originated in the GSE and migrated to its current position due to perturbations from the Galactic bar. The [ _𝛼_ /M] distributions of stars located between the GSE debris and _𝜔_ Cen in ( _𝐿 𝑧, 𝐸_ ) space tentatively support this scenario, but are not conclusive. We run simulations of the GSE debris and _𝜔_ Cen in a realistic Milky Way potential with a decelerating bar at various present-day pattern speeds. We find that _𝜔_ Cen can indeed be traced back to the phase space region occupied by the GSE debris. However, this would likely require a pattern speed of Ωb ≲ 26 km s[−][1] kpc[−][1] , which is much lower than most recent estimates. We conclude that a GSE origin for _𝜔_ Cen is dynamically and chemically plausible, but only with a re-evaluation of the current consensus on the bar’s pattern speed. **Key words:** Galaxy: halo – Galaxy: formation – Galaxy: kinematics and dynamics – globular clusters: individual: _𝜔_ Centauri **1 INTRODUCTION** stellar populations and chemical enrichment histories inherited from its former position at the centre of a dwarf galaxy. The Sagittarius The inner stellar halo of the Milky Way is dominated by debris from system and M54 provide the clearest nearby example of this process a massive early accretion event, commonly known as Gaia-Sausage(e.g. Ibata et al. 1994; Bellazzini et al. 2008). Other massive and Enceladus (GSE).",
+          "collection": "arxiv_papers_v2",
+          "build_id": "90456f74-656c-5dc3-bac6-5739e80edeee",
+          "paper_id": "f4441bd7-b28a-5316-a6c2-7f0df80bc846",
+          "title": "Bar-induced migration of $ω$ Centauri away from Gaia Sausage-Enceladus",
+          "arxiv_id": "2606.12516",
+          "paper_version": 2,
+          "source_url": "https://arxiv.org/abs/2606.12516v2",
+          "authors": [
+            "Adam M. Dillamore",
+            "Hanyuan Zhang",
+            "Vasily Belokurov"
+          ],
+          "year": 2026,
+          "page": 1,
+          "section_header": "_𝜔_ **Bar-induced migration of Centauri away from Gaia Sausage-Enceladus**",
+          "content_kind": "text",
+          "chunk_index": 2,
+          "score": 0.12916666,
+          "rerank_score": null,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        }
+      ],
+      "claims": [
+        {
+          "text": "Pagnini et al. (The chemo-dynamical complexity of ω Centauri) use a Gaussian mixture model in 8D abundance space that identifies five chemical components which, when examined through their radial cumulative distributions, group into two broader families referred to as Al-poor and Al-rich.",
+          "cited_context_ids": [
+            "20ef972b-a15a-58ef-8c71-0257d30cc35d",
+            "96e32909-cdb3-5419-a73a-dd2d32637f9e"
+          ],
+          "need_ids": []
+        },
+        {
+          "text": "Pagnini et al. report that the Al-rich stars are significantly more centrally concentrated than the Al-poor stars.",
+          "cited_context_ids": [
+            "96e32909-cdb3-5419-a73a-dd2d32637f9e"
+          ],
+          "need_ids": []
+        },
+        {
+          "text": "Pagnini et al. find that the Al-rich population exhibits stronger radial anisotropy while the Al-poor stars remain closer to isotropic across the radial range probed.",
+          "cited_context_ids": [
+            "96e32909-cdb3-5419-a73a-dd2d32637f9e"
+          ],
+          "need_ids": []
+        },
+        {
+          "text": "Pagnini et al. report that despite their different anisotropies, the Al-rich and Al-poor populations share a common rotation pattern with comparable intrinsic rotation amplitudes and rotation-axis inclinations within the uncertainties (≈ 0.5 km s−1).",
+          "cited_context_ids": [
+            "20ef972b-a15a-58ef-8c71-0257d30cc35d",
+            "96e32909-cdb3-5419-a73a-dd2d32637f9e"
+          ],
+          "need_ids": []
+        },
+        {
+          "text": "Pagnini et al. state that the chemo-dynamical differences they identify correlate primarily with light-element (aluminium) enrichment rather than with iron abundance.",
+          "cited_context_ids": [
+            "96e32909-cdb3-5419-a73a-dd2d32637f9e"
+          ],
+          "need_ids": []
+        },
+        {
+          "text": "Pagnini et al. present their work as a first wide-field, fully spectroscopic, population-resolved 3D kinematic study of ω Cen that provides a key benchmark and that a formation path involving hierarchical assembly within a dwarf-galaxy potential plus centrally concentrated, chemically enriched star formation offers a natural explanation for the observed chemo-dynamical complexity; they also state that extending the approach will be essential to robustly uncover the origin.",
+          "cited_context_ids": [
+            "20ef972b-a15a-58ef-8c71-0257d30cc35d"
+          ],
+          "need_ids": []
+        },
+        {
+          "text": "The bar-induced migration study states that ω Cen has been suggested to have originated in the Gaia Sausage–Enceladus (GSE) merger event, possibly as its nuclear star cluster, but that the present-day orbits of ω Cen and the GSE debris are very different.",
+          "cited_context_ids": [
+            "36fa023e-cc4a-524c-b582-28692f415c87"
+          ],
+          "need_ids": []
+        },
+        {
+          "text": "The bar-induced migration paper reports that simulations can trace ω Cen back to the phase-space region occupied by the GSE debris only if the Galactic bar's present-day pattern speed is ≲ 26 km s−1 kpc−1, a value much lower than most recent estimates.",
+          "cited_context_ids": [
+            "36fa023e-cc4a-524c-b582-28692f415c87"
+          ],
+          "need_ids": []
+        },
+        {
+          "text": "The bar-induced migration authors note that the [α/M] distributions of stars between the GSE debris and ω Cen in (Lz, E) space tentatively support a GSE origin but are not conclusive, and they conclude that a GSE origin is dynamically and chemically plausible only if the consensus on the bar’s pattern speed is re-evaluated.",
+          "cited_context_ids": [
+            "36fa023e-cc4a-524c-b582-28692f415c87"
+          ],
+          "need_ids": []
+        }
+      ],
+      "cited_context_ids": [
+        "20ef972b-a15a-58ef-8c71-0257d30cc35d",
+        "36fa023e-cc4a-524c-b582-28692f415c87",
+        "96e32909-cdb3-5419-a73a-dd2d32637f9e"
+      ],
+      "metrics": {
+        "retrieval_hit": 0.0,
+        "retrieval_recall": 0.0,
+        "gold_citation_recall": 0.0,
+        "citation_from_retrieval": 1.0,
+        "retrieved_count": 5,
+        "cited_count": 3,
+        "required_paper_count": 2,
+        "retrieved_required_paper_count": 2,
+        "cited_required_paper_count": 2,
+        "required_paper_retrieval_recall": 1.0,
+        "required_paper_citation_recall": 1.0,
+        "all_required_papers_retrieved": 1.0,
+        "required_numeric_value_count": 1,
+        "covered_required_numeric_value_count": 0,
+        "required_numeric_value_recall": 0.0,
+        "missing_required_numeric_values": [
+          "2.43"
+        ],
+        "answer_correctness": 0.5,
+        "groundedness": 1.0,
+        "answer_relevance": 1.0,
+        "correct_abstention": null
+      },
+      "judge": {
+        "correctness": 0.5,
+        "answer_relevance": 1.0,
+        "abstention": "not_applicable",
+        "reason": "Reference assessment: The actual answer correctly summarizes most qualitative findings from both papers (shared rotation, Al-rich more radially anisotropic, central concentration; intro evidence and uncertainty about stripped-nucleus/GSE vs Sequoia). However it omits the specific requested numeric significance 2.43 for the anisotropy result and mis-states the reported uncertainty on rotation as ≈ 0.5 km s−1 (the reference does not provide that numeric rotation-uncertainty value). Thus some required numeric detail is missing/incorrect, preventing full correctness. Grounding assessment: Each claim cites text from the given papers that verbatim supports the asserted facts (method, component counts, grouping into Al-rich/Al-poor, spatial concentration, anisotropy, shared rotation with uncertainty, emphasis on aluminium vs iron, statement of study scope and suggested formation path; and the bar-migration paper's abstract asserting GSE suggestion, orbital difference, simulation requirement of Ωb ≲ 26 km s⁻¹ kpc⁻¹ and tentative α/M evidence). All claims are directly substantiated by their attached excerpts.",
+        "answer_checks": [
+          {
+            "question_part_id": "q_a",
+            "requested_fact": "Measured anisotropy difference (significance) between Al-rich and Al-poor populations",
+            "status": "missing",
+            "required_numeric_values": [
+              "2.43"
+            ],
+            "missing_or_incorrect_detail": "The answer did not report the anisotropy significance value 2.43 sigma; it states anisotropy difference qualitatively but omits the 2.43 number.",
+            "deficit_basis": "missing_content",
+            "claimed_missing_answer_fragments": [
+              "2.43"
+            ],
+            "answer_claim_ids": [
+              "a0005"
+            ],
+            "answer_quotes": [
+              "Pagnini et al. find that the Al-rich population exhibits stronger radial anisotropy while the Al-poor stars remain closer to isotropic across the radial range probed."
+            ]
+          },
+          {
+            "question_part_id": "q_a",
+            "requested_fact": "Internal rotation: shared global rotation pattern and comparable intrinsic rotation amplitudes between Al-rich and Al-poor",
+            "status": "answered",
+            "required_numeric_values": [],
+            "missing_or_incorrect_detail": "",
+            "deficit_basis": "none",
+            "claimed_missing_answer_fragments": [],
+            "answer_claim_ids": [
+              "a0006",
+              "a0001"
+            ],
+            "answer_quotes": [
+              "Pagnini et al. report that despite their different anisotropies, the Al-rich and Al-poor populations share a common rotation pattern with comparable intrinsic rotation amplitudes and rotation-axis inclinations within the uncertainties (≈ 0.5 km s−1).",
+              "Pagnini et al. (The chemo-dynamical complexity of ω Centauri) use a Gaussian mixture model in 8D abundance space that identifies five chemical components which, when examined through their radial cumulative distributions, group into two broader families referred to as Al-poor and Al-rich."
+            ]
+          },
+          {
+            "question_part_id": "q_b",
+            "requested_fact": "Introductory evidence motivating stripped-nucleus interpretation (multi-peaked metallicity, multiple populations, internal abundance variations, complex age-metallicity structure) and uncertainty about parent galaxy identity (Sequoia vs GSE)",
+            "status": "answered",
+            "required_numeric_values": [],
+            "missing_or_incorrect_detail": "",
+            "deficit_basis": "none",
+            "claimed_missing_answer_fragments": [],
+            "answer_claim_ids": [
+              "a0010",
+              "a0013"
+            ],
+            "answer_quotes": [
+              "The bar-induced migration study states that ω Cen has been suggested to have originated in the Gaia Sausage–Enceladus (GSE) merger event, possibly as its nuclear star cluster, but that the present-day orbits of ω Cen and the GSE debris are very different.",
+              "The bar-induced migration authors note that the [α/M] distributions of stars between the GSE debris and ω Cen in (Lz, E) space tentatively support a GSE origin but are not conclusive, and they conclude that a GSE origin is dynamically and chemically plausible only if the consensus on the bar’s pattern speed is re-evaluated."
+            ]
+          }
+        ],
+        "answer_anchors": [
+          {
+            "id": "a0001",
+            "text": "Pagnini et al. (The chemo-dynamical complexity of ω Centauri) use a Gaussian mixture model in 8D abundance space that identifies five chemical components which, when examined through their radial cumulative distributions, group into two broader families referred to as Al-poor and Al-rich.",
+            "source": "claim",
+            "claim_index": 0
+          },
+          {
+            "id": "a0002",
+            "text": " [1] [2]",
+            "source": "answer_span",
+            "claim_index": null
+          },
+          {
+            "id": "a0003",
+            "text": "Pagnini et al. report that the Al-rich stars are significantly more centrally concentrated than the Al-poor stars.",
+            "source": "claim",
+            "claim_index": 1
+          },
+          {
+            "id": "a0004",
+            "text": " [2]",
+            "source": "answer_span",
+            "claim_index": null
+          },
+          {
+            "id": "a0005",
+            "text": "Pagnini et al. find that the Al-rich population exhibits stronger radial anisotropy while the Al-poor stars remain closer to isotropic across the radial range probed.",
+            "source": "claim",
+            "claim_index": 2
+          },
+          {
+            "id": "a0006",
+            "text": "Pagnini et al. report that despite their different anisotropies, the Al-rich and Al-poor populations share a common rotation pattern with comparable intrinsic rotation amplitudes and rotation-axis inclinations within the uncertainties (≈ 0.5 km s−1).",
+            "source": "claim",
+            "claim_index": 3
+          },
+          {
+            "id": "a0007",
+            "text": "Pagnini et al. state that the chemo-dynamical differences they identify correlate primarily with light-element (aluminium) enrichment rather than with iron abundance.",
+            "source": "claim",
+            "claim_index": 4
+          },
+          {
+            "id": "a0008",
+            "text": "Pagnini et al. present their work as a first wide-field, fully spectroscopic, population-resolved 3D kinematic study of ω Cen that provides a key benchmark and that a formation path involving hierarchical assembly within a dwarf-galaxy potential plus centrally concentrated, chemically enriched star formation offers a natural explanation for the observed chemo-dynamical complexity; they also state that extending the approach will be essential to robustly uncover the origin.",
+            "source": "claim",
+            "claim_index": 5
+          },
+          {
+            "id": "a0009",
+            "text": " [1]",
+            "source": "answer_span",
+            "claim_index": null
+          },
+          {
+            "id": "a0010",
+            "text": "The bar-induced migration study states that ω Cen has been suggested to have originated in the Gaia Sausage–Enceladus (GSE) merger event, possibly as its nuclear star cluster, but that the present-day orbits of ω Cen and the GSE debris are very different.",
+            "source": "claim",
+            "claim_index": 6
+          },
+          {
+            "id": "a0011",
+            "text": " [3]",
+            "source": "answer_span",
+            "claim_index": null
+          },
+          {
+            "id": "a0012",
+            "text": "The bar-induced migration paper reports that simulations can trace ω Cen back to the phase-space region occupied by the GSE debris only if the Galactic bar's present-day pattern speed is ≲ 26 km s−1 kpc−1, a value much lower than most recent estimates.",
+            "source": "claim",
+            "claim_index": 7
+          },
+          {
+            "id": "a0013",
+            "text": "The bar-induced migration authors note that the [α/M] distributions of stars between the GSE debris and ω Cen in (Lz, E) space tentatively support a GSE origin but are not conclusive, and they conclude that a GSE origin is dynamically and chemically plausible only if the consensus on the bar’s pattern speed is re-evaluated.",
+            "source": "claim",
+            "claim_index": 8
+          }
+        ],
+        "reference_score_status": "scored",
+        "groundedness": 1.0
+      },
+      "judge_request": {
+        "reference": {
+          "response_id": "resp_0bf208dd8660f54b016adafd068b8c87d2999ebe21a33801a7",
+          "response_ids": [
+            "resp_0bf208dd8660f54b016adafd068b8c87d2999ebe21a33801a7"
+          ],
+          "attempts": 1,
+          "quote_validation_failures": [],
+          "schema_validation_failures": [],
+          "consistency_validation_failures": [],
+          "consistency_status": "no_detected_conflict",
+          "raw_correctness": 0.5,
+          "score_status": "scored",
+          "answer_anchor_mode": "claim_ids",
+          "request_id": "req_626a1352224443fc98f0a52caea7782f",
+          "model": "gpt-5-mini-2025-08-07",
+          "max_output_tokens": 16384,
+          "usage": {
+            "input_tokens": 4623,
+            "output_tokens": 538,
+            "total_tokens": 5161
+          }
+        },
+        "grounding": {
+          "response_id": "resp_00941098b2e4e2f9016adafd0b032487d2bb6984ad9c21dc67",
+          "response_ids": [
+            "resp_00941098b2e4e2f9016adafd0b032487d2bb6984ad9c21dc67"
+          ],
+          "attempts": 1,
+          "quote_validation_failures": [],
+          "schema_validation_failures": [],
+          "consistency_validation_failures": [],
+          "consistency_status": "no_detected_conflict",
+          "raw_correctness": null,
+          "score_status": "scored",
+          "answer_anchor_mode": "claim_ids",
+          "request_id": "req_f6d6e2178c0f4a518d4b2a372d01cd51",
+          "model": "gpt-5-mini-2025-08-07",
+          "max_output_tokens": 16384,
+          "usage": {
+            "input_tokens": 8628,
+            "output_tokens": 332,
+            "total_tokens": 8960
+          },
+          "method_attributions": [
+            {
+              "applicability": "not_applicable",
+              "answer_claim_id": "a0001",
+              "claim_index": 0
+            },
+            {
+              "applicability": "not_applicable",
+              "answer_claim_id": "a0002",
+              "claim_index": 1
+            },
+            {
+              "applicability": "not_applicable",
+              "answer_claim_id": "a0003",
+              "claim_index": 2
+            },
+            {
+              "applicability": "not_applicable",
+              "answer_claim_id": "a0004",
+              "claim_index": 3
+            },
+            {
+              "applicability": "not_applicable",
+              "answer_claim_id": "a0005",
+              "claim_index": 4
+            },
+            {
+              "applicability": "not_applicable",
+              "answer_claim_id": "a0006",
+              "claim_index": 5
+            },
+            {
+              "applicability": "not_applicable",
+              "answer_claim_id": "a0007",
+              "claim_index": 6
+            },
+            {
+              "applicability": "not_applicable",
+              "answer_claim_id": "a0008",
+              "claim_index": 7
+            },
+            {
+              "applicability": "not_applicable",
+              "answer_claim_id": "a0009",
+              "claim_index": 8
+            }
+          ],
+          "claim_anchors": [
+            {
+              "id": "a0001",
+              "claim_index": 0
+            },
+            {
+              "id": "a0002",
+              "claim_index": 1
+            },
+            {
+              "id": "a0003",
+              "claim_index": 2
+            },
+            {
+              "id": "a0004",
+              "claim_index": 3
+            },
+            {
+              "id": "a0005",
+              "claim_index": 4
+            },
+            {
+              "id": "a0006",
+              "claim_index": 5
+            },
+            {
+              "id": "a0007",
+              "claim_index": 6
+            },
+            {
+              "id": "a0008",
+              "claim_index": 7
+            },
+            {
+              "id": "a0009",
+              "claim_index": 8
+            }
+          ],
+          "annotation_validation_failures": [],
+          "method_validation_failures": [],
+          "method_scope_issues": [],
+          "raw_groundedness": 1.0
+        }
+      },
+      "judge_error": null,
+      "judge_safeguards": [
+        {
+          "metric": "correctness",
+          "from": 0.5,
+          "to": 0.5,
+          "reason": "reference_assessment_not_answer_anchored",
+          "checks": [
+            {
+              "check_index": 0,
+              "status": "missing",
+              "invalid_quote_count": 0,
+              "missing_numeric_values": [
+                "2.43"
+              ]
+            }
+          ]
+        },
+        {
+          "metric": "correctness",
+          "from": 0.5,
+          "to": 0.5,
+          "reason": "missing_required_numeric_values",
+          "missing_values": [
+            "2.43"
+          ]
+        }
+      ],
+      "agent_execution": null,
+      "retrieval_diagnostics": {
+        "candidate_count": 20,
+        "candidate_paper_ids": [
+          "0398c15c-c44e-5b90-bb2c-1e96a73da886",
+          "20ae5d4a-c291-5ce9-ba9f-038fe2fd905c",
+          "f4441bd7-b28a-5316-a6c2-7f0df80bc846"
+        ],
+        "candidate_paper_count": 3,
+        "selected_paper_ids": [
+          "0398c15c-c44e-5b90-bb2c-1e96a73da886",
+          "f4441bd7-b28a-5316-a6c2-7f0df80bc846"
+        ],
+        "selected_paper_count": 2,
+        "selected_count": 5,
+        "named_paper_diversity_guard_applied": true,
+        "reserved_candidate_ids": [
+          "36fa023e-cc4a-524c-b582-28692f415c87",
+          "20ef972b-a15a-58ef-8c71-0257d30cc35d"
+        ],
+        "named_required_build_ids": [
+          "90456f74-656c-5dc3-bac6-5739e80edeee",
+          "c35fa35e-89c3-5a4c-bbd0-3b8745801521"
+        ],
+        "named_candidate_missing_build_ids": [],
+        "named_selected_missing_build_ids": [],
+        "hybrid_candidate_limit": 20,
+        "required_paper_count": 2,
+        "required_paper_candidate_recall": 1.0,
+        "required_paper_selected_recall": 1.0,
+        "all_required_papers_in_candidates": 1.0,
+        "all_required_papers_selected": 1.0
+      },
+      "generation_diagnostics": null,
+      "stage_timings": {
+        "embedding_seconds": 2.27264,
+        "qdrant_seconds": 0.403906,
+        "retrieval_seconds": 2.699,
+        "generation_seconds": 18.302,
+        "pipeline_seconds": 21.017,
+        "judge_reference_seconds": 4.522,
+        "judge_grounding_seconds": 3.986,
+        "judge_seconds": 8.508
+      },
+      "elapsed_seconds": 29.53,
+      "error": null
+    },
+    {
+      "question_id": "kg0006",
+      "kind": "cross_paper",
+      "profile": "cross_comparison",
+      "mode": "kg",
+      "question": "What do \"The chemo-dynamical complexity of ω Centauri: different kinematics for different populations\" and \"Bar-induced migration of ω Centauri away from Gaia Sausage-Enceladus\" say about different aspects of ω Centauri's complexity? Contrast (a) the measured internal rotation and anisotropy of its Al-rich and Al-poor populations with (b) the introductory evidence and uncertainty concerning a stripped-nucleus origin and the identity of its parent galaxy. Do not claim that the internal anisotropy measurement proves a particular progenitor; cite both papers.",
+      "reference_answer": "The chemo-dynamical study reports comparable rotation amplitudes and a shared global rotation pattern, but a more radially biased Al-rich population relative to the approximately isotropic Al-poor population; the proper-motion anisotropy difference has significance 2.43 sigma. The bar-migration paper's introduction describes a broad, multi-peaked metallicity distribution, multiple populations, internal abundance variations and a complex age-metallicity structure as motivations for the stripped-nucleus interpretation. It says the parent galaxy remains uncertain: the retrograde orbit motivated Sequoia links, whereas more recent chemo-dynamical studies argue for GSE as a plausible, perhaps preferred parent. These internal-population observations and proposed accretion history are different levels of evidence; the cited anisotropy result does not establish the parent galaxy.",
+      "answer": "The chemo-dynamical study (Pagnini et al.) used a Gaussian mixture model in an 8D chemical-abundance space and identifies five chemical components that naturally group into two broader families characterised by lower and higher aluminium enrichment. [1]\n\nPagnini et al. report that the Al-rich stars are more centrally concentrated and exhibit stronger radial anisotropy than the Al-poor stars, which remain closer to isotropy over the radial range probed. [1]\n\nPagnini et al. find that despite the significant differences in anisotropy, the Al-rich and Al-poor families share a common rotation pattern, with comparable intrinsic rotation amplitudes and rotation-axis inclinations within the uncertainties (≈ 0.5 km s⁻¹). [1]\n\nIn the population-resolved analysis, Pagnini et al. report that the Al-rich population shows a systematically lower σ_PM,tan / σ_PM,rad ratio than the Al-poor population, indicating a signature of radial anisotropy, with the difference in anisotropy corresponding to a significance of 2.43σ. [2]\n\nPagnini et al. also report that when using the line-of-sight–based anisotropy proxy σ_PM,tan / σ_los, the difference between the two populations is much weaker, with a significance of only 0.51σ. [2]\n\nThe bar-induced migration paper states that ω Centauri is exceptional among Galactic globular clusters, having a broad and multi-peaked metallicity distribution, multiple stellar populations, internal abundance variations in iron-peak and neutron-capture elements, and evidence for a complex age–metallicity structure, motivating the idea that it may be the stripped nucleus of an accreted dwarf galaxy. [3]\n\nThat paper also states that the identity of ω Centauri’s parent galaxy remains uncertain: its retrograde orbit motivated links to the Sequoia event, while more recent chemo-dynamical studies have argued that Gaia-Sausage-Enceladus (GSE) is a plausible, and perhaps preferred, parent system. [3]\n\nThe bar-induced migration study concludes that a GSE origin for ω Centauri is dynamically and chemically plausible, but that tracing ω Centauri back to the GSE phase-space region would likely require a bar pattern speed of Ω_b ≲ 26 km s⁻¹ kpc⁻¹, which is much lower than most recent estimates, so a GSE origin would require a re-evaluation of the bar’s pattern speed. [3]\n\nPagnini et al. present their work as the first chemo-dynamical study linking detailed chemical tagging to internal kinematics from the inner regions to the cluster outskirts and state that a formation path involving both hierarchical assembly within a dwarf-galaxy potential and centrally concentrated, chemically enriched star formation offers a natural explanation for the observed chemo-dynamical complexity. [1]",
+      "retrieved_chunks": [
+        {
+          "id": "20ef972b-a15a-58ef-8c71-0257d30cc35d",
+          "text": "## **ABSTRACT** \n\n_Context._ The origin of ω Centauri remains one of the key open questions in stellar dynamics and chemical evolution. Its large abundance spreads and multiple populations suggest a formation history more complex than that of a typical globular cluster. _Aims._ We investigate whether the chemical sub-populations identified in APOGEE DR17 also exhibit distinct spatial and kinematic signatures and the constraints these provide on the formation pathways of ω Cen. \n\n_Methods._ We analysed a sample of APOGEE DR17 red giant stars using a Gaussian mixture model in an 8D chemical-abundance space. The resulting chemical components were combined with Gaia proper motions and APOGEE line-of-sight velocities to derive intrinsic mean velocities and velocity dispersions in all three observable directions. We measured both global kinematic quantities and radial profiles for each chemically defined group, extending from the inner regions to ∼ 4 half-light radii. \n\n_Results._ The Gaussian mixture model identifies five chemical components, which, when examined through their radial cumulative distributions, naturally group into two broader families characterised by lower and higher aluminium enrichment. The two families differ significantly in their spatial and kinematic properties: the Al-rich stars are more centrally concentrated and exhibit stronger radial anisotropy than the Al-poor stars, which remain closer to isotropy over the radial range probed. Despite these significant differences (> 2σ), the two populations share a common rotation pattern, with comparable intrinsic rotation amplitudes and rotation-axis inclinations within the uncertainties (∼ 0.5 km s[−][1] ). Both families span a wide range in metallicity, indicating that they do not simply correspond to a first- and second-generation dichotomy but rather trace chemically and dynamically complex substructures within ω Cen. _Conclusions._ This work represents the first chemo-dynamical study of ω Cen linking detailed chemical tagging to internal kinematics from the inner regions to the cluster outskirts and provides a key benchmark for models of its formation. A formation path involving both hierarchical assembly within a dwarf-galaxy potential and centrally concentrated, chemically enriched star formation offers a natural explanation for the observed chemo-dynamical complexity. Extending this approach to larger fields of view and to more numerous, fainter stars will be essential to robustly uncover the origin of this uniquely complex system. ",
+          "collection": "arxiv_papers_v2",
+          "build_id": "c35fa35e-89c3-5a4c-bbd0-3b8745801521",
+          "paper_id": "0398c15c-c44e-5b90-bb2c-1e96a73da886",
+          "title": "The chemo-dynamical complexity of ω Centauri: different kinematics for different populations",
+          "arxiv_id": "2605.20503",
+          "paper_version": 2,
+          "source_url": "https://arxiv.org/abs/2605.20503v2",
+          "authors": [
+            "G. Pagnini",
+            "P. Bianchini",
+            "P. Di Matteo",
+            "A. Mastrobuono-Battisti"
+          ],
+          "year": 2026,
+          "page": 1,
+          "section_header": "**ABSTRACT**",
+          "content_kind": "text",
+          "chunk_index": 2,
+          "score": 0.01639344262295082,
+          "rerank_score": null,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        },
+        {
+          "id": "dcdbec70-74ac-514c-b4a9-87a031e42f4d",
+          "text": "## **The chemo-dynamical complexity of** ω **Centauri: Different kinematics for different populations** \n\nG. Pagnini[1][,][ 2] , P. Bianchini[1] , P. Di Matteo[3] , and A. Mastrobuono-Battisti[4][,][ 5][,][ 6] \n\n- 1 Université de Strasbourg, CNRS, Observatoire Astronomique de Strasbourg, UMR 7550, F-67000 Strasbourg, France e-mail: `pagnini@astro.unistra.fr` \n\n- 2 Centre national d’études spatiales (CNES), 2, Place Maurice Quentin, 75039, Paris, France \n\n- 3 LIRA, Observatoire de Paris, Université PSL, Sorbonne Université, Université Paris Cité, CY Cergy Paris Université, CNRS, 92190 Meudon, France \n\n- 4 Dipartimento di Fisica e Astronomia “Galileo Galilei”, Università di Padova, Vicolo dell’Osservatorio 3, 35122 Padova, Italy \n\n- 5 Dipartimento di Tecnica e Gestione dei Sistemi Industriali, Università degli Studi di Padova, Stradella S. Nicola 3, I-36100 Vicenza, Italy \n\n- 6 Istituto Nazionale di Astrofisica – Osservatorio Astronomico di Padova, Vicolo dell’Osservatorio 5, Padova, I-35122, Italy \n\nReceived xxx; accepted xxx",
+          "collection": "arxiv_papers_v2",
+          "build_id": "c35fa35e-89c3-5a4c-bbd0-3b8745801521",
+          "paper_id": "0398c15c-c44e-5b90-bb2c-1e96a73da886",
+          "title": "The chemo-dynamical complexity of ω Centauri: different kinematics for different populations",
+          "arxiv_id": "2605.20503",
+          "paper_version": 2,
+          "source_url": "https://arxiv.org/abs/2605.20503v2",
+          "authors": [
+            "G. Pagnini",
+            "P. Bianchini",
+            "P. Di Matteo",
+            "A. Mastrobuono-Battisti"
+          ],
+          "year": 2026,
+          "page": 1,
+          "section_header": "**The chemo-dynamical complexity of** ω **Centauri: Different kinematics for different populations**",
+          "content_kind": "text",
+          "chunk_index": 1,
+          "score": 0.016129032258064516,
+          "rerank_score": null,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        },
+        {
+          "id": "36fa023e-cc4a-524c-b582-28692f415c87",
+          "text": "> 2 _Institute of Astronomy, University of Cambridge, Madingley Road, Cambridge CB3 0HA, UK_ \n\nAccepted XXX. Received YYY; in original form ZZZ \n\n**ABSTRACT** The globular cluster _𝜔_ Cen has been suggested to have originated in the Gaia Sausage-Enceladus (GSE) merger event, possibly as its nuclear star cluster. However, the present-day orbits of _𝜔_ Cen and the GSE debris are very different. We investigate the scenario in which _𝜔_ Cen originated in the GSE and migrated to its current position due to perturbations from the Galactic bar. The [ _𝛼_ /M] distributions of stars located between the GSE debris and _𝜔_ Cen in ( _𝐿 𝑧, 𝐸_ ) space tentatively support this scenario, but are not conclusive. We run simulations of the GSE debris and _𝜔_ Cen in a realistic Milky Way potential with a decelerating bar at various present-day pattern speeds. We find that _𝜔_ Cen can indeed be traced back to the phase space region occupied by the GSE debris. However, this would likely require a pattern speed of Ωb ≲ 26 km s[−][1] kpc[−][1] , which is much lower than most recent estimates. We conclude that a GSE origin for _𝜔_ Cen is dynamically and chemically plausible, but only with a re-evaluation of the current consensus on the bar’s pattern speed. **Key words:** Galaxy: halo – Galaxy: formation – Galaxy: kinematics and dynamics – globular clusters: individual: _𝜔_ Centauri **1 INTRODUCTION** stellar populations and chemical enrichment histories inherited from its former position at the centre of a dwarf galaxy. The Sagittarius The inner stellar halo of the Milky Way is dominated by debris from system and M54 provide the clearest nearby example of this process a massive early accretion event, commonly known as Gaia-Sausage(e.g. Ibata et al. 1994; Bellazzini et al. 2008). Other massive and Enceladus (GSE).",
+          "collection": "arxiv_papers_v2",
+          "build_id": "90456f74-656c-5dc3-bac6-5739e80edeee",
+          "paper_id": "f4441bd7-b28a-5316-a6c2-7f0df80bc846",
+          "title": "Bar-induced migration of $ω$ Centauri away from Gaia Sausage-Enceladus",
+          "arxiv_id": "2606.12516",
+          "paper_version": 2,
+          "source_url": "https://arxiv.org/abs/2606.12516v2",
+          "authors": [
+            "Adam M. Dillamore",
+            "Hanyuan Zhang",
+            "Vasily Belokurov"
+          ],
+          "year": 2026,
+          "page": 1,
+          "section_header": "_𝜔_ **Bar-induced migration of Centauri away from Gaia Sausage-Enceladus**",
+          "content_kind": "text",
+          "chunk_index": 2,
+          "score": 0.013888888888888888,
+          "rerank_score": null,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        },
+        {
+          "id": "13a7fc71-a0d3-5b40-9931-19b3162e6190",
+          "text": "ble 1). Both populations exhibit significant internal rotation and comparable total intrinsic rotation amplitudes within the uncertainties, implying that they are embedded in the same global angular-momentum structure. In contrast, their velocity anisotropy differs. The Al-rich population shows a systematically lower σPM,tan/σPM,rad ratio than the Al-poor population, indicating a signature of radial anisotropy. The difference of anisotropy between the two populations corresponds to a significance of 2.43 σ, confirming a statistically meaningful separation between the two populations. This result is further supported by a permutation-based test, described in Appendix B, which shows that the observed anisotropy contrast is unlikely to arise from a random partitioning of the data. When using the line-of-sight–based anisotropy proxy σPM,tan/σlos, the difference between the two populations is much weaker, with a significance of only 0.51 σ, indicating that the anisotropy contrast is not detected in the line-of-sight component[2] . \n\nFigure 4 presents the radial behaviour of the anisotropy ratio σPM,tan/σPM,rad for the two chemically defined populations. Across the full radial range probed, the Al-rich population consistently exhibits lower σPM,tan/σPM,rad values than the Al-poor population, indicating a more radially biased orbital distribution. In contrast, the Al-poor population remains consistent with an approximately isotropic velocity distribution at all radii. The shaded bands indicate the corresponding global anisotropy values, showing that the population-level separation seen in the global quantities is preserved when the kinematics are examined as a function of radius. \n\nThe kinematic profiles in Fig. 2 complement this populationresolved analysis. The mean tangential proper motion, radial proper motion, and line-of-sight velocity profiles of the Al-poor and Al-rich populations are consistent within the quoted uncertainties across the full radial range. Although individual radial bins show small deviations, we find no evidence for a coherent systematic offset between the population means in any of the three components, indicating that both families follow the same global rotation pattern. The dispersion profiles reveal clearer population-dependent differences. The Al-rich stars exhibit systematically lower tangential velocity dispersion profiles ",
+          "collection": "arxiv_papers_v2",
+          "build_id": "c35fa35e-89c3-5a4c-bbd0-3b8745801521",
+          "paper_id": "0398c15c-c44e-5b90-bb2c-1e96a73da886",
+          "title": "The chemo-dynamical complexity of ω Centauri: different kinematics for different populations",
+          "arxiv_id": "2605.20503",
+          "paper_version": 2,
+          "source_url": "https://arxiv.org/abs/2605.20503v2",
+          "authors": [
+            "G. Pagnini",
+            "P. Bianchini",
+            "P. Di Matteo",
+            "A. Mastrobuono-Battisti"
+          ],
+          "year": 2026,
+          "page": 7,
+          "section_header": "**4. Results**",
+          "content_kind": "text",
+          "chunk_index": 33,
+          "score": 0.03131881575727918,
+          "rerank_score": null,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        },
+        {
+          "id": "36469dea-19d3-58f4-a204-032e54c1680e",
+          "text": "The strongest candidate for such a remnant in the Milky Way halo is _𝜔_ Cen. Although traditionally classified as the most massive Galactic globular cluster, _𝜔_ Cen is exceptional in several respects: it has a broad and multi-peaked metallicity distribution, multiple stellar populations, internal abundance variations in iron-peak and neutroncapture elements, and evidence for a complex age-metallicity structure (e.g. Norris 2004;; Johnson & Pilachowski 2010;; Gratton et al. 2011; Villanova et al. 2014; Nitschai et al. 2024; Alvarez Garay et al.; Villanova et al. 2014; Nitschai et al. 2024; Alvarez Garay et al. Villanova et al. 2014; Nitschai et al. 2024; Alvarez Garay et al.; Nitschai et al. 2024; Alvarez Garay et al. Nitschai et al. 2024; Alvarez Garay et al.; Alvarez Garay et al. Alvarez Garay et al. 2024).). These properties have long motivated the idea that _𝜔_ Cen is the stripped nucleus of an accreted dwarf galaxy rather than a normal globular cluster (e.g. Hilker & Richtler 2000; Bekki & Free- Hilker & Richtler 2000; Bekki & Free-; Bekki & Free- Bekki & Freeman 2003;; Akbaba et al. 2026).). The identity of the parent galaxy, however, remains uncertain. Its retrograde orbit motivated links to retrograde halo substructure, including the Sequoia event (MyeongMyeong et al. 2019). More recent chemo-dynamical studies have instead ar-). More recent chemo-dynamical studies have instead argued that GSE is a plausible, and perhaps preferred, parent system because the metallicity scale, inferred progenitor mass, and broader accretion context are compatible with a nuclear remnant from the GSE galaxy (PfefferPfeffer et al. 2021;; Limberg et al. 2022;; Laporte & Orkney 2026;; Souza et al. 2026).).",
+          "collection": "arxiv_papers_v2",
+          "build_id": "90456f74-656c-5dc3-bac6-5739e80edeee",
+          "paper_id": "f4441bd7-b28a-5316-a6c2-7f0df80bc846",
+          "title": "Bar-induced migration of $ω$ Centauri away from Gaia Sausage-Enceladus",
+          "arxiv_id": "2606.12516",
+          "paper_version": 2,
+          "source_url": "https://arxiv.org/abs/2606.12516v2",
+          "authors": [
+            "Adam M. Dillamore",
+            "Hanyuan Zhang",
+            "Vasily Belokurov"
+          ],
+          "year": 2026,
+          "page": 1,
+          "section_header": "_𝜔_ **Bar-induced migration of Centauri away from Gaia Sausage-Enceladus**",
+          "content_kind": "text",
+          "chunk_index": 5,
+          "score": 0.028629032258064516,
+          "rerank_score": null,
+          "type": "text",
+          "image_path": null,
+          "caption": null
+        }
+      ],
+      "claims": [
+        {
+          "text": "The chemo-dynamical study (Pagnini et al.) used a Gaussian mixture model in an 8D chemical-abundance space and identifies five chemical components that naturally group into two broader families characterised by lower and higher aluminium enrichment.",
+          "cited_context_ids": [
+            "20ef972b-a15a-58ef-8c71-0257d30cc35d"
+          ],
+          "need_ids": []
+        },
+        {
+          "text": "Pagnini et al. report that the Al-rich stars are more centrally concentrated and exhibit stronger radial anisotropy than the Al-poor stars, which remain closer to isotropy over the radial range probed.",
+          "cited_context_ids": [
+            "20ef972b-a15a-58ef-8c71-0257d30cc35d"
+          ],
+          "need_ids": []
+        },
+        {
+          "text": "Pagnini et al. find that despite the significant differences in anisotropy, the Al-rich and Al-poor families share a common rotation pattern, with comparable intrinsic rotation amplitudes and rotation-axis inclinations within the uncertainties (≈ 0.5 km s⁻¹).",
+          "cited_context_ids": [
+            "20ef972b-a15a-58ef-8c71-0257d30cc35d"
+          ],
+          "need_ids": []
+        },
+        {
+          "text": "In the population-resolved analysis, Pagnini et al. report that the Al-rich population shows a systematically lower σ_PM,tan / σ_PM,rad ratio than the Al-poor population, indicating a signature of radial anisotropy, with the difference in anisotropy corresponding to a significance of 2.43σ.",
+          "cited_context_ids": [
+            "13a7fc71-a0d3-5b40-9931-19b3162e6190"
+          ],
+          "need_ids": []
+        },
+        {
+          "text": "Pagnini et al. also report that when using the line-of-sight–based anisotropy proxy σ_PM,tan / σ_los, the difference between the two populations is much weaker, with a significance of only 0.51σ.",
+          "cited_context_ids": [
+            "13a7fc71-a0d3-5b40-9931-19b3162e6190"
+          ],
+          "need_ids": []
+        },
+        {
+          "text": "The bar-induced migration paper states that ω Centauri is exceptional among Galactic globular clusters, having a broad and multi-peaked metallicity distribution, multiple stellar populations, internal abundance variations in iron-peak and neutron-capture elements, and evidence for a complex age–metallicity structure, motivating the idea that it may be the stripped nucleus of an accreted dwarf galaxy.",
+          "cited_context_ids": [
+            "36469dea-19d3-58f4-a204-032e54c1680e"
+          ],
+          "need_ids": []
+        },
+        {
+          "text": "That paper also states that the identity of ω Centauri’s parent galaxy remains uncertain: its retrograde orbit motivated links to the Sequoia event, while more recent chemo-dynamical studies have argued that Gaia-Sausage-Enceladus (GSE) is a plausible, and perhaps preferred, parent system.",
+          "cited_context_ids": [
+            "36469dea-19d3-58f4-a204-032e54c1680e"
+          ],
+          "need_ids": []
+        },
+        {
+          "text": "The bar-induced migration study concludes that a GSE origin for ω Centauri is dynamically and chemically plausible, but that tracing ω Centauri back to the GSE phase-space region would likely require a bar pattern speed of Ω_b ≲ 26 km s⁻¹ kpc⁻¹, which is much lower than most recent estimates, so a GSE origin would require a re-evaluation of the bar’s pattern speed.",
+          "cited_context_ids": [
+            "36fa023e-cc4a-524c-b582-28692f415c87"
+          ],
+          "need_ids": []
+        },
+        {
+          "text": "Pagnini et al. present their work as the first chemo-dynamical study linking detailed chemical tagging to internal kinematics from the inner regions to the cluster outskirts and state that a formation path involving both hierarchical assembly within a dwarf-galaxy potential and centrally concentrated, chemically enriched star formation offers a natural explanation for the observed chemo-dynamical complexity.",
+          "cited_context_ids": [
+            "20ef972b-a15a-58ef-8c71-0257d30cc35d"
+          ],
+          "need_ids": []
+        }
+      ],
+      "cited_context_ids": [
+        "13a7fc71-a0d3-5b40-9931-19b3162e6190",
+        "20ef972b-a15a-58ef-8c71-0257d30cc35d",
+        "36469dea-19d3-58f4-a204-032e54c1680e",
+        "36fa023e-cc4a-524c-b582-28692f415c87"
+      ],
+      "metrics": {
+        "retrieval_hit": 1.0,
+        "retrieval_recall": 1.0,
+        "gold_citation_recall": 1.0,
+        "citation_from_retrieval": 1.0,
+        "retrieved_count": 5,
+        "cited_count": 4,
+        "required_paper_count": 2,
+        "retrieved_required_paper_count": 2,
+        "cited_required_paper_count": 2,
+        "required_paper_retrieval_recall": 1.0,
+        "required_paper_citation_recall": 1.0,
+        "all_required_papers_retrieved": 1.0,
+        "required_numeric_value_count": 1,
+        "covered_required_numeric_value_count": 1,
+        "required_numeric_value_recall": 1.0,
+        "missing_required_numeric_values": [],
+        "answer_correctness": 1.0,
+        "groundedness": 1.0,
+        "answer_relevance": 1.0,
+        "correct_abstention": null
+      },
+      "judge": {
+        "correctness": 1.0,
+        "answer_relevance": 1.0,
+        "abstention": "not_applicable",
+        "reason": "Reference assessment: The actual answer correctly states the measured rotation parity, the anisotropy difference and its 2.43σ significance, and it accurately summarizes the introductory evidence and uncertainty about a stripped-nucleus origin and possible parent systems (Sequoia vs GSE) and the bar-pattern-speed caveat. All requested facts are present and supported by the answer text. Grounding assessment: Each claim is directly supported by a verbatim excerpt from its cited paper; the excerpts quote matching operations, values, uncertainties and qualifications for the same objects and populations.",
+        "answer_checks": [
+          {
+            "question_part_id": "q_a",
+            "requested_fact": "Measured internal rotation: comparable intrinsic rotation amplitudes / shared global rotation pattern",
+            "status": "answered",
+            "required_numeric_values": [],
+            "missing_or_incorrect_detail": "",
+            "deficit_basis": "none",
+            "claimed_missing_answer_fragments": [],
+            "answer_claim_ids": [
+              "a0004",
+              "a0003"
+            ],
+            "answer_quotes": [
+              "Pagnini et al. find that despite the significant differences in anisotropy, the Al-rich and Al-poor families share a common rotation pattern, with comparable intrinsic rotation amplitudes and rotation-axis inclinations within the uncertainties (≈ 0.5 km s⁻¹).",
+              "Pagnini et al. report that the Al-rich stars are more centrally concentrated and exhibit stronger radial anisotropy than the Al-poor stars, which remain closer to isotropy over the radial range probed."
+            ]
+          },
+          {
+            "question_part_id": "q_a",
+            "requested_fact": "Measured anisotropy: Al-rich more radially biased; Al-poor approximately isotropic; anisotropy difference significance 2.43",
+            "status": "answered",
+            "required_numeric_values": [
+              "2.43"
+            ],
+            "missing_or_incorrect_detail": "",
+            "deficit_basis": "none",
+            "claimed_missing_answer_fragments": [],
+            "answer_claim_ids": [
+              "a0005",
+              "a0007",
+              "a0003"
+            ],
+            "answer_quotes": [
+              "In the population-resolved analysis, Pagnini et al. report that the Al-rich population shows a systematically lower σ_PM,tan / σ_PM,rad ratio than the Al-poor population, indicating a signature of radial anisotropy, with the difference in anisotropy corresponding to a significance of 2.43σ.",
+              "Pagnini et al. also report that when using the line-of-sight–based anisotropy proxy σ_PM,tan / σ_los, the difference between the two populations is much weaker, with a significance of only 0.51σ.",
+              "Pagnini et al. report that the Al-rich stars are more centrally concentrated and exhibit stronger radial anisotropy than the Al-poor stars, which remain closer to isotropy over the radial range probed."
+            ]
+          },
+          {
+            "question_part_id": "q_b",
+            "requested_fact": "Introductory evidence motivating a stripped-nucleus interpretation (broad, multi-peaked metallicity distribution; multiple populations; internal abundance variations; complex age–metallicity structure)",
+            "status": "answered",
+            "required_numeric_values": [],
+            "missing_or_incorrect_detail": "",
+            "deficit_basis": "none",
+            "claimed_missing_answer_fragments": [],
+            "answer_claim_ids": [
+              "a0008"
+            ],
+            "answer_quotes": [
+              "The bar-induced migration paper states that ω Centauri is exceptional among Galactic globular clusters, having a broad and multi-peaked metallicity distribution, multiple stellar populations, internal abundance variations in iron-peak and neutron-capture elements, and evidence for a complex age–metallicity structure, motivating the idea that it may be the stripped nucleus of an accreted dwarf galaxy."
+            ]
+          },
+          {
+            "question_part_id": "q_b",
+            "requested_fact": "Uncertainty about the parent galaxy: retrograde orbit linked to Sequoia; more recent studies argue GSE is plausible/preferred; bar-induced migration paper notes GSE origin requires low bar pattern speed (Ω_b ≲ 26 km s⁻¹ kpc⁻¹) making this nontrivial",
+            "status": "answered",
+            "required_numeric_values": [],
+            "missing_or_incorrect_detail": "",
+            "deficit_basis": "none",
+            "claimed_missing_answer_fragments": [],
+            "answer_claim_ids": [
+              "a0010",
+              "a0011"
+            ],
+            "answer_quotes": [
+              "That paper also states that the identity of ω Centauri’s parent galaxy remains uncertain: its retrograde orbit motivated links to the Sequoia event, while more recent chemo-dynamical studies have argued that Gaia-Sausage-Enceladus (GSE) is a plausible, and perhaps preferred, parent system.",
+              "The bar-induced migration study concludes that a GSE origin for ω Centauri is dynamically and chemically plausible, but that tracing ω Centauri back to the GSE phase-space region would likely require a bar pattern speed of Ω_b ≲ 26 km s⁻¹ kpc⁻¹, which is much lower than most recent estimates, so a GSE origin would require a re-evaluation of the bar’s pattern speed."
+            ]
+          }
+        ],
+        "answer_anchors": [
+          {
+            "id": "a0001",
+            "text": "The chemo-dynamical study (Pagnini et al.) used a Gaussian mixture model in an 8D chemical-abundance space and identifies five chemical components that naturally group into two broader families characterised by lower and higher aluminium enrichment.",
+            "source": "claim",
+            "claim_index": 0
+          },
+          {
+            "id": "a0002",
+            "text": " [1]",
+            "source": "answer_span",
+            "claim_index": null
+          },
+          {
+            "id": "a0003",
+            "text": "Pagnini et al. report that the Al-rich stars are more centrally concentrated and exhibit stronger radial anisotropy than the Al-poor stars, which remain closer to isotropy over the radial range probed.",
+            "source": "claim",
+            "claim_index": 1
+          },
+          {
+            "id": "a0004",
+            "text": "Pagnini et al. find that despite the significant differences in anisotropy, the Al-rich and Al-poor families share a common rotation pattern, with comparable intrinsic rotation amplitudes and rotation-axis inclinations within the uncertainties (≈ 0.5 km s⁻¹).",
+            "source": "claim",
+            "claim_index": 2
+          },
+          {
+            "id": "a0005",
+            "text": "In the population-resolved analysis, Pagnini et al. report that the Al-rich population shows a systematically lower σ_PM,tan / σ_PM,rad ratio than the Al-poor population, indicating a signature of radial anisotropy, with the difference in anisotropy corresponding to a significance of 2.43σ.",
+            "source": "claim",
+            "claim_index": 3
+          },
+          {
+            "id": "a0006",
+            "text": " [2]",
+            "source": "answer_span",
+            "claim_index": null
+          },
+          {
+            "id": "a0007",
+            "text": "Pagnini et al. also report that when using the line-of-sight–based anisotropy proxy σ_PM,tan / σ_los, the difference between the two populations is much weaker, with a significance of only 0.51σ.",
+            "source": "claim",
+            "claim_index": 4
+          },
+          {
+            "id": "a0008",
+            "text": "The bar-induced migration paper states that ω Centauri is exceptional among Galactic globular clusters, having a broad and multi-peaked metallicity distribution, multiple stellar populations, internal abundance variations in iron-peak and neutron-capture elements, and evidence for a complex age–metallicity structure, motivating the idea that it may be the stripped nucleus of an accreted dwarf galaxy.",
+            "source": "claim",
+            "claim_index": 5
+          },
+          {
+            "id": "a0009",
+            "text": " [3]",
+            "source": "answer_span",
+            "claim_index": null
+          },
+          {
+            "id": "a0010",
+            "text": "That paper also states that the identity of ω Centauri’s parent galaxy remains uncertain: its retrograde orbit motivated links to the Sequoia event, while more recent chemo-dynamical studies have argued that Gaia-Sausage-Enceladus (GSE) is a plausible, and perhaps preferred, parent system.",
+            "source": "claim",
+            "claim_index": 6
+          },
+          {
+            "id": "a0011",
+            "text": "The bar-induced migration study concludes that a GSE origin for ω Centauri is dynamically and chemically plausible, but that tracing ω Centauri back to the GSE phase-space region would likely require a bar pattern speed of Ω_b ≲ 26 km s⁻¹ kpc⁻¹, which is much lower than most recent estimates, so a GSE origin would require a re-evaluation of the bar’s pattern speed.",
+            "source": "claim",
+            "claim_index": 7
+          },
+          {
+            "id": "a0012",
+            "text": "Pagnini et al. present their work as the first chemo-dynamical study linking detailed chemical tagging to internal kinematics from the inner regions to the cluster outskirts and state that a formation path involving both hierarchical assembly within a dwarf-galaxy potential and centrally concentrated, chemically enriched star formation offers a natural explanation for the observed chemo-dynamical complexity.",
+            "source": "claim",
+            "claim_index": 8
+          }
+        ],
+        "reference_score_status": "scored",
+        "groundedness": 1.0
+      },
+      "judge_request": {
+        "reference": {
+          "response_id": "resp_05b8f757ccd0281e016adafd251aec87d29bf6856ef6021760",
+          "response_ids": [
+            "resp_05b8f757ccd0281e016adafd251aec87d29bf6856ef6021760"
+          ],
+          "attempts": 1,
+          "quote_validation_failures": [],
+          "schema_validation_failures": [],
+          "consistency_validation_failures": [],
+          "consistency_status": "no_detected_conflict",
+          "raw_correctness": 1.0,
+          "score_status": "scored",
+          "answer_anchor_mode": "claim_ids",
+          "request_id": "req_05aa2e6326484ce89349083e09737b01",
+          "model": "gpt-5-mini-2025-08-07",
+          "max_output_tokens": 16384,
+          "usage": {
+            "input_tokens": 4746,
+            "output_tokens": 593,
+            "total_tokens": 5339
+          }
+        },
+        "grounding": {
+          "response_id": "resp_0759b884a2d18eae016adafd2ac7fc87d2bf69ae47e12f0b1f",
+          "response_ids": [
+            "resp_0759b884a2d18eae016adafd2ac7fc87d2bf69ae47e12f0b1f"
+          ],
+          "attempts": 1,
+          "quote_validation_failures": [],
+          "schema_validation_failures": [],
+          "consistency_validation_failures": [],
+          "consistency_status": "no_detected_conflict",
+          "raw_correctness": null,
+          "score_status": "scored",
+          "answer_anchor_mode": "claim_ids",
+          "request_id": "req_8e7a05178e1943db8c31c8a56888a281",
+          "model": "gpt-5-mini-2025-08-07",
+          "max_output_tokens": 16384,
+          "usage": {
+            "input_tokens": 8218,
+            "output_tokens": 317,
+            "total_tokens": 8535
+          },
+          "method_attributions": [
+            {
+              "applicability": "not_applicable",
+              "answer_claim_id": "a0001",
+              "claim_index": 0
+            },
+            {
+              "applicability": "not_applicable",
+              "answer_claim_id": "a0002",
+              "claim_index": 1
+            },
+            {
+              "applicability": "not_applicable",
+              "answer_claim_id": "a0003",
+              "claim_index": 2
+            },
+            {
+              "applicability": "not_applicable",
+              "answer_claim_id": "a0004",
+              "claim_index": 3
+            },
+            {
+              "applicability": "not_applicable",
+              "answer_claim_id": "a0005",
+              "claim_index": 4
+            },
+            {
+              "applicability": "not_applicable",
+              "answer_claim_id": "a0006",
+              "claim_index": 5
+            },
+            {
+              "applicability": "not_applicable",
+              "answer_claim_id": "a0007",
+              "claim_index": 6
+            },
+            {
+              "applicability": "not_applicable",
+              "answer_claim_id": "a0008",
+              "claim_index": 7
+            },
+            {
+              "applicability": "not_applicable",
+              "answer_claim_id": "a0009",
+              "claim_index": 8
+            }
+          ],
+          "claim_anchors": [
+            {
+              "id": "a0001",
+              "claim_index": 0
+            },
+            {
+              "id": "a0002",
+              "claim_index": 1
+            },
+            {
+              "id": "a0003",
+              "claim_index": 2
+            },
+            {
+              "id": "a0004",
+              "claim_index": 3
+            },
+            {
+              "id": "a0005",
+              "claim_index": 4
+            },
+            {
+              "id": "a0006",
+              "claim_index": 5
+            },
+            {
+              "id": "a0007",
+              "claim_index": 6
+            },
+            {
+              "id": "a0008",
+              "claim_index": 7
+            },
+            {
+              "id": "a0009",
+              "claim_index": 8
+            }
+          ],
+          "annotation_validation_failures": [],
+          "method_validation_failures": [],
+          "method_scope_issues": [],
+          "raw_groundedness": 1.0
+        }
+      },
+      "judge_error": null,
+      "judge_safeguards": [],
+      "agent_execution": null,
+      "retrieval_diagnostics": {
+        "policy": "hybrid-reviewed-graph-v5",
+        "publication_id": "publication:ef340620c8c35358052b02616a177172a1bdc4710641fe603f2fc127b447ba70",
+        "graph_name": "star-clusters-pilot",
+        "extraction_revision": "83a393f73bedc2a248aba2000cf7a16208a461029afa3b86322cd97fbd384549",
+        "plan_id": "65d9079bda8743744583da188e5b9a41fe1e37a1649ec353512ef0908c88bb0e",
+        "graph_paper_count": 8,
+        "eligible_graph_paper_count": 2,
+        "graph_build_ids": [
+          "90456f74-656c-5dc3-bac6-5739e80edeee",
+          "c35fa35e-89c3-5a4c-bbd0-3b8745801521"
+        ],
+        "excluded_graph_paper_count": 6,
+        "matched_entity_ids": [
+          "record:467146bb61c14d9807df88a6bff9d10fac6fad4b8a99187fcf2e35e3da28875b"
+        ],
+        "seed_record_count": 20,
+        "validated_record_count": 49,
+        "traversed_record_ids": [
+          "record:0348742797ec7dd286d5f094eecf5d0b492399ca1af0a8fb3ba142ad4a48e0f2",
+          "record:08e8420fcf9fe0019cb1f3cae06a32fdfdafa3c5015847a82970d463671f8217",
+          "record:0ac7ea8cf1ed105f7a0f90b450f38d6bf9d2ee89ab064b60fe9f215f08f2b3fb",
+          "record:133faa21b2b28744e8dd057868ed6fda2b2408b78dbc7aa0880caf709f777cd0",
+          "record:15dd378611b47590fd56960740fa644ad6e15b009aab13797728745a9b88e48b",
+          "record:2c5f3f8879e0360387e0b20c42e2db8d21b3061b86318d2350847533f84b3911",
+          "record:38c7dbc74aca54d3963a8922d77172720caec92bd6ff4e5644484aa88cf041de",
+          "record:39c46f642c6a41d44ee534f3ed64e85865e6871774dfa84e7d8ea79955124b03",
+          "record:3bb10ddecdb72a4a91873ca4f9251c8106b7c96cd5f33dc25408d00bacfe3f52",
+          "record:467146bb61c14d9807df88a6bff9d10fac6fad4b8a99187fcf2e35e3da28875b",
+          "record:510e1ea928d4ab721698a25db8511f7b71a86cae75e955910be74ba14711975c",
+          "record:619e7e73068e8f395a76c56a52b7f65ae22ce6d9c2c2ea7eb850fcf298fe3d5c",
+          "record:624c1f0efb472d449d9a7ee3fd458c0cbf7a35261e2217ebc34f3d04b5ebcb24",
+          "record:6bd3e6b824905908c91dc37a3eb15e87008c20d238ca1a8d49919b72f36931f9",
+          "record:7718b494cf022dcbdc6056f4890259f7101c667fada11a791ec536fc6f76bc09",
+          "record:861437879fa807baf12c72fa763cfe00baedbcf2db0182e91058be76438c8536",
+          "record:8f6257ac863dee2e309bffbbc1506aca8754c37c555c09578ba1c0ced83e5a08",
+          "record:acdf61bb070ebcd3ee68a7d8011a647822c5cb4f61ce702ad69c15db4998ef11",
+          "record:c26d2db5cdb0fe7cbfbd03bf5b38e6301767f87fec8006922d3cb36ee3b20ec3",
+          "record:c7ea01937ea6c34cd0d0d11e7818392d2d66a4ecfd5b4e47501128b988101c8c",
+          "record:dc51e6f96f01f1bbf7d4ab3283831160dcaefa522ce27c4a5ba7277f70a4e8e3",
+          "record:ee8d0e89692d8233a0a3ca02f45d63ab5ed5f7946d1f268506b8009ba681aec7",
+          "record:f41519f4de8c5617bbcfe972977c594cdab635cd8ef67166a4a36bd9bf62b913",
+          "record:ff9f94dcb817aff34d49af47663d26c77d4f08b1e2c7fbfaed478f619ae914e9"
+        ],
+        "graph_candidate_count": 3,
+        "graph_candidates_truncated": false,
+        "graph_chunk_ids": [
+          "13a7fc71-a0d3-5b40-9931-19b3162e6190",
+          "36469dea-19d3-58f4-a204-032e54c1680e",
+          "751186b5-e54a-5c68-8256-038b9b4044d2"
+        ],
+        "scope_kind": "frozen",
+        "traversal_max_links": 2,
+        "database_writes": 0,
+        "graph_paper_scope": "resolved_named_papers",
+        "graph_requested_build_ids": [
+          "90456f74-656c-5dc3-bac6-5739e80edeee",
+          "c35fa35e-89c3-5a4c-bbd0-3b8745801521"
+        ],
+        "requested_fact_record_count": 6,
+        "fact_matching_policy": "named-assertion-literal-overlap-v1",
+        "fact_matching_min_terms": 2,
+        "graph_scope_excluded_build_ids": [
+          "34eb5f35-38cc-52c0-b968-919813e40de3",
+          "3ee890b7-f475-51fc-93bd-8e222f1812de",
+          "7e872b04-edf9-580e-bb62-3fdcde30a06a",
+          "857f03f5-5a9d-5259-9c13-3fb2366b96f1",
+          "bee7f645-7b83-52b8-b1f5-03410d99d146",
+          "f68cb9e4-8b5a-5b1f-9080-d174a829e777"
+        ],
+        "promotion_anchor_entities": [
+          {
+            "record_id": "record:467146bb61c14d9807df88a6bff9d10fac6fad4b8a99187fcf2e35e3da28875b",
+            "kind": "astronomical_object",
+            "names": [
+              "ω Centauri"
+            ]
+          }
+        ],
+        "graph_candidate_support": [
+          {
+            "collection": "arxiv_papers_v2",
+            "id": "13a7fc71-a0d3-5b40-9931-19b3162e6190",
+            "anchor_record_ids": [],
+            "fact_record_id": "record:3bb10ddecdb72a4a91873ca4f9251c8106b7c96cd5f33dc25408d00bacfe3f52",
+            "fact_record_kind": "qualitative_finding",
+            "matched_fact_terms": [
+              "al",
+              "poor",
+              "rich",
+              "uncertainty"
+            ]
+          },
+          {
+            "collection": "arxiv_papers_v2",
+            "id": "36469dea-19d3-58f4-a204-032e54c1680e",
+            "anchor_record_ids": [],
+            "fact_record_id": "record:8f6257ac863dee2e309bffbbc1506aca8754c37c555c09578ba1c0ced83e5a08",
+            "fact_record_kind": "hypothesis",
+            "matched_fact_terms": [
+              "galaxy",
+              "nucleus",
+              "stripped"
+            ]
+          },
+          {
+            "collection": "arxiv_papers_v2",
+            "id": "751186b5-e54a-5c68-8256-038b9b4044d2",
+            "anchor_record_ids": [
+              "record:467146bb61c14d9807df88a6bff9d10fac6fad4b8a99187fcf2e35e3da28875b"
+            ]
+          }
+        ],
+        "query_entity_names": [
+          "Omega Centauri",
+          "ω Centauri"
+        ],
+        "resolved_catalogue_ids": [],
+        "cross_paper_entity_groups": [],
+        "entity_resolution_conflicts": [],
+        "identity_expanded_seed_count": 0,
+        "survey_coverage_requested": true,
+        "coverage_candidate_paper_ids": [],
+        "coverage_selected_paper_ids": [],
+        "paper_diversity_applied": true,
+        "named_required_build_ids": [
+          "90456f74-656c-5dc3-bac6-5739e80edeee",
+          "c35fa35e-89c3-5a4c-bbd0-3b8745801521"
+        ],
+        "named_candidate_missing_build_ids": [],
+        "named_selected_missing_build_ids": [],
+        "selection_policy": "protected-hybrid-bounded-graph-v2",
+        "hybrid_baseline_chunks": [
+          {
+            "collection": "arxiv_papers_v2",
+            "id": "20ef972b-a15a-58ef-8c71-0257d30cc35d"
+          },
+          {
+            "collection": "arxiv_papers_v2",
+            "id": "dcdbec70-74ac-514c-b4a9-87a031e42f4d"
+          },
+          {
+            "collection": "arxiv_papers_v2",
+            "id": "96e32909-cdb3-5419-a73a-dd2d32637f9e"
+          },
+          {
+            "collection": "arxiv_papers_v2",
+            "id": "e79d8ab0-16a0-5ab3-b1b1-b87903cc03e2"
+          },
+          {
+            "collection": "arxiv_papers_v2",
+            "id": "36fa023e-cc4a-524c-b582-28692f415c87"
+          }
+        ],
+        "protected_hybrid_chunks": [
+          {
+            "collection": "arxiv_papers_v2",
+            "id": "20ef972b-a15a-58ef-8c71-0257d30cc35d"
+          },
+          {
+            "collection": "arxiv_papers_v2",
+            "id": "dcdbec70-74ac-514c-b4a9-87a031e42f4d"
+          },
+          {
+            "collection": "arxiv_papers_v2",
+            "id": "36fa023e-cc4a-524c-b582-28692f415c87"
+          }
+        ],
+        "hybrid_protected_count": 3,
+        "graph_expansion_limit": 2,
+        "graph_expansion_count": 2,
+        "graph_expansion_chunks": [
+          {
+            "collection": "arxiv_papers_v2",
+            "id": "13a7fc71-a0d3-5b40-9931-19b3162e6190"
+          },
+          {
+            "collection": "arxiv_papers_v2",
+            "id": "36469dea-19d3-58f4-a204-032e54c1680e"
+          }
+        ],
+        "displaced_hybrid_chunks": [
+          {
+            "collection": "arxiv_papers_v2",
+            "id": "96e32909-cdb3-5419-a73a-dd2d32637f9e"
+          },
+          {
+            "collection": "arxiv_papers_v2",
+            "id": "e79d8ab0-16a0-5ab3-b1b1-b87903cc03e2"
+          }
+        ],
+        "graph_candidate_decisions": [
+          {
+            "collection": "arxiv_papers_v2",
+            "id": "13a7fc71-a0d3-5b40-9931-19b3162e6190",
+            "build_id": "c35fa35e-89c3-5a4c-bbd0-3b8745801521",
+            "qualified": true,
+            "reason": "qualified_graph_expansion",
+            "anchor_record_ids": [],
+            "qualification_basis": "named_paper_fact_overlap",
+            "fact_record_id": "record:3bb10ddecdb72a4a91873ca4f9251c8106b7c96cd5f33dc25408d00bacfe3f52",
+            "fact_record_kind": "qualitative_finding",
+            "matched_fact_terms": [
+              "al",
+              "poor",
+              "rich",
+              "uncertainty"
+            ],
+            "selected": true,
+            "selection_role": "graph_expansion"
+          },
+          {
+            "collection": "arxiv_papers_v2",
+            "id": "36469dea-19d3-58f4-a204-032e54c1680e",
+            "build_id": "90456f74-656c-5dc3-bac6-5739e80edeee",
+            "qualified": true,
+            "reason": "qualified_graph_expansion",
+            "anchor_record_ids": [],
+            "qualification_basis": "named_paper_fact_overlap",
+            "fact_record_id": "record:8f6257ac863dee2e309bffbbc1506aca8754c37c555c09578ba1c0ced83e5a08",
+            "fact_record_kind": "hypothesis",
+            "matched_fact_terms": [
+              "galaxy",
+              "nucleus",
+              "stripped"
+            ],
+            "selected": true,
+            "selection_role": "graph_expansion"
+          },
+          {
+            "collection": "arxiv_papers_v2",
+            "id": "751186b5-e54a-5c68-8256-038b9b4044d2",
+            "build_id": "c35fa35e-89c3-5a4c-bbd0-3b8745801521",
+            "qualified": true,
+            "reason": "expansion_capacity_exhausted",
+            "anchor_record_ids": [
+              "record:467146bb61c14d9807df88a6bff9d10fac6fad4b8a99187fcf2e35e3da28875b"
+            ],
+            "qualification_basis": "specific_entity_path",
+            "fact_record_id": null,
+            "fact_record_kind": null,
+            "matched_fact_terms": [],
+            "selected": false,
+            "selection_role": "rejected"
+          }
+        ],
+        "graph_rejected_candidate_count": 0,
+        "hybrid_seed_count": 20,
+        "hybrid_candidate_limit": 20,
+        "selected_graph_chunk_count": 2,
+        "selected_chunk_count": 5,
+        "graph_used": true,
+        "hybrid_seconds": 0.525,
+        "graph_seconds": 0.105,
+        "retrieval_status": "graph_augmented",
+        "candidate_count": 21,
+        "candidate_paper_ids": [
+          "0398c15c-c44e-5b90-bb2c-1e96a73da886",
+          "20ae5d4a-c291-5ce9-ba9f-038fe2fd905c",
+          "f4441bd7-b28a-5316-a6c2-7f0df80bc846"
+        ],
+        "candidate_paper_count": 3,
+        "selected_paper_ids": [
+          "0398c15c-c44e-5b90-bb2c-1e96a73da886",
+          "f4441bd7-b28a-5316-a6c2-7f0df80bc846"
+        ],
+        "selected_paper_count": 2,
+        "required_paper_count": 2,
+        "required_paper_candidate_recall": 1.0,
+        "required_paper_selected_recall": 1.0,
+        "all_required_papers_in_candidates": 1.0,
+        "all_required_papers_selected": 1.0
+      },
+      "generation_diagnostics": null,
+      "stage_timings": {
+        "embedding_seconds": 0.192156,
+        "qdrant_seconds": 0.329318,
+        "kg_hybrid_seconds": 0.525,
+        "kg_graph_seconds": 0.105,
+        "retrieval_seconds": 0.68,
+        "generation_seconds": 20.323,
+        "pipeline_seconds": 21.011,
+        "judge_reference_seconds": 5.617,
+        "judge_grounding_seconds": 3.146,
+        "judge_seconds": 8.763
+      },
+      "elapsed_seconds": 29.779,
+      "error": null
+    }
+  ]
+}

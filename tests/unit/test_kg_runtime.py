@@ -74,7 +74,10 @@ def test_streamlit_kg_submission_details_and_pinning(monkeypatch):
     response = Mock(status_code=200,headers={})
     response.json.return_value = dict(answer="Answer",sources=[],images=[],chat_history=[],
         corpus_snapshot="snapshot",kg_retrieval=dict(publication_id="pub",retrieval_status="graph_augmented",
-            eligible_graph_paper_count=7,graph_paper_count=7,selected_graph_chunk_count=2))
+            eligible_graph_paper_count=7,graph_paper_count=7,selected_graph_chunk_count=2,
+            selection_policy="protected-hybrid-bounded-graph-v1",hybrid_protected_count=3,
+            graph_expansion_count=2,graph_expansion_limit=2,graph_paper_scope="resolved_named_papers",
+            graph_candidate_decisions=[dict(id="point",qualified=True,reason="qualified_graph_expansion")]))
     post = Mock(return_value=response)
     monkeypatch.setattr("requests.post",post)
     app = testing.AppTest.from_file(str(root/"src/chatbot_ui/main.py")).run(timeout=10)
@@ -86,6 +89,8 @@ def test_streamlit_kg_submission_details_and_pinning(monkeypatch):
     assert post.call_args.kwargs["json"]["mode"] == "kg"
     assert app.session_state.kg_publication_id == "pub"
     assert any(w.label=="KG retrieval details" for w in app.expander)
+    assert any("Protected Hybrid chunks: 3" in w.value for w in app.caption)
+    assert any("restricted to the resolved named papers" in w.value for w in app.caption)
     next(w for w in app.button if w.label=="Start new conversation").click().run(timeout=10)
     assert "kg_publication_id" not in app.session_state
 
@@ -108,6 +113,10 @@ def test_benchmark_kg_pins_manifest_and_each_item(tmp_path,monkeypatch):
     output=runner.run(args)
     manifest=json.loads((output/"manifest.json").read_text())
     assert manifest["kg_configuration"]["publication_id"] == "pub"
+    assert manifest["kg_configuration"]["selection_policy"] == "protected-hybrid-bounded-graph-v2"
+    assert manifest["kg_configuration"]["max_graph_expansions"] == 2
+    assert manifest["kg_configuration"]["fact_matching_policy"] == "named-assertion-literal-overlap-v1"
+    assert manifest["kg_configuration"]["fact_matching_min_terms"] == 2
     assert evaluate.call_args.kwargs["kg_publication_id"] == "pub"
     assert manifest["modes"] == ["kg"]
 
@@ -120,7 +129,7 @@ def test_kg_summary_reports_hybrid_only_honestly():
     assert result["kg"]["kg_retrieval"]["hybrid_only_runs"] == 1
 
 
-@pytest.mark.parametrize("policy", ["hybrid-reviewed-graph-v2", "hybrid-reviewed-graph-v3"])
+@pytest.mark.parametrize("policy", ["hybrid-reviewed-graph-v2", "hybrid-reviewed-graph-v3", "hybrid-reviewed-graph-v4", "hybrid-reviewed-graph-v5"])
 def test_kg_v2_summary_keeps_identity_and_diversity_diagnostics(policy):
     from evals import run_benchmark as runner
     result=runner.summarize([dict(mode="kg",kind="cross_paper",elapsed_seconds=0.1,error=None,metrics={},
@@ -130,6 +139,23 @@ def test_kg_v2_summary_keeps_identity_and_diversity_diagnostics(policy):
     summary=result["kg"]["kg_retrieval"]
     assert summary["graph_used_runs"] == 1
     assert summary["cross_paper_identity_runs"] == summary["paper_diversity_runs"] == 1
+
+
+def test_v4_summary_distinguishes_graph_provenance_from_actual_expansion():
+    from evals import run_benchmark as runner
+    diagnostics = dict(policy="hybrid-reviewed-graph-v4",publication_id="pub",graph_used=False,
+        selected_graph_chunk_count=1,graph_expansion_count=0,hybrid_protected_count=3,
+        displaced_hybrid_chunks=[],graph_candidate_decisions=[dict(
+            qualified=False,reason="no_specific_query_anchor")])
+    row = dict(mode="kg",kind="single_paper",elapsed_seconds=0.1,error=None,metrics={},
+               retrieval_diagnostics=diagnostics)
+    summary = runner.summarize([row],["kg"])["kg"]["kg_retrieval"]
+    assert summary["graph_used_runs"] == summary["graph_expansion_runs"] == 0
+    assert summary["hybrid_only_runs"] == 1 and summary["mean_selected_graph_chunks"] == 1
+    assert summary["graph_candidate_rejection_reasons"] == {"no_specific_query_anchor":1}
+    report = runner.report_markdown(dict(run_id="test",dataset_hash="offline",modes=["kg"]),
+                                    runner.summarize([row],["kg"]))
+    assert "actual graph-expansion runs: 0" in report
 
 
 def test_benchmark_summary_exposes_kg_codes_and_stages_without_fabricated_scores():

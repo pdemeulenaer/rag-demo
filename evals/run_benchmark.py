@@ -1340,7 +1340,8 @@ def _summarize_rows(rows: list[dict]) -> dict:
         result["retrieval_diagnostics"] = retrieval_diagnostics
     graph_rows = [r["retrieval_diagnostics"] for r in rows
                   if (r.get("retrieval_diagnostics") or {}).get("policy") in
-                  {"hybrid-reviewed-graph-v1", "hybrid-reviewed-graph-v2", "hybrid-reviewed-graph-v3"}]
+                  {"hybrid-reviewed-graph-v1", "hybrid-reviewed-graph-v2", "hybrid-reviewed-graph-v3",
+                   "hybrid-reviewed-graph-v4", "hybrid-reviewed-graph-v5"}]
     if graph_rows:
         result["kg_retrieval"] = {
             "runs": len(graph_rows),
@@ -1351,6 +1352,20 @@ def _summarize_rows(rows: list[dict]) -> dict:
             "cross_paper_identity_runs": sum(bool(r.get("cross_paper_entity_groups")) for r in graph_rows),
             "paper_diversity_runs": sum(bool(r.get("paper_diversity_applied")) for r in graph_rows),
         }
+        selection_rows = [r for r in graph_rows if "graph_expansion_count" in r]
+        if selection_rows:
+            result["kg_retrieval"].update(
+                selection_runs=len(selection_rows),
+                graph_expansion_runs=sum(bool(r["graph_expansion_count"]) for r in selection_rows),
+                mean_graph_expansion_chunks=round(fmean(r["graph_expansion_count"] for r in selection_rows), 3),
+                mean_protected_hybrid_chunks=round(fmean(r["hybrid_protected_count"] for r in selection_rows), 3),
+                displaced_hybrid_chunks=sum(len(r["displaced_hybrid_chunks"]) for r in selection_rows),
+                graph_candidate_rejection_reasons=dict(sorted(Counter(
+                    d["reason"] for r in selection_rows for d in r["graph_candidate_decisions"]
+                    if not d["qualified"]).items())),
+                graph_expansion_bases=dict(sorted(Counter(
+                    d.get("qualification_basis", "unspecified") for r in selection_rows
+                    for d in r["graph_candidate_decisions"] if d.get("selection_role") == "graph_expansion").items())))
     generation_diagnostics = _summarize_generation_diagnostics(rows)
     if generation_diagnostics is not None:
         result["generation_diagnostics"] = generation_diagnostics
@@ -1403,8 +1418,16 @@ def report_markdown(manifest: dict, summary: dict) -> str:
     if graph := summary.get("kg", {}).get("kg_retrieval"):
         lines.extend(["", "## KG coverage", "",
             f"Pinned publication(s): {', '.join(graph['publication_ids'])}.",
-            f"Graph-supported runs: {graph['graph_used_runs']}; Hybrid-only runs: {graph['hybrid_only_runs']}.",
+            f"Graph-used runs (policy-defined): {graph['graph_used_runs']}; Hybrid-only runs: {graph['hybrid_only_runs']}.",
             "The reviewed pilot graph covers only part of the corpus; do not attribute Hybrid-only answers to graph retrieval."])
+        if "selection_runs" in graph:
+            lines.extend(["", f"Bounded selection runs: {graph['selection_runs']}; actual graph-expansion runs: "
+                f"{graph['graph_expansion_runs']}; mean protected Hybrid chunks: {graph['mean_protected_hybrid_chunks']}.",
+                f"Displaced Hybrid chunks: {graph['displaced_hybrid_chunks']}; rejected promotion candidates: "
+                f"{json.dumps(graph['graph_candidate_rejection_reasons'], sort_keys=True)}.",
+                "A graph-supported chunk already retrieved by Hybrid is not an actual graph expansion."])
+            if "graph_expansion_bases" in graph:
+                lines.append(f"Expansion qualification bases: {json.dumps(graph['graph_expansion_bases'], sort_keys=True)}.")
     if failures := summary.get("kg", {}).get("kg_failures"):
         lines.extend(["", "## KG retrieval failures", "",
             f"Failed retrievals: {failures['runs']}; codes: {json.dumps(failures['codes'], sort_keys=True)}; "
@@ -1596,12 +1619,16 @@ def run(args) -> Path:
     if "kg" in modes:
         from src.api.kg.retrieval import open_publication
         from src.api.kg.settings import KGSettings
+        from src.api.kg.selection_policy import SELECTION_POLICY, MAX_GRAPH_EXPANSIONS
+        from src.api.kg.fact_matching import FACT_MATCHING_POLICY, MIN_FACT_TERMS
         pinned = open_publication(getattr(args, "kg_publication_id", None))
         settings = KGSettings()
         kg_configuration = pinned | dict(max_records=settings.KG_QUERY_MAX_RECORDS,
             max_chunks=settings.KG_QUERY_MAX_CHUNKS, max_text_bytes=settings.KG_QUERY_MAX_TEXT_BYTES,
             max_source_links=settings.KG_QUERY_MAX_SOURCE_LINKS,
             hybrid_candidates=settings.KG_QUERY_HYBRID_CANDIDATES,
+            selection_policy=SELECTION_POLICY, max_graph_expansions=MAX_GRAPH_EXPANSIONS,
+            fact_matching_policy=FACT_MATCHING_POLICY, fact_matching_min_terms=MIN_FACT_TERMS,
             scope_policy="snapshot_ready_undeleted_builds_with_matching_manifest")
     run_id = args.run_id or f"{datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ')}-{uuid4().hex[:8]}"
     run_dir = args.output_root / run_id

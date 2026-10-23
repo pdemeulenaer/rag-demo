@@ -79,13 +79,20 @@ def graph():
                 return Result([r for r in g.sources if r["record_id"] in params["records"]])
             if "MATCH path=" in query:
                 # Exact structural adjacency from the application-supplied approved links.
-                distance = {key:0 for key in params["seeds"]}
-                for _ in range(2):
-                    for edge in params["links"]:
-                        for a,b in [(edge["start"], edge["end"]), (edge["end"], edge["start"])]:
-                            if a in distance and distance[a] < 2:
-                                distance[b] = min(distance.get(b, 99), distance[a]+1)
-                return Result([dict(id=k,distance=v) for k,v in distance.items()])
+                distance, origins = {}, {}
+                for seed in params["seeds"]:
+                    local = {seed: 0}
+                    for _ in range(2):
+                        for edge in params["links"]:
+                            for a,b in [(edge["start"], edge["end"]), (edge["end"], edge["start"])]:
+                                if a in local and local[a] < 2:
+                                    local[b] = min(local.get(b, 99), local[a]+1)
+                    for key, value in local.items():
+                        distance[key] = min(distance.get(key, 99), value)
+                        origins.setdefault(key, []).append(seed)
+                return Result([dict(id=k,distance=v,
+                    anchor_id=min(set(origins[k]).intersection(params["anchors"]),default=None))
+                    for k,v in distance.items()])
             raise AssertionError(query)
 
     class Reader(KGReader):
@@ -121,13 +128,13 @@ def test_catalogue_normalization_does_not_infer_components_or_unknown_catalogues
     assert not mentioned(name, query)
 
 
-def add_object_paper(g, name, aliases, text, value="4"):
+def add_object_paper(g, name, aliases, text, value="4", kind="astronomical_object"):
     """Distinct source/record identities; even contradictory values stay separate."""
     paper, build, point = map(str, (uuid4(), uuid4(), uuid4()))
     source = dict(paper_id=paper,build_id=build,collection="papers",point_id=point,
                   source="arxiv",page_number=1,section_header="Results")
     entity_id = build+":entity"
-    entity = dict(id=entity_id,kind="astronomical_object",name=name,aliases=aliases,
+    entity = dict(id=entity_id,kind=kind,name=name,aliases=aliases,
                   evidence=[source|dict(quote=text)])
     obs = dict(id=build+":observation",subject_id=entity_id,kind="measurement",
         statement=f"Distance is {value} kpc.",quantity="distance",value_text=value,unit_text="kpc",
@@ -199,7 +206,105 @@ def test_generic_names_are_not_used_for_cross_paper_resolution(graph):
     assert other not in {c.id for c in result.chunks}
 
 
-def test_survey_selection_considers_more_candidates_but_keeps_top_k_and_graph_slot(graph):
+def test_broad_population_matches_cannot_borrow_another_objects_specific_anchor(graph):
+    _,object_point,_ = add_object_paper(graph,"M22",[],"M22: distance is 4 kpc.")
+    _,population_point,_ = add_object_paper(graph,"Population Zeta",[],
+        "Population Zeta: distance is 4 kpc.",kind="stellar_population")
+    result = graph.reader.search("M22 Population Zeta",scope=graph.scope,
+        catalogue=graph.catalogue,seeds=[],limit=20)
+    support = {row["id"]:row["anchor_record_ids"] for row in result.diagnostics["graph_candidate_support"]}
+    assert support[object_point]
+    assert support[population_point] == []
+    assert len(result.diagnostics["promotion_anchor_entities"]) == 1
+    assert "min(CASE WHEN seed.id IN $anchors" in next(q for q,_ in graph.calls if "MATCH path=" in q)
+
+
+def test_named_paper_scope_filters_graph_records_before_matching_or_traversal(graph):
+    _,other_point,other = add_object_paper(graph,"M22",[],"M22: distance is 4 kpc.")
+    requested = [SimpleNamespace(collection="papers",build_id=graph.build)]
+    result = graph.reader.search("Cluster Alpha M22",scope=graph.scope,catalogue=graph.catalogue,
+        seeds=[],limit=20,required_papers=requested)
+    assert {chunk.id for chunk in result.chunks} == {graph.point}
+    assert other_point not in {chunk.id for chunk in result.chunks}
+    assert result.diagnostics["graph_paper_scope"] == "resolved_named_papers"
+    assert result.diagnostics["graph_scope_excluded_build_ids"] == [other["id"]]
+    assert result.diagnostics["eligible_graph_paper_count"] == 1
+    read = next(params for query,params in graph.calls if "RETURN properties(r)" in query)
+    assert read["builds"] == [graph.build]
+    assert all("M22" not in row["names"] for row in result.diagnostics["promotion_anchor_entities"])
+
+
+def test_comparison_scope_permits_both_named_papers_but_not_an_unnamed_third(graph):
+    _,point,row = add_object_paper(graph,"M22",[],"M22: distance is 4 kpc.")
+    _,excluded,_ = add_object_paper(graph,"NGC123",[],"NGC123: distance is 4 kpc.")
+    requested = [SimpleNamespace(collection="papers",build_id=b) for b in [graph.build,row["id"]]]
+    result = graph.reader.search("Cluster Alpha M22 NGC123",scope=graph.scope,
+        catalogue=graph.catalogue,seeds=[],limit=20,required_papers=requested)
+    assert {c.id for c in result.chunks} == {graph.point,point}
+    assert excluded not in {c.id for c in result.chunks}
+
+
+@pytest.mark.parametrize("collection,build",[("other","same"),("papers","not-in-scope")])
+def test_named_paper_filter_never_widens_a_frozen_or_federated_scope(graph,collection,build):
+    frozen = RetrievalScope("papers",(graph.build,),kind="frozen")
+    boundary = FederatedRetrievalScope((frozen,RetrievalScope("uploads",("upload",),kind="frozen")))
+    result = graph.reader.search("Cluster Alpha",scope=boundary,catalogue=graph.catalogue,seeds=[],limit=5,
+        required_papers=[SimpleNamespace(collection=collection,build_id=graph.build if build=="same" else build)])
+    assert not result.chunks and result.diagnostics["eligible_graph_paper_count"] == 0
+
+
+def test_unqualified_population_graph_does_not_displace_hybrid_at_runtime(graph):
+    _,_,_ = add_object_paper(graph,"Population Zeta",[],"Population Zeta: distance is 4 kpc.",
+                           kind="stellar_population")
+    seeds = [dict(id=f"h{i}",collection="papers",paper_id=graph.paper,build_id=graph.build,
+                  text="Unchanged Hybrid text") for i in range(5)]
+    result = retrieve("Population Zeta distance",Mock(),top_k=5,collection="papers",scope=graph.scope,
+        catalogue=graph.catalogue,retrieve_context=Mock(return_value=seeds),reader=graph.reader,settings=graph.settings)
+    assert list(result) == [r|dict(score=1/(60+i)) for i,r in enumerate(seeds,1)]
+    assert result.diagnostics["graph_expansion_count"] == 0
+    assert not result.diagnostics["graph_used"]
+    assert result.diagnostics["graph_candidate_decisions"][0]["reason"] == "no_specific_query_anchor"
+
+
+def test_named_assertion_recovery_is_direct_and_does_not_qualify_neighbours(graph):
+    paper,point,row = add_object_paper(graph,"Population Zeta",[],
+        "Population Zeta has tracer flux decreasing with pressure.",kind="stellar_population")
+    record_row = next(r for r in graph.records if r["record"]["build_id"]==row["id"]
+                      and r["record"]["record_type"]=="observation")
+    record = json.loads(record_row["record"]["record_json"])
+    record.update(kind="qualitative_finding",quantity="tracer flux",value_text=None,unit_text=None,
+                  statement="The tracer flux decreases with pressure.")
+    record_row["record"]["record_json"] = canonical(record)
+    sibling_point = str(uuid4())
+    evidence = dict(record["evidence"][0],point_id=sibling_point,quote="A population is present.")
+    sibling = dict(record,id="unrelated-sibling",statement="A population is present.",quantity=None,
+                   evidence=[evidence])
+    key = identity("record",graph.publication,sibling["id"])
+    graph.records.append(dict(record=dict(record_row["record"],id=key,record_id=sibling["id"],
+        record_json=canonical(sibling)),labels=["KGRecord","KGObservation"]))
+    text=evidence["quote"]
+    graph.sources.append(dict(record_id=key,support=dict(publication_id=graph.publication,quote=text,
+        evidence_json=canonical(evidence)),chunk=dict(evidence,id=identity("chunk","papers",sibling_point),
+        text=text,text_sha256=sha256(text.encode()).hexdigest(),chunk_index=1)))
+    graph.manifest["counts"]["records"] += 1
+    seeds = [dict(id=f"h{i}",collection="papers",build_id=row["id"],paper_id=paper,text="Hybrid passage")
+             for i in range(5)]
+    requested = [SimpleNamespace(collection="papers",build_id=row["id"],title="Synthetic Study")]
+    search=Mock(return_value=seeds)
+    result = retrieve('In "Synthetic Study", how does tracer flux vary with pressure?',Mock(),top_k=5,
+        collection="papers",scope=graph.scope,catalogue=graph.catalogue,retrieve_context=search,
+        reader=graph.reader,settings=graph.settings,required_papers=requested)
+    assert [r["id"] for r in result[:3]] == ["h0","h1","h2"]
+    assert point in {r["id"] for r in result} and sibling_point not in {r["id"] for r in result}
+    decisions={r["id"]:r for r in result.diagnostics["graph_candidate_decisions"]}
+    assert decisions[point]["qualification_basis"] == "named_paper_fact_overlap"
+    assert not decisions[sibling_point]["qualified"]
+    assert not result.diagnostics["promotion_anchor_entities"]
+    assert result.diagnostics["graph_expansion_count"] == 1
+    search.assert_called_once()
+
+
+def test_survey_selection_considers_more_candidates_but_protects_hybrid_head(graph):
     add_object_paper(graph,"M22",[],"M22: distance is 4 kpc.")
     seeds = [dict(id=f"a{i}",collection="papers",paper_id="a",text="M 22 abundance study.") for i in range(5)]
     seeds += [dict(id="b",collection="papers",paper_id="b",text="M22 variables.")]
@@ -208,9 +313,10 @@ def test_survey_selection_considers_more_candidates_but_keeps_top_k_and_graph_sl
     result = retrieve("What do papers report about M22?",Mock(),top_k=3,collection="papers",scope=graph.scope,
         catalogue=graph.catalogue,retrieve_context=search,reader=graph.reader,settings=graph.settings)
     assert search.call_args.kwargs["top_k"] == graph.settings.KG_QUERY_HYBRID_CANDIDATES
-    assert len(result) == 3 and len({r["paper_id"] for r in result}) == 3
+    assert len(result) == 3 and len({r["paper_id"] for r in result}) == 2
+    assert [r["id"] for r in result[:2]] == ["a0", "a1"]
     assert result.diagnostics["selected_graph_chunk_count"] == 1
-    assert result.diagnostics["paper_diversity_applied"]
+    assert result.diagnostics["graph_expansion_count"] == 1
     assert "unrelated" not in {r["id"] for r in result}
 
 
@@ -221,13 +327,14 @@ def test_single_fact_does_not_enable_larger_survey_pool(graph):
     assert search.call_args.kwargs["top_k"] == 2
 
 
-def test_graph_reservation_prefers_literal_subject_over_unrelated_graph_hit():
-    from src.api.kg.selection_policy import select_context
-    rows = {"unrelated":dict(paper_id="other",text="47 Tuc stars."),
-            "target":dict(paper_id="m22",text="M 22 abundances.")}
-    chosen,_ = select_context(list(rows),rows,set(rows),limit=1,
-                             query="What do papers report about M22?")
-    assert chosen == ["target"]
+def test_only_qualified_graph_candidate_can_fill_empty_hybrid_context():
+    from src.api.kg.selection_policy import select_expansion_context
+    rows = {("papers", "unrelated"):dict(paper_id="other",text="47 Tuc stars."),
+            ("papers", "target"):dict(paper_id="m22",text="M 22 abundances.")}
+    chosen,_ = select_expansion_context(list(rows), rows, set(rows), hybrid_order=[],
+        graph_support=[dict(collection="papers", id="target", anchor_record_ids=["object"])],
+        limit=1, query="What do papers report about M22?")
+    assert chosen == [("papers", "target")]
 
 
 def test_graph_traversal_returns_original_scoped_chunk_and_attribution(graph):
@@ -249,6 +356,8 @@ def test_hybrid_point_seeds_without_entity_mention(graph):
     result = graph.reader.search("distance", scope=graph.scope, catalogue=graph.catalogue,
         seeds=[dict(collection="papers",id=graph.point)], limit=5)
     assert not result.diagnostics["matched_entity_ids"] and result.chunks
+    assert not result.diagnostics["promotion_anchor_entities"]
+    assert all(not row["anchor_record_ids"] for row in result.diagnostics["graph_candidate_support"])
 
 
 @pytest.mark.parametrize("change", [dict(deleted=True),dict(status="failed"),dict(active_build="new"),
@@ -313,12 +422,13 @@ def test_no_graph_match_is_observable_hybrid_only_not_a_hidden_fallback(graph):
     assert search.call_args.kwargs["mode"] == "hybrid"
 
 
-def test_graph_slot_and_final_context_cap_without_cohere(graph):
+def test_single_slot_protects_hybrid_instead_of_forcing_graph_passage(graph):
     seed = dict(id="unreviewed", collection="papers", text="Hybrid evidence", paper_id=graph.paper)
     result = retrieve("Cluster Alpha",Mock(),top_k=1,collection="papers",scope=graph.scope,
         catalogue=graph.catalogue,retrieve_context=Mock(return_value=[seed]),reader=graph.reader,settings=graph.settings)
-    assert len(result)==1 and result[0]["id"] == graph.point
-    assert result.diagnostics["selected_graph_chunk_count"] == 1
+    assert len(result)==1 and result[0]["id"] == "unreviewed"
+    assert result.diagnostics["selected_graph_chunk_count"] == 0
+    assert result.diagnostics["graph_expansion_limit"] == 0
 
 
 def test_vector_graph_text_conflict_is_not_silently_overwritten(graph):
@@ -337,7 +447,9 @@ def test_vector_graph_boundary_whitespace_preserves_original_text(graph, boundar
         catalogue=graph.catalogue, retrieve_context=Mock(return_value=[seed]),
         reader=graph.reader, settings=graph.settings)
     assert next(r["text"] for r in result if r["id"] == graph.point) == original
-    assert result.diagnostics["graph_used"]
+    assert result.diagnostics["selected_graph_chunk_count"] == 1
+    assert not result.diagnostics["graph_used"]
+    assert result.diagnostics["retrieval_status"] == "hybrid_only_graph_already_retrieved"
 
 
 @pytest.mark.parametrize("changed", ["7  kpc", "9 kpc", "-7 kpc", "7 Kpc"])
