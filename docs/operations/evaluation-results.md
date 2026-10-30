@@ -3,6 +3,30 @@
 This page records named comparison baselines. Local run artifacts remain the authoritative
 per-question record, and Langfuse holds the corresponding traces and Dataset Experiments.
 
+## Broader KG development check — 2026-10-23
+
+Run `20261023T120303Z-ecec5bb4` completed 33 questions per mode with zero runtime/judge-request
+failures. On the 31 questions with correctness scored in both modes, Hybrid averaged 0.8226
+and KG 0.8548; all-question groundedness was 0.9697 versus 0.9545. Correctness was unscored
+for `q0021` in both modes and `q0022` in KG because of unresolved judge annotations, not
+successful answers. Historical results remain unchanged.
+
+Only **four** questions concern papers represented in the active eight-paper publication:
+`q0007`, `q0024`, `q0027`, `q0054`. None of the required papers for the remaining **29**
+questions is in that publication. Paper membership also does not guarantee graph coverage
+of the requested findings: it contains only 22 reviewed source chunks. Graph additions
+occurred only on `q0027` and `q0054`; the other 31 answers used Hybrid-only final evidence.
+The dilution control `q0024` had identical final evidence and correctness 1.0 in both modes.
+`q0054` regressed from a partial Hybrid answer (0.5) to a KG citation-validation abstention
+(0.0); neither mode retrieved the requested SPURS measurements. This is an observed regression,
+not proof of causality or a general graph failure. Do not hide it in the aggregate gain.
+
+This run is primarily a **fallback/regression check**, not a meaningful estimate of KG
+advantage on relationship-dependent questions. The narrow pilot below demonstrates examples
+of graph-assisted passage retrieval, not general scientific multihop reasoning. Current
+next work is [offline relationship/coverage analysis](../architecture/kg-relationship-analysis.md)
+and a connected reviewed subset; full-corpus extraction is not a prerequisite.
+
 ## KG policy v5 development pilot — 2026-10-23
 
 Run `20261023T102416Z-7aed9c75` completed all 16 answers: eight questions each for Hybrid

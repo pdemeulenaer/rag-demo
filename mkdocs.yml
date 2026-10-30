@@ -39,6 +39,7 @@ nav:
       - Overview: architecture/index.md
       - RAG modes: architecture/rag-modes.md
       - Knowledge-graph RAG: architecture/knowledge-graph.md
+      - KG relationship analysis: architecture/kg-relationship-analysis.md
       - RAG Pipeline: architecture/rag-pipeline.md
       - RAG evolution roadmap: architecture/rag-evolution-roadmap.md
       - Ingestion: architecture/ingestion.md

@@ -23,7 +23,30 @@ knowledge-graph retrieval as an additional
 evidence tool for the same orchestration layer. Offline extraction/publication and deterministic
 KG querying are implemented; KG-Agentic composition and global entity resolution remain pending.
 
-## Current next steps — 2026-10-23
+## Current next steps — 2026-10-30
+
+The broader development check is complete. Only four of its 33 questions concern graph
+papers; 29 concern papers absent from the active publication. It primarily tests fallback,
+not whether relationships improve answers. See [the result and coverage caveat](../operations/evaluation-results.md#broader-kg-development-check-2026-10-23).
+Keep v5 and the deferred small answer/judge improvements unchanged.
+
+**Next implement an offline audit of existing extraction**, then conservative cross-paper
+identity proposals and bounded scientific evidence-chain discovery. Use that report to select
+a connected subset for focused review/publication and relationship-dependent evaluation.
+There is no requirement to finish every corpus chunk or repeat the broad benchmark first.
+More papers, provenance edges or two structural database hops are not proof of scientific
+multihop reasoning. These analysis capabilities are **planned, not implemented**. Follow the
+[concrete implementation slices](kg-relationship-analysis.md#planned-implementation-slices).
+
+After justified chains are available, add tested path-aware retrieval with source evidence
+and path witnesses before composing it into `kg_agentic`. Existing review/publication safety,
+typed contracts, bounded execution, separate modes and explicit paid-call authorization
+remain in force. Cross-plan reuse/composition remains separate work, not an existing feature.
+
+## Previous checkpoint — 2026-10-23 {#current-next-steps-2026-10-23}
+
+The broader comparison below has since completed; use the current next steps above rather
+than repeating it or treating full-corpus extraction as the next mandatory gate.
 
 Keep KG query policy `hybrid-reviewed-graph-v5` as the working retrieval baseline. The
 eight-question development pilot is complete; see the [results and manual caveats](../operations/evaluation-results.md#kg-policy-v5-development-pilot-2026-10-23).

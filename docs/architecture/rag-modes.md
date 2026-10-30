@@ -5,6 +5,11 @@ scientific-paper corpus. A mode describes **how evidence is selected before answ
 generation**. Vanilla, Hybrid, Hybrid + Rerank, Agentic and deterministic KG are available
 in the API and Streamlit. KG-Agentic remains planned.
 
+Current `kg` is **graph-assisted evidence retrieval**: it adds qualified original source
+chunks before shared answer generation. Structural graph traversal is not, by itself,
+multi-step scientific reasoning. See [the capability distinction and relationship-analysis
+plan](kg-relationship-analysis.md); that planned audit/path work is not implemented yet.
+
 ## At a glance
 
 | Mode | Status | Evidence acquisition | Adaptive rounds | Graph evidence |

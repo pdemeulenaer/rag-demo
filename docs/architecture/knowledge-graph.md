@@ -11,6 +11,14 @@ support are implemented; `kg_agentic` remains planned. Extraction alone saves lo
 candidates, not published facts.
 Implementation tests do not make paid requests.
 
+!!! note "Current capability is graph-assisted retrieval, not proven scientific multihop reasoning"
+    KG helps select original source passages for the shared generator. Its two structural
+    traversal links may represent only one scientific relationship; provenance edges are not
+    reasoning steps. More extracted chunks alone do not demonstrate a graph advantage.
+    The next milestone is an automated, offline relationship/identity/coverage audit of
+    existing extraction, then a reviewed connected subset—not mandatory full-corpus completion.
+    See [KG relationship analysis: capability limits and planned implementation](kg-relationship-analysis.md).
+
 The target is all eligible papers, not a permanent seven-paper corpus. Validate the
 connected pilot first, then expand. Unrelated papers may form disconnected components;
 never manufacture a relationship just to connect the graph.

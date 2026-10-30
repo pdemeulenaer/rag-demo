@@ -776,7 +776,28 @@ or tracing, reads no .env and calls no services. Fresh-process regression tests 
 Do not imply two token matches establish entailment or complete fact coverage. No new model/
 embedding/Neo4j call, cap/default change, graph write, extraction, reindex or paid trial.
 
-Current user-approved direction (2026-10-23): retain KG query policy v5 as the working baseline;
+Current direction (2026-10-30) supersedes mandatory full-corpus expansion/repeated broad runs:
+current kg demonstrates graph-assisted original-passage retrieval, not general scientific
+multihop reasoning. Two HAS_OBSERVATION/SUBJECT/OBJECT structural hops may be one scientific
+assertion; provenance/publication edges do not count as scientific relationships. The broad
+20261023T120303Z-ecec5bb4 run had 29/33 questions with no required paper in the graph, 4 with
+all required papers, and actual graph additions on only q0027/q0054. It is mainly a fallback
+check; q0054 regressed to citation-validation abstention. Do not claim aggregate superiority.
+The user requested documentation and a concrete automation plan; the planned audit/identity/
+chain tools are NOT implemented. See docs/architecture/kg-relationship-analysis.md and the
+2026-10-30 roadmap. First slice: configuration-free offline fingerprinted coverage/predicate/
+quarantine/review audit of existing extraction, with new local outputs only, no paid calls,
+no .env reads, no graph/review/checkpoint mutation. Then conservative source-backed identity
+proposals and bounded typed scientific-chain discovery, separating candidate and approved
+projections, structural links from scientific steps and possible identity from justified
+identity. Never merge generic 1P/2P/Al-rich labels or confuse correlation/hypothesis/causation.
+Use findings to select a connected reviewed subset; completing all chunks is not required.
+Path-aware retrieval and fair graph ablations follow demonstrated useful chains, then optional
+kg_agentic; do not raise hop/token limits and call that reasoning. Paid extraction/review
+assistance/evaluations and publication/activation require explicit authorization. Retain v5
+and the deferred small completeness/attribution backlog unless separately requested.
+
+Previous checkpoint (2026-10-23): retain KG query policy v5 as the working baseline;
 do not block progress on another pilot prompt/judge refinement cycle. Full pilot run
 20261023T102416Z-7aed9c75 scored Hybrid correctness .75 versus KG 1.0 (8 scored each, no runtime/
 judge errors), but manual review found kg0007 missing WFC3/ACS prior directions and kg0008
